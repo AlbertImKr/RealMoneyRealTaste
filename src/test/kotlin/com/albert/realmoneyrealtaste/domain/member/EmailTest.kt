@@ -9,12 +9,12 @@ import org.junit.jupiter.params.provider.ValueSource
 class EmailTest {
 
     @Test
-    fun testValidEmail() {
+    fun `test valid email`() {
         Assertions.assertThatNoException().isThrownBy { Email("valid123@naver.com") }
     }
 
     @Test
-    fun testInvalidEmail_Blank() {
+    fun `test invalid email - empty`() {
         Assertions.assertThat(Assertions.catchThrowable { Email("") })
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("이메일은 필수입니다")
@@ -30,7 +30,7 @@ class EmailTest {
             "username@domain..com"
         ]
     )
-    fun testInvalidEmail_Format(invalidEmail: String) {
+    fun `test invalid email - format`(invalidEmail: String) {
 
         Assertions.assertThat(Assertions.catchThrowable { Email(invalidEmail) })
             .isInstanceOf(IllegalArgumentException::class.java)
@@ -45,7 +45,7 @@ class EmailTest {
             "example123@kakao.com, kakao.com"
         ]
     )
-    fun testGetDomain(emailStr: String, expectedDomain: String) {
+    fun `test get domain from email`(emailStr: String, expectedDomain: String) {
         val email = Email(emailStr)
 
         Assertions.assertThat(email.getDomain()).isEqualTo(expectedDomain)
