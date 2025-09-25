@@ -1,6 +1,8 @@
 package com.albert.realmoneyrealtaste.domain.member
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatNoException
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -10,12 +12,12 @@ class EmailTest {
 
     @Test
     fun `test valid email`() {
-        Assertions.assertThatNoException().isThrownBy { Email("valid123@naver.com") }
+        assertThatNoException().isThrownBy { Email("valid123@naver.com") }
     }
 
     @Test
     fun `test invalid email - empty`() {
-        Assertions.assertThat(Assertions.catchThrowable { Email("") })
+        assertThatThrownBy { Email("") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("이메일은 필수입니다")
     }
@@ -32,7 +34,7 @@ class EmailTest {
     )
     fun `test invalid email - format`(invalidEmail: String) {
 
-        Assertions.assertThat(Assertions.catchThrowable { Email(invalidEmail) })
+        assertThatThrownBy { Email(invalidEmail) }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("유효하지 않은 이메일 형식입니다")
     }
@@ -48,6 +50,6 @@ class EmailTest {
     fun `test get domain from email`(emailStr: String, expectedDomain: String) {
         val email = Email(emailStr)
 
-        Assertions.assertThat(email.getDomain()).isEqualTo(expectedDomain)
+        assertThat(email.getDomain()).isEqualTo(expectedDomain)
     }
 }
