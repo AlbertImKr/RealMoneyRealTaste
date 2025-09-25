@@ -14,6 +14,13 @@
     - [2.6 리뷰 유형 및 신뢰도 시스템 (Review Type & Trust System)](#26-리뷰-유형-및-신뢰도-시스템-review-type--trust-system)
     - [2.7 커뮤니티 신뢰도 (Community Trust)](#27-커뮤니티-신뢰도-community-trust)
     - [2.8 피드 및 추천 시스템 (Feed & Recommendation System)](#28-피드-및-추천-시스템-feed--recommendation-system)
+- [3. RMRT 도메인 모델](#3-rmrt-도메인-모델)
+  - [3.1 회원 애그리거트 (Member Aggregate)](#31-회원-애그리거트-member-aggregate)
+    - [3.1.1 회원 (Member)](#311-회원-member)
+    - [3.1.2 회원 상세(MemberDetail)](#312-회원-상세memberdetail)
+    - [3.1.3 회원 상태(MemberStatus)](#313-회원-상태memberstatus)
+    - [3.1.4 신뢰도 점수(TrustScore)](#314-신뢰도-점수trustscore)
+    - [3.1.5 신뢰도 레벨(TrustLevel)](#315-신뢰도-레벨trustlevel)
 
 ## 1. 도메인 개요
 
@@ -99,3 +106,103 @@
     - 피드 우선순위: 내돈내산 리뷰 > 광고성 리뷰 > 관심 카테고리 > 트렌딩 순
     - 내돈내산 필터 기능으로 순수 내돈내산 리뷰만 선별 조회 가능
     - AI 기반 개인 취향 분석으로 맞춤형 내돈내산 맛집 우선 추천
+
+## 3. RMRT 도메인 모델
+
+### 3.1 회원 애그리거트 (Member Aggregate)
+
+#### 3.1.1 회원 (Member)
+
+**_Aggregate Root_**
+
+**속성**
+
+- id: Long
+- email: Email - Natural ID
+- nickname: Nickname 닉네임
+- passwordHash: 비밀번호 해시
+- status: MemberStatus 회원 상태
+- detail: MemberDetail 1:1
+- trustScore: TrustScore 신뢰도 점수
+
+**행위**
+
+- static register(): 회원 등록: email, nickname, password, passwordEncoder
+- activate(): 등록을 완료시킨다
+- deactivate(): 탈퇴시킨다
+- verifyPassword(): 비밀번호를 검증한다
+- changePassword(): 비밀번호 변경
+- updateInfo(): 회원 정보 수정 (닉네임, 프로필 주소, 자기 소개)
+- updateTrustScore(): 신뢰도 점수 업데이트
+- canWriteReview(): 리뷰 작성 권한 확인
+
+**규칙**
+
+- 회원 생성후 상태는 등록 대기
+- 이메일 인증을 완료하면 등록 완료가 된다
+- 등록 대기 상태에서만 등록 완료가 될 수 있다
+- 등록 완료 상태에서는 탈퇴할 수 있다
+- 등록 완료 상태에서만 회원 정보를 수정할 수 있다
+- 회원의 비밀번호는 해시를 만들어서 저장한다
+- 닉네임은 중복을 허용하지 않는다
+- 탈퇴한 회원의 닉네임은 재사용할 수 없다
+
+#### 3.1.2 회원 상세(MemberDetail)
+
+_Entity_
+
+**속성**
+
+- id: Long
+- profileAddress: ProfileAddress 프로필 주소
+- introduction: 자기 소개
+- registeredAt: 등록 일시
+- activatedAt: 등록 완료 일시
+- deactivatedAt: 탈퇴 일시
+
+**행위**
+
+- static create(): 회원 등록시 생성, 현재 시간을 등록 일시로 저장
+- activate(): 등록 완료, 등록 완료 일시 저장
+- deactivate(): 탈퇴, 탈퇴 일시 저장
+- updateInfo(): 상세 정보 수정
+
+#### 3.1.3 회원 상태(MemberStatus)
+
+_Enum_
+
+**상수**
+
+- PENDING: 등록 대기
+- ACTIVE: 등록 완료
+- DEACTIVATED: 탈퇴
+
+#### 3.1.4 신뢰도 점수(TrustScore)
+
+_Value Object_
+
+**속성**
+
+- score: int 신뢰도 점수 (0-1000)
+- level: TrustLevel 신뢰도 레벨
+- realMoneyReviewCount: int 내돈내산 리뷰 수
+- adReviewCount: int 광고성 리뷰 수
+
+**행위**
+
+- calculateLevel(): 점수에 따른 레벨 계산
+- addRealMoneyReview(): 내돈내산 리뷰 작성시 점수 증가 (+5)
+- addAdReview(): 광고성 리뷰 작성시 점수 증가 (+1)
+- penalize(): 규칙 위반시 점수 감소
+- getRealMoneyRatio(): 내돈내산 리뷰 비율 계산
+
+#### 3.1.5 신뢰도 레벨(TrustLevel)
+
+_Enum_
+
+**상수**
+
+- BRONZE: 브론즈 (0-199)
+- SILVER: 실버 (200–499)
+- GOLD: 골드 (500–799)
+- DIAMOND: 다이아몬드 (800-1000)
