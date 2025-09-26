@@ -1,5 +1,13 @@
 # RMRT (Real Money Real Taste) - 진짜 내돈내산 푸디 소셜 플랫폼
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=AlbertImKr_RealMoneyRealTaste&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=AlbertImKr_RealMoneyRealTaste)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=AlbertImKr_RealMoneyRealTaste&metric=bugs)](https://sonarcloud.io/summary/new_code?id=AlbertImKr_RealMoneyRealTaste)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=AlbertImKr_RealMoneyRealTaste&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=AlbertImKr_RealMoneyRealTaste)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=AlbertImKr_RealMoneyRealTaste&metric=coverage)](https://sonarcloud.io/summary/new_code?id=AlbertImKr_RealMoneyRealTaste)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=AlbertImKr_RealMoneyRealTaste&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=AlbertImKr_RealMoneyRealTaste)
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=AlbertImKr_RealMoneyRealTaste)](https://sonarcloud.io/summary/new_code?id=AlbertImKr_RealMoneyRealTaste)
+
 ## 목차
 
 - [1. 도메인 개요](#1-도메인-개요)
