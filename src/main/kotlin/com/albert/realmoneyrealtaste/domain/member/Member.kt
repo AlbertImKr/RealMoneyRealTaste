@@ -27,13 +27,13 @@ import java.time.LocalDateTime
 )
 data class Member private constructor(
     @Embedded
-    val email: Email = Email(),
+    val email: Email,
 
     @Embedded
-    val nickname: Nickname = Nickname(),
+    val nickname: Nickname,
 
     @Column(name = "password_hash", nullable = false)
-    val passwordHash: String = "",
+    val passwordHash: String,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -61,9 +61,7 @@ data class Member private constructor(
             email = email,
             nickname = nickname,
             passwordHash = passwordEncoder.encode(password),
-            status = MemberStatus.PENDING,
             detail = MemberDetail.register(),
-            trustScore = TrustScore.create()
         )
     }
 
