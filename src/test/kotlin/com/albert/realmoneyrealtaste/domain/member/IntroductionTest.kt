@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.domain.member
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class IntroductionTest {
 
@@ -31,10 +32,10 @@ class IntroductionTest {
     fun `test too long introduction`() {
         val tooLongIntro = "A".repeat(501)
 
-        try {
+        assertFailsWith<IllegalArgumentException> {
             Introduction(tooLongIntro)
-        } catch (e: IllegalArgumentException) {
-            assertEquals("소개는 최대 500자 이내여야 합니다", e.message)
+        }.let {
+            assertEquals("소개는 최대 500자 이내여야 합니다", it.message)
         }
     }
 }
