@@ -38,4 +38,11 @@ class IntroductionTest {
             assertEquals("소개는 최대 500자 이내여야 합니다", it.message)
         }
     }
+
+    @Test
+    fun `test introduction with none`() {
+        val intro = Introduction()
+
+        assertEquals("", intro.value)
+    }
 }
