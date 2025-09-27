@@ -25,7 +25,7 @@ class TrustScoreTest {
             "50, 0, 250, 50",
         ]
     )
-    fun `test addRealMoneyReview`(times: Int, adTimes: Int, expectedScore: Int, expectedAdCount: Int) {
+    fun `test addRealMoneyReview`(times: Int, adTimes: Int, expectedScore: Int) {
         var trustScore = TrustScore.create()
         val expectedLevel = TrustLevel.fromScore(expectedScore)
 
@@ -36,7 +36,7 @@ class TrustScoreTest {
         assertEquals(expectedLevel, trustScore.level)
         assertEquals(adTimes, trustScore.adReviewCount)
         assertEquals(expectedScore, trustScore.score)
-        assertEquals(expectedAdCount, trustScore.realMoneyReviewCount)
+        assertEquals(times, trustScore.realMoneyReviewCount)
     }
 
     @ParameterizedTest
