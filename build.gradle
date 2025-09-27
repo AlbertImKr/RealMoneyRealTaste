@@ -18,6 +18,13 @@ java {
     }
 }
 
+sonar {
+    properties {
+        property "sonar.projectKey", "AlbertImKr_RealMoneyRealTaste"
+        property "sonar.organization", "albertimkr"
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -57,7 +64,6 @@ tasks.named('test') {
 }
 
 tasks.jacocoTestReport {
-    dependsOn(tasks.test)
     reports {
         xml.required.set(true)
         csv.required.set(false)
