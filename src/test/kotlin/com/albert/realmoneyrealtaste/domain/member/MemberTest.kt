@@ -36,6 +36,31 @@ class MemberTest {
     }
 
     @Test
+    fun `test activate member when already active`() {
+        val member = MemberFixture.createMember()
+        val activatedMember = member.activate()
+
+        assertFailsWith<IllegalArgumentException> {
+            activatedMember.activate()
+        }.let {
+            assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
+        }
+    }
+
+    @Test
+    fun `test activate member when deactivated`() {
+        val member = MemberFixture.createMember()
+        val activatedMember = member.activate()
+        val deactivatedMember = activatedMember.deactivate()
+
+        assertFailsWith<IllegalArgumentException> {
+            deactivatedMember.activate()
+        }.let {
+            assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
+        }
+    }
+
+    @Test
     fun `test deactivate member`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
@@ -43,6 +68,30 @@ class MemberTest {
         val deactivatedMember = activatedMember.deactivate()
 
         assertEquals(MemberStatus.DEACTIVATED, deactivatedMember.status)
+    }
+
+    @Test
+    fun `test deactivate member when already deactivated`() {
+        val member = MemberFixture.createMember()
+        val activatedMember = member.activate()
+        val deactivatedMember = activatedMember.deactivate()
+
+        assertFailsWith<IllegalArgumentException> {
+            deactivatedMember.deactivate()
+        }.let {
+            assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
+        }
+    }
+
+    @Test
+    fun `test deactivate member when not active`() {
+        val member = MemberFixture.createMember()
+
+        assertFailsWith<IllegalArgumentException> {
+            member.deactivate()
+        }.let {
+            assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
+        }
     }
 
     @Test
@@ -115,6 +164,18 @@ class MemberTest {
     }
 
     @Test
+    fun `test update info with null values`() {
+        val member = MemberFixture.createMember()
+        val activatedMember = member.activate()
+
+        val updatedMember = activatedMember.updateInfo()
+
+        assertEquals(activatedMember.nickname, updatedMember.nickname)
+        assertEquals(activatedMember.detail.profileAddress, updatedMember.detail.profileAddress)
+        assertEquals(activatedMember.detail.introduction, updatedMember.detail.introduction)
+    }
+
+    @Test
     fun `test update trust score`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
@@ -149,5 +210,40 @@ class MemberTest {
         val canWriteReview = member.canWriteReview()
 
         assertEquals(false, canWriteReview)
+    }
+
+    @Test
+    fun `test equals and hashCone`() {
+        val member1 = MemberFixture.createMember()
+        MemberFixture.setId(member1, 1L)
+
+        val member2 = MemberFixture.createMember()
+        MemberFixture.setId(member2, 1L)
+
+        assertEquals(true, member1 == member2)
+        assertEquals(member1.hashCode(), member2.hashCode())
+    }
+
+    @Test
+    fun `test equals and hashCode with different ids`() {
+        val member1 = MemberFixture.createMember()
+        MemberFixture.setId(member1, 1L)
+
+        val member2 = MemberFixture.createMember()
+        MemberFixture.setId(member2, 2L)
+
+        assertEquals(false, member1 == member2)
+        assertEquals(true, member1.hashCode() == member2.hashCode())
+    }
+
+    @Test
+    fun `test toString`() {
+        val member = MemberFixture.createMember()
+        MemberFixture.setId(member, 1L)
+
+        val toString = member.toString()
+
+        assertEquals(true, toString.contains("id = 1"))
+        assertEquals(true, toString.contains("Member"))
     }
 }

@@ -24,5 +24,11 @@ class MemberFixture {
                 MemberStatus.DEACTIVATED -> member.activate().deactivate()
             }
         }
+
+        fun setId(entity: BaseEntity, id: Long) {
+            val field = BaseEntity::class.java.getDeclaredField("id")
+            field.isAccessible = true
+            field.set(entity, id)
+        }
     }
 }
