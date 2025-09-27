@@ -22,7 +22,7 @@ abstract class BaseEntity {
         val thisEffectiveClass =
             if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass else this.javaClass
         if (thisEffectiveClass != oEffectiveClass) return false
-        other as BaseEntity
+        if (other !is BaseEntity) return false
 
         return id != null && id == other.id
     }

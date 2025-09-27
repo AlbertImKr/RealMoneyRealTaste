@@ -69,6 +69,14 @@ class BaseEntityTest {
     }
 
     @Test
+    fun `equals returns false for different classes`() {
+        val entity1 = TestHibernateProxy()
+        val entity2 = AnotherHibernateProxy()
+
+        assertEquals(false, entity1 == entity2)
+    }
+
+    @Test
     fun `hashCode is consistent for same class`() {
         val entity1 = TestBaseEntity().apply { MemberFixture.setId(this, 1L) }
         val entity2 = TestBaseEntity().apply { MemberFixture.setId(this, 2L) }
@@ -106,6 +114,15 @@ class BaseEntityTest {
     internal class AnotherBaseEntity : BaseEntity()
 
     internal class TestHibernateProxy : BaseEntity(), HibernateProxy {
+        private val lazyInitializer = mock(LazyInitializer::class.java).apply {
+            `when`(persistentClass).thenReturn(TestBaseEntity::class.java)
+        }
+
+        override fun getHibernateLazyInitializer(): LazyInitializer = lazyInitializer
+        override fun writeReplace(): Any = this
+    }
+
+    internal class AnotherHibernateProxy : HibernateProxy {
         private val lazyInitializer = mock(LazyInitializer::class.java).apply {
             `when`(persistentClass).thenReturn(TestBaseEntity::class.java)
         }
