@@ -211,39 +211,4 @@ class MemberTest {
 
         assertEquals(false, canWriteReview)
     }
-
-    @Test
-    fun `test equals and hashCone`() {
-        val member1 = MemberFixture.createMember()
-        MemberFixture.setId(member1, 1L)
-
-        val member2 = MemberFixture.createMember()
-        MemberFixture.setId(member2, 1L)
-
-        assertEquals(true, member1 == member2)
-        assertEquals(member1.hashCode(), member2.hashCode())
-    }
-
-    @Test
-    fun `test equals and hashCode with different ids`() {
-        val member1 = MemberFixture.createMember()
-        MemberFixture.setId(member1, 1L)
-
-        val member2 = MemberFixture.createMember()
-        MemberFixture.setId(member2, 2L)
-
-        assertEquals(false, member1 == member2)
-        assertEquals(true, member1.hashCode() == member2.hashCode())
-    }
-
-    @Test
-    fun `test toString`() {
-        val member = MemberFixture.createMember()
-        MemberFixture.setId(member, 1L)
-
-        val toString = member.toString()
-
-        assertEquals(true, toString.contains("id = 1"))
-        assertEquals(true, toString.contains("Member"))
-    }
 }

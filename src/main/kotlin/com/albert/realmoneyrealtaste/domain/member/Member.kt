@@ -104,11 +104,4 @@ data class Member private constructor(
     fun updateTrustScore(newTrustScore: TrustScore): Member = copy(trustScore = newTrustScore)
 
     fun canWriteReview(): Boolean = status == MemberStatus.ACTIVE
-
-    final override fun equals(other: Any?): Boolean = super.equals(other)
-
-    final override fun hashCode(): Int = super.hashCode()
-
-    @Override
-    override fun toString(): String = super.toString()
 }

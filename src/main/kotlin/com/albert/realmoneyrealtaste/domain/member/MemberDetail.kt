@@ -42,13 +42,6 @@ data class MemberDetail private constructor(
     fun updateInfo(profileAddress: ProfileAddress?, introduction: Introduction?): MemberDetail =
         copy(profileAddress = profileAddress, introduction = introduction)
 
-    final override fun equals(other: Any?): Boolean = super.equals(other)
-
-    final override fun hashCode(): Int = super.hashCode()
-
-    @Override
-    override fun toString(): String = super.toString()
-
     companion object {
         fun register(profileAddress: ProfileAddress?, introduction: Introduction?): MemberDetail =
             MemberDetail(

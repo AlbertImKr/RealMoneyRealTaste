@@ -3,7 +3,6 @@ package com.albert.realmoneyrealtaste.domain.member
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 
 class MemberDetailTest {
 
@@ -75,38 +74,5 @@ class MemberDetailTest {
         assertEquals(null, memberDetail.activatedAt)
         assertEquals(null, memberDetail.deactivatedAt)
         assertEquals(true, memberDetail.registeredAt <= LocalDateTime.now())
-    }
-
-    @Test
-    fun `test equals and hashCode`() {
-        val memberDetail1 = MemberDetail.register()
-        MemberFixture.setId(memberDetail1, 1L)
-        val memberDetail2 = MemberDetail.register()
-        MemberFixture.setId(memberDetail2, 1L)
-
-        assertEquals(memberDetail1, memberDetail2)
-        assertEquals(memberDetail1.hashCode(), memberDetail2.hashCode())
-    }
-
-    @Test
-    fun `test equals and hashCode with different ids`() {
-        val memberDetail1 = MemberDetail.register()
-        MemberFixture.setId(memberDetail1, 1L)
-        val memberDetail2 = MemberDetail.register()
-        MemberFixture.setId(memberDetail2, 2L)
-
-        assertNotEquals(memberDetail1, memberDetail2)
-        assertEquals(memberDetail1.hashCode(), memberDetail2.hashCode())
-    }
-
-    @Test
-    fun `test toString`() {
-        val memberDetail = MemberDetail.register()
-        MemberFixture.setId(memberDetail, 1L)
-
-        val toString = memberDetail.toString()
-
-        assertEquals(true, toString.contains("id = 1"))
-        assertEquals(true, toString.contains("MemberDetail"))
     }
 }
