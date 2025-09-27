@@ -6,7 +6,7 @@ import jakarta.persistence.Embeddable
 @Embeddable
 data class ProfileAddress(
     @Column(name = "profile_address", length = 15)
-    val address: String = "",
+    val address: String,
 ) {
     init {
         if (address.isNotBlank()) {
