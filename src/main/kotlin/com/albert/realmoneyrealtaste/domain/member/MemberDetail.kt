@@ -47,6 +47,8 @@ data class MemberDetail private constructor(
                 introduction = introduction,
                 registeredAt = LocalDateTime.now()
             )
+
+        fun register(): MemberDetail = register(null, null)
     }
 }
 
