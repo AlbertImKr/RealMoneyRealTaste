@@ -6,7 +6,7 @@ import jakarta.persistence.Embeddable
 @Embeddable
 data class Nickname(
     @Column(name = "nickname", nullable = false, unique = true, length = 20)
-    val value: String = "",
+    val value: String,
 ) {
     init {
         validate()
