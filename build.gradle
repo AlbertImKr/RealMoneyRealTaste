@@ -18,6 +18,13 @@ java {
     }
 }
 
+sonar {
+    properties {
+        property "sonar.projectKey", "AlbertImKr_RealMoneyRealTaste"
+        property "sonar.organization", "albertimkr"
+    }
+}
+
 repositories {
     mavenCentral()
 }
