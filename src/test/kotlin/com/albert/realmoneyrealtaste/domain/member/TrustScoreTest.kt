@@ -128,6 +128,7 @@ class TrustScoreTest {
             "100, 20, 200, 920",
             "0, 0, 0, 0",
             "50, 10, 0, 260",
+            "50, 10, 10, 280",
         ]
     )
     fun `test calculateScore`(
@@ -143,5 +144,16 @@ class TrustScoreTest {
         )
 
         assertEquals(expectedScore, score)
+    }
+
+    @Test
+    fun `test calculateScore - non helpful count`() {
+        val score = TrustScore.calculateScore(
+            realMoneyReviewCount = 100,
+            adReviewCount = 50,
+            penaltyCount = 10
+        )
+
+        assertEquals(350, score)
     }
 }
