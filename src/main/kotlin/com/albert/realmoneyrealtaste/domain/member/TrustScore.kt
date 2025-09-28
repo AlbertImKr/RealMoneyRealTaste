@@ -21,24 +21,9 @@ data class TrustScore private constructor(
     @Column(name = "ad_review_count")
     val adReviewCount: Int = 0,
 ) {
-    companion object {
-        fun create(): TrustScore = TrustScore()
-
-        fun calculateScore(
-            realMoneyReviewCount: Int,
-            adReviewCount: Int,
-            helpfulCount: Int = 0,
-            penaltyCount: Int = 0,
-        ): Int {
-            val baseScore = (realMoneyReviewCount * 5) + (adReviewCount * 1) + (helpfulCount * 2)
-            val penalty = penaltyCount * 20
-            return maxOf(0, minOf(1000, baseScore - penalty))
-        }
-    }
-
     fun addRealMoneyReview(): TrustScore {
         val newCount = realMoneyReviewCount + 1
-        val newScore = minOf(1000, score + 5)
+        val newScore = minOf(1000, score + REAL_MONEY_REVIEW_WEIGHT)
         return copy(
             score = newScore,
             level = TrustLevel.fromScore(newScore),
@@ -48,7 +33,7 @@ data class TrustScore private constructor(
 
     fun addAdReview(): TrustScore {
         val newCount = adReviewCount + 1
-        val newScore = minOf(1000, score + 1)
+        val newScore = minOf(1000, score + AD_REVIEW_WEIGHT)
         return copy(
             score = newScore,
             level = TrustLevel.fromScore(newScore),
@@ -67,5 +52,26 @@ data class TrustScore private constructor(
     fun getRealMoneyRatio(): Double {
         val totalReviews = realMoneyReviewCount + adReviewCount
         return if (totalReviews == 0) 0.0 else realMoneyReviewCount.toDouble() / totalReviews
+    }
+
+    companion object {
+        const val REAL_MONEY_REVIEW_WEIGHT = 5
+        const val AD_REVIEW_WEIGHT = 1
+        const val HELPFUL_VOTE_WEIGHT = 2
+        const val PENALTY_WEIGHT = 20
+
+        fun create(): TrustScore = TrustScore()
+
+        fun calculateScore(
+            realMoneyReviewCount: Int,
+            adReviewCount: Int,
+            helpfulCount: Int = 0,
+            penaltyCount: Int = 0,
+        ): Int {
+            val baseScore =
+                (realMoneyReviewCount * REAL_MONEY_REVIEW_WEIGHT) + (adReviewCount * AD_REVIEW_WEIGHT) + (helpfulCount * HELPFUL_VOTE_WEIGHT)
+            val penalty = penaltyCount * PENALTY_WEIGHT
+            return maxOf(0, minOf(1000, baseScore - penalty))
+        }
     }
 }
