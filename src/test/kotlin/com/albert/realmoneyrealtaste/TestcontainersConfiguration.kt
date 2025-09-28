@@ -18,7 +18,6 @@ class TestcontainersConfiguration {
                 withUsername("testuser")
                 withPassword("testpass")
                 withReuse(true)
-                start()
             }
     }
 }
