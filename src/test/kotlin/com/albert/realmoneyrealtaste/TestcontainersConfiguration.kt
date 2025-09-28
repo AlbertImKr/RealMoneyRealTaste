@@ -12,6 +12,13 @@ class TestcontainersConfiguration {
     @Bean
     @ServiceConnection
     fun mysqlContainer(): MySQLContainer<*> {
-        return MySQLContainer(DockerImageName.parse("mysql:latest"))
+        return MySQLContainer(DockerImageName.parse("mysql:8.0"))
+            .apply {
+                withDatabaseName("testdb")
+                withUsername("testuser")
+                withPassword("testpass")
+                withReuse(true)
+                start()
+            }
     }
 }
