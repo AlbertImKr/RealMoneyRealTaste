@@ -71,8 +71,10 @@ data class TrustScore private constructor(
             helpfulCount: Int = 0,
             penaltyCount: Int = 0,
         ): Int {
-            val baseScore =
-                (realMoneyReviewCount * REAL_MONEY_REVIEW_WEIGHT) + (adReviewCount * AD_REVIEW_WEIGHT) + (helpfulCount * HELPFUL_VOTE_WEIGHT)
+            val realMoneyReviewScore = realMoneyReviewCount * REAL_MONEY_REVIEW_WEIGHT
+            val adReviewScore = adReviewCount * AD_REVIEW_WEIGHT
+            val helpfulVoteScore = helpfulCount * HELPFUL_VOTE_WEIGHT
+            val baseScore = realMoneyReviewScore + adReviewScore + helpfulVoteScore
             val penalty = penaltyCount * PENALTY_WEIGHT
             return maxOf(0, minOf(1000, baseScore - penalty))
         }
