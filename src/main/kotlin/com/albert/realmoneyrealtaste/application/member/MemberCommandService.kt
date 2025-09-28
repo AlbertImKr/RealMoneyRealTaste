@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class MemberCommandService(
-    private final val passwordEncoder: PasswordEncoder,
-    private final val memberRepository: MemberRepository,
+    private val passwordEncoder: PasswordEncoder,
+    private val memberRepository: MemberRepository,
 ) : MemberRegister {
 
     override fun register(request: MemberRegisterRequest): Member {
