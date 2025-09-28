@@ -5,9 +5,8 @@ import jakarta.persistence.Embeddable
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 
-@ConsistentCopyVisibility
 @Embeddable
-data class TrustScore private constructor(
+data class TrustScore(
     @Column(name = "trust_score")
     val score: Int = 0,
 
