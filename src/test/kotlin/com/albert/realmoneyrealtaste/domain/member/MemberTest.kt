@@ -99,9 +99,10 @@ class MemberTest {
     @Test
     fun `verify password`() {
         val member = MemberFixture.createMember()
-        val password = MemberFixture.DEFAULT_PASSWORD
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val encoder = MemberFixture.TEST_ENCODER
 
-        val verifyResult = member.verifyPassword(password)
+        val verifyResult = member.verifyPassword(password, encoder)
 
         assertEquals(true, verifyResult)
     }
@@ -110,11 +111,13 @@ class MemberTest {
     fun `change password`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
+        val rawNewPassword = MemberFixture.NEW_RAW_PASSWORD
+        val encoder = MemberFixture.TEST_ENCODER
         val newPassword = MemberFixture.NEW_PASSWORD
 
         val updatedMember = activatedMember.changePassword(newPassword)
 
-        assertEquals(true, updatedMember.verifyPassword(newPassword))
+        assertEquals(true, updatedMember.verifyPassword(rawNewPassword, encoder))
         assertEquals(true, activatedMember.updatedAt <= updatedMember.updatedAt)
     }
 

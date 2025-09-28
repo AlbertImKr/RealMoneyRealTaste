@@ -68,7 +68,8 @@ data class Member private constructor(
         )
     }
 
-    fun verifyPassword(matchPassword: PasswordHash): Boolean = passwordHash == matchPassword
+    fun verifyPassword(rawPassword: RawPassword, encoder: PasswordEncoder): Boolean =
+        passwordHash.matches(rawPassword, encoder)
 
     fun changePassword(newPassword: PasswordHash): Member {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
