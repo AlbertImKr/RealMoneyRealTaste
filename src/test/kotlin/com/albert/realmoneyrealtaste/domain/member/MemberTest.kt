@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.member
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -8,11 +9,12 @@ import kotlin.test.assertFailsWith
 class MemberTest {
 
     @Test
-    fun `test register member`() {
+    fun `register member`() {
         val email = Email("example123@example.com")
         val nickname = Nickname("exampleNick")
         val password = "securePassword"
         val passwordEncoder = BCryptPasswordEncoder()
+        val now = LocalDateTime.now()
 
         val member = Member.register(email, nickname, password, passwordEncoder)
 
@@ -24,19 +26,21 @@ class MemberTest {
         assertEquals(TrustLevel.BRONZE, member.trustScore.level)
         assertEquals(0, member.trustScore.realMoneyReviewCount)
         assertEquals(0, member.trustScore.adReviewCount)
+        assertEquals(true, member.detail.registeredAt >= now)
     }
 
     @Test
-    fun `test activate member`() {
+    fun `activate member`() {
         val member = MemberFixture.createMember()
 
         val activatedMember = member.activate()
 
         assertEquals(MemberStatus.ACTIVE, activatedMember.status)
+        assertEquals(true, member.updatedAt <= activatedMember.updatedAt)
     }
 
     @Test
-    fun `test activate member when already active`() {
+    fun `activate member when already active`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
 
@@ -48,7 +52,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test activate member when deactivated`() {
+    fun `activate member when deactivated`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
         val deactivatedMember = activatedMember.deactivate()
@@ -61,17 +65,18 @@ class MemberTest {
     }
 
     @Test
-    fun `test deactivate member`() {
+    fun `deactivate member`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
 
         val deactivatedMember = activatedMember.deactivate()
 
         assertEquals(MemberStatus.DEACTIVATED, deactivatedMember.status)
+        assertEquals(true, activatedMember.updatedAt <= deactivatedMember.updatedAt)
     }
 
     @Test
-    fun `test deactivate member when already deactivated`() {
+    fun `deactivate member when already deactivated`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
         val deactivatedMember = activatedMember.deactivate()
@@ -84,7 +89,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test deactivate member when not active`() {
+    fun `deactivate member when not active`() {
         val member = MemberFixture.createMember()
 
         assertFailsWith<IllegalArgumentException> {
@@ -95,7 +100,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test verify password`() {
+    fun `verify password`() {
         val member = MemberFixture.createMember()
         val password = MemberFixture.DEFAULT_PASSWORD
         val passwordEncoder = MemberFixture.DEFAULT_PASSWORD_ENCODER
@@ -106,7 +111,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test change password`() {
+    fun `change password`() {
         val passwordEncoder = MemberFixture.DEFAULT_PASSWORD_ENCODER
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
@@ -115,10 +120,11 @@ class MemberTest {
         val updatedMember = activatedMember.changePassword(newPassword, passwordEncoder)
 
         assertEquals(true, passwordEncoder.matches(newPassword, updatedMember.passwordHash))
+        assertEquals(true, activatedMember.updatedAt <= updatedMember.updatedAt)
     }
 
     @Test
-    fun `test change password when not active`() {
+    fun `change password when not active`() {
         val passwordEncoder = MemberFixture.DEFAULT_PASSWORD_ENCODER
         val member = MemberFixture.createMember()
 
@@ -130,7 +136,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test update info`() {
+    fun `update info`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
 
@@ -146,10 +152,11 @@ class MemberTest {
         assertEquals(newNickname, updatedMember.nickname)
         assertEquals(newProfileAddress, updatedMember.detail.profileAddress)
         assertEquals(newIntroduction, updatedMember.detail.introduction)
+        assertEquals(true, activatedMember.updatedAt <= updatedMember.updatedAt)
     }
 
     @Test
-    fun `test update info when not active`() {
+    fun `update info when not active`() {
         val member = MemberFixture.createMember()
 
         assertFailsWith<IllegalArgumentException> {
@@ -164,7 +171,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test update info with null values`() {
+    fun `update info with null values`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
 
@@ -176,7 +183,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test update trust score`() {
+    fun `update trust score`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
 
@@ -194,7 +201,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test can write review`() {
+    fun `can write review`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
 
@@ -204,7 +211,7 @@ class MemberTest {
     }
 
     @Test
-    fun `test cannot write review when not active`() {
+    fun `cannot write review when not active`() {
         val member = MemberFixture.createMember()
 
         val canWriteReview = member.canWriteReview()

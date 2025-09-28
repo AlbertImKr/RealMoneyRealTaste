@@ -11,7 +11,6 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
-import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 
@@ -46,7 +45,6 @@ data class Member private constructor(
     @Embedded
     val trustScore: TrustScore = TrustScore.create(),
 
-    @LastModifiedDate
     @Column(name = "updated_at")
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : BaseEntity() {
@@ -69,7 +67,8 @@ data class Member private constructor(
         require(status == MemberStatus.PENDING) { "등록 대기 상태에서만 등록 완료가 가능합니다" }
         return copy(
             status = MemberStatus.ACTIVE,
-            detail = detail.activate()
+            detail = detail.activate(),
+            updatedAt = LocalDateTime.now()
         )
     }
 
@@ -77,7 +76,8 @@ data class Member private constructor(
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 탈퇴가 가능합니다" }
         return copy(
             status = MemberStatus.DEACTIVATED,
-            detail = detail.deactivate()
+            detail = detail.deactivate(),
+            updatedAt = LocalDateTime.now()
         )
     }
 
@@ -86,7 +86,7 @@ data class Member private constructor(
 
     fun changePassword(newPassword: String, passwordEncoder: PasswordEncoder): Member {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
-        return copy(passwordHash = passwordEncoder.encode(newPassword))
+        return copy(passwordHash = passwordEncoder.encode(newPassword), updatedAt = LocalDateTime.now())
     }
 
     fun updateInfo(
@@ -97,11 +97,13 @@ data class Member private constructor(
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 정보 수정이 가능합니다" }
         return copy(
             nickname = nickname ?: this.nickname,
-            detail = detail.updateInfo(profileAddress, introduction)
+            detail = detail.updateInfo(profileAddress, introduction),
+            updatedAt = LocalDateTime.now()
         )
     }
 
-    fun updateTrustScore(newTrustScore: TrustScore): Member = copy(trustScore = newTrustScore)
+    fun updateTrustScore(newTrustScore: TrustScore): Member =
+        copy(trustScore = newTrustScore, updatedAt = LocalDateTime.now())
 
     fun canWriteReview(): Boolean = status == MemberStatus.ACTIVE
 }
