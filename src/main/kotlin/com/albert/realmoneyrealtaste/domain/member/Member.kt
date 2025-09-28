@@ -11,6 +11,7 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
+import org.hibernate.annotations.NaturalId
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 
@@ -25,6 +26,7 @@ import java.time.LocalDateTime
     ]
 )
 data class Member private constructor(
+    @NaturalId
     @Embedded
     val email: Email,
 
