@@ -7,17 +7,16 @@ class MemberFixture {
     companion object {
         val DEFAULT_EMAIL = Email("default@gmail.com")
         val DEFAULT_NICKNAME = Nickname("defaultNick")
-        const val DEFAULT_PASSWORD = "defaultPassword"
+        val DEFAULT_PASSWORD = Password("123456")
         val DEFAULT_PASSWORD_ENCODER = BCryptPasswordEncoder()
 
         fun createMember(
             email: Email = DEFAULT_EMAIL,
             nickname: Nickname = DEFAULT_NICKNAME,
-            password: String = DEFAULT_PASSWORD,
-            passwordEncoder: BCryptPasswordEncoder = DEFAULT_PASSWORD_ENCODER,
+            password: Password = DEFAULT_PASSWORD,
             status: MemberStatus = MemberStatus.PENDING,
         ): Member {
-            val member = Member.register(email, nickname, password, passwordEncoder)
+            val member = Member.register(email, nickname, password)
             return when (status) {
                 MemberStatus.PENDING -> member
                 MemberStatus.ACTIVE -> member.activate()

@@ -12,7 +12,6 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.hibernate.annotations.NaturalId
-import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 
 @ConsistentCopyVisibility
@@ -33,8 +32,8 @@ data class Member private constructor(
     @Embedded
     val nickname: Nickname,
 
-    @Column(name = "password_hash", nullable = false)
-    val passwordHash: String,
+    @Embedded
+    val password: Password,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -55,12 +54,11 @@ data class Member private constructor(
         fun register(
             email: Email,
             nickname: Nickname,
-            password: String,
-            passwordEncoder: PasswordEncoder,
+            password: Password,
         ): Member = Member(
             email = email,
             nickname = nickname,
-            passwordHash = passwordEncoder.encode(password),
+            password = password,
             detail = MemberDetail.register(),
         )
     }
@@ -83,12 +81,11 @@ data class Member private constructor(
         )
     }
 
-    fun verifyPassword(password: String, passwordEncoder: PasswordEncoder): Boolean =
-        passwordEncoder.matches(password, passwordHash)
+    fun verifyPassword(matchPassword: Password): Boolean = password == matchPassword
 
-    fun changePassword(newPassword: String, passwordEncoder: PasswordEncoder): Member {
+    fun changePassword(newPassword: Password): Member {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
-        return copy(passwordHash = passwordEncoder.encode(newPassword), updatedAt = LocalDateTime.now())
+        return copy(password = newPassword, updatedAt = LocalDateTime.now())
     }
 
     fun updateInfo(

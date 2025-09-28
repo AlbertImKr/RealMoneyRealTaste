@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.member
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,15 +11,13 @@ class MemberTest {
     fun `register member`() {
         val email = Email("example123@example.com")
         val nickname = Nickname("exampleNick")
-        val password = "securePassword"
-        val passwordEncoder = BCryptPasswordEncoder()
+        val password = Password("securePassword")
         val now = LocalDateTime.now()
 
-        val member = Member.register(email, nickname, password, passwordEncoder)
+        val member = Member.register(email, nickname, password)
 
         assertEquals(email, member.email)
         assertEquals(nickname, member.nickname)
-        assert(passwordEncoder.matches(password, member.passwordHash))
         assertEquals(MemberStatus.PENDING, member.status)
         assertEquals(0, member.trustScore.score)
         assertEquals(TrustLevel.BRONZE, member.trustScore.level)
@@ -103,33 +100,31 @@ class MemberTest {
     fun `verify password`() {
         val member = MemberFixture.createMember()
         val password = MemberFixture.DEFAULT_PASSWORD
-        val passwordEncoder = MemberFixture.DEFAULT_PASSWORD_ENCODER
 
-        val verifyResult = member.verifyPassword(password, passwordEncoder)
+        val verifyResult = member.verifyPassword(password)
 
         assertEquals(true, verifyResult)
     }
 
     @Test
     fun `change password`() {
-        val passwordEncoder = MemberFixture.DEFAULT_PASSWORD_ENCODER
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
-        val newPassword = "newSecurePassword"
+        val newPassword = Password("newSecurePassword")
 
-        val updatedMember = activatedMember.changePassword(newPassword, passwordEncoder)
+        val updatedMember = activatedMember.changePassword(newPassword)
 
-        assertEquals(true, passwordEncoder.matches(newPassword, updatedMember.passwordHash))
+        assertEquals(true, newPassword == updatedMember.password)
         assertEquals(true, activatedMember.updatedAt <= updatedMember.updatedAt)
     }
 
     @Test
     fun `change password when not active`() {
-        val passwordEncoder = MemberFixture.DEFAULT_PASSWORD_ENCODER
         val member = MemberFixture.createMember()
+        val newPassword = Password("newSecurePassword")
 
         assertFailsWith<IllegalArgumentException> {
-            member.changePassword("newSecurePassword", passwordEncoder)
+            member.changePassword(newPassword)
         }.let {
             assertEquals("등록 완료 상태에서만 비밀번호 변경이 가능합니다", it.message)
         }
