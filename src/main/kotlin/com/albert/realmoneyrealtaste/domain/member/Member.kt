@@ -50,19 +50,6 @@ data class Member private constructor(
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : BaseEntity() {
 
-    companion object {
-        fun register(
-            email: Email,
-            nickname: Nickname,
-            password: Password,
-        ): Member = Member(
-            email = email,
-            nickname = nickname,
-            password = password,
-            detail = MemberDetail.register(),
-        )
-    }
-
     fun activate(): Member {
         require(status == MemberStatus.PENDING) { "등록 대기 상태에서만 등록 완료가 가능합니다" }
         return copy(
@@ -105,4 +92,17 @@ data class Member private constructor(
         copy(trustScore = newTrustScore, updatedAt = LocalDateTime.now())
 
     fun canWriteReview(): Boolean = status == MemberStatus.ACTIVE
+
+    companion object {
+        fun register(
+            email: Email,
+            nickname: Nickname,
+            password: Password,
+        ): Member = Member(
+            email = email,
+            nickname = nickname,
+            password = password,
+            detail = MemberDetail.register(),
+        )
+    }
 }
