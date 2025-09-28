@@ -5,21 +5,25 @@ import jakarta.persistence.Embeddable
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 
+@ConsistentCopyVisibility
 @Embeddable
-data class TrustScore(
+data class TrustScore private constructor(
     @Column(name = "trust_score")
-    val score: Int = 0,
+    val score: Int,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trust_level")
-    val level: TrustLevel = TrustLevel.BRONZE,
+    val level: TrustLevel,
 
     @Column(name = "real_money_review_count")
-    val realMoneyReviewCount: Int = 0,
+    val realMoneyReviewCount: Int,
 
     @Column(name = "ad_review_count")
-    val adReviewCount: Int = 0,
+    val adReviewCount: Int,
 ) {
+
+    internal constructor() : this(0, TrustLevel.BRONZE, 0, 0)
+
     fun addRealMoneyReview(): TrustScore {
         val newCount = realMoneyReviewCount + 1
         val newScore = minOf(1000, score + REAL_MONEY_REVIEW_WEIGHT)

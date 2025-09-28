@@ -44,7 +44,7 @@ data class Member private constructor(
     val detail: MemberDetail,
 
     @Embedded
-    val trustScore: TrustScore = TrustScore.create(),
+    val trustScore: TrustScore,
 
     @Column(name = "updated_at")
     val updatedAt: LocalDateTime = LocalDateTime.now(),
@@ -104,6 +104,7 @@ data class Member private constructor(
             nickname = nickname,
             passwordHash = password,
             detail = MemberDetail.register(),
+            trustScore = TrustScore.create(),
         )
     }
 }
