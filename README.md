@@ -128,14 +128,15 @@
 - id: Long
 - email: Email - Natural ID
 - nickname: Nickname 닉네임
-- passwordHash: 비밀번호 해시
+- password: Password 비밀번호 (해시)
 - status: MemberStatus 회원 상태
 - detail: MemberDetail 1:1
 - trustScore: TrustScore 신뢰도 점수
+- updatedAt: LocalDateTime 마지막 수정 일시
 
 **행위**
 
-- static register(): 회원 등록: email, nickname, password, passwordEncoder
+- static register(): 회원 등록: 이메일, 닉네임, 비밀번호를 받아 회원 생성
 - activate(): 등록을 완료시킨다
 - deactivate(): 탈퇴시킨다
 - verifyPassword(): 비밀번호를 검증한다
@@ -214,3 +215,48 @@ _Enum_
 - SILVER: 실버 (200–499)
 - GOLD: 골드 (500–799)
 - DIAMOND: 다이아몬드 (800-1000)
+
+#### 3.1.5 이메일 (Email)
+
+_Value Object_
+
+**속성**
+
+- value: String 이메일 주소
+
+**행위**
+
+- validate(): 이메일 형식 검증
+- getDomain(): 이메일 도메인 추출
+
+#### 3.1.6 소개 (Introduction)
+
+_Value Object_
+
+**속성**
+
+- value: String 자기 소개 (최대 500자)
+
+#### 3.1.7 닉네임 (Nickname)
+
+_Value Object_
+
+**속성**
+
+- value: String 닉네임 (최대 20자, 한글/영문/숫자 가능)
+
+#### 3.1.8 비밀번호 (Password)
+
+_Value Object_
+
+**속성**
+
+- value: String 비밀번호 (해시, 필수)
+
+#### 3.1.9 프로필 주소 (ProfileAddress)
+
+_Value Object_
+
+**속성**
+
+- value: String 플로필 주소 (영문, 숫자, 한글 가능, 길이 3-15자)

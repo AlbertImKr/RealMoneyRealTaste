@@ -3,9 +3,6 @@ package com.albert.realmoneyrealtaste.domain.member
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDateTime
 
@@ -13,12 +10,6 @@ import java.time.LocalDateTime
 @Entity
 @Table(name = "member_details")
 data class MemberDetail private constructor(
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private var id: Long? = null,
-
     @Embedded
     val profileAddress: ProfileAddress? = null,
 

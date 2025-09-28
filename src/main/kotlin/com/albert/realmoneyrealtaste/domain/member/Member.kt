@@ -11,8 +11,6 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
-import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime
 
 @ConsistentCopyVisibility
@@ -32,8 +30,8 @@ data class Member private constructor(
     @Embedded
     val nickname: Nickname,
 
-    @Column(name = "password_hash", nullable = false)
-    val passwordHash: String,
+    @Embedded
+    val passwordHash: PasswordHash,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -44,32 +42,18 @@ data class Member private constructor(
     val detail: MemberDetail,
 
     @Embedded
-    val trustScore: TrustScore = TrustScore.create(),
+    val trustScore: TrustScore,
 
-    @LastModifiedDate
     @Column(name = "updated_at")
     val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) : BaseEntity() {
-
-    companion object {
-        fun register(
-            email: Email,
-            nickname: Nickname,
-            password: String,
-            passwordEncoder: PasswordEncoder,
-        ): Member = Member(
-            email = email,
-            nickname = nickname,
-            passwordHash = passwordEncoder.encode(password),
-            detail = MemberDetail.register(),
-        )
-    }
 
     fun activate(): Member {
         require(status == MemberStatus.PENDING) { "등록 대기 상태에서만 등록 완료가 가능합니다" }
         return copy(
             status = MemberStatus.ACTIVE,
-            detail = detail.activate()
+            detail = detail.activate(),
+            updatedAt = LocalDateTime.now()
         )
     }
 
@@ -77,16 +61,17 @@ data class Member private constructor(
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 탈퇴가 가능합니다" }
         return copy(
             status = MemberStatus.DEACTIVATED,
-            detail = detail.deactivate()
+            detail = detail.deactivate(),
+            updatedAt = LocalDateTime.now()
         )
     }
 
-    fun verifyPassword(password: String, passwordEncoder: PasswordEncoder): Boolean =
-        passwordEncoder.matches(password, passwordHash)
+    fun verifyPassword(rawPassword: RawPassword, encoder: PasswordEncoder): Boolean =
+        passwordHash.matches(rawPassword, encoder)
 
-    fun changePassword(newPassword: String, passwordEncoder: PasswordEncoder): Member {
+    fun changePassword(newPassword: PasswordHash): Member {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
-        return copy(passwordHash = passwordEncoder.encode(newPassword))
+        return copy(passwordHash = newPassword, updatedAt = LocalDateTime.now())
     }
 
     fun updateInfo(
@@ -97,11 +82,27 @@ data class Member private constructor(
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 정보 수정이 가능합니다" }
         return copy(
             nickname = nickname ?: this.nickname,
-            detail = detail.updateInfo(profileAddress, introduction)
+            detail = detail.updateInfo(profileAddress, introduction),
+            updatedAt = LocalDateTime.now()
         )
     }
 
-    fun updateTrustScore(newTrustScore: TrustScore): Member = copy(trustScore = newTrustScore)
+    fun updateTrustScore(newTrustScore: TrustScore): Member =
+        copy(trustScore = newTrustScore, updatedAt = LocalDateTime.now())
 
     fun canWriteReview(): Boolean = status == MemberStatus.ACTIVE
+
+    companion object {
+        fun register(
+            email: Email,
+            nickname: Nickname,
+            password: PasswordHash,
+        ): Member = Member(
+            email = email,
+            nickname = nickname,
+            passwordHash = password,
+            detail = MemberDetail.register(),
+            trustScore = TrustScore.create(),
+        )
+    }
 }

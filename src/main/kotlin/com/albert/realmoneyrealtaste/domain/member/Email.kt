@@ -2,9 +2,11 @@ package com.albert.realmoneyrealtaste.domain.member
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
+import org.hibernate.annotations.NaturalId
 
 @Embeddable
 data class Email(
+    @NaturalId
     @Column(name = "email", nullable = false, unique = true)
     val address: String,
 ) {
