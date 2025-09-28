@@ -33,7 +33,7 @@ data class Member private constructor(
     val nickname: Nickname,
 
     @Embedded
-    val password: Password,
+    val passwordHash: PasswordHash,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -68,11 +68,11 @@ data class Member private constructor(
         )
     }
 
-    fun verifyPassword(matchPassword: Password): Boolean = password == matchPassword
+    fun verifyPassword(matchPassword: PasswordHash): Boolean = passwordHash == matchPassword
 
-    fun changePassword(newPassword: Password): Member {
+    fun changePassword(newPassword: PasswordHash): Member {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
-        return copy(password = newPassword, updatedAt = LocalDateTime.now())
+        return copy(passwordHash = newPassword, updatedAt = LocalDateTime.now())
     }
 
     fun updateInfo(
@@ -97,11 +97,11 @@ data class Member private constructor(
         fun register(
             email: Email,
             nickname: Nickname,
-            password: Password,
+            password: PasswordHash,
         ): Member = Member(
             email = email,
             nickname = nickname,
-            password = password,
+            passwordHash = password,
             detail = MemberDetail.register(),
         )
     }

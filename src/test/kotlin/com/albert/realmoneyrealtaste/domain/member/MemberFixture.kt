@@ -1,19 +1,28 @@
 package com.albert.realmoneyrealtaste.domain.member
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-
 class MemberFixture {
 
     companion object {
         val DEFAULT_EMAIL = Email("default@gmail.com")
         val DEFAULT_NICKNAME = Nickname("defaultNick")
-        val DEFAULT_PASSWORD = Password("123456")
-        val DEFAULT_PASSWORD_ENCODER = BCryptPasswordEncoder()
+        val DEFAULT_RAW_PASSWORD = RawPassword("Default1!")
+        val TEST_ENCODER = object : PasswordEncoder {
+            override fun encode(rawPassword: RawPassword): String {
+                return "hashed-${rawPassword.value}"
+            }
+
+            override fun matches(rawPassword: RawPassword, passwordHash: String): Boolean {
+                return passwordHash == encode(rawPassword)
+            }
+        }
+        val DEFAULT_PASSWORD = PasswordHash.of(DEFAULT_RAW_PASSWORD, TEST_ENCODER)
+        val NEW_RAW_PASSWORD = RawPassword("NewDefault1!")
+        val NEW_PASSWORD = PasswordHash.of(NEW_RAW_PASSWORD, TEST_ENCODER)
 
         fun createMember(
             email: Email = DEFAULT_EMAIL,
             nickname: Nickname = DEFAULT_NICKNAME,
-            password: Password = DEFAULT_PASSWORD,
+            password: PasswordHash = DEFAULT_PASSWORD,
             status: MemberStatus = MemberStatus.PENDING,
         ): Member {
             val member = Member.register(email, nickname, password)

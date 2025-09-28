@@ -9,9 +9,9 @@ class MemberTest {
 
     @Test
     fun `register member`() {
-        val email = Email("example123@example.com")
-        val nickname = Nickname("exampleNick")
-        val password = Password("securePassword")
+        val email = MemberFixture.DEFAULT_EMAIL
+        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val password = MemberFixture.DEFAULT_PASSWORD
         val now = LocalDateTime.now()
 
         val member = Member.register(email, nickname, password)
@@ -110,18 +110,18 @@ class MemberTest {
     fun `change password`() {
         val member = MemberFixture.createMember()
         val activatedMember = member.activate()
-        val newPassword = Password("newSecurePassword")
+        val newPassword = MemberFixture.NEW_PASSWORD
 
         val updatedMember = activatedMember.changePassword(newPassword)
 
-        assertEquals(true, newPassword == updatedMember.password)
+        assertEquals(true, updatedMember.verifyPassword(newPassword))
         assertEquals(true, activatedMember.updatedAt <= updatedMember.updatedAt)
     }
 
     @Test
     fun `change password when not active`() {
         val member = MemberFixture.createMember()
-        val newPassword = Password("newSecurePassword")
+        val newPassword = MemberFixture.NEW_PASSWORD
 
         assertFailsWith<IllegalArgumentException> {
             member.changePassword(newPassword)
