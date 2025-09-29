@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 
 @Controller
-class MemberView(private val memberCommandService: MemberCommandService) {
+class MemberView(
+    private val memberCommandService: MemberCommandService,
+    private val validator: MemberRegisterFormValidator,
+) {
 
     @GetMapping("/members/new")
     fun registerForm(model: Model): String {
@@ -25,7 +28,6 @@ class MemberView(private val memberCommandService: MemberCommandService) {
     fun register(
         @Valid form: MemberRegisterForm,
         bindingResult: BindingResult,
-        validator: MemberRegisterFormValidator,
     ): String {
         validator.validate(form, bindingResult)
 
