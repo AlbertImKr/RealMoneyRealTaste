@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.webview.member
+package com.albert.realmoneyrealtaste.adapter.webview.auth
 
 import com.albert.realmoneyrealtaste.TestcontainersConfiguration
 import jakarta.transaction.Transactional
@@ -19,21 +19,21 @@ import kotlin.test.Test
 @AutoConfigureMockMvc
 @Transactional
 @Import(TestcontainersConfiguration::class)
-class MemberViewTest {
+class AuthTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
 
     @Test
-    fun `register form display`() {
+    fun `signup form display`() {
         mockMvc.perform(get("/signup"))
             .andExpect(status().isOk)
-            .andExpect(view().name("member/signup"))
-            .andExpect(model().attributeExists("memberRegisterForm"))
+            .andExpect(view().name("auth/signup"))
+            .andExpect(model().attributeExists("signupForm"))
     }
 
     @Test
-    fun `register member - success`() {
+    fun `sign up - success`() {
         mockMvc.perform(
             post("/signup")
                 .param("email", "test@example.com")
@@ -46,7 +46,7 @@ class MemberViewTest {
     }
 
     @Test
-    fun `register member - fail`() {
+    fun `sign up - fail`() {
         mockMvc.perform(
             post("/signup")
                 .param("email", "invalid-email")
@@ -55,10 +55,10 @@ class MemberViewTest {
                 .param("nickname", "A")
         )
             .andExpect(status().isOk)
-            .andExpect(view().name("member/signup"))
-            .andExpect(model().attributeHasFieldErrors("memberRegisterForm", "email"))
-            .andExpect(model().attributeHasFieldErrors("memberRegisterForm", "password"))
-            .andExpect(model().attributeHasFieldErrors("memberRegisterForm", "confirmPassword"))
-            .andExpect(model().attributeHasFieldErrors("memberRegisterForm", "nickname"))
+            .andExpect(view().name("auth/signup"))
+            .andExpect(model().attributeHasFieldErrors("signupForm", "email"))
+            .andExpect(model().attributeHasFieldErrors("signupForm", "password"))
+            .andExpect(model().attributeHasFieldErrors("signupForm", "confirmPassword"))
+            .andExpect(model().attributeHasFieldErrors("signupForm", "nickname"))
     }
 }

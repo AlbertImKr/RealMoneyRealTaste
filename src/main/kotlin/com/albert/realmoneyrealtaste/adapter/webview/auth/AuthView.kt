@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.webview.member
+package com.albert.realmoneyrealtaste.adapter.webview.auth
 
 import com.albert.realmoneyrealtaste.application.member.MemberCommandService
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegisterRequest
@@ -13,20 +13,20 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 
 @Controller
-class MemberView(
+class AuthView(
     private val memberCommandService: MemberCommandService,
-    private val validator: MemberRegisterFormValidator,
+    private val validator: SignupFormValidator,
 ) {
 
     @GetMapping("/signup")
     fun registerForm(model: Model): String {
-        model.addAttribute("memberRegisterForm", MemberRegisterForm())
+        model.addAttribute("signupForm", SignupForm())
         return SIGNUP_VIEW_NAME
     }
 
     @PostMapping("/signup")
     fun register(
-        @Valid form: MemberRegisterForm,
+        @Valid form: SignupForm,
         bindingResult: BindingResult,
     ): String {
         validator.validate(form, bindingResult)
@@ -47,6 +47,6 @@ class MemberView(
     }
 
     companion object {
-        private const val SIGNUP_VIEW_NAME = "member/signup"
+        private const val SIGNUP_VIEW_NAME = "auth/signup"
     }
 }

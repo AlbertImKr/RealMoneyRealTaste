@@ -1,17 +1,17 @@
-package com.albert.realmoneyrealtaste.adapter.webview.member
+package com.albert.realmoneyrealtaste.adapter.webview.auth
 
 import org.springframework.validation.BeanPropertyBindingResult
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class MemberRegisterFormValidatorTest {
+class SignupFormValidatorTest {
 
-    private val validator = MemberRegisterFormValidator()
+    private val validator = SignupFormValidator()
 
     @Test
-    fun `supports MemberRegisterForm class`() {
-        assertTrue { validator.supports(MemberRegisterForm::class.java) }
+    fun `supports SignupForm class`() {
+        assertTrue { validator.supports(SignupForm::class.java) }
     }
 
     @Test
@@ -21,7 +21,7 @@ class MemberRegisterFormValidatorTest {
 
     @Test
     fun `validate detects password mismatch`() {
-        val form = MemberRegisterForm(
+        val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
             password = "Password1!",
@@ -38,7 +38,7 @@ class MemberRegisterFormValidatorTest {
 
     @Test
     fun `validate passes when passwords match`() {
-        val form = MemberRegisterForm(
+        val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
             password = "Password1!",
