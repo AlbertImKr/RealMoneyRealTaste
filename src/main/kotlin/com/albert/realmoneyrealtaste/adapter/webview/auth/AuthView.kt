@@ -19,13 +19,13 @@ class AuthView(
 ) {
 
     @GetMapping("/signup")
-    fun registerForm(model: Model): String {
+    fun signupForm(model: Model): String {
         model.addAttribute("signupForm", SignupForm())
         return SIGNUP_VIEW_NAME
     }
 
     @PostMapping("/signup")
-    fun register(
+    fun signup(
         @Valid form: SignupForm,
         bindingResult: BindingResult,
     ): String {
