@@ -18,13 +18,13 @@ class MemberView(
     private val validator: MemberRegisterFormValidator,
 ) {
 
-    @GetMapping("/members/new")
+    @GetMapping("/signup")
     fun registerForm(model: Model): String {
         model.addAttribute("memberRegisterForm", MemberRegisterForm())
-        return NEW_VIEW_NAME
+        return SIGNUP_VIEW_NAME
     }
 
-    @PostMapping("/members")
+    @PostMapping("/signup")
     fun register(
         @Valid form: MemberRegisterForm,
         bindingResult: BindingResult,
@@ -32,7 +32,7 @@ class MemberView(
         validator.validate(form, bindingResult)
 
         if (bindingResult.hasErrors()) {
-            return NEW_VIEW_NAME
+            return SIGNUP_VIEW_NAME
         }
 
         val request = MemberRegisterRequest(
@@ -47,6 +47,6 @@ class MemberView(
     }
 
     companion object {
-        private const val NEW_VIEW_NAME = "member/new"
+        private const val SIGNUP_VIEW_NAME = "member/signup"
     }
 }

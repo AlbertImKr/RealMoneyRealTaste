@@ -26,16 +26,16 @@ class MemberViewTest {
 
     @Test
     fun `register form display`() {
-        mockMvc.perform(get("/members/new"))
+        mockMvc.perform(get("/signup"))
             .andExpect(status().isOk)
-            .andExpect(view().name("member/new"))
+            .andExpect(view().name("member/signup"))
             .andExpect(model().attributeExists("memberRegisterForm"))
     }
 
     @Test
     fun `register member - success`() {
         mockMvc.perform(
-            post("/members")
+            post("/signup")
                 .param("email", "test@example.com")
                 .param("password", "Password123!")
                 .param("confirmPassword", "Password123!")
@@ -48,14 +48,14 @@ class MemberViewTest {
     @Test
     fun `register member - fail`() {
         mockMvc.perform(
-            post("/members")
+            post("/signup")
                 .param("email", "invalid-email")
                 .param("password", "short")
                 .param("confirmPassword", "different")
                 .param("nickname", "A")
         )
             .andExpect(status().isOk)
-            .andExpect(view().name("member/new"))
+            .andExpect(view().name("member/signup"))
             .andExpect(model().attributeHasFieldErrors("memberRegisterForm", "email"))
             .andExpect(model().attributeHasFieldErrors("memberRegisterForm", "password"))
             .andExpect(model().attributeHasFieldErrors("memberRegisterForm", "confirmPassword"))
