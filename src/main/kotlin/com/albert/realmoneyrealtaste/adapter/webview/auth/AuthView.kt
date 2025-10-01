@@ -1,11 +1,16 @@
 package com.albert.realmoneyrealtaste.adapter.webview.auth
 
-import com.albert.realmoneyrealtaste.application.member.MemberCommandService
+import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Nickname
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
@@ -14,7 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping
 
 @Controller
 class AuthView(
-    private val memberCommandService: MemberCommandService,
+    private val memberRegister: MemberRegister,
+    private val authenticationManager: AuthenticationManager,
     private val validator: SignupFormValidator,
 ) {
 
@@ -41,12 +47,46 @@ class AuthView(
             nickname = Nickname(form.nickname)
         )
 
-        memberCommandService.register(request)
+        memberRegister.register(request)
+
+        return "redirect:/signin"
+    }
+
+    @GetMapping("/signin")
+    fun signinForm(model: Model): String {
+        model.addAttribute("signinForm", SigninForm())
+        return SIGNIN_VIEW_NAME
+    }
+
+    @PostMapping("/signin")
+    fun signin(
+        @Valid form: SigninForm,
+        bindingResult: BindingResult,
+        request: HttpServletRequest,
+    ): String {
+        if (bindingResult.hasErrors()) {
+            return SIGNIN_VIEW_NAME
+        }
+
+        // Spring Security 인증 처리
+        val authentication = authenticationManager.authenticate(
+            UsernamePasswordAuthenticationToken(form.email, form.password)
+        )
+
+        // SecurityContext에 인증 정보 설정
+        SecurityContextHolder.createEmptyContext().also {
+            it.authentication = authentication
+            SecurityContextHolder.setContext(it)
+
+            // 세션에 SecurityContext 저장
+            request.session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, it)
+        }
 
         return "redirect:/"
     }
 
     companion object {
         private const val SIGNUP_VIEW_NAME = "auth/signup"
+        private const val SIGNIN_VIEW_NAME = "auth/signin"
     }
 }

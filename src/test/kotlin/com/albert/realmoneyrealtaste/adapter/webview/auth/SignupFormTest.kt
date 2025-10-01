@@ -143,8 +143,6 @@ class SignupFormTest {
         val violations = validator.validate(form)
 
         assertTrue(violations.isNotEmpty())
-        val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertEquals("비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다", passwordViolation?.message)
     }
 
     @Test

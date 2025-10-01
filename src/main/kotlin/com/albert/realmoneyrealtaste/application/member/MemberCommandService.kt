@@ -7,7 +7,9 @@ import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.PasswordHash
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
+@Transactional
 @Service
 class MemberCommandService(
     private val passwordEncoder: PasswordEncoder,
