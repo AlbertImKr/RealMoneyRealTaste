@@ -9,8 +9,6 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
@@ -69,18 +67,9 @@ class AuthView(
         }
 
         // Spring Security 인증 처리
-        val authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(form.email, form.password)
         )
-
-        // SecurityContext에 인증 정보 설정
-        SecurityContextHolder.createEmptyContext().also {
-            it.authentication = authentication
-            SecurityContextHolder.setContext(it)
-
-            // 세션에 SecurityContext 저장
-            request.session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, it)
-        }
 
         return "redirect:/"
     }

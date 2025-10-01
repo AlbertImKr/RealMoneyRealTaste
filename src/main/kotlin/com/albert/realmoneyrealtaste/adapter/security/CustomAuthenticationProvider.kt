@@ -27,7 +27,7 @@ class CustomAuthenticationProvider(
 
         return UsernamePasswordAuthenticationToken(
             email,
-            password,
+            null,
             authorities
         )
     }
