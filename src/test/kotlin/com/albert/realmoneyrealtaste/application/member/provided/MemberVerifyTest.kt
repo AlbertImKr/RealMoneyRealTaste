@@ -14,7 +14,7 @@ import kotlin.test.assertEquals
 @Transactional
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @Import(TestcontainersConfiguration::class)
-class MemberVerityTest(
+class MemberVerifyTest(
     val memberVerify: MemberVerify,
     val memberRegister: MemberRegister,
 ) {
