@@ -100,10 +100,10 @@
                     <div class="text-center">
                         <!-- Title -->
                         <h1 class="mb-2">회원가입</h1>
-                        <span class="d-block">계정이 이미 있으신가요? <a href="/sign-in">여기</a>를 클릭하세요.</span>
+                        <span class="d-block">계정이 이미 있으신가요? <a href="/signin">여기</a>를 클릭하세요.</span>
                     </div>
                     <!-- Form START -->
-                    <form class="mt-4" method="post" th:action="@{/members}" th:object="${memberRegisterForm}">
+                    <form class="mt-4" method="post" th:action="@{/signup}" th:object="${signupForm}">
                         <!-- Email -->
                         <div class="mb-3 input-group-lg">
                             <label class="form-label visually-hidden" for="email">이메일 주소</label>
