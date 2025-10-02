@@ -5,7 +5,6 @@ import com.albert.realmoneyrealtaste.application.member.provided.MemberRegisterR
 import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Nickname
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -60,13 +59,11 @@ class AuthView(
     fun signin(
         @Valid form: SigninForm,
         bindingResult: BindingResult,
-        request: HttpServletRequest,
     ): String {
         if (bindingResult.hasErrors()) {
             return SIGNIN_VIEW_NAME
         }
 
-        // Spring Security 인증 처리
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(form.email, form.password)
         )
