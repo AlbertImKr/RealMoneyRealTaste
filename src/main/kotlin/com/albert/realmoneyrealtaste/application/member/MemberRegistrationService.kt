@@ -28,7 +28,7 @@ class MemberRegistrationService(
         val passwordHash = PasswordHash.of(request.password, passwordEncoder)
 
         val member = Member.register(request.email, request.nickname, passwordHash)
-        memberRepository.save(member)
+        val savedMember = memberRepository.save(member)
 
         eventPublisher.publishEvent(
             MemberRegisteredEvent(
@@ -38,6 +38,6 @@ class MemberRegistrationService(
             )
         )
 
-        return memberRepository.save(member)
+        return savedMember
     }
 }
