@@ -18,7 +18,7 @@ import java.time.LocalDateTime
         Index(name = "idx_member_status", columnList = "status")
     ]
 )
-open class Member protected constructor(
+class Member private constructor(
     @Embedded
     val email: Email,
     nickname: Nickname,
@@ -31,25 +31,25 @@ open class Member protected constructor(
 ) : BaseEntity() {
 
     @Embedded
-    var nickname: Nickname = nickname
-        protected set
+    final var nickname: Nickname = nickname
+        private set
 
     @Embedded
-    var passwordHash: PasswordHash = passwordHash
-        protected set
+    final var passwordHash: PasswordHash = passwordHash
+        private set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    var status: MemberStatus = status
-        protected set
+    final var status: MemberStatus = status
+        private set
 
     @Embedded
-    var trustScore: TrustScore = trustScore
-        protected set
+    final var trustScore: TrustScore = trustScore
+        private set
 
     @Column(name = "updated_at")
-    var updatedAt: LocalDateTime = updatedAt
-        protected set
+    final var updatedAt: LocalDateTime = updatedAt
+        private set
 
     fun activate() {
         require(status == MemberStatus.PENDING) { "등록 대기 상태에서만 등록 완료가 가능합니다" }

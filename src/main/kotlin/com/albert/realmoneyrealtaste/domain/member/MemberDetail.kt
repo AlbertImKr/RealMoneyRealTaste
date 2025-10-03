@@ -6,7 +6,7 @@ import jakarta.persistence.Embedded
 import java.time.LocalDateTime
 
 @Embeddable
-open class MemberDetail protected constructor(
+class MemberDetail private constructor(
     profileAddress: ProfileAddress?,
     introduction: Introduction?,
     val registeredAt: LocalDateTime,
@@ -14,20 +14,20 @@ open class MemberDetail protected constructor(
     deactivatedAt: LocalDateTime?,
 ) {
     @Embedded
-    var profileAddress: ProfileAddress? = profileAddress
-        protected set
+    final var profileAddress: ProfileAddress? = profileAddress
+        private set
 
     @Embedded
-    var introduction: Introduction? = introduction
-        protected set
+    final var introduction: Introduction? = introduction
+        private set
 
     @Column(name = "activated_at")
-    var activatedAt: LocalDateTime? = activatedAt
-        protected set
+    final var activatedAt: LocalDateTime? = activatedAt
+        private set
 
     @Column(name = "deactivated_at")
-    var deactivatedAt: LocalDateTime? = deactivatedAt
-        protected set
+    final var deactivatedAt: LocalDateTime? = deactivatedAt
+        private set
 
     fun activate() {
         activatedAt = LocalDateTime.now()

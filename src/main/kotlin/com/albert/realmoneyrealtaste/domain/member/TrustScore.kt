@@ -6,28 +6,28 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 
 @Embeddable
-open class TrustScore protected constructor(
+class TrustScore private constructor(
     score: Int,
     level: TrustLevel,
     realMoneyReviewCount: Int,
     adReviewCount: Int,
 ) {
     @Column(name = "trust_score")
-    var score: Int = score
-        protected set
+    final var score: Int = score
+        private set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trust_level")
-    var level: TrustLevel = level
-        protected set
+    final var level: TrustLevel = level
+        private set
 
     @Column(name = "real_money_review_count")
-    var realMoneyReviewCount: Int = realMoneyReviewCount
-        protected set
+    final var realMoneyReviewCount: Int = realMoneyReviewCount
+        private set
 
     @Column(name = "ad_review_count")
-    var adReviewCount: Int = adReviewCount
-        protected set
+    final var adReviewCount: Int = adReviewCount
+        private set
 
     fun addRealMoneyReview() {
         val newCount = realMoneyReviewCount + 1
