@@ -18,6 +18,10 @@ jobs:
         with:
           distribution: 'corretto'
           java-version: '21'
+      - name: Create application-secrets.properties
+        run: |
+          mkdir -p src/main/resources
+          echo "${{ secrets.APPLICATION_SECRETS }}" > src/main/resources/application-secrets.properties
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
