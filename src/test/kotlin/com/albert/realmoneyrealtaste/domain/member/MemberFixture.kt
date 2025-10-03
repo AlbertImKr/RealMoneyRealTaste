@@ -26,11 +26,16 @@ class MemberFixture {
             status: MemberStatus = MemberStatus.PENDING,
         ): Member {
             val member = Member.register(email, nickname, password)
-            return when (status) {
+            when (status) {
                 MemberStatus.PENDING -> member
                 MemberStatus.ACTIVE -> member.activate()
-                MemberStatus.DEACTIVATED -> member.activate().deactivate()
+                MemberStatus.DEACTIVATED -> {
+                    member.activate()
+                    member.deactivate()
+                }
             }
+
+            return member
         }
 
         fun setId(entity: BaseEntity, id: Long) {

@@ -26,11 +26,11 @@ class TrustScoreTest {
         ]
     )
     fun `test addRealMoneyReview`(times: Int, adTimes: Int, expectedScore: Int) {
-        var trustScore = TrustScore.create()
+        val trustScore = TrustScore.create()
         val expectedLevel = TrustLevel.fromScore(expectedScore)
 
         repeat(times) {
-            trustScore = trustScore.addRealMoneyReview()
+            trustScore.addRealMoneyReview()
         }
 
         assertEquals(expectedLevel, trustScore.level)
@@ -57,10 +57,10 @@ class TrustScoreTest {
         expectedAdCount: Int,
         expectedLevel: TrustLevel,
     ) {
-        var trustScore = TrustScore.create()
+        val trustScore = TrustScore.create()
 
         repeat(times) {
-            trustScore = trustScore.addAdReview()
+            trustScore.addAdReview()
         }
 
         assertEquals(expectedLevel, trustScore.level)
@@ -79,12 +79,12 @@ class TrustScoreTest {
         ]
     )
     fun `test penalize`(times: Int, penalty: Int, expectedScore: Int, expectedLevel: TrustLevel) {
-        var trustScore = TrustScore.create()
+        val trustScore = TrustScore.create()
         repeat(times) {
-            trustScore = trustScore.addRealMoneyReview()
+            trustScore.addRealMoneyReview()
         }
 
-        trustScore = trustScore.penalize(penalty)
+        trustScore.penalize(penalty)
 
         assertEquals(expectedLevel, trustScore.level)
         assertEquals(expectedScore, trustScore.score)
@@ -107,12 +107,12 @@ class TrustScoreTest {
         adCount: Int,
         expectedRatio: Double,
     ) {
-        var trustScore = TrustScore.create()
+        val trustScore = TrustScore.create()
         repeat(realMoneyCount) {
-            trustScore = trustScore.addRealMoneyReview()
+            trustScore.addRealMoneyReview()
         }
         repeat(adCount) {
-            trustScore = trustScore.addAdReview()
+            trustScore.addAdReview()
         }
 
         val ratio = trustScore.getRealMoneyRatio()

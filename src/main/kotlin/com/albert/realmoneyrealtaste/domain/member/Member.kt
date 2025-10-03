@@ -1,19 +1,14 @@
 package com.albert.realmoneyrealtaste.domain.member
 
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
 import jakarta.persistence.Index
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import java.time.LocalDateTime
 
-@ConsistentCopyVisibility
 @Entity
 @Table(
     name = "members",
@@ -23,72 +18,77 @@ import java.time.LocalDateTime
         Index(name = "idx_member_status", columnList = "status")
     ]
 )
-data class Member private constructor(
+open class Member protected constructor(
     @Embedded
     val email: Email,
+    nickname: Nickname,
+    passwordHash: PasswordHash,
+    status: MemberStatus,
+    @Embedded
+    val detail: MemberDetail,
+    trustScore: TrustScore,
+    updatedAt: LocalDateTime,
+) : BaseEntity() {
 
     @Embedded
-    val nickname: Nickname,
+    var nickname: Nickname = nickname
+        protected set
 
     @Embedded
-    val passwordHash: PasswordHash,
+    var passwordHash: PasswordHash = passwordHash
+        protected set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    val status: MemberStatus = MemberStatus.PENDING,
-
-    @OneToOne(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "detail_id")
-    val detail: MemberDetail,
+    var status: MemberStatus = status
+        protected set
 
     @Embedded
-    val trustScore: TrustScore,
+    var trustScore: TrustScore = trustScore
+        protected set
 
     @Column(name = "updated_at")
-    val updatedAt: LocalDateTime = LocalDateTime.now(),
-) : BaseEntity() {
+    var updatedAt: LocalDateTime = updatedAt
+        protected set
 
-    fun activate(): Member {
+    fun activate() {
         require(status == MemberStatus.PENDING) { "등록 대기 상태에서만 등록 완료가 가능합니다" }
-        return copy(
-            status = MemberStatus.ACTIVE,
-            detail = detail.activate(),
-            updatedAt = LocalDateTime.now()
-        )
+        status = MemberStatus.ACTIVE
+        detail.activate()
+        updatedAt = LocalDateTime.now()
     }
 
-    fun deactivate(): Member {
+    fun deactivate() {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 탈퇴가 가능합니다" }
-        return copy(
-            status = MemberStatus.DEACTIVATED,
-            detail = detail.deactivate(),
-            updatedAt = LocalDateTime.now()
-        )
+        status = MemberStatus.DEACTIVATED
+        detail.deactivate()
+        updatedAt = LocalDateTime.now()
     }
 
     fun verifyPassword(rawPassword: RawPassword, encoder: PasswordEncoder): Boolean =
         passwordHash.matches(rawPassword, encoder)
 
-    fun changePassword(newPassword: PasswordHash): Member {
+    fun changePassword(newPassword: PasswordHash) {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
-        return copy(passwordHash = newPassword, updatedAt = LocalDateTime.now())
+        passwordHash = newPassword
+        updatedAt = LocalDateTime.now()
     }
 
     fun updateInfo(
         nickname: Nickname? = null,
         profileAddress: ProfileAddress? = null,
         introduction: Introduction? = null,
-    ): Member {
+    ) {
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 정보 수정이 가능합니다" }
-        return copy(
-            nickname = nickname ?: this.nickname,
-            detail = detail.updateInfo(profileAddress, introduction),
-            updatedAt = LocalDateTime.now()
-        )
+        nickname?.let { this.nickname = it }
+        detail.updateInfo(profileAddress, introduction)
+        updatedAt = LocalDateTime.now()
     }
 
-    fun updateTrustScore(newTrustScore: TrustScore): Member =
-        copy(trustScore = newTrustScore, updatedAt = LocalDateTime.now())
+    fun updateTrustScore(newTrustScore: TrustScore) {
+        trustScore = newTrustScore
+        updatedAt = LocalDateTime.now()
+    }
 
     fun canWriteReview(): Boolean = status == MemberStatus.ACTIVE
 
@@ -103,6 +103,8 @@ data class Member private constructor(
             passwordHash = password,
             detail = MemberDetail.register(),
             trustScore = TrustScore.create(),
+            status = MemberStatus.PENDING,
+            updatedAt = LocalDateTime.now(),
         )
     }
 }

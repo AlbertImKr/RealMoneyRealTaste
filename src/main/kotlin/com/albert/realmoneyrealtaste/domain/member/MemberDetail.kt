@@ -1,47 +1,64 @@
 package com.albert.realmoneyrealtaste.domain.member
 
 import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
 import jakarta.persistence.Embedded
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
 import java.time.LocalDateTime
 
-@ConsistentCopyVisibility
-@Entity
-@Table(name = "member_details")
-data class MemberDetail private constructor(
-    @Embedded
-    val profileAddress: ProfileAddress? = null,
-
-    @Embedded
-    val introduction: Introduction? = null,
-
-    @Column(name = "registered_at", nullable = false)
+@Embeddable
+open class MemberDetail protected constructor(
+    profileAddress: ProfileAddress?,
+    introduction: Introduction?,
     val registeredAt: LocalDateTime,
+    activatedAt: LocalDateTime?,
+    deactivatedAt: LocalDateTime?,
+) {
+    @Embedded
+    var profileAddress: ProfileAddress? = profileAddress
+        protected set
+
+    @Embedded
+    var introduction: Introduction? = introduction
+        protected set
 
     @Column(name = "activated_at")
-    val activatedAt: LocalDateTime? = null,
+    var activatedAt: LocalDateTime? = activatedAt
+        protected set
 
     @Column(name = "deactivated_at")
-    val deactivatedAt: LocalDateTime? = null,
-) : BaseEntity() {
+    var deactivatedAt: LocalDateTime? = deactivatedAt
+        protected set
 
-    fun activate(): MemberDetail = copy(activatedAt = LocalDateTime.now())
+    fun activate() {
+        activatedAt = LocalDateTime.now()
+    }
 
-    fun deactivate(): MemberDetail = copy(deactivatedAt = LocalDateTime.now())
+    fun deactivate() {
+        deactivatedAt = LocalDateTime.now()
+    }
 
-    fun updateInfo(profileAddress: ProfileAddress?, introduction: Introduction?): MemberDetail =
-        copy(profileAddress = profileAddress, introduction = introduction)
+    fun updateInfo(profileAddress: ProfileAddress?, introduction: Introduction?) {
+        this.profileAddress = profileAddress
+        this.introduction = introduction
+    }
 
     companion object {
         fun register(profileAddress: ProfileAddress?, introduction: Introduction?): MemberDetail =
             MemberDetail(
                 profileAddress = profileAddress,
                 introduction = introduction,
-                registeredAt = LocalDateTime.now()
+                activatedAt = null,
+                deactivatedAt = null,
+                registeredAt = LocalDateTime.now(),
             )
 
-        fun register(): MemberDetail = MemberDetail(registeredAt = LocalDateTime.now())
+        fun register(): MemberDetail = MemberDetail(
+            profileAddress = null,
+            introduction = null,
+            activatedAt = null,
+            deactivatedAt = null,
+            registeredAt = LocalDateTime.now()
+        )
     }
 }
 
