@@ -21,21 +21,24 @@ import java.time.LocalDateTime
 class Member private constructor(
     @Embedded
     val email: Email,
+
     nickname: Nickname,
-    passwordHash: PasswordHash,
+
+    @Embedded
+    private var passwordHash: PasswordHash,
+
     status: MemberStatus,
+
     @Embedded
     val detail: MemberDetail,
+
     trustScore: TrustScore,
+
     updatedAt: LocalDateTime,
 ) : BaseEntity() {
 
     @Embedded
     final var nickname: Nickname = nickname
-        private set
-
-    @Embedded
-    final var passwordHash: PasswordHash = passwordHash
         private set
 
     @Enumerated(EnumType.STRING)
