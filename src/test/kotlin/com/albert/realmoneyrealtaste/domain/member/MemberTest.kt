@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class MemberTest {
 
@@ -29,20 +30,21 @@ class MemberTest {
     @Test
     fun `activate member`() {
         val member = MemberFixture.createMember()
+        val beforeUpdatedAt = member.updatedAt
 
-        val activatedMember = member.activate()
+        member.activate()
 
-        assertEquals(MemberStatus.ACTIVE, activatedMember.status)
-        assertEquals(true, member.updatedAt <= activatedMember.updatedAt)
+        assertEquals(MemberStatus.ACTIVE, member.status)
+        assertEquals(true, beforeUpdatedAt < member.updatedAt)
     }
 
     @Test
     fun `activate member when already active`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
+        member.activate()
 
         assertFailsWith<IllegalArgumentException> {
-            activatedMember.activate()
+            member.activate()
         }.let {
             assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
         }
@@ -51,11 +53,11 @@ class MemberTest {
     @Test
     fun `activate member when deactivated`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
-        val deactivatedMember = activatedMember.deactivate()
+        member.activate()
+        member.deactivate()
 
         assertFailsWith<IllegalArgumentException> {
-            deactivatedMember.activate()
+            member.activate()
         }.let {
             assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
         }
@@ -64,22 +66,23 @@ class MemberTest {
     @Test
     fun `deactivate member`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
+        val beforeUpdateAt = member.updatedAt
+        member.activate()
 
-        val deactivatedMember = activatedMember.deactivate()
+        member.deactivate()
 
-        assertEquals(MemberStatus.DEACTIVATED, deactivatedMember.status)
-        assertEquals(true, activatedMember.updatedAt <= deactivatedMember.updatedAt)
+        assertEquals(MemberStatus.DEACTIVATED, member.status)
+        assertTrue { beforeUpdateAt <= member.updatedAt }
     }
 
     @Test
     fun `deactivate member when already deactivated`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
-        val deactivatedMember = activatedMember.deactivate()
+        member.activate()
+        member.deactivate()
 
         assertFailsWith<IllegalArgumentException> {
-            deactivatedMember.deactivate()
+            member.deactivate()
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
         }
@@ -110,15 +113,16 @@ class MemberTest {
     @Test
     fun `change password`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
+        member.activate()
+        val beforeUpdateAt = member.updatedAt
         val rawNewPassword = MemberFixture.NEW_RAW_PASSWORD
         val encoder = MemberFixture.TEST_ENCODER
         val newPassword = MemberFixture.NEW_PASSWORD
 
-        val updatedMember = activatedMember.changePassword(newPassword)
+        member.changePassword(newPassword)
 
-        assertEquals(true, updatedMember.verifyPassword(rawNewPassword, encoder))
-        assertEquals(true, activatedMember.updatedAt <= updatedMember.updatedAt)
+        assertEquals(true, member.verifyPassword(rawNewPassword, encoder))
+        assertTrue { beforeUpdateAt <= member.updatedAt }
     }
 
     @Test
@@ -136,21 +140,23 @@ class MemberTest {
     @Test
     fun `update info`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
+        member.activate()
 
         val newNickname = Nickname("newNick")
         val newProfileAddress = ProfileAddress("address123")
         val newIntroduction = Introduction("Hello, I'm new here!")
-        val updatedMember = activatedMember.updateInfo(
+        val beforeUpdateAt = member.updatedAt
+
+        member.updateInfo(
             nickname = newNickname,
             profileAddress = newProfileAddress,
             introduction = newIntroduction
         )
 
-        assertEquals(newNickname, updatedMember.nickname)
-        assertEquals(newProfileAddress, updatedMember.detail.profileAddress)
-        assertEquals(newIntroduction, updatedMember.detail.introduction)
-        assertEquals(true, activatedMember.updatedAt <= updatedMember.updatedAt)
+        assertEquals(newNickname, member.nickname)
+        assertEquals(newProfileAddress, member.detail.profileAddress)
+        assertEquals(newIntroduction, member.detail.introduction)
+        assertTrue { beforeUpdateAt <= member.updatedAt }
     }
 
     @Test
@@ -171,39 +177,45 @@ class MemberTest {
     @Test
     fun `update info with null values`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
+        member.activate()
+        val beforeNickname = member.nickname
+        val beforeProfileAddress = member.detail.profileAddress
+        val beforeIntroduction = member.detail.introduction
+        val beforeUpdateAt = member.updatedAt
 
-        val updatedMember = activatedMember.updateInfo()
+        member.updateInfo()
 
-        assertEquals(activatedMember.nickname, updatedMember.nickname)
-        assertEquals(activatedMember.detail.profileAddress, updatedMember.detail.profileAddress)
-        assertEquals(activatedMember.detail.introduction, updatedMember.detail.introduction)
+        assertEquals(beforeNickname, member.nickname)
+        assertEquals(beforeProfileAddress, member.detail.profileAddress)
+        assertEquals(beforeIntroduction, member.detail.introduction)
+        assertTrue { beforeUpdateAt <= member.updatedAt }
     }
 
     @Test
     fun `update trust score`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
-
+        member.activate()
+        val beforeUpdateAt = member.updatedAt
         val updatedTrustScore = TrustScore.create()
-            .addRealMoneyReview()
-            .addRealMoneyReview()
-            .addAdReview()
+        updatedTrustScore.addRealMoneyReview()
+        updatedTrustScore.addRealMoneyReview()
+        updatedTrustScore.addAdReview()
 
-        val updatedMember = activatedMember.updateTrustScore(updatedTrustScore)
+        member.updateTrustScore(updatedTrustScore)
 
-        assertEquals(2, updatedMember.trustScore.realMoneyReviewCount)
-        assertEquals(1, updatedMember.trustScore.adReviewCount)
-        assertEquals(11, updatedMember.trustScore.score)
-        assertEquals(TrustLevel.BRONZE, updatedMember.trustScore.level)
+        assertEquals(2, member.trustScore.realMoneyReviewCount)
+        assertEquals(1, member.trustScore.adReviewCount)
+        assertEquals(11, member.trustScore.score)
+        assertEquals(TrustLevel.BRONZE, member.trustScore.level)
+        assertTrue { beforeUpdateAt <= member.updatedAt }
     }
 
     @Test
     fun `can write review`() {
         val member = MemberFixture.createMember()
-        val activatedMember = member.activate()
+        member.activate()
 
-        val canWriteReview = activatedMember.canWriteReview()
+        val canWriteReview = member.canWriteReview()
 
         assertEquals(true, canWriteReview)
     }

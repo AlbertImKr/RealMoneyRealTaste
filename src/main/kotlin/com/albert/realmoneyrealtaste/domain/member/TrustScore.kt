@@ -5,51 +5,50 @@ import jakarta.persistence.Embeddable
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 
-@ConsistentCopyVisibility
 @Embeddable
-data class TrustScore private constructor(
+class TrustScore private constructor(
+    score: Int,
+    level: TrustLevel,
+    realMoneyReviewCount: Int,
+    adReviewCount: Int,
+) {
     @Column(name = "trust_score")
-    val score: Int,
+    final var score: Int = score
+        private set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trust_level")
-    val level: TrustLevel,
+    final var level: TrustLevel = level
+        private set
 
     @Column(name = "real_money_review_count")
-    val realMoneyReviewCount: Int,
+    final var realMoneyReviewCount: Int = realMoneyReviewCount
+        private set
 
     @Column(name = "ad_review_count")
-    val adReviewCount: Int,
-) {
+    final var adReviewCount: Int = adReviewCount
+        private set
 
-    internal constructor() : this(0, TrustLevel.BRONZE, 0, 0)
-
-    fun addRealMoneyReview(): TrustScore {
+    fun addRealMoneyReview() {
         val newCount = realMoneyReviewCount + 1
         val newScore = minOf(1000, score + REAL_MONEY_REVIEW_WEIGHT)
-        return copy(
-            score = newScore,
-            level = TrustLevel.fromScore(newScore),
-            realMoneyReviewCount = newCount
-        )
+        score = newScore
+        level = TrustLevel.fromScore(newScore)
+        realMoneyReviewCount = newCount
     }
 
-    fun addAdReview(): TrustScore {
+    fun addAdReview() {
         val newCount = adReviewCount + 1
         val newScore = minOf(1000, score + AD_REVIEW_WEIGHT)
-        return copy(
-            score = newScore,
-            level = TrustLevel.fromScore(newScore),
-            adReviewCount = newCount
-        )
+        score = newScore
+        level = TrustLevel.fromScore(newScore)
+        adReviewCount = newCount
     }
 
-    fun penalize(amount: Int): TrustScore {
+    fun penalize(amount: Int) {
         val newScore = maxOf(0, score - amount)
-        return copy(
-            score = newScore,
-            level = TrustLevel.fromScore(newScore)
-        )
+        score = newScore
+        level = TrustLevel.fromScore(newScore)
     }
 
     fun getRealMoneyRatio(): Double {
@@ -63,7 +62,12 @@ data class TrustScore private constructor(
         const val HELPFUL_VOTE_WEIGHT = 2
         const val PENALTY_WEIGHT = 20
 
-        fun create(): TrustScore = TrustScore()
+        fun create(): TrustScore = TrustScore(
+            score = 0,
+            level = TrustLevel.BRONZE,
+            realMoneyReviewCount = 0,
+            adReviewCount = 0,
+        )
 
         fun calculateScore(
             realMoneyReviewCount: Int,

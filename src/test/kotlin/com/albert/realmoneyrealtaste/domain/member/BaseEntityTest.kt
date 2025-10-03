@@ -11,6 +11,21 @@ import kotlin.test.assertNotEquals
 class BaseEntityTest {
 
     @Test
+    fun `id is null when entity is newly created`() {
+        val entity = TestBaseEntity()
+
+        assertEquals(null, entity.id)
+    }
+
+    @Test
+    fun `id can be set via reflection for testing purposes`() {
+        val entity = TestBaseEntity()
+        MemberFixture.setId(entity, 42L)
+
+        assertEquals(42L, entity.id)
+    }
+
+    @Test
     fun `equals returns true for same object`() {
         val entity = TestBaseEntity()
         MemberFixture.setId(entity, 1L)

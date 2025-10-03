@@ -1,23 +1,15 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
-import com.albert.realmoneyrealtaste.TestcontainersConfiguration
+import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
-import jakarta.transaction.Transactional
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
-import org.springframework.test.context.TestConstructor
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@SpringBootTest
-@Transactional
-@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-@Import(TestcontainersConfiguration::class)
 class MemberVerifyTest(
     val memberVerify: MemberVerify,
     val memberRegister: MemberRegister,
-) {
+) : IntegrationTestBase() {
 
     @Test
     fun `no such member`() {

@@ -29,10 +29,10 @@ class MemberDetailTest {
             introduction = null
         )
 
-        val activatedDetail = memberDetail.activate()
+        memberDetail.activate()
 
-        assertEquals(true, activatedDetail.activatedAt != null)
-        assertEquals(null, activatedDetail.deactivatedAt)
+        assertEquals(true, memberDetail.activatedAt != null)
+        assertEquals(null, memberDetail.deactivatedAt)
     }
 
     @Test
@@ -40,11 +40,12 @@ class MemberDetailTest {
         val memberDetail = MemberDetail.register(
             profileAddress = null,
             introduction = null
-        ).activate()
+        )
+        memberDetail.activate()
 
-        val deactivatedDetail = memberDetail.deactivate()
+        memberDetail.deactivate()
 
-        assertEquals(true, deactivatedDetail.deactivatedAt != null)
+        assertEquals(true, memberDetail.deactivatedAt != null)
     }
 
     @Test
@@ -53,16 +54,16 @@ class MemberDetailTest {
             profileAddress = ProfileAddress(address = "oldAddress"),
             introduction = Introduction(value = "Old introduction")
         )
-
         val newProfileAddress = ProfileAddress(address = "newAddress")
         val newIntroduction = Introduction(value = "New introduction")
-        val updatedDetail = memberDetail.updateInfo(
+
+        memberDetail.updateInfo(
             profileAddress = newProfileAddress,
             introduction = newIntroduction
         )
 
-        assertEquals(newProfileAddress, updatedDetail.profileAddress)
-        assertEquals(newIntroduction, updatedDetail.introduction)
+        assertEquals(newProfileAddress, memberDetail.profileAddress)
+        assertEquals(newIntroduction, memberDetail.introduction)
     }
 
     @Test
