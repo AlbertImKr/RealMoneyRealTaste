@@ -20,7 +20,7 @@ class MemberQueryService(
         password: RawPassword,
     ): Boolean {
         return memberRepository.findByEmail(email)
-            .map { it.verifyPassword(password, passwordEncoder) }
-            .orElse(false)
+            ?.verifyPassword(password, passwordEncoder)
+            ?: false
     }
 }

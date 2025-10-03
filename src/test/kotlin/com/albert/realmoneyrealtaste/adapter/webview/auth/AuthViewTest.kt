@@ -1,16 +1,12 @@
 package com.albert.realmoneyrealtaste.adapter.webview.auth
 
-import com.albert.realmoneyrealtaste.TestcontainersConfiguration
+import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture
-import jakarta.transaction.Transactional
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.context.annotation.Import
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -21,11 +17,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
 import kotlin.test.Test
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@Transactional
-@Import(TestcontainersConfiguration::class)
-class AuthTest {
+class AuthViewTest : IntegrationTestBase() {
 
     @Autowired
     private lateinit var mockMvc: MockMvc

@@ -1,7 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.auth
 
 import jakarta.servlet.http.HttpServletRequest
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
@@ -10,6 +9,7 @@ import org.mockito.Mockito.`when`
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.ui.Model
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class AuthExceptionHandlerTest {
 

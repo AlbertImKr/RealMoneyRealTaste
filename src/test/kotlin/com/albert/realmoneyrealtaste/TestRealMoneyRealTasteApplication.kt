@@ -4,5 +4,6 @@ import org.springframework.boot.fromApplication
 import org.springframework.boot.with
 
 fun main(args: Array<String>) {
-    fromApplication<RealMoneyRealTasteApplication>().with(TestcontainersConfiguration::class).run(*args)
+    fromApplication<RealMoneyRealTasteApplication>().with(TestcontainersConfiguration::class)
+        .run("--spring.profiles.active=dev", *args)
 }

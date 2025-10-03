@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <title>RMRT - Sign up</title>
+    <title>RMRT - 이메일 인증</title>
 
     <!-- Meta Tags -->
     <meta charset="utf-8">
@@ -96,76 +96,50 @@
         <div class="row justify-content-center align-items-center vh-100 py-5">
             <!-- Main content START -->
             <div class="col-sm-10 col-md-8 col-lg-7 col-xl-6 col-xxl-5">
-                <!-- Sign in START -->
+                <!-- Activation Result START -->
                 <div class="card card-body text-center p-4 p-sm-5">
-                    <!-- Title -->
-                    <h1 class="mb-2">로그인</h1>
-                    <p class="mb-0">계정이 없으신가요?<a href="/signup"> 회원가입</a></p>
-                    <!-- Form START -->
-                    <form class="mt-sm-4" method="post" th:action="@{/signin}" th:object="${signinForm}">
-                        <!-- Error Message -->
-                        <div class="alert alert-danger" role="alert" th:if="${error}">
-                            <span th:text="${error}"></span>
+
+                    <!-- Success Icon -->
+                    <div class="mb-4" th:if="${success}">
+                        <h1 class="mb-2">이메일 인증 완료</h1>
+                        <p class="mb-0 text-success">이메일 인증이 완료되었습니다.</p>
+                    </div>
+
+                    <!-- Error Icon -->
+                    <div class="mb-4" th:unless="${success}">
+                        <h1 class="mb-2">인증 실패</h1>
+                        <p class="mb-0 text-danger">유효하지 않거나 만료된 인증 혹은 이미 인증된 링크입니다.</p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4">
+                        <div class="d-grid gap-2" th:if="${success}">
+                            <a class="btn btn-lg btn-primary" href="/signin">로그인하기</a>
+                            <a class="btn btn-lg btn-outline-secondary" href="/">홈으로 가기</a>
                         </div>
 
-                        <!-- Email -->
-                        <div class="mb-3 input-group-lg">
-                            <label class="form-label visually-hidden" for="email">이메일 주소</label>
-                            <input autocomplete="email"
-                                   class="form-control"
-                                   id="email"
-                                   placeholder="이메일 주소"
-                                   required
-                                   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
-                                   th:field="*{email}"
-                                   type="email">
-                            <div class="invalid-feedback"
-                                 th:errors="*{email}"
-                                 th:if="${#fields.hasErrors('email')}"></div>
+                        <div class="d-grid gap-2" th:unless="${success}">
+                            <a class="btn btn-lg btn-primary" href="/members/resend-activation">이메일 다시 보내기</a>
+                            <a class="btn btn-lg btn-outline-secondary" href="/">홈으로 가기</a>
                         </div>
+                    </div>
 
-                        <!-- Password -->
-                        <div class="mb-3 position-relative">
-                            <div class="input-group input-group-lg">
-                                <label class="form-label visually-hidden" for="psw-input">비밀번호</label>
-                                <input autocomplete="current-password"
-                                       class="form-control fakepassword"
-                                       id="psw-input"
-                                       placeholder="비밀번호"
-                                       required
-                                       th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
-                                       th:field="*{password}"
-                                       type="password">
-                                <span class="input-group-text p-0">
-                                    <i class="fakepasswordicon fa-solid fa-eye-slash cursor-pointer p-2 w-40px"></i>
-                                </span>
-                            </div>
-                            <div class="invalid-feedback d-block"
-                                 th:errors="*{password}"
-                                 th:if="${#fields.hasErrors('password')}"></div>
-                        </div>
+                    <!-- Additional Info -->
+                    <div class="mt-4 pt-4 border-top">
+                        <p class="small text-muted mb-2" th:if="${success}">
+                            이제 모든 서비스를 이용하실 수 있습니다.
+                        </p>
+                        <p class="small text-muted mb-2" th:unless="${success}">
+                            문제가 계속되면 고객센터로 문의해주세요.
+                        </p>
+                    </div>
 
-                        <!-- Remember me -->
-                        <div class="mb-3 d-sm-flex justify-content-between">
-                            <div>
-                                <input class="form-check-input" id="rememberCheck" type="checkbox">
-                                <label class="form-check-label" for="rememberCheck">로그인 상태 유지</label>
-                            </div>
-                            <a href="/forgot-password">비밀번호 찾기</a>
-                        </div>
-
-                        <!-- Button -->
-                        <div class="d-grid">
-                            <button class="btn btn-lg btn-primary" type="submit">로그인</button>
-                        </div>
-
-                        <!-- Copyright -->
-                        <p class="mb-0 mt-3 text-center">©2025 <a href="https://github.com/AlbertImKr" target="_blank">RealMoneyRealTaste.</a>
-                            All rights reserved</p>
-                    </form>
-                    <!-- Form END -->
+                    <!-- Copyright -->
+                    <p class="mb-0 mt-3 text-center small">©2025 <a href="https://github.com/AlbertImKr"
+                                                                    target="_blank">RealMoneyRealTaste.</a>
+                        All rights reserved</p>
                 </div>
-                <!-- Sign in START -->
+                <!-- Activation Result END -->
             </div>
         </div> <!-- Row END -->
     </div>
@@ -174,15 +148,11 @@
 </main>
 <!-- **************** MAIN CONTENT END **************** -->
 
-
 <!-- =======================
 JS libraries, plugins and custom scripts -->
 
 <!-- Bootstrap JS -->
 <script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Vendors -->
-<script src="/assets/vendor/pswmeter/pswmeter.min.js"></script>
 
 <!-- Theme Functions -->
 <script src="/assets/js/functions.js"></script>

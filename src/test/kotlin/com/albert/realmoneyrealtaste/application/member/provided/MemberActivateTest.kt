@@ -1,0 +1,121 @@
+package com.albert.realmoneyrealtaste.application.member.provided
+
+import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
+import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
+import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
+import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
+import com.albert.realmoneyrealtaste.domain.member.MemberFixture
+import com.albert.realmoneyrealtaste.domain.member.MemberStatus
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+
+class MemberActivateTest(
+    val memberActivate: MemberActivate,
+    val memberRegister: MemberRegister,
+    val activationTokenGenerator: ActivationTokenGenerator,
+    val activationTokenRepository: ActivationTokenRepository,
+) : IntegrationTestBase() {
+
+    @Test
+    fun `activate - success`() {
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val email = MemberFixture.DEFAULT_EMAIL
+        val request = MemberRegisterRequest(
+            email = email,
+            password = password,
+            nickname = MemberFixture.DEFAULT_NICKNAME,
+        )
+        val member = memberRegister.register(request)
+        val token = activationTokenRepository.findByMemberId(member.id!!)
+            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
+
+        val activatedMember = memberActivate.activate(token.token)
+
+        assertEquals(MemberStatus.ACTIVE, activatedMember.status)
+        assertFailsWith<InvalidActivationTokenException> {
+            memberActivate.activate(token.token)
+        }
+    }
+
+    @Test
+    fun `activate - fail - invalid token`() {
+        val invalidToken = "invalid.token.value"
+
+        assertFailsWith<InvalidActivationTokenException> {
+            memberActivate.activate(invalidToken)
+        }
+    }
+
+    @Test
+    fun `activate - fail - already activated`() {
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val email = MemberFixture.DEFAULT_EMAIL
+        val request = MemberRegisterRequest(
+            email = email,
+            password = password,
+            nickname = MemberFixture.DEFAULT_NICKNAME,
+        )
+        val member = memberRegister.register(request)
+        val token = activationTokenRepository.findByMemberId(member.id!!)
+            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
+
+
+        memberActivate.activate(token.token)
+
+        assertFailsWith<InvalidActivationTokenException> {
+            memberActivate.activate(token.token)
+        }
+    }
+
+    @Test
+    fun `activate - fail - expired token`() {
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val email = MemberFixture.DEFAULT_EMAIL
+        val request = MemberRegisterRequest(
+            email = email,
+            password = password,
+            nickname = MemberFixture.DEFAULT_NICKNAME,
+        )
+        val member = memberRegister.register(request)
+
+        activationTokenRepository.findByMemberId(member.id!!)
+            ?.let { activationTokenRepository.delete(it) }
+        flushAndClear()
+
+        val expiredToken = activationTokenGenerator.generate(member.id!!, -1)
+
+        assertFailsWith<ExpiredActivationTokenException> {
+            memberActivate.activate(expiredToken.token)
+        }
+    }
+
+    @Test
+    fun `activate - fail - invalid member`() {
+        val token = activationTokenGenerator.generate(999999, 1)
+
+        assertFailsWith<InvalidActivationTokenException> {
+            memberActivate.activate(token.token)
+        }
+    }
+
+    @Test
+    fun `activate - fail - member already active`() {
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val email = MemberFixture.DEFAULT_EMAIL
+        val request = MemberRegisterRequest(
+            email = email,
+            password = password,
+            nickname = MemberFixture.DEFAULT_NICKNAME,
+        )
+        val member = memberRegister.register(request)
+        member.activate()
+        val token = activationTokenRepository.findByMemberId(member.id!!)
+            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
+
+        assertFailsWith<AlreadyActivatedException> {
+            memberActivate.activate(token.token)
+        }
+    }
+}
