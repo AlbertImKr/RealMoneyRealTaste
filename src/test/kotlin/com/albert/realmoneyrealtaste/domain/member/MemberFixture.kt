@@ -23,19 +23,8 @@ class MemberFixture {
             email: Email = DEFAULT_EMAIL,
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
-            status: MemberStatus = MemberStatus.PENDING,
         ): Member {
-            val member = Member.register(email, nickname, password)
-            when (status) {
-                MemberStatus.PENDING -> member
-                MemberStatus.ACTIVE -> member.activate()
-                MemberStatus.DEACTIVATED -> {
-                    member.activate()
-                    member.deactivate()
-                }
-            }
-
-            return member
+            return Member.register(email, nickname, password)
         }
 
         fun setId(entity: BaseEntity, id: Long) {

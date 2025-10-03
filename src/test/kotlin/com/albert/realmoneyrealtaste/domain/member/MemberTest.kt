@@ -30,11 +30,12 @@ class MemberTest {
     @Test
     fun `activate member`() {
         val member = MemberFixture.createMember()
+        val beforeUpdatedAt = member.updatedAt
 
         member.activate()
 
         assertEquals(MemberStatus.ACTIVE, member.status)
-        assertEquals(true, member.updatedAt <= member.updatedAt)
+        assertEquals(true, beforeUpdatedAt < member.updatedAt)
     }
 
     @Test
