@@ -1,11 +1,14 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.Index
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import java.time.LocalDateTime
 
@@ -18,19 +21,16 @@ import java.time.LocalDateTime
         Index(name = "idx_member_status", columnList = "status")
     ]
 )
-class Member private constructor(
-    @Embedded
-    val email: Email,
+class Member protected constructor(
+    email: Email,
 
     nickname: Nickname,
 
-    @Embedded
-    private var passwordHash: PasswordHash,
+    passwordHash: PasswordHash,
 
     status: MemberStatus,
 
-    @Embedded
-    val detail: MemberDetail,
+    detail: MemberDetail,
 
     trustScore: TrustScore,
 
@@ -38,21 +38,33 @@ class Member private constructor(
 ) : BaseEntity() {
 
     @Embedded
-    final var nickname: Nickname = nickname
-        private set
+    var email: Email = email
+        protected set
+
+    @Embedded
+    var passwordHash: PasswordHash = passwordHash
+        protected set
+
+    @Embedded
+    var nickname: Nickname = nickname
+        protected set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    final var status: MemberStatus = status
-        private set
+    var status: MemberStatus = status
+        protected set
 
-    @Embedded
-    final var trustScore: TrustScore = trustScore
-        private set
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    var detail: MemberDetail = detail
+        protected set
+
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    var trustScore: TrustScore = trustScore
+        protected set
 
     @Column(name = "updated_at")
-    final var updatedAt: LocalDateTime = updatedAt
-        private set
+    var updatedAt: LocalDateTime = updatedAt
+        protected set
 
     fun activate() {
         require(status == MemberStatus.PENDING) { "등록 대기 상태에서만 등록 완료가 가능합니다" }
@@ -104,7 +116,7 @@ class Member private constructor(
             email = email,
             nickname = nickname,
             passwordHash = password,
-            detail = MemberDetail.register(),
+            detail = MemberDetail.register(null, null),
             trustScore = TrustScore.create(),
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),

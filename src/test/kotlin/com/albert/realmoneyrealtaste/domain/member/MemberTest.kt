@@ -228,4 +228,35 @@ class MemberTest {
 
         assertEquals(false, canWriteReview)
     }
+
+    @Test
+    fun `test setters for code coverage`() {
+        val member = TestMember()
+        val newEmail = Email("test@email.com")
+        val newDetail = MemberDetail.register(ProfileAddress("address"), Introduction("intro"))
+
+        member.setEmailForTest(newEmail)
+        member.setDetailForTest(newDetail)
+
+        assertEquals(newEmail, member.email)
+        assertEquals(newDetail, member.detail)
+    }
+
+    private class TestMember() : Member(
+        email = MemberFixture.DEFAULT_EMAIL,
+        nickname = MemberFixture.DEFAULT_NICKNAME,
+        passwordHash = MemberFixture.DEFAULT_PASSWORD,
+        status = MemberStatus.PENDING,
+        detail = MemberDetail.register(null, null),
+        trustScore = TrustScore.create(),
+        updatedAt = LocalDateTime.now()
+    ) {
+        fun setEmailForTest(email: Email) {
+            this.email = email
+        }
+
+        fun setDetailForTest(detail: MemberDetail) {
+            this.detail = detail
+        }
+    }
 }

@@ -44,4 +44,53 @@ class ActivationTokenTest {
 
         assertFalse(activationToken.isExpired())
     }
+
+    @Test
+    fun `test setters for code coverage`() {
+        val now = LocalDateTime.now()
+        val activationToken = TestActivationToken(
+            memberId = 1L,
+            token = "sample-token",
+            createdAt = now.minusHours(1),
+            expiresAt = now.plusHours(1),
+        )
+        val newCreatedAt = now.minusHours(2)
+        val newExpiresAt = now.plusHours(2)
+
+        activationToken.setMemberIdForTest(2L)
+        activationToken.setTokenForTest("new-token")
+        activationToken.setCreatedAtForTest(newCreatedAt)
+        activationToken.setExpiresAtForTest(newExpiresAt)
+
+        Assertions.assertAll(
+            { assertEquals(2L, activationToken.memberId) },
+            { assertEquals("new-token", activationToken.token) },
+            { assertEquals(newCreatedAt, activationToken.createdAt) },
+            { assertEquals(newExpiresAt, activationToken.expiresAt) },
+        )
+    }
+
+    private class TestActivationToken(
+        memberId: Long,
+        token: String,
+        createdAt: LocalDateTime,
+        expiresAt: LocalDateTime,
+    ) : ActivationToken(memberId, token, createdAt, expiresAt) {
+
+        fun setMemberIdForTest(memberId: Long) {
+            this.memberId = memberId
+        }
+
+        fun setTokenForTest(token: String) {
+            this.token = token
+        }
+
+        fun setCreatedAtForTest(createdAt: LocalDateTime) {
+            this.createdAt = createdAt
+        }
+
+        fun setExpiresAtForTest(expiresAt: LocalDateTime) {
+            this.expiresAt = expiresAt
+        }
+    }
 }

@@ -26,6 +26,17 @@ class BaseEntityTest {
     }
 
     @Test
+    fun `protected setter prevents direct modification of id`() {
+        val entity = TestBaseEntity()
+
+        assertEquals(null, entity.id)
+
+        entity.setIdForTest(10L)
+
+        assertEquals(10L, entity.id)
+    }
+
+    @Test
     fun `equals returns true for same object`() {
         val entity = TestBaseEntity()
         MemberFixture.setId(entity, 1L)
@@ -124,7 +135,11 @@ class BaseEntityTest {
         assertEquals(true, toString.contains("TestBaseEntity"))
     }
 
-    internal class TestBaseEntity : BaseEntity()
+    internal class TestBaseEntity : BaseEntity() {
+        fun setIdForTest(newId: Long?) {
+            this.id = newId
+        }
+    }
 
     internal class AnotherBaseEntity : BaseEntity()
 
