@@ -113,148 +113,515 @@
     - 내돈내산 필터 기능으로 순수 내돈내산 리뷰만 선별 조회 가능
     - AI 기반 개인 취향 분석으로 맞춤형 내돈내산 맛집 우선 추천
 
-## 3. RMRT 도메인 모델
+# 3. RMRT 도메인 모델
 
-### 3.1 회원 애그리거트 (Member Aggregate)
+## 3.1 회원 애그리거트 (Member Aggregate)
 
-#### 3.1.1 회원 (Member)
+### 3.1.1 회원 (Member)
 
-**_Aggregate Root_**
+**_Aggregate Root, Entity_**
 
-**속성**
+#### 속성
 
-- id: Long
-- email: Email - Natural ID
-- nickname: Nickname 닉네임
-- password: Password 비밀번호 (해시)
-- status: MemberStatus 회원 상태
-- detail: MemberDetail 1:1
-- trustScore: TrustScore 신뢰도 점수
-- updatedAt: LocalDateTime 마지막 수정 일시
+* `id: Long` - 회원 식별자 (PK, BaseEntity에서 상속)
+* `email: Email` - 이메일 (Embedded, Natural ID)
+* `nickname: Nickname` - 닉네임 (Embedded)
+* `passwordHash: PasswordHash` - 비밀번호 해시 (Embedded)
+* `status: MemberStatus` - 회원 상태 (Enum)
+* `detail: MemberDetail` - 회원 상세 정보 (1:1 관계, Cascade)
+* `trustScore: TrustScore` - 신뢰도 점수 (1:1 관계, Cascade)
+* `updatedAt: LocalDateTime` - 마지막 수정 일시
 
-**행위**
+#### 행위
 
-- static register(): 회원 등록: 이메일, 닉네임, 비밀번호를 받아 회원 생성
-- activate(): 등록을 완료시킨다
-- deactivate(): 탈퇴시킨다
-- verifyPassword(): 비밀번호를 검증한다
-- changePassword(): 비밀번호 변경
-- updateInfo(): 회원 정보 수정 (닉네임, 프로필 주소, 자기 소개)
-- updateTrustScore(): 신뢰도 점수 업데이트
-- canWriteReview(): 리뷰 작성 권한 확인
+* `static register(Email, Nickname, PasswordHash): Member`
+    - 회원 등록
+    - 초기 상태: PENDING
+    - MemberDetail과 TrustScore를 초기 상태로 생성
+    - registeredAt을 현재 시간으로 설정
 
-**규칙**
+* `activate(): void`
+    - 회원 활성화 (이메일 인증 완료)
+    - PENDING → ACTIVE 상태 전이
+    - detail.activate() 호출하여 activatedAt 기록
+    - updatedAt 갱신
 
-- 회원 생성후 상태는 등록 대기
-- 이메일 인증을 완료하면 등록 완료가 된다
-- 등록 대기 상태에서만 등록 완료가 될 수 있다
-- 등록 완료 상태에서는 탈퇴할 수 있다
-- 등록 완료 상태에서만 회원 정보를 수정할 수 있다
-- 회원의 비밀번호는 해시를 만들어서 저장한다
-- 닉네임은 중복을 허용하지 않는다
-- 탈퇴한 회원의 닉네임은 재사용할 수 없다
+* `deactivate(): void`
+    - 회원 탈퇴
+    - ACTIVE → DEACTIVATED 상태 전이
+    - detail.deactivate() 호출하여 deactivatedAt 기록
+    - updatedAt 갱신
 
-#### 3.1.2 회원 상세(MemberDetail)
+* `verifyPassword(RawPassword, PasswordEncoder): boolean`
+    - 비밀번호 검증
+    - 입력된 평문 비밀번호와 저장된 해시 비교
 
-_Entity_
+* `changePassword(PasswordHash): void`
+    - 비밀번호 변경
+    - ACTIVE 상태에서만 가능
+    - updatedAt 갱신
 
-**속성**
+* `updateInfo(Nickname?, ProfileAddress?, Introduction?): void`
+    - 회원 정보 수정
+    - ACTIVE 상태에서만 가능
+    - null이 아닌 값만 업데이트
+    - updatedAt 갱신
 
-- id: Long
-- profileAddress: ProfileAddress 프로필 주소
-- introduction: 자기 소개
-- registeredAt: 등록 일시
-- activatedAt: 등록 완료 일시
-- deactivatedAt: 탈퇴 일시
+* `updateTrustScore(TrustScore): void`
+    - 신뢰도 점수 업데이트
+    - 새로운 TrustScore로 교체
 
-**행위**
+* `canWriteReview(): boolean`
+    - 리뷰 작성 권한 확인
+    - ACTIVE 상태일 때만 true
 
-- static create(): 회원 등록시 생성, 현재 시간을 등록 일시로 저장
-- activate(): 등록 완료, 등록 완료 일시 저장
-- deactivate(): 탈퇴, 탈퇴 일시 저장
-- updateInfo(): 상세 정보 수정
+#### 비즈니스 규칙
 
-#### 3.1.3 회원 상태(MemberStatus)
+* 회원 생성 후 초기 상태는 PENDING
+* PENDING 상태에서만 activate() 가능
+* ACTIVE 상태에서만 deactivate() 가능
+* ACTIVE 상태에서만 정보 수정 및 비밀번호 변경 가능
+* 닉네임은 중복 불가 (애플리케이션 레이어에서 검증)
+* 이메일은 중복 불가 (DB 제약조건)
 
-_Enum_
+#### 인덱스
 
-**상수**
+* `idx_member_email`: email 컬럼
+* `idx_member_nickname`: nickname 컬럼
+* `idx_member_status`: status 컬럼
 
-- PENDING: 등록 대기
-- ACTIVE: 등록 완료
-- DEACTIVATED: 탈퇴
+---
 
-#### 3.1.4 신뢰도 점수(TrustScore)
+### 3.1.2 회원 상세 (MemberDetail)
 
-_Value Object_
+**_Entity_**
 
-**속성**
+#### 속성
 
-- score: int 신뢰도 점수 (0-1000)
-- level: TrustLevel 신뢰도 레벨
-- realMoneyReviewCount: int 내돈내산 리뷰 수
-- adReviewCount: int 광고성 리뷰 수
+* `id: Long` - 식별자 (PK, BaseEntity에서 상속)
+* `profileAddress: ProfileAddress?` - 프로필 주소 (Embedded, nullable)
+* `introduction: Introduction?` - 자기 소개 (Embedded, nullable)
+* `registeredAt: LocalDateTime` - 등록 일시
+* `activatedAt: LocalDateTime?` - 활성화 일시 (nullable)
+* `deactivatedAt: LocalDateTime?` - 탈퇴 일시 (nullable)
 
-**행위**
+#### 행위
 
-- calculateLevel(): 점수에 따른 레벨 계산
-- addRealMoneyReview(): 내돈내산 리뷰 작성시 점수 증가 (+5)
-- addAdReview(): 광고성 리뷰 작성시 점수 증가 (+1)
-- penalize(): 규칙 위반시 점수 감소
-- getRealMoneyRatio(): 내돈내산 리뷰 비율 계산
+* `static register(ProfileAddress?, Introduction?): MemberDetail`
+    - 회원 상세 정보 생성
+    - registeredAt을 현재 시간으로 설정
 
-#### 3.1.5 신뢰도 레벨(TrustLevel)
+* `static register(): MemberDetail`
+    - 기본값으로 회원 상세 정보 생성 (프로필 주소, 소개 없음)
 
-_Enum_
+* `activate(): void`
+    - 활성화 일시 기록
 
-**상수**
+* `deactivate(): void`
+    - 탈퇴 일시 기록
 
-- BRONZE: 브론즈 (0-199)
-- SILVER: 실버 (200–499)
-- GOLD: 골드 (500–799)
-- DIAMOND: 다이아몬드 (800-1000)
+* `updateInfo(ProfileAddress?, Introduction?): void`
+    - 프로필 주소와 자기 소개 업데이트
 
-#### 3.1.5 이메일 (Email)
+---
 
-_Value Object_
+### 3.1.3 회원 상태 (MemberStatus)
 
-**속성**
+**_Enum_**
 
-- value: String 이메일 주소
+#### 상수
 
-**행위**
+* `PENDING` - 등록 대기 (이메일 인증 전)
+* `ACTIVE` - 등록 완료 (정상 활동 가능)
+* `DEACTIVATED` - 탈퇴
 
-- validate(): 이메일 형식 검증
-- getDomain(): 이메일 도메인 추출
+---
 
-#### 3.1.6 소개 (Introduction)
+### 3.1.4 신뢰도 점수 (TrustScore)
 
-_Value Object_
+**_Entity_**
 
-**속성**
+#### 속성
 
-- value: String 자기 소개 (최대 500자)
+* `id: Long` - 식별자 (PK, BaseEntity에서 상속)
+* `score: int` - 신뢰도 점수 (0-1000)
+* `level: TrustLevel` - 신뢰도 레벨 (Enum)
+* `realMoneyReviewCount: int` - 내돈내산 리뷰 수
+* `adReviewCount: int` - 광고성 리뷰 수
 
-#### 3.1.7 닉네임 (Nickname)
+#### 행위
 
-_Value Object_
+* `static create(): TrustScore`
+    - 초기 신뢰도 생성 (점수 0, BRONZE 레벨, 리뷰 수 0)
 
-**속성**
+* `static calculateScore(int, int, int, int): int`
+    - 신뢰도 점수 계산 (정적 메서드)
+    - 파라미터: realMoneyReviewCount, adReviewCount, helpfulCount, penaltyCount
+    - 공식: (내돈내산×5) + (광고×1) + (도움됨×2) - (위반×20)
+    - 범위: 0-1000
 
-- value: String 닉네임 (최대 20자, 한글/영문/숫자 가능)
+* `addRealMoneyReview(): void`
+    - 내돈내산 리뷰 추가
+    - 점수 +5, 리뷰 수 +1
+    - 레벨 재계산
 
-#### 3.1.8 비밀번호 (Password)
+* `addAdReview(): void`
+    - 광고성 리뷰 추가
+    - 점수 +1, 리뷰 수 +1
+    - 레벨 재계산
 
-_Value Object_
+* `penalize(int): void`
+    - 점수 감소
+    - 최소값 0으로 제한
+    - 레벨 재계산
 
-**속성**
+* `getRealMoneyRatio(): double`
+    - 내돈내산 리뷰 비율 계산
+    - 전체 리뷰 대비 내돈내산 리뷰 비율
 
-- value: String 비밀번호 (해시, 필수)
+#### 상수
 
-#### 3.1.9 프로필 주소 (ProfileAddress)
+* `REAL_MONEY_REVIEW_WEIGHT = 5`
+* `AD_REVIEW_WEIGHT = 1`
+* `HELPFUL_VOTE_WEIGHT = 2`
+* `PENALTY_WEIGHT = 20`
 
-_Value Object_
+#### 규칙
 
-**속성**
+* Entity로 관리 (Member와 1:1 관계)
+* 점수 범위: 0-1000
+* 점수 변경 시 자동으로 레벨 재계산
+* 리뷰 추가 시 최대값 1000으로 제한
 
-- value: String 플로필 주소 (영문, 숫자, 한글 가능, 길이 3-15자)
+---
+
+### 3.1.5 신뢰도 레벨 (TrustLevel)
+
+**_Enum_**
+
+#### 상수
+
+* `BRONZE(0..199)` - 브론즈 (0-199점)
+* `SILVER(200..499)` - 실버 (200-499점)
+* `GOLD(500..799)` - 골드 (500-799점)
+* `DIAMOND(800..1000)` - 다이아몬드 (800-1000점)
+
+#### 속성
+
+* `scoreRange: IntRange` - 점수 범위
+
+#### 행위
+
+* `static fromScore(int): TrustLevel`
+    - 점수로부터 레벨 결정
+    - 점수 범위에 해당하는 레벨 반환
+    - 범위 밖이면 NoSuchElementException 발생
+
+---
+
+### 3.1.6 이메일 (Email)
+
+**_Value Object (Embeddable)_**
+
+#### 속성
+
+* `address: String` - 이메일 주소
+    - `@NaturalId` 적용
+    - `unique = true, nullable = false`
+
+#### 행위
+
+* `getDomain(): String`
+    - '@' 뒤의 도메인 부분 반환
+
+* `validate(): void` (private, init 블록에서 호출)
+    - 이메일 형식 검증
+    - 정규식: `^[A-Za-z0-9+_.-]+@[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*\.[A-Za-z]{2,}$`
+
+#### 규칙
+
+* blank 불가
+* 이메일 형식 준수 필수
+* 불변 객체 (data class)
+
+---
+
+### 3.1.7 닉네임 (Nickname)
+
+**_Value Object (Embeddable)_**
+
+#### 속성
+
+* `value: String` - 닉네임
+    - `unique = true, nullable = false`
+    - `length = 20`
+
+#### 행위
+
+* `validate(): void` (private, init 블록에서 호출)
+    - 닉네임 유효성 검증
+    - 정규식: `^[가-힣a-zA-Z0-9]+$`
+
+#### 규칙
+
+* blank 불가
+* 길이: 2-20자
+* 한글, 영문, 숫자만 허용
+* 불변 객체 (data class)
+
+---
+
+### 3.1.8 비밀번호 해시 (PasswordHash)
+
+**_Value Object (Embeddable)_**
+
+#### 속성
+
+* `hash: String` - 비밀번호 해시값 (private)
+    - `nullable = false`
+
+#### 행위
+
+* `static of(RawPassword, PasswordEncoder): PasswordHash`
+    - 평문 비밀번호를 해시화하여 PasswordHash 생성
+
+* `matches(RawPassword, PasswordEncoder): boolean`
+    - 평문 비밀번호와 해시 비교
+
+* `toString(): String`
+    - 보안을 위해 실제 값 출력 안 함
+
+#### 규칙
+
+* hash는 blank 불가
+* hash 값은 외부에서 직접 접근 불가 (private)
+* protected 생성자로 직접 생성 방지
+
+---
+
+### 3.1.9 평문 비밀번호 (RawPassword)
+
+**_Value Object (일반 클래스)_**
+
+#### 속성
+
+* `value: String` - 평문 비밀번호
+
+#### 규칙
+
+* blank 불가
+* 길이: 8-20자
+* 소문자 1개 이상 포함
+* 대문자 1개 이상 포함
+* 숫자 1개 이상 포함
+* 특수문자 1개 이상 포함
+* 허용 특수문자: `!@#$%^&*`
+
+#### 상수
+
+* `ALLOWED_SPECIAL_CHARS = "!@#$%^&*"`
+
+#### 주의사항
+
+* 영속화되지 않음 (Embeddable 아님)
+* 입력 검증용 Value Object
+* PasswordEncoder를 통해 PasswordHash로 변환
+
+---
+
+### 3.1.10 프로필 주소 (ProfileAddress)
+
+**_Value Object (Embeddable)_**
+
+#### 속성
+
+* `address: String` - 프로필 URL 경로
+    - `length = 15`
+
+#### 행위
+
+* `validate(): void` (private, init 블록에서 호출)
+    - address가 blank가 아닐 때만 검증
+    - 정규식: `^[a-zA-Z0-9가-힣]+$`
+
+#### 규칙
+
+* 길이: 3-15자
+* 영문, 숫자, 한글만 허용
+* blank 허용 (선택 속성)
+* 불변 객체 (data class)
+
+---
+
+### 3.1.11 자기 소개 (Introduction)
+
+**_Value Object (Embeddable)_**
+
+#### 속성
+
+* `value: String` - 자기 소개 텍스트
+    - 기본값: 빈 문자열
+    - `length = 500`
+
+#### 행위
+
+* `validate(): void` (private, init 블록에서 호출)
+    - 최대 길이 검증
+
+#### 규칙
+
+* 최대 길이: 500자
+* 기본값 제공 (빈 문자열)
+* 불변 객체 (data class)
+
+---
+
+### 3.1.12 비밀번호 인코더 (PasswordEncoder)
+
+**_인터페이스_**
+
+#### 행위
+
+* `encode(RawPassword): String`
+    - 평문 비밀번호를 해시로 인코딩
+
+* `matches(RawPassword, String): boolean`
+    - 평문 비밀번호와 해시 비교
+
+#### 구현체
+
+* BCryptPasswordEncoder (Spring Security)
+
+---
+
+## 3.2 활성화 토큰 애그리거트
+
+### 3.2.1 활성화 토큰 (ActivationToken)
+
+**_Aggregate Root, Entity_**
+
+#### 속성
+
+* `id: Long` - 식별자 (PK, BaseEntity에서 상속)
+* `memberId: Long` - 회원 식별자 (unique, nullable = false)
+* `token: String` - 활성화 토큰 값
+* `createdAt: LocalDateTime` - 생성 일시
+* `expiresAt: LocalDateTime` - 만료 일시
+
+#### 행위
+
+* `isExpired(): boolean`
+    - 토큰 만료 여부 확인
+    - 현재 시간이 expiresAt 이후인지 검사
+
+#### 용도
+
+* 이메일 인증용 토큰
+* Member와 별도 애그리거트로 관리
+* 토큰 검증 후 Member.activate() 호출
+
+---
+
+## 3.3 BaseEntity
+
+### 속성
+
+* `id: Long` - 모든 Entity의 공통 식별자 (PK)
+* `createdAt: LocalDateTime` - 생성 일시 (자동 설정)
+* `lastModifiedAt: LocalDateTime` - 수정 일시 (자동 갱신)
+
+### 규칙
+
+* 모든 Entity는 BaseEntity를 상속
+* Auditing 기능으로 생성/수정 일시 자동 관리
+
+---
+
+## 3.4 연관관계 정리
+
+### Member ↔ MemberDetail
+
+* 관계: 1:1
+* 소유: Member가 소유
+* Cascade: ALL
+* OrphanRemoval: true
+* 설명: Member 생명주기에 완전히 종속
+
+### Member ↔ TrustScore
+
+* 관계: 1:1
+* 소유: Member가 소유
+* Cascade: ALL
+* OrphanRemoval: true
+* 설명: Member 생명주기에 완전히 종속
+
+### Member ↔ ActivationToken
+
+* 관계: 논리적 연관만 존재
+* 물리적 FK 없음
+* memberId로 조회
+* 별도 애그리거트
+
+---
+
+## 3.5 영속성 매핑 전략
+
+### Entity
+
+* Member, MemberDetail, TrustScore, ActivationToken
+* 각각 독립된 테이블로 매핑
+* BaseEntity 상속으로 공통 필드 관리
+
+### Embeddable (Value Object)
+
+* Email, Nickname, PasswordHash, ProfileAddress, Introduction
+* 소유 Entity의 테이블에 컬럼으로 포함
+* @Embedded 어노테이션 사용
+
+### 일반 클래스 (Value Object)
+
+* RawPassword
+* 영속화되지 않음
+* 입력 검증 및 변환용도로만 사용
+
+### Enum
+
+* MemberStatus, TrustLevel
+* @Enumerated(EnumType.STRING)으로 매핑
+
+---
+
+## 3.6 설계 특징
+
+### Aggregate 설계
+
+* **Member Aggregate**: Member, MemberDetail, TrustScore
+    - 강한 일관성 보장
+    - 트랜잭션 경계
+
+* **ActivationToken Aggregate**: ActivationToken
+    - 독립적 생명주기
+    - 별도 트랜잭션 처리 가능
+
+### Value Object 활용
+
+* 도메인 개념을 명확히 표현
+* 유효성 검증을 생성 시점에 수행
+* 불변성으로 안전성 확보
+
+### Entity vs Value Object
+
+* **Entity로 분리한 이유**:
+    - MemberDetail: 독립적인 생명주기 이벤트 (등록/활성화/탈퇴 일시)
+    - TrustScore: 복잡한 비즈니스 로직과 상태 변화
+
+* **Embeddable로 유지한 이유**:
+    - Email, Nickname 등: 단순 값 객체로 Member의 일부
+
+### Kotlin 특성 활용
+
+* data class로 Value Object 간결하게 표현
+* init 블록으로 생성 시점 검증
+* require()로 제약조건 명시
+* protected constructor로 생성 제어
+* companion object로 정적 팩토리 메서드
