@@ -3,13 +3,17 @@ package com.albert.realmoneyrealtaste.domain.member
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class MemberDetailTest {
 
     @Test
-    fun `test register MemberDetail`() {
+    fun `register - success - creates member detail with profile address and introduction`() {
         val profileAddress = ProfileAddress(address = "albert123")
         val introduction = Introduction(value = "Hello, I'm a test user.")
+
         val memberDetail = MemberDetail.register(
             profileAddress = profileAddress,
             introduction = introduction
@@ -17,13 +21,24 @@ class MemberDetailTest {
 
         assertEquals(profileAddress, memberDetail.profileAddress)
         assertEquals(introduction, memberDetail.introduction)
-        assertEquals(null, memberDetail.activatedAt)
-        assertEquals(null, memberDetail.deactivatedAt)
-        assertEquals(true, memberDetail.registeredAt <= LocalDateTime.now())
+        assertNull(memberDetail.activatedAt)
+        assertNull(memberDetail.deactivatedAt)
+        assertTrue(memberDetail.registeredAt <= LocalDateTime.now())
     }
 
     @Test
-    fun `test activate MemberDetail`() {
+    fun `register - success - creates member detail with null values when no parameters`() {
+        val memberDetail = MemberDetail.register()
+
+        assertNull(memberDetail.profileAddress)
+        assertNull(memberDetail.introduction)
+        assertNull(memberDetail.activatedAt)
+        assertNull(memberDetail.deactivatedAt)
+        assertTrue(memberDetail.registeredAt <= LocalDateTime.now())
+    }
+
+    @Test
+    fun `activate - success - sets activated timestamp`() {
         val memberDetail = MemberDetail.register(
             profileAddress = null,
             introduction = null
@@ -31,12 +46,12 @@ class MemberDetailTest {
 
         memberDetail.activate()
 
-        assertEquals(true, memberDetail.activatedAt != null)
-        assertEquals(null, memberDetail.deactivatedAt)
+        assertNotNull(memberDetail.activatedAt)
+        assertNull(memberDetail.deactivatedAt)
     }
 
     @Test
-    fun `test deactivate MemberDetail`() {
+    fun `deactivate - success - sets deactivated timestamp`() {
         val memberDetail = MemberDetail.register(
             profileAddress = null,
             introduction = null
@@ -45,11 +60,11 @@ class MemberDetailTest {
 
         memberDetail.deactivate()
 
-        assertEquals(true, memberDetail.deactivatedAt != null)
+        assertNotNull(memberDetail.deactivatedAt)
     }
 
     @Test
-    fun `test update MemberDetail info`() {
+    fun `updateInfo - success - updates profile address and introduction`() {
         val memberDetail = MemberDetail.register(
             profileAddress = ProfileAddress(address = "oldAddress"),
             introduction = Introduction(value = "Old introduction")
@@ -64,16 +79,5 @@ class MemberDetailTest {
 
         assertEquals(newProfileAddress, memberDetail.profileAddress)
         assertEquals(newIntroduction, memberDetail.introduction)
-    }
-
-    @Test
-    fun `test register MemberDetail with null values`() {
-        val memberDetail = MemberDetail.register()
-
-        assertEquals(null, memberDetail.profileAddress)
-        assertEquals(null, memberDetail.introduction)
-        assertEquals(null, memberDetail.activatedAt)
-        assertEquals(null, memberDetail.deactivatedAt)
-        assertEquals(true, memberDetail.registeredAt <= LocalDateTime.now())
     }
 }

@@ -9,7 +9,7 @@ import kotlin.test.assertFailsWith
 class NicknameTest {
 
     @Test
-    fun `test valid nickname`() {
+    fun `constructor - success - creates nickname with valid value`() {
         val nickNameValue = "ValidName"
 
         val nickname = Nickname(nickNameValue)
@@ -18,7 +18,7 @@ class NicknameTest {
     }
 
     @Test
-    fun `test invalid nickname - empty`() {
+    fun `constructor - failure - throws exception when nickname is empty`() {
         val emptyNickname = "   "
 
         assertFailsWith<IllegalArgumentException> {
@@ -29,7 +29,7 @@ class NicknameTest {
     }
 
     @Test
-    fun `test invalid nickname - too short`() {
+    fun `constructor - failure - throws exception when nickname is too short`() {
         val shortNickname = "A"
 
         assertFailsWith<IllegalArgumentException> {
@@ -40,7 +40,7 @@ class NicknameTest {
     }
 
     @Test
-    fun `test invalid nickname - too long`() {
+    fun `constructor - failure - throws exception when nickname is too long`() {
         val longNickname = "A".repeat(21)
 
         assertFailsWith<IllegalArgumentException> {
@@ -56,7 +56,7 @@ class NicknameTest {
             "Invalid!", "Name With Spaces", "Name@Domain", "Name#1", "Name$"
         ]
     )
-    fun `test invalid nickname - special characters`(invalidNickname: String) {
+    fun `constructor - failure - throws exception when nickname contains special characters`(invalidNickname: String) {
         assertFailsWith<IllegalArgumentException> {
             Nickname(invalidNickname)
         }.let {

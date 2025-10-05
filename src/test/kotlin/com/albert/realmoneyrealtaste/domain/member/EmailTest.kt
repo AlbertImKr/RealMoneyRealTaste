@@ -11,7 +11,7 @@ import kotlin.test.assertFailsWith
 class EmailTest {
 
     @Test
-    fun `test valid email`() {
+    fun `constructor - success - creates email with valid address`() {
         val validEmailAddress = "valid123@naver.com"
 
         val email = Email(validEmailAddress)
@@ -20,7 +20,7 @@ class EmailTest {
     }
 
     @Test
-    fun `test invalid email - empty`() {
+    fun `constructor - failure - throws exception when email is empty`() {
         val emptyEmail = "   "
 
         assertFailsWith<IllegalArgumentException> {
@@ -40,7 +40,7 @@ class EmailTest {
             "username@domain..com"
         ]
     )
-    fun `test invalid email - format`(invalidEmail: String) {
+    fun `constructor - failure - throws exception when email format is invalid`(invalidEmail: String) {
         assertThatThrownBy {
             Email(invalidEmail)
         }.isInstanceOf(IllegalArgumentException::class.java)
@@ -55,7 +55,7 @@ class EmailTest {
             "example123@kakao.com, kakao.com"
         ]
     )
-    fun `test get domain from email`(emailStr: String, expectedDomain: String) {
+    fun `getDomain - success - extracts domain from email address`(emailStr: String, expectedDomain: String) {
         val email = Email(emailStr)
 
         val domain = email.getDomain()

@@ -19,21 +19,23 @@ class ProfileAddressTest {
             "가나123ABC"
         ]
     )
-    fun `test valid profile address`(addressValue: String) {
+    fun `constructor - success - creates profile address with valid value`(addressValue: String) {
         val address = ProfileAddress(addressValue)
 
         assertEquals(addressValue, address.address)
     }
 
     @Test
-    fun `test empty profile address`() {
-        val address = ProfileAddress("")
+    fun `constructor - success - creates profile address with empty value`() {
+        val emptyValue = ""
 
-        assertEquals("", address.address)
+        val address = ProfileAddress(emptyValue)
+
+        assertEquals(emptyValue, address.address)
     }
 
     @Test
-    fun `test invalid profile address - too short`() {
+    fun `constructor - failure - throws exception when profile address is too short`() {
         val invalidAddress = "ab"
 
         assertFailsWith<IllegalArgumentException> {
@@ -44,7 +46,7 @@ class ProfileAddressTest {
     }
 
     @Test
-    fun `test invalid profile address - too long`() {
+    fun `constructor - failure - throws exception when profile address is too long`() {
         val invalidAddress = "a".repeat(16)
 
         assertFailsWith<IllegalArgumentException> {
@@ -64,7 +66,7 @@ class ProfileAddressTest {
             "user#123"
         ]
     )
-    fun `test invalid profile address with special characters`(invalidAddress: String) {
+    fun `constructor - failure - throws exception when profile address contains special characters`(invalidAddress: String) {
         assertFailsWith<IllegalArgumentException> {
             ProfileAddress(invalidAddress)
         }.let {
