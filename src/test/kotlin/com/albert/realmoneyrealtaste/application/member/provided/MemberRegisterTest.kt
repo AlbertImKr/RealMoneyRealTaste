@@ -7,6 +7,7 @@ import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class MemberRegisterTest(
     val memberRegister: MemberRegister,
@@ -14,36 +15,36 @@ class MemberRegisterTest(
 ) : IntegrationTestBase() {
 
     @Test
-    fun `register - success`() {
+    fun `register - success - creates member with correct information`() {
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val request = MemberRegisterRequest(
             email = MemberFixture.DEFAULT_EMAIL,
             password = password,
-            nickname = MemberFixture.DEFAULT_NICKNAME,
+            nickname = MemberFixture.DEFAULT_NICKNAME
         )
 
         val member = memberRegister.register(request)
 
         assertEquals(request.email, member.email)
         assertEquals(request.nickname, member.nickname)
-        assertEquals(true, member.verifyPassword(password, passwordEncoder))
+        assertTrue(member.verifyPassword(password, passwordEncoder))
     }
 
     @Test
-    fun `register - duplicate email`() {
+    fun `register - failure - throws exception when email is duplicate`() {
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val request = MemberRegisterRequest(
             email = MemberFixture.DEFAULT_EMAIL,
             password = password,
-            nickname = MemberFixture.DEFAULT_NICKNAME,
+            nickname = MemberFixture.DEFAULT_NICKNAME
         )
 
         memberRegister.register(request)
 
-        assertFailsWith<DuplicateEmailException>(
-            message = "이미 사용 중인 이메일입니다."
-        ) {
+        assertFailsWith<DuplicateEmailException> {
             memberRegister.register(request)
+        }.let {
+            assertEquals("이미 사용 중인 이메일입니다.", it.message)
         }
     }
 }
