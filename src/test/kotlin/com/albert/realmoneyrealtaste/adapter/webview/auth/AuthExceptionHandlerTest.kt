@@ -18,7 +18,7 @@ class AuthExceptionHandlerTest {
     private val request: HttpServletRequest = mock()
 
     @Test
-    fun `handleBadCredentials returns signin view`() {
+    fun `handleBadCredentials - success - returns signin view`() {
         val exception = BadCredentialsException("Invalid credentials")
         `when`(request.getParameter("email")).thenReturn("test@example.com")
 
@@ -28,7 +28,7 @@ class AuthExceptionHandlerTest {
     }
 
     @Test
-    fun `handleBadCredentials adds error message to model`() {
+    fun `handleBadCredentials - success - adds error message to model`() {
         val exception = BadCredentialsException("Invalid credentials")
         `when`(request.getParameter("email")).thenReturn("test@example.com")
 
@@ -38,7 +38,7 @@ class AuthExceptionHandlerTest {
     }
 
     @Test
-    fun `handleBadCredentials adds signinForm with email to model`() {
+    fun `handleBadCredentials - success - adds signinForm with email to model`() {
         val email = "test@example.com"
         val exception = BadCredentialsException("Invalid credentials")
         `when`(request.getParameter("email")).thenReturn(email)
@@ -49,7 +49,7 @@ class AuthExceptionHandlerTest {
     }
 
     @Test
-    fun `handleBadCredentials handles null email parameter`() {
+    fun `handleBadCredentials - success - handles null email parameter`() {
         val exception = BadCredentialsException("Invalid credentials")
         `when`(request.getParameter("email")).thenReturn(null)
 
@@ -60,7 +60,7 @@ class AuthExceptionHandlerTest {
     }
 
     @Test
-    fun `handleBadCredentials creates signinForm with empty password`() {
+    fun `handleBadCredentials - success - creates signinForm with empty password`() {
         val email = "test@example.com"
         val exception = BadCredentialsException("Invalid credentials")
         `when`(request.getParameter("email")).thenReturn(email)

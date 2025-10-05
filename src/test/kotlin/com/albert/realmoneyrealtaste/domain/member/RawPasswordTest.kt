@@ -7,14 +7,14 @@ import kotlin.test.assertFailsWith
 class RawPasswordTest {
 
     @Test
-    fun `creates raw password`() {
+    fun `constructor - success - creates raw password with valid format`() {
         RawPassword("Valid1!34")
         RawPassword("Another$2")
         RawPassword("StrongPass3#")
     }
 
     @Test
-    fun `blank raw password`() {
+    fun `constructor - failure - throws exception when password is blank`() {
         assertFailsWith<IllegalArgumentException> {
             RawPassword("")
         }.let {
@@ -23,65 +23,77 @@ class RawPasswordTest {
     }
 
     @Test
-    fun `too short raw password`() {
+    fun `constructor - failure - throws exception when password is too short`() {
+        val shortPassword = "Short1!" // 7 characters
+
         assertFailsWith<IllegalArgumentException> {
-            // 7개 문자
-            RawPassword("Short1!")
+            RawPassword(shortPassword)
         }.let {
             assertEquals("비밀번호는 8자 이상 20자 이하여야 합니다", it.message)
         }
     }
 
     @Test
-    fun `too long raw password`() {
+    fun `constructor - failure - throws exception when password is too long`() {
+        val longPassword = "ThisPasswordIsWayToo!" // 21 characters
+
         assertFailsWith<IllegalArgumentException> {
-            // 21개 문자
-            RawPassword("ThisPasswordIsWayToo!")
+            RawPassword(longPassword)
         }.let {
             assertEquals("비밀번호는 8자 이상 20자 이하여야 합니다", it.message)
         }
     }
 
     @Test
-    fun `no digit in raw password`() {
+    fun `constructor - failure - throws exception when password contains no digit`() {
+        val passwordWithoutDigit = "NoDigitsHere!"
+
         assertFailsWith<IllegalArgumentException> {
-            RawPassword("NoDigitsHere!")
+            RawPassword(passwordWithoutDigit)
         }.let {
             assertEquals("비밀번호는 숫자를 포함해야 합니다", it.message)
         }
     }
 
     @Test
-    fun `no lowercase in raw password`() {
+    fun `constructor - failure - throws exception when password contains no lowercase`() {
+        val passwordWithoutLowercase = "NOLOWERCASE1!"
+
         assertFailsWith<IllegalArgumentException> {
-            RawPassword("NOLOWERCASE1!")
+            RawPassword(passwordWithoutLowercase)
         }.let {
             assertEquals("비밀번호는 소문자를 포함해야 합니다", it.message)
         }
     }
 
     @Test
-    fun `no uppercase in raw password`() {
+    fun `constructor - failure - throws exception when password contains no uppercase`() {
+        val passwordWithoutUppercase = "nouppercase1!"
+
         assertFailsWith<IllegalArgumentException> {
-            RawPassword("nouppercase1!")
+            RawPassword(passwordWithoutUppercase)
         }.let {
             assertEquals("비밀번호는 대문자를 포함해야 합니다", it.message)
         }
     }
 
     @Test
-    fun `no special character in raw password`() {
+    fun `constructor - failure - throws exception when password contains no special character`() {
+        val passwordWithoutSpecialChar = "NoSpecialChar1"
+
         assertFailsWith<IllegalArgumentException> {
-            RawPassword("NoSpecialChar1")
+            RawPassword(passwordWithoutSpecialChar)
         }.let {
             assertEquals("비밀번호는 특수문자를 포함해야 합니다", it.message)
         }
     }
 
     @Test
-    fun `contains invalid special character in raw password`() {
+    fun `constructor - failure - throws exception when password contains invalid special character`() {
+        val passwordWithInvalidChar = "InvalidChar1?"
+
         assertFailsWith<IllegalArgumentException> {
-            RawPassword("InvalidChar1?")
+            RawPassword(passwordWithInvalidChar)
         }.let {
             assertEquals(
                 "비밀번호에 허용되지 않는 특수문자가 포함되어 있습니다. 허용 특수문자: ${RawPassword.ALLOWED_SPECIAL_CHARS}",

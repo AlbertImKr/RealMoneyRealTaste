@@ -13,8 +13,8 @@ abstract class BaseEntity : Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    final var id: Long? = null
-        private set
+    var id: Long? = null
+        protected set
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

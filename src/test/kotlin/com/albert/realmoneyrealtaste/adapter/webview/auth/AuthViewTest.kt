@@ -26,7 +26,7 @@ class AuthViewTest : IntegrationTestBase() {
     private lateinit var memberRegister: MemberRegister
 
     @Test
-    fun `signup form display`() {
+    fun `signup - success - displays signup form`() {
         mockMvc.perform(get("/signup"))
             .andExpect(status().isOk)
             .andExpect(view().name("auth/signup"))
@@ -34,7 +34,7 @@ class AuthViewTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `sign up - success`() {
+    fun `signup - success - redirects to signin when registration succeeds`() {
         mockMvc.perform(
             post("/signup")
                 .with(csrf())
@@ -48,7 +48,7 @@ class AuthViewTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `sign up - fail`() {
+    fun `signup - failure - returns form with errors when validation fails`() {
         mockMvc.perform(
             post("/signup")
                 .with(csrf())
@@ -76,14 +76,14 @@ class AuthViewTest : IntegrationTestBase() {
             val request = MemberRegisterRequest(
                 email = email,
                 password = password,
-                nickname = MemberFixture.DEFAULT_NICKNAME,
+                nickname = MemberFixture.DEFAULT_NICKNAME
             )
 
             memberRegister.register(request)
         }
 
         @Test
-        fun `signin form display`() {
+        fun `signin - success - displays signin form`() {
             mockMvc.perform(get("/signin"))
                 .andExpect(status().isOk)
                 .andExpect(view().name("auth/signin"))
@@ -91,7 +91,7 @@ class AuthViewTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sign in - success`() {
+        fun `signin - success - redirects to home when login succeeds`() {
             mockMvc.perform(
                 post("/signin")
                     .with(csrf())
@@ -103,7 +103,7 @@ class AuthViewTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sign in - fail with invalid email format`() {
+        fun `signin - failure - returns form with error when email format is invalid`() {
             mockMvc.perform(
                 post("/signin")
                     .with(csrf())
@@ -116,7 +116,7 @@ class AuthViewTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sign in - fail with empty password`() {
+        fun `signin - failure - returns form with error when password is empty`() {
             mockMvc.perform(
                 post("/signin")
                     .with(csrf())
@@ -129,7 +129,7 @@ class AuthViewTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sign in - fail with wrong credentials`() {
+        fun `signin - failure - returns form when credentials are wrong`() {
             mockMvc.perform(
                 post("/signin")
                     .with(csrf())
@@ -141,7 +141,7 @@ class AuthViewTest : IntegrationTestBase() {
         }
 
         @Test
-        fun `sign in - fail with non-existent user`() {
+        fun `signin - failure - returns form when user does not exist`() {
             mockMvc.perform(
                 post("/signin")
                     .with(csrf())

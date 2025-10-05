@@ -6,21 +6,22 @@ import org.mockito.Mockito.`when`
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class PasswordHashTest {
 
     @Test
-    fun `creates password hash`() {
+    fun `of - success - creates password hash and matches raw password`() {
         val rawPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         val encoder = TEST_ENCODER
 
         val passwordHash = PasswordHash.of(rawPassword, encoder)
 
-        assertEquals(true, passwordHash.matches(rawPassword, encoder))
+        assertTrue(passwordHash.matches(rawPassword, encoder))
     }
 
     @Test
-    fun `toString does not expose the actual hash value`() {
+    fun `toString - success - does not expose the actual hash value`() {
         val rawPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         val encoder = TEST_ENCODER
 
@@ -30,7 +31,7 @@ class PasswordHashTest {
     }
 
     @Test
-    fun `hash value blank`() {
+    fun `of - failure - throws exception when hash value is blank`() {
         val rawPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         val encoder = mock(PasswordEncoder::class.java)
         `when`(encoder.encode(rawPassword)).thenReturn("")

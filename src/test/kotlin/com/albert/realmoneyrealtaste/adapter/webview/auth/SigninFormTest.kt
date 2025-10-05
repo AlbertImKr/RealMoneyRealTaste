@@ -3,10 +3,10 @@ package com.albert.realmoneyrealtaste.adapter.webview.auth
 import jakarta.validation.Validation
 import jakarta.validation.Validator
 import org.junit.jupiter.api.Assertions.assertAll
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SigninFormTest {
 
@@ -19,7 +19,7 @@ class SigninFormTest {
     }
 
     @Test
-    fun `create form with default values`() {
+    fun `constructor - success - creates form with default empty values`() {
         val form = SigninForm()
 
         assertAll(
@@ -29,9 +29,10 @@ class SigninFormTest {
     }
 
     @Test
-    fun `create form with specific values`() {
+    fun `constructor - success - creates form with specific values`() {
         val email = "albert@gmail.com"
         val password = "Password1!"
+
         val form = SigninForm(
             email = email,
             password = password
@@ -44,7 +45,7 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects invalid email format`() {
+    fun `validate - failure - detects invalid email format`() {
         val form = SigninForm(
             email = "invalid-email",
             password = "Password1!"
@@ -58,7 +59,7 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects blank email`() {
+    fun `validate - failure - detects blank email`() {
         val form = SigninForm(
             email = "",
             password = "Password1!"
@@ -72,7 +73,21 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects short password`() {
+    fun `validate - failure - detects blank password`() {
+        val form = SigninForm(
+            email = "albert@gmail.com",
+            password = ""
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isNotEmpty())
+        val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
+        assertTrue(passwordViolation?.message?.contains("비밀번호") == true)
+    }
+
+    @Test
+    fun `validate - failure - detects short password`() {
         val form = SigninForm(
             email = "albert@gmail.com",
             password = "Pass1!"
@@ -86,10 +101,10 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects long password`() {
+    fun `validate - failure - detects long password`() {
         val form = SigninForm(
             email = "albert@gmail.com",
-            password = "Password1!".repeat(3) // 30자
+            password = "Password1!".repeat(3)
         )
 
         val violations = validator.validate(form)
@@ -100,7 +115,7 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects password without letter`() {
+    fun `validate - failure - detects password without letter`() {
         val form = SigninForm(
             email = "albert@gmail.com",
             password = "12345678!"
@@ -114,7 +129,7 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects password without digit`() {
+    fun `validate - failure - detects password without digit`() {
         val form = SigninForm(
             email = "albert@gmail.com",
             password = "Password!"
@@ -128,7 +143,7 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects password without special character`() {
+    fun `validate - failure - detects password without special character`() {
         val form = SigninForm(
             email = "albert@gmail.com",
             password = "Password1"
@@ -142,35 +157,7 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate passes with valid form`() {
-        val form = SigninForm(
-            email = "albert@gmail.com",
-            password = "Password1!"
-        )
-
-        val violations = validator.validate(form)
-
-        assertTrue(violations.isEmpty())
-    }
-
-    @Test
-    fun `validate accepts all allowed special characters`() {
-        val specialChars = listOf('!', '@', '#', '$', '%', '^', '&', '*')
-
-        specialChars.forEach { char ->
-            val form = SigninForm(
-                email = "albert@gmail.com",
-                password = "Password1$char"
-            )
-
-            val violations = validator.validate(form)
-
-            assertTrue(violations.isEmpty(), "특수문자 '$char' 가 포함된 비밀번호가 유효하지 않음")
-        }
-    }
-
-    @Test
-    fun `validate detects multiple errors`() {
+    fun `validate - failure - detects multiple errors`() {
         val form = SigninForm(
             email = "invalid-email",
             password = "short"
@@ -184,16 +171,30 @@ class SigninFormTest {
     }
 
     @Test
-    fun `validate detects blank password`() {
+    fun `validate - success - passes with valid form`() {
         val form = SigninForm(
             email = "albert@gmail.com",
-            password = ""
+            password = "Password1!"
         )
 
         val violations = validator.validate(form)
 
-        assertTrue(violations.isNotEmpty())
-        val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertTrue(passwordViolation?.message?.contains("비밀번호") == true)
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts all allowed special characters`() {
+        val specialChars = listOf('!', '@', '#', '$', '%', '^', '&', '*')
+
+        specialChars.forEach { char ->
+            val form = SigninForm(
+                email = "albert@gmail.com",
+                password = "Password1$char"
+            )
+
+            val violations = validator.validate(form)
+
+            assertTrue(violations.isEmpty(), "특수문자 '$char' 가 포함된 비밀번호가 유효하지 않음")
+        }
     }
 }

@@ -40,15 +40,15 @@ class MemberViewTest : IntegrationTestBase() {
         val request = MemberRegisterRequest(
             email = email,
             password = password,
-            nickname = nickname,
+            nickname = nickname
         )
         member = memberRegister.register(request)
     }
 
     @Test
-    fun `activate - success`() {
-        val token = (activationTokenRepository.findByMemberId(member.id!!)
-            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}"))
+    fun `activate - success - returns success view with member information`() {
+        val token = activationTokenRepository.findByMemberId(member.id!!)
+            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
 
         mockMvc.perform(
             get("/members/activate")
@@ -61,10 +61,12 @@ class MemberViewTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `activate - fail with invalid token`() {
+    fun `activate - failure - returns failure view when token is invalid`() {
+        val invalidToken = "invalid-token"
+
         mockMvc.perform(
             get("/members/activate")
-                .param("token", "invalid-token")
+                .param("token", invalidToken)
         )
             .andExpect(status().isOk)
             .andExpect(view().name(MemberView.MEMBER_ACTIVATE_VIEW_NAME))
@@ -72,9 +74,9 @@ class MemberViewTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `activate - fail with expired token`() {
-        val token = (activationTokenRepository.findByMemberId(member.id!!)
-            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}"))
+    fun `activate - failure - returns failure view when token is expired`() {
+        val token = activationTokenRepository.findByMemberId(member.id!!)
+            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
         activationTokenRepository.delete(token)
         flushAndClear()
         val expiredToken = activationTokenGenerator.generate(member.id!!, -1)
@@ -89,11 +91,10 @@ class MemberViewTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `activate - fail with already activated member`() {
-        val token = (activationTokenRepository.findByMemberId(member.id!!)
-            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}"))
+    fun `activate - failure - returns failure view when member is already activated`() {
+        val token = activationTokenRepository.findByMemberId(member.id!!)
+            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
 
-        // 첫 번째 활성화 성공
         mockMvc.perform(
             get("/members/activate")
                 .param("token", token.token)
@@ -105,7 +106,6 @@ class MemberViewTest : IntegrationTestBase() {
         flushAndClear()
         val newToken = activationTokenGenerator.generate(member.id!!, 60 * 60)
 
-        // 두 번째 활성화 시도 실패
         mockMvc.perform(
             get("/members/activate")
                 .param("token", newToken.token)
@@ -116,7 +116,7 @@ class MemberViewTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `activate - fail with missing token parameter`() {
+    fun `activate - failure - returns bad request when token parameter is missing`() {
         mockMvc.perform(
             get("/members/activate")
         )

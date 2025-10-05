@@ -19,13 +19,13 @@ class MemberActivateTest(
 ) : IntegrationTestBase() {
 
     @Test
-    fun `activate - success`() {
+    fun `activate - success - activates member and invalidates token`() {
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val email = MemberFixture.DEFAULT_EMAIL
         val request = MemberRegisterRequest(
             email = email,
             password = password,
-            nickname = MemberFixture.DEFAULT_NICKNAME,
+            nickname = MemberFixture.DEFAULT_NICKNAME
         )
         val member = memberRegister.register(request)
         val token = activationTokenRepository.findByMemberId(member.id!!)
@@ -40,7 +40,7 @@ class MemberActivateTest(
     }
 
     @Test
-    fun `activate - fail - invalid token`() {
+    fun `activate - failure - throws exception when token is invalid`() {
         val invalidToken = "invalid.token.value"
 
         assertFailsWith<InvalidActivationTokenException> {
@@ -49,18 +49,17 @@ class MemberActivateTest(
     }
 
     @Test
-    fun `activate - fail - already activated`() {
+    fun `activate - failure - throws exception when token already used`() {
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val email = MemberFixture.DEFAULT_EMAIL
         val request = MemberRegisterRequest(
             email = email,
             password = password,
-            nickname = MemberFixture.DEFAULT_NICKNAME,
+            nickname = MemberFixture.DEFAULT_NICKNAME
         )
         val member = memberRegister.register(request)
         val token = activationTokenRepository.findByMemberId(member.id!!)
             ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
-
 
         memberActivate.activate(token.token)
 
@@ -70,13 +69,13 @@ class MemberActivateTest(
     }
 
     @Test
-    fun `activate - fail - expired token`() {
+    fun `activate - failure - throws exception when token is expired`() {
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val email = MemberFixture.DEFAULT_EMAIL
         val request = MemberRegisterRequest(
             email = email,
             password = password,
-            nickname = MemberFixture.DEFAULT_NICKNAME,
+            nickname = MemberFixture.DEFAULT_NICKNAME
         )
         val member = memberRegister.register(request)
 
@@ -92,8 +91,9 @@ class MemberActivateTest(
     }
 
     @Test
-    fun `activate - fail - invalid member`() {
-        val token = activationTokenGenerator.generate(999999, 1)
+    fun `activate - failure - throws exception when member does not exist`() {
+        val nonExistentMemberId = 999999L
+        val token = activationTokenGenerator.generate(nonExistentMemberId, 1)
 
         assertFailsWith<InvalidActivationTokenException> {
             memberActivate.activate(token.token)
@@ -101,13 +101,13 @@ class MemberActivateTest(
     }
 
     @Test
-    fun `activate - fail - member already active`() {
+    fun `activate - failure - throws exception when member is already active`() {
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val email = MemberFixture.DEFAULT_EMAIL
         val request = MemberRegisterRequest(
             email = email,
             password = password,
-            nickname = MemberFixture.DEFAULT_NICKNAME,
+            nickname = MemberFixture.DEFAULT_NICKNAME
         )
         val member = memberRegister.register(request)
         member.activate()

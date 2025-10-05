@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 class TrustScoreTest {
 
     @Test
-    fun `test create TrustScore`() {
+    fun `create - success - creates trust score with initial values`() {
         val trustScore = TrustScore.create()
 
         assertEquals(0, trustScore.score)
@@ -22,10 +22,15 @@ class TrustScoreTest {
         value = [
             "1, 0, 5, 1",
             "2, 0, 10, 2",
-            "50, 0, 250, 50",
+            "50, 0, 250, 50"
         ]
     )
-    fun `test addRealMoneyReview`(times: Int, adTimes: Int, expectedScore: Int) {
+    fun `addRealMoneyReview - success - increases score and count`(
+        times: Int,
+        adTimes: Int,
+        expectedScore: Int,
+        expectedCount: Int,
+    ) {
         val trustScore = TrustScore.create()
         val expectedLevel = TrustLevel.fromScore(expectedScore)
 
@@ -36,21 +41,21 @@ class TrustScoreTest {
         assertEquals(expectedLevel, trustScore.level)
         assertEquals(adTimes, trustScore.adReviewCount)
         assertEquals(expectedScore, trustScore.score)
-        assertEquals(times, trustScore.realMoneyReviewCount)
+        assertEquals(expectedCount, trustScore.realMoneyReviewCount)
     }
 
     @ParameterizedTest
     @CsvSource(
         value = [
-            "1, 0, 1, 1,BRONZE",
-            "2, 0, 2, 2,BRONZE",
-            "50, 0, 50, 50,BRONZE",
+            "1, 0, 1, 1, BRONZE",
+            "2, 0, 2, 2, BRONZE",
+            "50, 0, 50, 50, BRONZE",
             "200, 0, 200, 200, SILVER",
             "500, 0, 500, 500, GOLD",
-            "800, 0, 800, 800, DIAMOND",
+            "800, 0, 800, 800, DIAMOND"
         ]
     )
-    fun `test addAdReview`(
+    fun `addAdReview - success - increases score and count`(
         times: Int,
         realMoneyTimes: Int,
         expectedScore: Int,
@@ -75,10 +80,15 @@ class TrustScoreTest {
             "100, 20, 480, SILVER",
             "200, 50, 950, DIAMOND",
             "200, 300, 700, GOLD",
-            "50, 100, 150, BRONZE",
+            "50, 100, 150, BRONZE"
         ]
     )
-    fun `test penalize`(times: Int, penalty: Int, expectedScore: Int, expectedLevel: TrustLevel) {
+    fun `penalize - success - decreases score and updates level`(
+        times: Int,
+        penalty: Int,
+        expectedScore: Int,
+        expectedLevel: TrustLevel,
+    ) {
         val trustScore = TrustScore.create()
         repeat(times) {
             trustScore.addRealMoneyReview()
@@ -99,10 +109,10 @@ class TrustScoreTest {
             "30, 70, 0.3",
             "0, 0, 0.0",
             "100, 0, 1.0",
-            "0, 100, 0.0",
+            "0, 100, 0.0"
         ]
     )
-    fun `test getRealMoneyRatio`(
+    fun `getRealMoneyRatio - success - calculates correct ratio`(
         realMoneyCount: Int,
         adCount: Int,
         expectedRatio: Double,
@@ -128,10 +138,10 @@ class TrustScoreTest {
             "100, 20, 200, 920",
             "0, 0, 0, 0",
             "50, 10, 0, 260",
-            "50, 10, 10, 280",
+            "50, 10, 10, 280"
         ]
     )
-    fun `test calculateScore`(
+    fun `calculateScore - success - calculates score with helpful count`(
         realMoneyCount: Int,
         adCount: Int,
         helpfulCount: Int,
@@ -147,7 +157,7 @@ class TrustScoreTest {
     }
 
     @Test
-    fun `test calculateScore - non helpful count`() {
+    fun `calculateScore - success - calculates score with penalty count`() {
         val score = TrustScore.calculateScore(
             realMoneyReviewCount = 100,
             adReviewCount = 50,

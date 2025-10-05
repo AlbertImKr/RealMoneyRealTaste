@@ -18,11 +18,10 @@ class MemberEventListenerTest(
     var testEmailSender: TestEmailSender = emailSender as TestEmailSender
 
     @Test
-    fun `handleMemberRegistered - success - send activation email`() {
+    fun `handleMemberRegistered - success - sends activation email with correct content`() {
         val memberId = 1L
         val email = MemberFixture.DEFAULT_EMAIL
         val nickname = MemberFixture.DEFAULT_NICKNAME
-
         val event = MemberRegisteredEvent(
             memberId = memberId,
             email = email,

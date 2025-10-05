@@ -1,33 +1,33 @@
 package com.albert.realmoneyrealtaste.domain.member
 
 import jakarta.persistence.Column
-import jakarta.persistence.Embeddable
+import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 
-@Embeddable
-class TrustScore private constructor(
+@Entity
+class TrustScore protected constructor(
     score: Int,
     level: TrustLevel,
     realMoneyReviewCount: Int,
     adReviewCount: Int,
-) {
+) : BaseEntity() {
     @Column(name = "trust_score")
-    final var score: Int = score
-        private set
+    var score: Int = score
+        protected set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trust_level")
-    final var level: TrustLevel = level
-        private set
+    var level: TrustLevel = level
+        protected set
 
     @Column(name = "real_money_review_count")
-    final var realMoneyReviewCount: Int = realMoneyReviewCount
-        private set
+    var realMoneyReviewCount: Int = realMoneyReviewCount
+        protected set
 
     @Column(name = "ad_review_count")
-    final var adReviewCount: Int = adReviewCount
-        private set
+    var adReviewCount: Int = adReviewCount
+        protected set
 
     fun addRealMoneyReview() {
         val newCount = realMoneyReviewCount + 1

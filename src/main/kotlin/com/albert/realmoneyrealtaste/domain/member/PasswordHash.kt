@@ -3,9 +3,8 @@ package com.albert.realmoneyrealtaste.domain.member
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
-@ConsistentCopyVisibility
 @Embeddable
-data class PasswordHash private constructor(
+class PasswordHash protected constructor(
     @Column(name = "password_hash", nullable = false)
     private val hash: String,
 ) {

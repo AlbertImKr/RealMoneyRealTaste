@@ -1,33 +1,33 @@
 package com.albert.realmoneyrealtaste.domain.member
 
 import jakarta.persistence.Column
-import jakarta.persistence.Embeddable
 import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
 import java.time.LocalDateTime
 
-@Embeddable
-class MemberDetail private constructor(
+@Entity
+class MemberDetail protected constructor(
     profileAddress: ProfileAddress?,
     introduction: Introduction?,
     val registeredAt: LocalDateTime,
     activatedAt: LocalDateTime?,
     deactivatedAt: LocalDateTime?,
-) {
+) : BaseEntity() {
     @Embedded
-    final var profileAddress: ProfileAddress? = profileAddress
-        private set
+    var profileAddress: ProfileAddress? = profileAddress
+        protected set
 
     @Embedded
-    final var introduction: Introduction? = introduction
-        private set
+    var introduction: Introduction? = introduction
+        protected set
 
     @Column(name = "activated_at")
-    final var activatedAt: LocalDateTime? = activatedAt
-        private set
+    var activatedAt: LocalDateTime? = activatedAt
+        protected set
 
     @Column(name = "deactivated_at")
-    final var deactivatedAt: LocalDateTime? = deactivatedAt
-        private set
+    var deactivatedAt: LocalDateTime? = deactivatedAt
+        protected set
 
     fun activate() {
         activatedAt = LocalDateTime.now()

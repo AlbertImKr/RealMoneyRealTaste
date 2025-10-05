@@ -7,40 +7,45 @@ import kotlin.test.assertFailsWith
 class IntroductionTest {
 
     @Test
-    fun `test valid introduction`() {
-        val intro = Introduction("This is a valid introduction.")
+    fun `constructor - success - creates introduction with valid text`() {
+        val validText = "This is a valid introduction."
 
-        assertEquals(intro, intro)
+        val intro = Introduction(validText)
+
+        assertEquals(validText, intro.value)
     }
 
     @Test
-    fun `test empty introduction`() {
-        val intro = Introduction("")
+    fun `constructor - success - creates introduction with empty text`() {
+        val emptyText = ""
 
-        assertEquals(intro, intro)
+        val intro = Introduction(emptyText)
+
+        assertEquals(emptyText, intro.value)
     }
 
     @Test
-    fun `test maximum length introduction`() {
-        val maxLengthIntro = "A".repeat(500)
-        val intro = Introduction(maxLengthIntro)
+    fun `constructor - success - creates introduction with maximum length text`() {
+        val maxLengthText = "A".repeat(500)
 
-        assertEquals(intro, intro)
+        val intro = Introduction(maxLengthText)
+
+        assertEquals(maxLengthText, intro.value)
     }
 
     @Test
-    fun `test too long introduction`() {
-        val tooLongIntro = "A".repeat(501)
+    fun `constructor - failure - throws exception when text exceeds maximum length`() {
+        val tooLongText = "A".repeat(501)
 
         assertFailsWith<IllegalArgumentException> {
-            Introduction(tooLongIntro)
+            Introduction(tooLongText)
         }.let {
             assertEquals("소개는 최대 500자 이내여야 합니다", it.message)
         }
     }
 
     @Test
-    fun `test introduction with none`() {
+    fun `constructor - success - creates introduction with default empty value when no parameter`() {
         val intro = Introduction()
 
         assertEquals("", intro.value)

@@ -18,10 +18,10 @@ class TrustLevelTest {
             "500, GOLD",
             "799, GOLD",
             "800, DIAMOND",
-            "1000, DIAMOND",
+            "1000, DIAMOND"
         ]
     )
-    fun `test fromScore returns correct TrustLevel`(score: Int, expectedLevel: TrustLevel) {
+    fun `fromScore - success - returns correct trust level for given score`(score: Int, expectedLevel: TrustLevel) {
         val actualLevel = TrustLevel.fromScore(score)
 
         assertEquals(expectedLevel, actualLevel, "Score: $score")
@@ -29,7 +29,7 @@ class TrustLevelTest {
 
     @ParameterizedTest
     @ValueSource(ints = [-10, 1001, 1500])
-    fun `test fromScore with out of range scores throws exception`(invalidScore: Int) {
+    fun `fromScore - failure - throws exception when score is out of range`(invalidScore: Int) {
         assertFailsWith<NoSuchElementException> {
             TrustLevel.fromScore(invalidScore)
         }.let {
