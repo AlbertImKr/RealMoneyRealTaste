@@ -6,7 +6,6 @@ import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
 import jakarta.persistence.Index
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
@@ -54,11 +53,11 @@ class Member protected constructor(
     var status: MemberStatus = status
         protected set
 
-    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
     var detail: MemberDetail = detail
         protected set
 
-    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
     var trustScore: TrustScore = trustScore
         protected set
 
