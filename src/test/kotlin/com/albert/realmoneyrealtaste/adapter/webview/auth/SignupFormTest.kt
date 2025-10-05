@@ -2,7 +2,7 @@ package com.albert.realmoneyrealtaste.adapter.webview.auth
 
 import jakarta.validation.Validation
 import jakarta.validation.Validator
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.BeforeEach
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -19,10 +19,10 @@ class SignupFormTest {
     }
 
     @Test
-    fun `create form with default values`() {
+    fun `constructor - success - creates form with default empty values`() {
         val form = SignupForm()
 
-        Assertions.assertAll(
+        assertAll(
             { assertEquals("", form.email) },
             { assertEquals("", form.nickname) },
             { assertEquals("", form.password) },
@@ -31,11 +31,12 @@ class SignupFormTest {
     }
 
     @Test
-    fun `create form with specific values`() {
+    fun `constructor - success - creates form with specific values`() {
         val email = "albert@gmail.com"
         val nickname = "albert"
         val password = "Password1!"
         val confirmPassword = "Password123!"
+
         val form = SignupForm(
             email = email,
             nickname = nickname,
@@ -43,7 +44,7 @@ class SignupFormTest {
             confirmPassword = confirmPassword
         )
 
-        Assertions.assertAll(
+        assertAll(
             { assertEquals(email, form.email) },
             { assertEquals(nickname, form.nickname) },
             { assertEquals(password, form.password) },
@@ -52,7 +53,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects invalid email format`() {
+    fun `validate - failure - detects invalid email format`() {
         val form = SignupForm(
             email = "invalid-email",
             nickname = "albert",
@@ -68,7 +69,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects blank email`() {
+    fun `validate - failure - detects blank email`() {
         val form = SignupForm(
             email = "",
             nickname = "albert",
@@ -84,7 +85,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects blank nickname`() {
+    fun `validate - failure - detects blank nickname`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "",
@@ -100,7 +101,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects short nickname`() {
+    fun `validate - failure - detects short nickname`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "a",
@@ -116,7 +117,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects long nickname`() {
+    fun `validate - failure - detects long nickname`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "a".repeat(21),
@@ -132,7 +133,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects blank password`() {
+    fun `validate - failure - detects blank password`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
@@ -146,7 +147,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects password without letter`() {
+    fun `validate - failure - detects password without letter`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
@@ -162,7 +163,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects password without digit`() {
+    fun `validate - failure - detects password without digit`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
@@ -178,7 +179,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects password without special character`() {
+    fun `validate - failure - detects password without special character`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
@@ -194,7 +195,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate detects blank confirmPassword`() {
+    fun `validate - failure - detects blank confirmPassword`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
@@ -210,7 +211,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate passes with valid form`() {
+    fun `validate - success - passes with valid form`() {
         val form = SignupForm(
             email = "albert@gmail.com",
             nickname = "albert",
@@ -224,7 +225,7 @@ class SignupFormTest {
     }
 
     @Test
-    fun `validate accepts all allowed special characters`() {
+    fun `validate - success - accepts all allowed special characters`() {
         val specialChars = listOf('!', '@', '#', '$', '%', '^', '&', '*')
 
         specialChars.forEach { char ->
