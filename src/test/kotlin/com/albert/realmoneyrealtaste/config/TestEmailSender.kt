@@ -25,11 +25,7 @@ class TestEmailSender() : EmailSender {
 
     fun getLastSentEmail(): SentEmail? = sentEmails.lastOrNull()
 
-    fun clear() {
-        sentEmails.clear()
-    }
+    fun clear() = sentEmails.clear()
 
-    fun count(): Int {
-        return sentEmails.size
-    }
+    fun count(): Int = sentEmails.size
 }

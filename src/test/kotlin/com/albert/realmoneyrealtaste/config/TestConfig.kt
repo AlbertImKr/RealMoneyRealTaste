@@ -21,9 +21,7 @@ class TestConfig {
     @Primary
     fun asyncConfigurer(): AsyncConfigurer {
         return object : AsyncConfigurer {
-            override fun getAsyncExecutor(): Executor {
-                return SyncTaskExecutor()
-            }
+            override fun getAsyncExecutor(): Executor = SyncTaskExecutor()
         }
     }
 }
