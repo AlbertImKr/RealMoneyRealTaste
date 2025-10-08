@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.application.member
+package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository

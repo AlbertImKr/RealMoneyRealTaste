@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.application.member
+package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEvent
 import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
