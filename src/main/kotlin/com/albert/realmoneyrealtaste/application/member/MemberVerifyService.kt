@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Transactional(readOnly = true)
 @Service
-class MemberQueryService(
+class MemberVerifyService(
     private val passwordEncoder: PasswordEncoder,
     private val memberRepository: MemberRepository,
 ) : MemberVerify {
