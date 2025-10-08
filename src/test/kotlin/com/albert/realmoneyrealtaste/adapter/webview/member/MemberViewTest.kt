@@ -1,9 +1,9 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
-import com.albert.realmoneyrealtaste.application.member.provided.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture

@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
 import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
