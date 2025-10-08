@@ -15,7 +15,7 @@ class SecurityConfig {
     fun filterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         httpSecurity
             .authorizeHttpRequests {
-                it.requestMatchers("/", "/signup", "/members/activate").permitAll()
+                it.requestMatchers("/", "/signup", "/members/activate","/members/setting","/signin").permitAll()
                     .requestMatchers("/assets/**").permitAll()
                     .requestMatchers("/api/**").permitAll()
                     .anyRequest().authenticated()
@@ -26,16 +26,10 @@ class SecurityConfig {
                 )
             }
             .formLogin {
-                it.loginPage("/signin")
-                    .loginProcessingUrl("/signin")
-                    .usernameParameter("email")
-                    .passwordParameter("password")
-                    .defaultSuccessUrl("/", true)
-                    .failureUrl("/signin?error=true")
-                    .permitAll()
+                it.disable()
             }
             .logout {
-                it.logoutUrl("/logout")
+                it.logoutUrl("/signout")
                     .logoutSuccessUrl("/")
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")

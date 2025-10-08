@@ -5,9 +5,12 @@ import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Nickname
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
@@ -59,13 +62,21 @@ class AuthView(
     fun signin(
         @Valid form: SigninForm,
         bindingResult: BindingResult,
+        request: HttpServletRequest,
     ): String {
         if (bindingResult.hasErrors()) {
             return SIGNIN_VIEW_NAME
         }
 
-        authenticationManager.authenticate(
+        val authentication = authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(form.email, form.password)
+        )
+
+        SecurityContextHolder.getContext().authentication = authentication
+
+        request.session.setAttribute(
+            HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+            SecurityContextHolder.getContext()
         )
 
         return "redirect:/"
