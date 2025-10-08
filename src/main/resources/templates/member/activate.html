@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>RMRT - 이메일 인증</title>
 
@@ -32,7 +32,7 @@
         setTheme(getPreferredTheme())
 
         window.addEventListener('DOMContentLoaded', () => {
-            var el = document.querySelector('.theme-icon-active');
+            const el = document.querySelector('.theme-icon-active');
             if (el !== 'undefined' && el != null) {
                 const showActiveTheme = theme => {
                     const activeThemeIcon = document.querySelector('.theme-icon-active use')
@@ -111,16 +111,37 @@
                         <p class="mb-0 text-danger">유효하지 않거나 만료된 인증 혹은 이미 인증된 링크입니다.</p>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="mt-4">
-                        <div class="d-grid gap-2" th:if="${success}">
-                            <a class="btn btn-lg btn-primary" href="/signin">로그인하기</a>
-                            <a class="btn btn-lg btn-outline-secondary" href="/">홈으로 가기</a>
-                        </div>
+                    <!-- Action Buttons - Success Case -->
+                    <div class="mt-4" th:if="${success}">
+                        <div class="d-grid gap-2">
+                            <!-- 로그인하지 않은 경우에만 로그인 버튼 표시 -->
+                            <a class="btn btn-lg btn-primary"
+                               sec:authorize="!isAuthenticated()"
+                               th:href="@{/signin}">로그인하기</a>
 
-                        <div class="d-grid gap-2" th:unless="${success}">
-                            <a class="btn btn-lg btn-primary" href="/members/resend-activation">이메일 다시 보내기</a>
-                            <a class="btn btn-lg btn-outline-secondary" href="/">홈으로 가기</a>
+                            <!-- 이미 로그인한 경우 마이페이지 또는 홈으로 -->
+                            <a class="btn btn-lg btn-primary"
+                               sec:authorize="isAuthenticated()"
+                               th:href="@{/}">시작하기</a>
+
+                            <a class="btn btn-lg btn-outline-secondary" th:href="@{/}">홈으로 가기</a>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons - Error Case -->
+                    <div class="mt-4" th:unless="${success}">
+                        <div class="d-grid gap-2">
+                            <!-- 로그인한 경우에만 재발송 버튼 표시 -->
+                            <a class="btn btn-lg btn-primary"
+                               sec:authorize="isAuthenticated()"
+                               th:href="@{/members/resend-activation}">이메일 다시 보내기</a>
+
+                            <!-- 로그인하지 않은 경우 로그인 안내 -->
+                            <a class="btn btn-lg btn-primary"
+                               sec:authorize="!isAuthenticated()"
+                               th:href="@{/signin}">로그인하기</a>
+
+                            <a class="btn btn-lg btn-outline-secondary" th:href="@{/}">홈으로 가기</a>
                         </div>
                     </div>
 

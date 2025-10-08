@@ -3,7 +3,6 @@ package com.albert.realmoneyrealtaste.adapter.webview.member
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.domain.member.Email
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,24 +30,24 @@ class MemberView(
 
     @GetMapping("/members/resend-activation")
     fun resendActivationEmail(
-        @AuthenticationPrincipal userDetails: UserDetails,
+        @AuthenticationPrincipal email: Email,
         model: Model,
     ): String {
-        model.addAttribute("email", userDetails.username)
+        model.addAttribute("email", email)
         return MEMBER_RESEND_ACTIVATION_VIEW_NAME
     }
 
     @PostMapping("/members/resend-activation")
     fun resendActivationEmail(
-        @AuthenticationPrincipal userDetails: UserDetails,
+        @AuthenticationPrincipal email: Email,
         redirectAttributes: RedirectAttributes,
     ): String {
-        memberActivate.resendActivationEmail(Email(userDetails.username))
+        memberActivate.resendActivationEmail(email)
 
         redirectAttributes.addFlashAttribute("success", true)
         redirectAttributes.addFlashAttribute("message", "인증 이메일이 재발송되었습니다. 이메일을 확인해주세요.")
 
-        return "redirect:${MEMBER_RESEND_ACTIVATION_VIEW_NAME}"
+        return "redirect:/members/resend-activation"
     }
 
     companion object {
