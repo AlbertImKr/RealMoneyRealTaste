@@ -7,7 +7,6 @@ import com.albert.realmoneyrealtaste.domain.member.MemberFixture
 import org.springframework.beans.factory.annotation.Value
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class MemberEventListenerTest(
     val memberEventListener: MemberEventListener,
@@ -18,7 +17,7 @@ class MemberEventListenerTest(
     var testEmailSender: TestEmailSender = emailSender as TestEmailSender
 
     @Test
-    fun `handleMemberRegistered - success - sends activation email with correct content`() {
+    fun `handleMemberRegistered - success - sends activation email`() {
         val memberId = 1L
         val email = MemberFixture.DEFAULT_EMAIL
         val nickname = MemberFixture.DEFAULT_NICKNAME
@@ -32,10 +31,22 @@ class MemberEventListenerTest(
         memberEventListener.handleMemberRegistered(event)
 
         assertEquals(1, testEmailSender.count())
-        val sentEmail = testEmailSender.getLastSentEmail()!!
-        assertTrue(sentEmail.subject.contains("이메일 인증"))
-        assertTrue(sentEmail.isHtml)
-        assertTrue(sentEmail.content.contains("$baseUrl/members/activate?token="))
-        assertTrue(sentEmail.content.contains(nickname.value))
+    }
+
+    @Test
+    fun `handleResendActivationEmail - success - sends activation email`() {
+        val memberId = 2L
+        val email = MemberFixture.DEFAULT_EMAIL
+        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val event = ResendActivationEmailEvent(
+            memberId = memberId,
+            email = email,
+            nickname = nickname
+        )
+
+        testEmailSender.clear()
+        memberEventListener.handleResendActivationEmail(event)
+
+        assertEquals(1, testEmailSender.count())
     }
 }

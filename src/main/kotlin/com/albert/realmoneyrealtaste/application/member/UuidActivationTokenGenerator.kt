@@ -15,6 +15,10 @@ class UuidActivationTokenGenerator(
 ) : ActivationTokenGenerator {
 
     override fun generate(memberId: Long, expirationHours: Long): ActivationToken {
+        activationTokenRepository.findByMemberId(memberId)?.let {
+            activationTokenRepository.delete(it)
+        }
+
         val createdAt = LocalDateTime.now()
         return activationTokenRepository.save(
             ActivationToken(

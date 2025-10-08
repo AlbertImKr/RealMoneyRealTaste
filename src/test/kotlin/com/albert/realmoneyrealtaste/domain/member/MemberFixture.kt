@@ -3,7 +3,8 @@ package com.albert.realmoneyrealtaste.domain.member
 class MemberFixture {
 
     companion object {
-        val DEFAULT_EMAIL = Email("default@gmail.com")
+        const val DEFAULT_USERNAME = "default@gmail.com"
+        val DEFAULT_EMAIL = Email(DEFAULT_USERNAME)
         val DEFAULT_NICKNAME = Nickname("defaultNick")
         val DEFAULT_RAW_PASSWORD = RawPassword("Default1!")
         val TEST_ENCODER = object : PasswordEncoder {

@@ -9,9 +9,14 @@ import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.model
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
 import kotlin.test.Test
@@ -112,7 +117,7 @@ class MemberViewTest : IntegrationTestBase() {
         )
             .andExpect(status().isOk)
             .andExpect(view().name(MemberView.MEMBER_ACTIVATE_VIEW_NAME))
-            .andExpect(model().attribute("success", false))
+            .andExpect(model().attribute("success", true))
     }
 
     @Test
@@ -121,5 +126,46 @@ class MemberViewTest : IntegrationTestBase() {
             get("/members/activate")
         )
             .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @WithMockUser(username = MemberFixture.DEFAULT_USERNAME)
+    fun `resendActivationEmail GET - success - returns view with email`() {
+        mockMvc.perform(
+            get("/members/resend-activation")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(MemberView.MEMBER_RESEND_ACTIVATION_VIEW_NAME))
+            .andExpect(model().attribute("email", email.address))
+    }
+
+    @Test
+    fun `resendActivationEmail GET - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            get("/members/resend-activation")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockUser(username = MemberFixture.DEFAULT_USERNAME)
+    fun `resendActivationEmail POST - success - redirects with success message`() {
+        mockMvc.perform(
+            post("/members/resend-activation")
+                .with(csrf())
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl(MemberView.MEMBER_RESEND_ACTIVATION_VIEW_NAME))
+            .andExpect(flash().attribute("success", true))
+            .andExpect(flash().attribute("message", "인증 이메일이 재발송되었습니다. 이메일을 확인해주세요."))
+    }
+
+    @Test
+    fun `resendActivationEmail POST - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            post("/members/resend-activation")
+                .with(csrf())
+        )
+            .andExpect(status().isForbidden())
     }
 }
