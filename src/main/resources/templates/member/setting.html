@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <title>RMRT - Settings</title>
+
+    <!-- Meta Tags -->
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <meta content="Albert" name="author">
+    <meta content="RMRT - 내돈 내산 맛집 추천 서비스" name="description">
+    <meta content="RMRT, 맛집, 추천, 리뷰" name="keywords">
+
+    <!-- Dark mode -->
+    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
+
+    <!-- Favicon -->
+    <link href="/assets/images/favicon.ico" rel="shortcut icon">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Plugins CSS -->
+    <link href="/assets/vendor/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/choices.js/public/assets/styles/choices.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/dropzone/dist/dropzone.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/flatpickr/dist/flatpickr.css" rel="stylesheet" type="text/css">
+
+    <!-- Theme CSS -->
+    <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<!-- Header START -->
+<header th:replace="~{fragments/header :: header}"></header>
+<!-- Header END -->
+
+<!-- MAIN CONTENT START -->
+<main>
+    <!-- Container START -->
+    <div class="container">
+        <div class="row">
+
+            <!-- Sidenav START -->
+            <div class="col-lg-3">
+                <!-- Advanced filter responsive toggler START -->
+                <div class="d-flex align-items-center mb-4 d-lg-none">
+                    <button aria-controls="offcanvasNavbar" class="border-0 bg-transparent" data-bs-target="#offcanvasNavbar"
+                            data-bs-toggle="offcanvas" type="button">
+                        <span class="btn btn-primary"><i class="fa-solid fa-sliders-h"></i></span>
+                        <span class="h6 mb-0 fw-bold d-lg-none ms-2">설정</span>
+                    </button>
+                </div>
+                <!-- Advanced filter responsive toggler END -->
+
+                <nav aria-label="설정 메뉴" class="navbar navbar-light navbar-expand-lg mx-0">
+                    <div aria-labelledby="offcanvasNavbarLabel" class="offcanvas offcanvas-start" id="offcanvasNavbar"
+                         tabindex="-1">
+                        <!-- Offcanvas header -->
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">설정 메뉴</h5>
+                            <button aria-label="닫기" class="btn-close" data-bs-dismiss="offcanvas"
+                                    type="button"></button>
+                        </div>
+
+                        <!-- Offcanvas body -->
+                        <div class="offcanvas-body p-0">
+                            <!-- Card START -->
+                            <div class="card w-100">
+                                <!-- Card body START -->
+                                <div class="card-body">
+                                    <!-- Side Nav START -->
+                                    <ul class="nav nav-tabs nav-pills nav-pills-soft flex-column fw-bold gap-2 border-0">
+                                        <li class="nav-item" data-bs-dismiss="offcanvas">
+                                            <button class="nav-link d-flex mb-0 active border-0 w-100 text-start"
+                                                    data-bs-target="#nav-setting-tab-1" data-bs-toggle="tab"
+                                                    type="button">
+                                                <img alt="계정 설정"
+                                                     class="me-2 h-20px fa-fw"
+                                                     th:src="@{/assets/images/icon/person-outline-filled.svg}">
+                                                <span>계정 설정</span>
+                                            </button>
+                                        </li>
+                                        <li class="nav-item" data-bs-dismiss="offcanvas">
+                                            <button class="nav-link d-flex mb-0 border-0 w-100 text-start"
+                                                    data-bs-target="#nav-setting-tab-password" data-bs-toggle="tab"
+                                                    type="button">
+                                                <img alt="비밀번호 변경"
+                                                     class="me-2 h-20px fa-fw"
+                                                     th:src="@{/assets/images/icon/lock-outline-filled.svg}">
+                                                <span>비밀번호 변경</span>
+                                            </button>
+                                        </li>
+                                        <li class="nav-item" data-bs-dismiss="offcanvas">
+                                            <button class="nav-link d-flex mb-0 border-0 w-100 text-start" data-bs-target="#nav-setting-tab-6"
+                                                    data-bs-toggle="tab" type="button">
+                                                <img alt="계정 삭제"
+                                                     class="me-2 h-20px fa-fw"
+                                                     th:src="@{/assets/images/icon/trash-var-outline-filled.svg}">
+                                                <span>계정 삭제</span>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                    <!-- Side Nav END -->
+                                </div>
+                                <!-- Card body END -->
+                            </div>
+                            <!-- Card END -->
+                        </div>
+                        <!-- Offcanvas body -->
+
+                        <!-- Copyright -->
+                        <p class="small text-center mt-1">©2025 <a class="text-reset" href="https://github.com/AlbertImKr"
+                                                                   rel="noopener" target="_blank">
+                            RealMoneyRealTaste </a></p>
+
+                    </div>
+                </nav>
+            </div>
+            <!-- Sidenav END -->
+
+            <!-- Main content START -->
+            <div class="col-lg-6 vstack gap-4">
+                <!-- Setting Tab content START -->
+                <div class="tab-content py-0 mb-0">
+
+                    <!-- Account setting tab START -->
+                    <div class="tab-pane show active fade" id="nav-setting-tab-1">
+                        <!-- Success/Error Messages -->
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${success}">
+                            <span th:text="${success}"></span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                        </div>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error}">
+                            <span th:text="${error}"></span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                        </div>
+
+                        <!-- Account settings START -->
+                        <div class="card mb-4">
+                            <div class="card-header border-0 pb-0">
+                                <h1 class="h5 card-title">계정 설정</h1>
+                                <p class="mb-0">회원님의 계정 정보를 관리하고 수정할 수 있습니다.</p>
+                            </div>
+                            <div class="card-body">
+                                <form class="row g-3" method="post" th:action="@{/members/setting/account}">
+                                    <!-- Nickname -->
+                                    <div class="col-sm-6">
+                                        <label class="form-label" for="nickname">닉네임</label>
+                                        <input class="form-control" id="nickname" name="nickname" th:value="${member.nickname}"
+                                               type="text">
+                                    </div>
+                                    <!-- Email -->
+                                    <div class="col-sm-6">
+                                        <label class="form-label" for="email">이메일</label>
+                                        <input class="form-control" id="email" name="email" required
+                                               th:value="${member.email}" type="email">
+                                    </div>
+                                    <!-- Overview -->
+                                    <div class="col-12">
+                                        <label class="form-label" for="overview">소개</label>
+                                        <textarea class="form-control" id="overview" maxlength="500" name="overview"
+                                                  placeholder="자기소개를 입력하세요"
+                                                  rows="4" th:text="${member.detail.introduction}"></textarea>
+                                        <small>최대 500자까지 입력 가능합니다</small>
+                                    </div>
+                                    <!-- Button -->
+                                    <div class="col-12 text-end">
+                                        <button class="btn btn-sm btn-primary mb-0" type="submit">변경사항 저장</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Account setting tab END -->
+
+                    <!-- Change password tab START -->
+                    <div class="tab-pane fade" id="nav-setting-tab-password">
+                        <div class="card">
+                            <div class="card-header border-0 pb-0">
+                                <h5 class="card-title">비밀번호 변경</h5>
+                                <p class="mb-0">계정 보안을 위해 정기적으로 비밀번호를 변경하세요.</p>
+                            </div>
+                            <div class="card-body">
+                                <form class="row g-3" method="post" th:action="@{/members/setting/password}">
+                                    <!-- Current password -->
+                                    <div class="col-12">
+                                        <label class="form-label" for="currentPassword">현재 비밀번호</label>
+                                        <input autocomplete="current-password" class="form-control" id="currentPassword"
+                                               name="currentPassword" required type="password">
+                                    </div>
+                                    <!-- New password -->
+                                    <div class="col-12">
+                                        <label class="form-label" for="psw-input">새 비밀번호</label>
+                                        <div class="input-group">
+                                            <input autocomplete="new-password" class="form-control fakepassword" id="psw-input"
+                                                   minlength="8" name="newPassword"
+                                                   placeholder="새 비밀번호 입력" required type="password">
+                                            <span class="input-group-text p-0">
+                            <i class="fakepasswordicon fa-solid fa-eye-slash cursor-pointer p-2 w-40px"></i>
+                        </span>
+                                        </div>
+                                    </div>
+                                    <!-- Confirm password -->
+                                    <div class="col-12">
+                                        <label class="form-label" for="confirmPassword">비밀번호 확인</label>
+                                        <input autocomplete="new-password" class="form-control" id="confirmPassword"
+                                               name="confirmPassword" required type="password">
+                                    </div>
+                                    <!-- Button -->
+                                    <div class="col-12 text-end">
+                                        <button class="btn btn-primary mb-0" type="submit">비밀번호 업데이트</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Change password tab END -->
+
+                    <!-- Close account tab START -->
+                    <div class="tab-pane fade" id="nav-setting-tab-6">
+                        <div class="card">
+                            <div class="card-header border-0 pb-0">
+                                <h5 class="card-title">계정 삭제</h5>
+                                <p class="mb-0">계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.</p>
+                            </div>
+                            <div class="card-body">
+                                <h6>계정을 삭제하기 전에...</h6>
+                                <ul>
+                                    <li>계정을 삭제하면 복구할 수 없습니다.</li>
+                                </ul>
+                                <form id="deleteAccountForm" method="post" th:action="@{/members/setting/delete}">
+                                    <div class="form-check form-check-md my-4">
+                                        <input class="form-check-input" id="deleteaccountCheck" name="confirmed"
+                                               type="checkbox" value="true">
+                                        <label class="form-check-label" for="deleteaccountCheck">
+                                            네, 계정을 삭제하겠습니다
+                                        </label>
+                                    </div>
+                                    <a class="btn btn-success-soft btn-sm mb-2 mb-sm-0" th:href="@{/members/setting}">
+                                        계정 유지
+                                    </a>
+                                    <button class="btn btn-danger btn-sm mb-0" onclick="return confirm('정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')"
+                                            type="submit">
+                                        계정 삭제
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Close account tab END -->
+
+                </div>
+                <!-- Setting Tab content END -->
+            </div>
+
+        </div> <!-- Row END -->
+    </div>
+    <!-- Container END -->
+</main>
+<!-- MAIN CONTENT END -->
+
+<!-- Bootstrap JS -->
+<script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Vendors -->
+<script src="/assets/vendor/choices.js/public/assets/scripts/choices.min.js"></script>
+<script src="/assets/vendor/dropzone/dist/dropzone.js"></script>
+<script src="/assets/vendor/flatpickr/dist/flatpickr.min.js"></script>
+
+<!-- Theme Functions -->
+<script src="/assets/js/functions.js"></script>
+
+</body>
+
+</html>

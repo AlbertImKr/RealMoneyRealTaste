@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.security
 
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberVerify
 import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
@@ -7,7 +8,6 @@ import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 
 @Component
@@ -19,16 +19,18 @@ class CustomAuthenticationProvider(
         val email = Email(authentication.name)
         val password = RawPassword(authentication.credentials.toString())
 
-        if (!memberVerify.verify(email, password)) {
-            throw BadCredentialsException("비밀번호가 올바르지 않습니다.")
+        val memberPrincipal = try {
+            memberVerify.verify(email, password)
+        } catch (e: MemberNotFoundException) {
+            throw BadCredentialsException("비밀번호 또는 이메일이 일치하지 않습니다.", e)
         }
 
-        val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
+        val authorities = memberPrincipal.getAuthorities()
 
         return UsernamePasswordAuthenticationToken(
-            email,
+            memberPrincipal,
             null,
-            authorities
+            authorities,
         )
     }
 

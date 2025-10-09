@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Header Fragment</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+<!-- Header START -->
+<header class="navbar-light fixed-top header-static bg-mode" th:fragment="header">
+    <!-- Logo Nav START -->
+    <nav aria-label="메인 네비게이션" class="navbar navbar-expand-lg">
+        <div class="container">
+            <!-- Logo START -->
+            <a class="navbar-brand" th:href="@{/}">
+                <img alt="RMRT 로고" class="light-mode-item navbar-brand-item" th:src="@{/assets/images/logo.png}">
+                <img alt="RMRT 로고" class="dark-mode-item navbar-brand-item" th:src="@{/assets/images/logo.png}">
+            </a>
+            <!-- Logo END -->
+
+            <!-- Main navbar START -->
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav navbar-nav-scroll ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">홈</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- Main navbar END -->
+
+            <!-- Nav right START -->
+            <ul class="nav flex-nowrap align-items-center ms-sm-3 list-unstyled">
+                <li class="nav-item ms-2">
+                    <a aria-label="설정"
+                       class="nav-link bg-light icon-md btn btn-light p-0"
+                       th:href="@{/members/setting}">
+                        <i class="bi bi-gear-fill fs-6"></i>
+                    </a>
+                </li>
+
+                <!-- ✅ 로그인 상태일 때 -->
+                <li class="nav-item ms-2 dropdown" th:if="${#authorization.expression('isAuthenticated()')}">
+                    <button aria-expanded="false" aria-label="프로필 메뉴"
+                            class="nav-link btn icon-md p-0 border-0"
+                            data-bs-auto-close="outside"
+                            data-bs-display="static"
+                            data-bs-toggle="dropdown"
+                            id="profileDropdown"
+                            type="button">
+                        <img alt="프로필 이미지"
+                             class="avatar-img rounded-2"
+                             th:src="@{/assets/images/avatar/07.jpg}">
+                    </button>
+
+                    <ul aria-labelledby="profileDropdown"
+                        class="dropdown-menu dropdown-animation dropdown-menu-end pt-3 small me-md-n3">
+                        <li class="px-3">
+                            <div class="d-flex align-items-center position-relative">
+                                <div>
+                                    <!-- Spring Security에서 username -->
+                                    <button class="h6 stretched-link border-0 bg-transparent p-0" th:text="${#authentication.name}"
+                                            type="button">사용자 이름
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item bg-danger-soft-hover w-100 text-start"
+                               th:href="@{/logout}">
+                                <i class="bi bi-power fa-fw me-2"></i>로그아웃
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <!-- Dark mode options START -->
+                        <li>
+                            <div
+                                    class="modeswitch-item theme-icon-active d-flex justify-content-center gap-3 align-items-center p-2 pb-0">
+                                <span>테마:</span>
+                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0" data-bs-placement="top"
+                                        data-bs-theme-value="light" data-bs-title="라이트" data-bs-toggle="tooltip"
+                                        type="button">
+                                    <svg class="bi bi-sun fa-fw mode-switch" height="16" style="fill: currentColor"
+                                         viewBox="0 0 16 16"
+                                         width="16" xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                                d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                                        <use href="#"></use>
+                                    </svg>
+                                </button>
+                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0" data-bs-placement="top"
+                                        data-bs-theme-value="dark" data-bs-title="다크" data-bs-toggle="tooltip"
+                                        type="button">
+                                    <svg class="bi bi-moon-stars fa-fw mode-switch" height="16" style="fill: currentColor"
+                                         viewBox="0 0 16 16"
+                                         width="16" xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                                d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
+                                        <path
+                                                d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                                        <use href="#"></use>
+                                    </svg>
+                                </button>
+                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0 active" data-bs-placement="top"
+                                        data-bs-theme-value="auto" data-bs-title="자동" data-bs-toggle="tooltip"
+                                        type="button">
+                                    <svg class="bi bi-circle-half fa-fw mode-switch" height="16" style="fill: currentColor"
+                                         viewBox="0 0 16 16"
+                                         width="16" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+                                        <use href="#"></use>
+                                    </svg>
+                                </button>
+                            </div>
+                        </li>
+                        <!-- Dark mode options END-->
+                    </ul>
+                </li>
+
+                <!-- ❌ 비로그인 상태일 때 -->
+                <li class="nav-item ms-2" th:unless="${#authorization.expression('isAuthenticated()')}">
+                    <a class="btn btn-outline-primary px-3" th:href="@{/signin}">로그인</a>
+                </li>
+            </ul>
+            <!-- Nav right END -->
+        </div>
+    </nav>
+    <!-- Logo Nav END -->
+</header>
+<!-- Header END -->
+</body>
+</html>
