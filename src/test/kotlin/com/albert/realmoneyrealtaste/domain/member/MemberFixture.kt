@@ -28,6 +28,22 @@ class MemberFixture {
             return Member.register(email, nickname, password)
         }
 
+        fun createAdminMember(
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            return Member.registerAdmin(email, nickname, password)
+        }
+
+        fun createManagerMember(
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            return Member.registerManager(email, nickname, password)
+        }
+
         fun setId(entity: BaseEntity, id: Long) {
             val field = BaseEntity::class.java.getDeclaredField("id")
             field.isAccessible = true

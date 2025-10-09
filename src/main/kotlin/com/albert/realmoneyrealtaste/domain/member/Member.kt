@@ -33,6 +33,8 @@ class Member protected constructor(
 
     trustScore: TrustScore,
 
+    roles: Roles,
+
     updatedAt: LocalDateTime,
 ) : BaseEntity() {
 
@@ -59,6 +61,10 @@ class Member protected constructor(
 
     @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
     var trustScore: TrustScore = trustScore
+        protected set
+
+    @Embedded
+    var roles: Roles = roles
         protected set
 
     @Column(name = "updated_at")
@@ -88,11 +94,20 @@ class Member protected constructor(
         updatedAt = LocalDateTime.now()
     }
 
+    fun changePassword(currentPassword: RawPassword, newPassword: RawPassword, encoder: PasswordEncoder) {
+        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
+        val verifyPassword = passwordHash.matches(currentPassword, encoder)
+        require(verifyPassword) { "현재 비밀번호가 일치하지 않습니다" }
+        passwordHash = PasswordHash.of(newPassword, encoder)
+        updatedAt = LocalDateTime.now()
+    }
+
     fun updateInfo(
         nickname: Nickname? = null,
         profileAddress: ProfileAddress? = null,
         introduction: Introduction? = null,
     ) {
+        if (nickname == null && profileAddress == null && introduction == null) return
         require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 정보 수정이 가능합니다" }
         nickname?.let { this.nickname = it }
         detail.updateInfo(profileAddress, introduction)
@@ -104,7 +119,27 @@ class Member protected constructor(
         updatedAt = LocalDateTime.now()
     }
 
+    fun grantRole(role: Role) {
+        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 권한 부여가 가능합니다" }
+        roles.addRole(role)
+        updatedAt = LocalDateTime.now()
+    }
+
+    fun revokeRole(role: Role) {
+        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 권한 회수가 가능합니다" }
+        roles.removeRole(role)
+        updatedAt = LocalDateTime.now()
+    }
+
     fun canWriteReview(): Boolean = status == MemberStatus.ACTIVE
+
+    fun canManage(): Boolean = status == MemberStatus.ACTIVE && roles.isManager()
+
+    fun canAdministrate(): Boolean = status == MemberStatus.ACTIVE && roles.isAdmin()
+
+    fun hasRole(role: Role): Boolean = roles.hasRole(role)
+
+    fun hasAnyRole(vararg roleList: Role): Boolean = roles.hasAnyRole(*roleList)
 
     companion object {
         fun register(
@@ -119,6 +154,37 @@ class Member protected constructor(
             trustScore = TrustScore.create(),
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
+            roles = Roles.ofUser(),
+        )
+
+        fun registerManager(
+            email: Email,
+            nickname: Nickname,
+            password: PasswordHash,
+        ): Member = Member(
+            email = email,
+            nickname = nickname,
+            passwordHash = password,
+            detail = MemberDetail.register(null, null),
+            trustScore = TrustScore.create(),
+            status = MemberStatus.PENDING,
+            updatedAt = LocalDateTime.now(),
+            roles = Roles.of(Role.USER, Role.MANAGER),
+        )
+
+        fun registerAdmin(
+            email: Email,
+            nickname: Nickname,
+            password: PasswordHash,
+        ): Member = Member(
+            email = email,
+            nickname = nickname,
+            passwordHash = password,
+            detail = MemberDetail.register(null, null),
+            trustScore = TrustScore.create(),
+            status = MemberStatus.PENDING,
+            updatedAt = LocalDateTime.now(),
+            roles = Roles.of(Role.USER, Role.ADMIN),
         )
     }
 }
