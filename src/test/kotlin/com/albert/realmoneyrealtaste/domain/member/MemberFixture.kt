@@ -28,6 +28,17 @@ class MemberFixture {
             return Member.register(email, nickname, password)
         }
 
+        fun createMemberWithId(
+            id: Long,
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            val member = Member.register(email, nickname, password)
+            setId(member, id)
+            return member
+        }
+
         fun createAdminMember(
             email: Email = DEFAULT_EMAIL,
             nickname: Nickname = DEFAULT_NICKNAME,
@@ -36,12 +47,34 @@ class MemberFixture {
             return Member.registerAdmin(email, nickname, password)
         }
 
+        fun createAdminMemberWithId(
+            id: Long,
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            val member = Member.registerAdmin(email, nickname, password)
+            setId(member, id)
+            return member
+        }
+
         fun createManagerMember(
             email: Email = DEFAULT_EMAIL,
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
             return Member.registerManager(email, nickname, password)
+        }
+
+        fun createManagerMemberWithId(
+            id: Long,
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            val member = Member.registerManager(email, nickname, password)
+            setId(member, id)
+            return member
         }
 
         fun setId(entity: BaseEntity, id: Long) {

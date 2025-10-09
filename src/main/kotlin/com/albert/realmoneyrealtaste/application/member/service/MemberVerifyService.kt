@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
+import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberVerify
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Email
@@ -18,9 +20,12 @@ class MemberVerifyService(
     override fun verify(
         email: Email,
         password: RawPassword,
-    ): Boolean {
-        return memberRepository.findByEmail(email)
-            ?.verifyPassword(password, passwordEncoder)
-            ?: false
+    ): MemberPrincipal {
+        val member = memberRepository.findByEmail(email)
+            ?: throw MemberNotFoundException()
+        if (!member.verifyPassword(password, passwordEncoder)) {
+            throw MemberNotFoundException()
+        }
+        return MemberPrincipal.from(member)
     }
 }
