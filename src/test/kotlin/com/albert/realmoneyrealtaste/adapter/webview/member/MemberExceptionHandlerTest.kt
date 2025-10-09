@@ -15,61 +15,55 @@ class MemberExceptionHandlerTest {
     private val model: Model = mockk(relaxed = true)
 
     @Test
-    fun `handleAlreadyActivated - success - returns activate view for AlreadyActivatedException`() {
+    fun `handleActivationTokenExceptions - success - returns activate view for ExpiredActivationTokenException`() {
+        val exception = ExpiredActivationTokenException("Token expired")
+
+        val viewName = handler.handleActivationTokenExceptions(exception, model)
+
+        assertEquals(MemberView.MEMBER_ACTIVATE_VIEW_NAME, viewName)
+        verify { model.addAttribute("success", false) }
+    }
+
+    @Test
+    fun `handleActivationTokenExceptions - success - returns activate view for InvalidActivationTokenException`() {
+        val exception = InvalidActivationTokenException("Invalid token")
+
+        val viewName = handler.handleActivationTokenExceptions(exception, model)
+
+        assertEquals(MemberView.MEMBER_ACTIVATE_VIEW_NAME, viewName)
+        verify { model.addAttribute("success", false) }
+    }
+
+    @Test
+    fun `handleActivationTokenExceptions - success - adds success false to model`() {
+        val exceptions = listOf(
+            ExpiredActivationTokenException("Token expired"),
+            InvalidActivationTokenException("Invalid token")
+        )
+
+        exceptions.forEach { exception ->
+            handler.handleActivationTokenExceptions(exception, model)
+        }
+
+        verify(exactly = 2) { model.addAttribute("success", false) }
+    }
+
+    @Test
+    fun `handleAlreadyActivated - success - returns activate view`() {
         val exception = AlreadyActivatedException("Already activated")
 
         val viewName = handler.handleAlreadyActivated(exception, model)
 
         assertEquals(MemberView.MEMBER_ACTIVATE_VIEW_NAME, viewName)
-        verify { model.addAttribute("success", false) }
     }
 
     @Test
-    fun `handleAlreadyActivated - success - returns activate view for ExpiredActivationTokenException`() {
-        val exception = ExpiredActivationTokenException("Token expired")
+    fun `handleAlreadyActivated - success - adds success true and message to model`() {
+        val exception = AlreadyActivatedException("Already activated")
 
-        val viewName = handler.handleAlreadyActivated(exception, model)
+        handler.handleAlreadyActivated(exception, model)
 
-        assertEquals(MemberView.MEMBER_ACTIVATE_VIEW_NAME, viewName)
-        verify { model.addAttribute("success", false) }
-    }
-
-    @Test
-    fun `handleAlreadyActivated - success - returns activate view for InvalidActivationTokenException`() {
-        val exception = InvalidActivationTokenException("Invalid token")
-
-        val viewName = handler.handleAlreadyActivated(exception, model)
-
-        assertEquals(MemberView.MEMBER_ACTIVATE_VIEW_NAME, viewName)
-        verify { model.addAttribute("success", false) }
-    }
-
-    @Test
-    fun `handleAlreadyActivated - success - returns same view for all exception types`() {
-        val exceptions = listOf(
-            AlreadyActivatedException("Already activated"),
-            ExpiredActivationTokenException("Token expired"),
-            InvalidActivationTokenException("Invalid token")
-        )
-
-        exceptions.forEach { exception ->
-            val viewName = handler.handleAlreadyActivated(exception, model)
-            assertEquals(MemberView.MEMBER_ACTIVATE_VIEW_NAME, viewName)
-        }
-    }
-
-    @Test
-    fun `handleAlreadyActivated - success - adds success false to model for all exception types`() {
-        val exceptions = listOf(
-            AlreadyActivatedException("Already activated"),
-            ExpiredActivationTokenException("Token expired"),
-            InvalidActivationTokenException("Invalid token")
-        )
-
-        exceptions.forEach { exception ->
-            handler.handleAlreadyActivated(exception, model)
-        }
-
-        verify(exactly = 3) { model.addAttribute("success", false) }
+        verify { model.addAttribute("success", true) }
+        verify { model.addAttribute("message", "이미 활성화된 회원입니다.") }
     }
 }

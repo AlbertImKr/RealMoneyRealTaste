@@ -1,9 +1,9 @@
-package com.albert.realmoneyrealtaste.application.member
+package com.albert.realmoneyrealtaste.application.member.service
 
+import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEvent
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateEmailException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
-import com.albert.realmoneyrealtaste.application.member.provided.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder

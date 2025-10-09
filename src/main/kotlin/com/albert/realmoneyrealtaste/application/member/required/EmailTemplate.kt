@@ -1,5 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.required
 
+/**
+ * 이메일 템플릿 생성을 담당하는 인터페이스
+ */
 fun interface EmailTemplate {
 
     /**

@@ -15,7 +15,7 @@ class SecurityConfig {
     fun filterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         httpSecurity
             .authorizeHttpRequests {
-                it.requestMatchers("/", "/signup", "/signin", "/members/activate").permitAll()
+                it.requestMatchers("/", "/signup", "/members/activate", "/signin").permitAll()
                     .requestMatchers("/assets/**").permitAll()
                     .requestMatchers("/api/**").permitAll()
                     .anyRequest().authenticated()
@@ -29,7 +29,7 @@ class SecurityConfig {
                 it.disable()
             }
             .logout {
-                it.logoutUrl("/logout")
+                it.logoutUrl("/signout")
                     .logoutSuccessUrl("/")
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")

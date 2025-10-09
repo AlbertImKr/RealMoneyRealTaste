@@ -38,8 +38,8 @@ class MemberDetail protected constructor(
     }
 
     fun updateInfo(profileAddress: ProfileAddress?, introduction: Introduction?) {
-        this.profileAddress = profileAddress
-        this.introduction = introduction
+        if (profileAddress != null) this.profileAddress = profileAddress
+        if (introduction != null) this.introduction = introduction
     }
 
     companion object {

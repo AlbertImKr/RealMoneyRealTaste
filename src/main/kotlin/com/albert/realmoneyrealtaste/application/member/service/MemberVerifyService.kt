@@ -1,5 +1,7 @@
-package com.albert.realmoneyrealtaste.application.member
+package com.albert.realmoneyrealtaste.application.member.service
 
+import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberVerify
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Email
@@ -10,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Transactional(readOnly = true)
 @Service
-class MemberQueryService(
+class MemberVerifyService(
     private val passwordEncoder: PasswordEncoder,
     private val memberRepository: MemberRepository,
 ) : MemberVerify {
@@ -18,9 +20,12 @@ class MemberQueryService(
     override fun verify(
         email: Email,
         password: RawPassword,
-    ): Boolean {
-        return memberRepository.findByEmail(email)
-            ?.verifyPassword(password, passwordEncoder)
-            ?: false
+    ): MemberPrincipal {
+        val member = memberRepository.findByEmail(email)
+            ?: throw MemberNotFoundException()
+        if (!member.verifyPassword(password, passwordEncoder)) {
+            throw MemberNotFoundException()
+        }
+        return MemberPrincipal.from(member)
     }
 }

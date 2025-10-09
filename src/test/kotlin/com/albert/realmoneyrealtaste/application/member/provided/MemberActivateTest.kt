@@ -1,10 +1,13 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
 import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
+import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import kotlin.test.Test
@@ -116,6 +119,49 @@ class MemberActivateTest(
 
         assertFailsWith<AlreadyActivatedException> {
             memberActivate.activate(token.token)
+        }
+    }
+
+    @Test
+    fun `resendActivationEmail - success - publishes event for pending member`() {
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val email = MemberFixture.DEFAULT_EMAIL
+        val request = MemberRegisterRequest(
+            email = email,
+            password = password,
+            nickname = MemberFixture.DEFAULT_NICKNAME
+        )
+        memberRegister.register(request)
+
+        memberActivate.resendActivationEmail(email)
+    }
+
+    @Test
+    fun `resendActivationEmail - failure - throws exception when member not found`() {
+        val nonExistentEmail = Email("nonexistent@example.com")
+
+        assertFailsWith<MemberNotFoundException> {
+            memberActivate.resendActivationEmail(nonExistentEmail)
+        }
+    }
+
+    @Test
+    fun `resendActivationEmail - failure - throws exception when member already active`() {
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val email = MemberFixture.DEFAULT_EMAIL
+        val request = MemberRegisterRequest(
+            email = email,
+            password = password,
+            nickname = MemberFixture.DEFAULT_NICKNAME
+        )
+        val member = memberRegister.register(request)
+        val token = activationTokenRepository.findByMemberId(member.id!!)
+            ?: throw IllegalStateException("활성 토큰을 찾을 수 없습니다. 회원 ID: ${member.id}")
+
+        memberActivate.activate(token.token)
+
+        assertFailsWith<AlreadyActivatedException> {
+            memberActivate.resendActivationEmail(email)
         }
     }
 }

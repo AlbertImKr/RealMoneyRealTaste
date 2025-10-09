@@ -1,17 +1,22 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
-import com.albert.realmoneyrealtaste.application.member.provided.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture
+import com.albert.realmoneyrealtaste.util.WithMockMember
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.model
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
 import kotlin.test.Test
@@ -112,7 +117,7 @@ class MemberViewTest : IntegrationTestBase() {
         )
             .andExpect(status().isOk)
             .andExpect(view().name(MemberView.MEMBER_ACTIVATE_VIEW_NAME))
-            .andExpect(model().attribute("success", false))
+            .andExpect(model().attribute("success", true))
     }
 
     @Test
@@ -121,5 +126,205 @@ class MemberViewTest : IntegrationTestBase() {
             get("/members/activate")
         )
             .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `resendActivationEmail GET - success - returns view with email`() {
+        mockMvc.perform(
+            get("/members/resend-activation")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(MemberView.MEMBER_RESEND_ACTIVATION_VIEW_NAME))
+            .andExpect(model().attribute("email", email))
+    }
+
+    @Test
+    fun `resendActivationEmail GET - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            get("/members/resend-activation")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `resendActivationEmail POST - success - redirects with success message`() {
+        mockMvc.perform(
+            post("/members/resend-activation")
+                .with(csrf())
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/resend-activation"))
+            .andExpect(flash().attribute("success", true))
+            .andExpect(flash().attribute("message", "인증 이메일이 재발송되었습니다. 이메일을 확인해주세요."))
+    }
+
+    @Test
+    fun `resendActivationEmail POST - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            post("/members/resend-activation")
+                .with(csrf())
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `setting GET - success - returns setting view with member information`() {
+        mockMvc.perform(
+            get("/members/setting")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(MemberView.MEMBER_SETTING_VIEW_NAME))
+            .andExpect(model().attributeExists("member"))
+    }
+
+    @Test
+    fun `setting GET - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            get("/members/setting")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount POST - success - redirects with success message`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", "newNickname")
+                .param("profileAddress", "newAddress")
+                .param("introduction", "new introduction")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("success", "계정 정보가 성공적으로 업데이트되었습니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount POST - failure - redirects with error when validation fails`() {
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", "") // invalid nickname
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("error", "입력값을 확인해주세요."))
+    }
+
+    @Test
+    fun `updateAccount POST - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", "newNickname")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePassword POST - success - redirects with success message`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .param("currentPassword", MemberFixture.DEFAULT_RAW_PASSWORD.value)
+                .param("newPassword", "newPassword123!")
+                .param("confirmNewPassword", "newPassword123!")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("success", "비밀번호가 성공적으로 변경되었습니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePassword POST - failure - redirects with error when current password is incorrect`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .contentType("application/x-www-form-urlencoded")
+                .param("currentPassword", "wrongPassword!1")
+                .param("newPassword", "newPassword123!")
+                .param("confirmNewPassword", "newPassword123!")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("error", "현재 비밀번호가 일치하지 않습니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePassword POST - failure - redirects with error when validation fails`() {
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .contentType("application/x-www-form-urlencoded")
+                .param("currentPassword", "password123!")
+                .param("newPassword", "short") // invalid password
+                .param("confirmNewPassword", "short")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("error", "입력값을 확인해주세요."))
+    }
+
+    @Test
+    fun `updatePassword POST - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .contentType("application/x-www-form-urlencoded")
+                .param("currentPassword", "password123!")
+                .param("newPassword", "newPassword123!")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `deleteAccount POST - success - redirects to signout when confirmed`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/delete")
+                .with(csrf())
+                .param("confirmed", "true")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/signout"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `deleteAccount POST - failure - redirects with error when not confirmed`() {
+        mockMvc.perform(
+            post("/members/setting/delete")
+                .with(csrf())
+                .param("confirmed", "false")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("error", "계정 삭제 확인이 필요합니다."))
+    }
+
+    @Test
+    fun `deleteAccount POST - failure - returns forbidden when not authenticated`() {
+        mockMvc.perform(
+            post("/members/setting/delete")
+                .with(csrf())
+                .param("confirmed", "true")
+        )
+            .andExpect(status().isForbidden)
     }
 }

@@ -3,7 +3,8 @@ package com.albert.realmoneyrealtaste.domain.member
 class MemberFixture {
 
     companion object {
-        val DEFAULT_EMAIL = Email("default@gmail.com")
+        const val DEFAULT_USERNAME = "default@gmail.com"
+        val DEFAULT_EMAIL = Email(DEFAULT_USERNAME)
         val DEFAULT_NICKNAME = Nickname("defaultNick")
         val DEFAULT_RAW_PASSWORD = RawPassword("Default1!")
         val TEST_ENCODER = object : PasswordEncoder {
@@ -25,6 +26,55 @@ class MemberFixture {
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
             return Member.register(email, nickname, password)
+        }
+
+        fun createMemberWithId(
+            id: Long,
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            val member = Member.register(email, nickname, password)
+            setId(member, id)
+            return member
+        }
+
+        fun createAdminMember(
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            return Member.registerAdmin(email, nickname, password)
+        }
+
+        fun createAdminMemberWithId(
+            id: Long,
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            val member = Member.registerAdmin(email, nickname, password)
+            setId(member, id)
+            return member
+        }
+
+        fun createManagerMember(
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            return Member.registerManager(email, nickname, password)
+        }
+
+        fun createManagerMemberWithId(
+            id: Long,
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            val member = Member.registerManager(email, nickname, password)
+            setId(member, id)
+            return member
         }
 
         fun setId(entity: BaseEntity, id: Long) {
