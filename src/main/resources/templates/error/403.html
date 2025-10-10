@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RMRT - 접근이 거부되었습니다</title>
+
+    <!-- Meta Tags -->
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+    <!-- End Meta Tags -->
+
+    <!-- Dark mode -->
+    <script th:replace="~{fragments/darkmode :: darkmode-script}"></script>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" th:href="@{/assets/images/favicon.ico}">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" th:href="@{/assets/vendor/font-awesome/css/all.min.css}" type="text/css">
+    <link rel="stylesheet" th:href="@{/assets/vendor/bootstrap-icons/bootstrap-icons.css}" type="text/css">
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" th:href="@{/assets/css/style.css}" type="text/css">
+</head>
+
+<body>
+
+<!-- Header -->
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!-- MAIN CONTENT START -->
+<main class="py-5">
+    <!-- Container START -->
+    <div class="container">
+        <!-- Extra space -->
+        <div class="h-100px d-none d-lg-block"></div>
+        <div class="row align-items-center text-center py-sm-5">
+            <!-- Error 403 START -->
+            <div class="col-lg-8 mx-auto">
+                <!-- SVG START -->
+                <figure class="m-0 pt-5 pt-md-0">
+                    <svg height="200px" id="Layer_1" viewBox="0 0 495 495" width="200px"
+                         xml:space="preserve" xmlns="http://www.w3.org/2000/svg">
+                        <g>
+                            <path d="M180,107.5c0-37.22,30.28-67.5,67.5-67.5S315,70.28,315,107.5V175h40v-67.5
+                                C355,48.224,306.776,0,247.5,0S140,48.224,140,107.5V175h40V107.5z" style="fill:#9BC9FF;"/>
+                            <path d="M247.5,175v96.431c22.056,0,40,17.944,40,40c0,14.773-8.056,27.691-20,34.619v50.566h-20V495H425
+                                V175H247.5z" style="fill:#003F8A;"/>
+                            <path d="M227.5,396.616V346.05c-11.944-6.927-20-19.846-20-34.619c0-22.056,17.944-40,40-40V175H70v320
+                                h177.5v-98.384H227.5z" style="fill:#2488FF;"/>
+                            <path d="M207.5,311.431c0,14.773,8.056,27.692,20,34.619v50.566h40V346.05c11.944-6.927,20-19.846,20-34.619
+                                c0-22.056-17.944-40-40-40C225.444,271.431,207.5,289.375,207.5,311.431z" style="fill:#BDDBFF;"/>
+                        </g>
+                    </svg>
+                </figure>
+                <!-- SVG END -->
+
+                <!-- 403 info -->
+                <h1 class="display-1 mt-4">403</h1>
+                <h2 class="mb-2 h1">접근이 거부되었습니다!</h2>
+                <p class="mb-4">이 페이지에 접근할 권한이 없습니다.<br>로그인이 필요하거나 권한이 부족할 수 있습니다.</p>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2 justify-content-center">
+                    <a class="btn btn-primary-soft btn-sm" th:href="@{/}">
+                        <i class="bi bi-house-door me-1"></i>홈으로 돌아가기
+                    </a>
+                    <a class="btn btn-primary btn-sm" th:href="@{/signin}">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>로그인
+                    </a>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="mt-5 text-start mx-auto" style="max-width: 500px;">
+                    <h5 class="mb-3">이런 경우에 발생할 수 있습니다:</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-primary me-2"></i>
+                            로그인이 필요한 페이지입니다
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-primary me-2"></i>
+                            접근 권한이 없는 페이지입니다
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-primary me-2"></i>
+                            세션이 만료되었습니다
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-primary me-2"></i>
+                            계정이 정지되었거나 비활성화되었습니다
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Error 403 END -->
+        </div>
+
+        <!-- Extra space -->
+        <div class="h-100px d-none d-lg-block"></div>
+    </div>
+    <!-- Container END -->
+</main>
+<!-- MAIN CONTENT END -->
+
+<!-- Footer START -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<!-- Footer END -->
+
+<!-- Bootstrap JS -->
+<script th:src="@{/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js}"></script>
+
+<!-- Theme Functions -->
+<script th:src="@{/assets/js/functions.js}"></script>
+
+</body>
+</html>

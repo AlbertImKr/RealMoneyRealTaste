@@ -18,6 +18,7 @@ class SecurityConfig {
                 it.requestMatchers("/", "/signup", "/members/activate", "/signin").permitAll()
                     .requestMatchers("/assets/**").permitAll()
                     .requestMatchers("/api/**").permitAll()
+                    .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
             }
             .csrf {

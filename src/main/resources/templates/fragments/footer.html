@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Footer Fragment</title>
+</head>
+<body>
+
+<!-- Footer Fragment -->
+<footer class="bg-mode py-3" th:fragment="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <!-- Footer nav START -->
+                <ul class="nav justify-content-center justify-content-md-start lh-1">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/about}">소개</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/help}">고객지원</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/privacy}">개인정보처리방침</a>
+                    </li>
+                </ul>
+                <!-- Footer nav END -->
+            </div>
+            <div class="col-md-6">
+                <!-- Copyright START -->
+                <p class="text-center text-md-end mb-0">
+                    ©2025 <a class="text-body" href="https://github.com/AlbertImKr" rel="noopener" target="_blank">RealMoneyRealTaste</a>
+                    All rights reserved.
+                </p>
+                <!-- Copyright END -->
+            </div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

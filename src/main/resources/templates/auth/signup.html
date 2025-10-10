@@ -4,71 +4,12 @@
     <title>RMRT - Sign up</title>
 
     <!-- Meta Tags -->
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-    <meta content="Albert" name="author">
-    <meta content="RMRT - 내돈 내산 맛집 추천 서비스" name="description">
-    <meta content="RMRT, 맛집, 추천, 리뷰" name="keywords">
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+    <!-- End Meta Tags -->
 
     <!-- Dark mode -->
-    <script>
-        const storedTheme = localStorage.getItem('theme')
-
-        const getPreferredTheme = () => {
-            if (storedTheme) {
-                return storedTheme
-            }
-            return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-        }
-
-        const setTheme = function (theme) {
-            if (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.setAttribute('data-bs-theme', 'dark')
-            } else {
-                document.documentElement.setAttribute('data-bs-theme', theme)
-            }
-        }
-
-        setTheme(getPreferredTheme())
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const el = document.querySelector('.theme-icon-active');
-            if (el) {
-                const showActiveTheme = theme => {
-                    const activeThemeIcon = document.querySelector('.theme-icon-active use')
-                    const btnToActive = document.querySelector(`[data-bs-theme-value="${theme}"]`)
-                    const svgOfActiveBtn = btnToActive.querySelector('.mode-switch use').getAttribute('href')
-
-                    document.querySelectorAll('[data-bs-theme-value]').forEach(element => {
-                        element.classList.remove('active')
-                    })
-
-                    btnToActive.classList.add('active')
-                    activeThemeIcon.setAttribute('href', svgOfActiveBtn)
-                }
-
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                    if (storedTheme !== 'light' || storedTheme !== 'dark') {
-                        setTheme(getPreferredTheme())
-                    }
-                })
-
-                showActiveTheme(getPreferredTheme())
-
-                document.querySelectorAll('[data-bs-theme-value]')
-                    .forEach(toggle => {
-                        toggle.addEventListener('click', () => {
-                            const theme = toggle.getAttribute('data-bs-theme-value')
-                            localStorage.setItem('theme', theme)
-                            setTheme(theme)
-                            showActiveTheme(theme)
-                        })
-                    })
-
-            }
-        })
-
-    </script>
+    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
+    <!-- End Dark mode -->
 
     <!-- Favicon -->
     <link href="/assets/images/favicon.ico" rel="shortcut icon">
@@ -86,6 +27,10 @@
 </head>
 
 <body>
+
+<!-- Header START -->
+<header th:replace="~{fragments/header :: header}"></header>
+<!-- Header END -->
 
 <!-- **************** MAIN CONTENT START **************** -->
 <main>
@@ -199,6 +144,10 @@
 </main>
 
 <!-- **************** MAIN CONTENT END **************** -->
+
+<!-- Footer START -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<!-- Footer END -->
 
 <!-- =======================
 JS libraries, plugins and custom scripts -->

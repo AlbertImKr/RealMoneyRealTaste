@@ -5,14 +5,12 @@
     <title>RMRT - Settings</title>
 
     <!-- Meta Tags -->
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-    <meta content="Albert" name="author">
-    <meta content="RMRT - 내돈 내산 맛집 추천 서비스" name="description">
-    <meta content="RMRT, 맛집, 추천, 리뷰" name="keywords">
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+    <!-- End Meta Tags -->
 
     <!-- Dark mode -->
     <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
+    <!-- End Dark mode -->
 
     <!-- Favicon -->
     <link href="/assets/images/favicon.ico" rel="shortcut icon">
@@ -43,13 +41,14 @@
 <main>
     <!-- Container START -->
     <div class="container">
-        <div class="row">
+        <div class="row vh-100">
 
             <!-- Sidenav START -->
             <div class="col-lg-3">
                 <!-- Advanced filter responsive toggler START -->
                 <div class="d-flex align-items-center mb-4 d-lg-none">
-                    <button aria-controls="offcanvasNavbar" class="border-0 bg-transparent" data-bs-target="#offcanvasNavbar"
+                    <button aria-controls="offcanvasNavbar" class="border-0 bg-transparent"
+                            data-bs-target="#offcanvasNavbar"
                             data-bs-toggle="offcanvas" type="button">
                         <span class="btn btn-primary"><i class="fa-solid fa-sliders-h"></i></span>
                         <span class="h6 mb-0 fw-bold d-lg-none ms-2">설정</span>
@@ -77,7 +76,7 @@
                                     <ul class="nav nav-tabs nav-pills nav-pills-soft flex-column fw-bold gap-2 border-0">
                                         <li class="nav-item" data-bs-dismiss="offcanvas">
                                             <button class="nav-link d-flex mb-0 active border-0 w-100 text-start"
-                                                    data-bs-target="#nav-setting-tab-1" data-bs-toggle="tab"
+                                                    data-bs-target="#nav-setting-tab-account" data-bs-toggle="tab"
                                                     type="button">
                                                 <img alt="계정 설정"
                                                      class="me-2 h-20px fa-fw"
@@ -96,7 +95,8 @@
                                             </button>
                                         </li>
                                         <li class="nav-item" data-bs-dismiss="offcanvas">
-                                            <button class="nav-link d-flex mb-0 border-0 w-100 text-start" data-bs-target="#nav-setting-tab-6"
+                                            <button class="nav-link d-flex mb-0 border-0 w-100 text-start"
+                                                    data-bs-target="#nav-setting-tab-delete"
                                                     data-bs-toggle="tab" type="button">
                                                 <img alt="계정 삭제"
                                                      class="me-2 h-20px fa-fw"
@@ -114,7 +114,8 @@
                         <!-- Offcanvas body -->
 
                         <!-- Copyright -->
-                        <p class="small text-center mt-1">©2025 <a class="text-reset" href="https://github.com/AlbertImKr"
+                        <p class="small text-center mt-1">©2025 <a class="text-reset"
+                                                                   href="https://github.com/AlbertImKr"
                                                                    rel="noopener" target="_blank">
                             RealMoneyRealTaste </a></p>
 
@@ -129,13 +130,15 @@
                 <div class="tab-content py-0 mb-0">
 
                     <!-- Account setting tab START -->
-                    <div class="tab-pane show active fade" id="nav-setting-tab-1">
-                        <!-- Success/Error Messages -->
-                        <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${success}">
+                    <div class="tab-pane show active fade" id="nav-setting-tab-account">
+                        <!-- Success/Error Messages for Account -->
+                        <div class="alert alert-success alert-dismissible fade show" role="alert"
+                             th:if="${success} and ${tab == 'account'}">
                             <span th:text="${success}"></span>
                             <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
                         </div>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error}">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                             th:if="${error} and ${tab == 'account'}">
                             <span th:text="${error}"></span>
                             <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
                         </div>
@@ -151,21 +154,31 @@
                                     <!-- Nickname -->
                                     <div class="col-sm-6">
                                         <label class="form-label" for="nickname">닉네임</label>
-                                        <input class="form-control" id="nickname" name="nickname" th:value="${member.nickname}"
+                                        <input class="form-control" id="nickname" name="nickname"
+                                               th:value="${member.nickname.value}"
                                                type="text">
                                     </div>
                                     <!-- Email -->
                                     <div class="col-sm-6">
                                         <label class="form-label" for="email">이메일</label>
                                         <input class="form-control" id="email" name="email" required
-                                               th:value="${member.email}" type="email">
+                                               readonly th:value="${member.email.address}" type="email">
                                     </div>
-                                    <!-- Overview -->
+                                    <!-- Profile Address -->
+                                    <div class="col-sm-6">
+                                        <label class="form-label" for="profileAddress">프로필 주소</label>
+                                        <input class="form-control" id="profileAddress" name="profileAddress"
+                                               placeholder="프로필 주소를 입력하세요. 프로필 URL에 사용되며 중복될 수 없습니다."
+                                               th:value="${member.detail.profileAddress?.address ?: ''}" type="text">
+                                    </div>
+                                    <!-- Introduction -->
                                     <div class="col-12">
-                                        <label class="form-label" for="overview">소개</label>
-                                        <textarea class="form-control" id="overview" maxlength="500" name="overview"
+                                        <label class="form-label" for="introduction">소개</label>
+                                        <textarea class="form-control" id="introduction" maxlength="500"
+                                                  name="introduction"
                                                   placeholder="자기소개를 입력하세요"
-                                                  rows="4" th:text="${member.detail.introduction}"></textarea>
+                                                  rows="4"
+                                                  th:text="${member.detail.introduction?.value ?: ''}"></textarea>
                                         <small>최대 500자까지 입력 가능합니다</small>
                                     </div>
                                     <!-- Button -->
@@ -180,6 +193,18 @@
 
                     <!-- Change password tab START -->
                     <div class="tab-pane fade" id="nav-setting-tab-password">
+                        <!-- Success/Error Messages for Password -->
+                        <div class="alert alert-success alert-dismissible fade show" role="alert"
+                             th:if="${success} and ${tab == 'password'}">
+                            <span th:text="${success}"></span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                        </div>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                             th:if="${error} and ${tab == 'password'}">
+                            <span th:text="${error}"></span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                        </div>
+                        <!-- Change password START -->
                         <div class="card">
                             <div class="card-header border-0 pb-0">
                                 <h5 class="card-title">비밀번호 변경</h5>
@@ -191,13 +216,14 @@
                                     <div class="col-12">
                                         <label class="form-label" for="currentPassword">현재 비밀번호</label>
                                         <input autocomplete="current-password" class="form-control" id="currentPassword"
-                                               name="currentPassword" required type="password">
+                                               name="currentPassword" placeholder="현재 비밀번호" required type="password">
                                     </div>
                                     <!-- New password -->
                                     <div class="col-12">
                                         <label class="form-label" for="psw-input">새 비밀번호</label>
                                         <div class="input-group">
-                                            <input autocomplete="new-password" class="form-control fakepassword" id="psw-input"
+                                            <input autocomplete="new-password" class="form-control fakepassword"
+                                                   id="psw-input"
                                                    minlength="8" name="newPassword"
                                                    placeholder="새 비밀번호 입력" required type="password">
                                             <span class="input-group-text p-0">
@@ -207,9 +233,10 @@
                                     </div>
                                     <!-- Confirm password -->
                                     <div class="col-12">
-                                        <label class="form-label" for="confirmPassword">비밀번호 확인</label>
-                                        <input autocomplete="new-password" class="form-control" id="confirmPassword"
-                                               name="confirmPassword" required type="password">
+                                        <label class="form-label" for="confirmNewPassword">비밀번호 확인</label>
+                                        <input autocomplete="new-password" class="form-control" id="confirmNewPassword"
+                                               name="confirmNewPassword" placeholder="비밀번호 재입력" required
+                                               type="password">
                                     </div>
                                     <!-- Button -->
                                     <div class="col-12 text-end">
@@ -222,7 +249,19 @@
                     <!-- Change password tab END -->
 
                     <!-- Close account tab START -->
-                    <div class="tab-pane fade" id="nav-setting-tab-6">
+                    <div class="tab-pane fade" id="nav-setting-tab-delete">
+                        <!-- Success/Error Messages for Delete -->
+                        <div class="alert alert-success alert-dismissible fade show" role="alert"
+                             th:if="${success} and ${tab == 'delete'}">
+                            <span th:text="${success}"></span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                        </div>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                             th:if="${error} and ${tab == 'delete'}">
+                            <span th:text="${error}"></span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                        </div>
+                        <!-- Close account START -->
                         <div class="card">
                             <div class="card-header border-0 pb-0">
                                 <h5 class="card-title">계정 삭제</h5>
@@ -244,7 +283,8 @@
                                     <a class="btn btn-success-soft btn-sm mb-2 mb-sm-0" th:href="@{/members/setting}">
                                         계정 유지
                                     </a>
-                                    <button class="btn btn-danger btn-sm mb-0" onclick="return confirm('정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')"
+                                    <button class="btn btn-danger btn-sm mb-0"
+                                            onclick="return confirm('정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')"
                                             type="submit">
                                         계정 삭제
                                     </button>
@@ -264,6 +304,10 @@
 </main>
 <!-- MAIN CONTENT END -->
 
+<!-- Footer START -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<!-- Footer END -->
+
 <!-- Bootstrap JS -->
 <script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -274,6 +318,58 @@
 
 <!-- Theme Functions -->
 <script src="/assets/js/functions.js"></script>
+
+<script>
+    // 탭 해시 네비게이션 스크립트
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+
+        // 탭 클릭 시 URL 해시 업데이트
+        tabButtons.forEach(button => {
+            button.addEventListener('shown.bs.tab', function (e) {
+                const targetId = e.target.getAttribute('data-bs-target');
+                if (targetId) {
+                    const hash = targetId.replace('#nav-setting-tab-', '');
+                    window.history.pushState(null, '', `#${hash}`);
+                }
+            });
+        });
+
+        // 페이지 로드 시 URL 해시에 따라 탭 활성화
+        function activateTabFromHash() {
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                let targetTab;
+
+                // 해시에 따라 탭 선택
+                switch (hash) {
+                    case 'account':
+                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-account"]');
+                        break;
+                    case 'password':
+                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-password"]');
+                        break;
+                    case 'delete':
+                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-delete"]');
+                        break;
+                    default:
+                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-account"]');
+                }
+
+                if (targetTab) {
+                    const tab = new bootstrap.Tab(targetTab);
+                    tab.show();
+                }
+            }
+        }
+
+        // 초기 로드 시 탭 활성화
+        activateTabFromHash();
+
+        // 뒤로가기/앞으로가기 버튼 대응
+        window.addEventListener('hashchange', activateTabFromHash);
+    });
+</script>
 
 </body>
 

@@ -1,13 +1,14 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
@@ -73,16 +74,26 @@ class MemberView(
     @PostMapping("/members/setting/account")
     fun updateAccount(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
-        @Valid @ModelAttribute accountUpdateRequest: AccountUpdateRequest,
+        @Valid @ModelAttribute form: AccountUpdateForm,
         bindingResult: BindingResult,
         redirectAttributes: RedirectAttributes,
     ): String {
+        redirectAttributes.addFlashAttribute("tab", "account")
+
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("error", "입력값을 확인해주세요.")
-            return "redirect:/members/setting"
+            val errorMessages = bindingResult.fieldErrors
+                .first()
+                .defaultMessage
+            redirectAttributes.addFlashAttribute("error", errorMessages)
+            return "redirect:${MEMBER_SETTING_URL}"
         }
 
-        memberUpdater.updateInfo(memberPrincipal.memberId, accountUpdateRequest)
+        try {
+            memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
+        } catch (e: IllegalArgumentException) {
+            redirectAttributes.addFlashAttribute("error", "계정 정보 업데이트 중 오류가 발생했습니다. ${e.message}")
+            return "redirect:${MEMBER_SETTING_URL}"
+        }
         redirectAttributes.addFlashAttribute("success", "계정 정보가 성공적으로 업데이트되었습니다.")
         return "redirect:${MEMBER_SETTING_URL}"
     }
@@ -94,11 +105,18 @@ class MemberView(
         bindingResult: BindingResult,
         redirectAttributes: RedirectAttributes,
     ): String {
+        redirectAttributes.addFlashAttribute("tab", "password");
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호 변경이 실패했습니다. 비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다")
+            return "redirect:${MEMBER_SETTING_URL}#password"
+        }
+
         validator.validate(request, bindingResult)
 
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("error", "입력값을 확인해주세요.")
-            return "redirect:${MEMBER_SETTING_URL}"
+            redirectAttributes.addFlashAttribute("error", "비밀번호 변경이 실패했습니다. 새 비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+            return "redirect:${MEMBER_SETTING_URL}#password"
         }
 
         try {
@@ -110,22 +128,36 @@ class MemberView(
             redirectAttributes.addFlashAttribute("error", "현재 비밀번호가 일치하지 않습니다.")
         }
 
-        return "redirect:${MEMBER_SETTING_URL}"
+        return "redirect:${MEMBER_SETTING_URL}#password"
     }
 
     @PostMapping("/members/setting/delete")
     fun deleteAccount(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
-        @RequestParam confirmed: Boolean,
+        @RequestParam confirmed: Boolean?,
         redirectAttributes: RedirectAttributes,
+        request: HttpServletRequest,
     ): String {
-        if (!confirmed) {
+        redirectAttributes.addFlashAttribute("tab", "delete");
+
+        if (confirmed != true) {
             redirectAttributes.addFlashAttribute("error", "계정 삭제 확인이 필요합니다.")
-            return "redirect:${MEMBER_SETTING_URL}"
+            return "redirect:${MEMBER_SETTING_URL}#delete"
         }
 
-        memberUpdater.deactivate(memberPrincipal.memberId)
-        return "redirect:/signout"
+        try {
+            memberUpdater.deactivate(memberPrincipal.memberId)
+
+            // 세션 무효화 및 로그아웃 처리
+            request.session.invalidate()
+
+            // SecurityContextHolder에서도 인증 정보 제거
+            SecurityContextHolder.clearContext()
+        } catch (_: IllegalArgumentException) {
+            redirectAttributes.addFlashAttribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다.")
+            return "redirect:${MEMBER_SETTING_URL}#delete"
+        }
+        return "redirect:/"
     }
 
     companion object {
