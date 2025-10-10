@@ -82,7 +82,8 @@ class MemberView(
 
         if (bindingResult.hasErrors()) {
             val errorMessages = bindingResult.fieldErrors
-                .first().defaultMessage ?: "입력한 정보가 올바르지 않습니다."
+                .first()
+                .defaultMessage
             redirectAttributes.addFlashAttribute("error", errorMessages)
             return "redirect:${MEMBER_SETTING_URL}"
         }
@@ -90,7 +91,7 @@ class MemberView(
         try {
             memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
         } catch (e: IllegalArgumentException) {
-            redirectAttributes.addFlashAttribute("error", e.message ?: "계정 정보 업데이트 중 오류가 발생했습니다.")
+            redirectAttributes.addFlashAttribute("error", "계정 정보 업데이트 중 오류가 발생했습니다. ${e.message}")
             return "redirect:${MEMBER_SETTING_URL}"
         }
         redirectAttributes.addFlashAttribute("success", "계정 정보가 성공적으로 업데이트되었습니다.")

@@ -211,11 +211,11 @@ class MemberViewTest : IntegrationTestBase() {
         mockMvc.perform(
             post("/members/setting/account")
                 .with(csrf())
-                .param("nickname", "") // invalid nickname
+                .param("nickname", "1")
         )
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("/members/setting"))
-            .andExpect(flash().attribute("error", "입력값을 확인해주세요."))
+            .andExpect(flash().attribute("error", "닉네임은 2자 이상 20자 이하로 입력해주세요."))
     }
 
     @Test
@@ -241,7 +241,7 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("confirmNewPassword", "newPassword123!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(redirectedUrl("/members/setting#password"))
             .andExpect(flash().attribute("success", "비밀번호가 성공적으로 변경되었습니다."))
     }
 
@@ -259,7 +259,7 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("confirmNewPassword", "newPassword123!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(redirectedUrl("/members/setting#password"))
             .andExpect(flash().attribute("error", "현재 비밀번호가 일치하지 않습니다."))
     }
 
@@ -275,8 +275,8 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("confirmNewPassword", "short")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/members/setting"))
-            .andExpect(flash().attribute("error", "입력값을 확인해주세요."))
+            .andExpect(redirectedUrl("/members/setting#password"))
+            .andExpect(flash().attribute("error", "비밀번호 변경이 실패했습니다. 비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다"))
     }
 
     @Test
@@ -302,7 +302,7 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("confirmed", "true")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/signout"))
+            .andExpect(redirectedUrl("/"))
     }
 
     @Test
@@ -314,7 +314,7 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("confirmed", "false")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(redirectedUrl("/members/setting#delete"))
             .andExpect(flash().attribute("error", "계정 삭제 확인이 필요합니다."))
     }
 
@@ -326,5 +326,202 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("confirmed", "true")
         )
             .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePassword POST - failure - redirects with error when new passwords do not match`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .param("currentPassword", MemberFixture.DEFAULT_RAW_PASSWORD.value)
+                .param("newPassword", "newPassword123!")
+                .param("confirmNewPassword", "differentPassword123!")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#password"))
+            .andExpect(flash().attribute("error", "비밀번호 변경이 실패했습니다. 새 비밀번호와 비밀번호 확인이 일치하지 않습니다."))
+            .andExpect(flash().attribute("tab", "password"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePassword POST - failure - redirects with error when password format is invalid`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .param("currentPassword", MemberFixture.DEFAULT_RAW_PASSWORD.value)
+                .param("newPassword", "weak")
+                .param("confirmNewPassword", "weak")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#password"))
+            .andExpect(flash().attribute("error", "비밀번호 변경이 실패했습니다. 비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다"))
+            .andExpect(flash().attribute("tab", "password"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount POST - includes tab attribute in flash when validation fails`() {
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", "")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("tab", "account"))
+            .andExpect(flash().attributeExists("error"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount POST - includes tab attribute in flash on success`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", "newNickname")
+                .param("profileAddress", "newAddress")
+                .param("introduction", "new introduction")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("tab", "account"))
+            .andExpect(flash().attribute("success", "계정 정보가 성공적으로 업데이트되었습니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount POST - failure - handles IllegalArgumentException from service`() {
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", "duplicatedNickname")
+                .param("profileAddress", "address")
+                .param("introduction", "intro")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("tab", "account"))
+            .andExpect(flash().attribute("error", "계정 정보 업데이트 중 오류가 발생했습니다. 등록 완료 상태에서만 정보 수정이 가능합니다"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `deleteAccount POST - includes tab attribute in flash when not confirmed`() {
+        mockMvc.perform(
+            post("/members/setting/delete")
+                .with(csrf())
+                .param("confirmed", "false")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#delete"))
+            .andExpect(flash().attribute("tab", "delete"))
+            .andExpect(flash().attribute("error", "계정 삭제 확인이 필요합니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `deleteAccount POST - includes tab attribute in flash when member is already deactivated`() {
+        member.activate()
+        member.deactivate()
+        flushAndClear()
+
+        mockMvc.perform(
+            post("/members/setting/delete")
+                .with(csrf())
+                .param("confirmed", "true")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#delete"))
+            .andExpect(flash().attribute("tab", "delete"))
+            .andExpect(flash().attribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `deleteAccount POST - confirmed parameter is null - treats as false`() {
+        mockMvc.perform(
+            post("/members/setting/delete")
+                .with(csrf())
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#delete"))
+            .andExpect(flash().attribute("error", "계정 삭제 확인이 필요합니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePassword POST - includes tab attribute in all error cases`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .param("currentPassword", "wrongPassword!1")
+                .param("newPassword", "newPassword123!")
+                .param("confirmNewPassword", "newPassword123!")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#password"))
+            .andExpect(flash().attribute("tab", "password"))
+            .andExpect(flash().attributeExists("error"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePassword POST - includes tab attribute on success`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/password")
+                .with(csrf())
+                .param("currentPassword", MemberFixture.DEFAULT_RAW_PASSWORD.value)
+                .param("newPassword", "newPassword123!")
+                .param("confirmNewPassword", "newPassword123!")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#password"))
+            .andExpect(flash().attribute("tab", "password"))
+            .andExpect(flash().attribute("success", "비밀번호가 성공적으로 변경되었습니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount POST - handles very long nickname gracefully`() {
+        val longNickname = "a".repeat(21) // exceeds 20 character limit
+
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", longNickname)
+                .param("profileAddress", "address")
+                .param("introduction", "intro")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("tab", "account"))
+            .andExpect(flash().attributeExists("error"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount POST - allows updating with minimal required fields`() {
+        member.activate()
+
+        mockMvc.perform(
+            post("/members/setting/account")
+                .with(csrf())
+                .param("nickname", "minimalNick")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting"))
+            .andExpect(flash().attribute("tab", "account"))
     }
 }
