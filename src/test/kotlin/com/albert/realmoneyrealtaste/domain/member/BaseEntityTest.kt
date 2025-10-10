@@ -6,6 +6,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 
 class BaseEntityTest {
@@ -141,6 +142,27 @@ class BaseEntityTest {
 
         assertEquals(true, toString.contains("id = $id"))
         assertEquals(true, toString.contains("TestBaseEntity"))
+    }
+
+    @Test
+    fun `requireId - success - returns id when entity is persisted`() {
+        val expectedId = 100L
+        val entity = TestBaseEntity().apply { MemberFixture.setId(this, expectedId) }
+
+        val id = entity.requireId()
+
+        assertEquals(expectedId, id)
+    }
+
+    @Test
+    fun `requireId - failure - throws exception when entity is not persisted`() {
+        val entity = TestBaseEntity()
+
+        assertFailsWith<IllegalStateException> {
+            entity.requireId()
+        }.also {
+            assertEquals("영속화되지 않은 회원입니다", it.message)
+        }
     }
 
     internal class TestBaseEntity : BaseEntity() {

@@ -21,23 +21,43 @@ class MemberRegistrationService(
 ) : MemberRegister {
 
     override fun register(request: MemberRegisterRequest): Member {
-        memberRepository.findByEmail(request.email)?.let {
-            throw DuplicateEmailException()
-        }
+        validateEmailNotDuplicated(request)
 
         val passwordHash = PasswordHash.of(request.password, passwordEncoder)
 
         val member = Member.register(request.email, request.nickname, passwordHash)
+
         val savedMember = memberRepository.save(member)
 
+        publishMemberRegisteredEvent(savedMember)
+
+        return savedMember
+    }
+
+    /**
+     * 이메일 중복 여부를 검증합니다.
+     *
+     * @param request 회원 등록 요청 데이터
+     * @throws DuplicateEmailException 이미 사용 중인 이메일인 경우
+     */
+    private fun validateEmailNotDuplicated(request: MemberRegisterRequest) {
+        memberRepository.findByEmail(request.email)?.let {
+            throw DuplicateEmailException()
+        }
+    }
+
+    /**
+     * 회원 등록 이벤트를 발행합니다.
+     *
+     * @param member 등록된 회원
+     */
+    private fun publishMemberRegisteredEvent(member: Member) {
         eventPublisher.publishEvent(
             MemberRegisteredEvent(
-                memberId = member.id!!,
+                memberId = member.requireId(),
                 email = member.email,
                 nickname = member.nickname,
             )
         )
-
-        return savedMember
     }
 }

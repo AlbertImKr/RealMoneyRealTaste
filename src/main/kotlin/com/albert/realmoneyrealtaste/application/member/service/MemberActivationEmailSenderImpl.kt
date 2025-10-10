@@ -19,18 +19,40 @@ class MemberActivationEmailSenderImpl(
 ) : MemberActivationEmailSender {
 
     override fun sendActivationEmail(memberId: Long, email: Email, nickname: Nickname) {
-        val activationToken = tokenGenerator.generate(memberId, expirationHours)
-        val activationLink = "$baseUrl/members/activate?token=${activationToken.token}"
-        val content = emailTemplate.buildActivationEmail(
-            nickname = nickname.value,
-            activationLink = activationLink,
-            expirationHours = expirationHours,
-        )
+        val activationLink = createActivationLink(memberId)
+
+        val content = buildEmailContent(nickname, activationLink)
+
         emailSender.send(
             to = email,
-            subject = "[RealMoneyRealTaste] 이메일 인증 안내",
+            subject = ACTIVATION_EMAIL_SUBJECT,
             content = content,
             isHtml = true,
         )
+    }
+
+    /**
+     * 이메일 본문 생성
+     */
+    private fun buildEmailContent(
+        nickname: Nickname,
+        activationLink: String,
+    ): String = emailTemplate.buildActivationEmail(
+        nickname = nickname.value,
+        activationLink = activationLink,
+        expirationHours = expirationHours,
+    )
+
+    /**
+     * 회원 활성화 링크 생성
+     */
+    private fun createActivationLink(memberId: Long): String {
+        val activationToken = tokenGenerator.generate(memberId, expirationHours)
+        return "${baseUrl}${ACTIVATION_PATH}${activationToken.token}"
+    }
+
+    companion object {
+        const val ACTIVATION_PATH = "/members/activate?token="
+        const val ACTIVATION_EMAIL_SUBJECT = "[RealMoneyRealTaste] 이메일 인증 안내"
     }
 }

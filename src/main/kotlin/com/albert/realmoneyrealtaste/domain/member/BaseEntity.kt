@@ -16,6 +16,15 @@ abstract class BaseEntity : Serializable {
     var id: Long? = null
         protected set
 
+    /**
+     * 영속화된 회원의 ID를 반환합니다.
+     *
+     * @throws IllegalStateException 영속화되지 않은 회원인 경우
+     */
+    fun requireId(): Long {
+        return id ?: throw IllegalStateException("영속화되지 않은 회원입니다")
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null) return false
