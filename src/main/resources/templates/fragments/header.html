@@ -46,9 +46,7 @@
                             data-bs-toggle="dropdown"
                             id="profileDropdown"
                             type="button">
-                        <img alt="프로필 이미지"
-                             class="avatar-img rounded-2"
-                             th:src="@{/assets/images/avatar/07.jpg}">
+                        <span class="fw-semibold" th:text="${#authentication.getPrincipal().nickname.value}">닉네임</span>
                     </button>
 
                     <ul aria-labelledby="profileDropdown"
@@ -57,7 +55,8 @@
                             <div class="d-flex align-items-center position-relative">
                                 <div>
                                     <!-- Spring Security에서 username -->
-                                    <button class="h6 stretched-link border-0 bg-transparent p-0" th:text="${#authentication.name}"
+                                    <button class="h6 stretched-link border-0 bg-transparent p-0"
+                                            th:text="${#authentication.getPrincipal().nickname.value}"
                                             type="button">사용자 이름
                                     </button>
                                 </div>
@@ -65,10 +64,13 @@
                         </li>
                         <li class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item bg-danger-soft-hover w-100 text-start"
-                               th:href="@{/logout}">
-                                <i class="bi bi-power fa-fw me-2"></i>로그아웃
-                            </a>
+                            <form class="m-0" method="post" th:action="@{/signout}">
+                                <button class="dropdown-item bg-danger-soft-hover w-100 text-start border-0 bg-transparent text-decoration-none"
+                                        style="padding: 0.5rem 1rem; cursor: pointer;"
+                                        type="submit">
+                                    <i class="bi bi-power fa-fw me-2"></i>로그아웃
+                                </button>
+                            </form>
                         </li>
                         <li>
                             <hr class="dropdown-divider">
@@ -78,7 +80,8 @@
                             <div
                                     class="modeswitch-item theme-icon-active d-flex justify-content-center gap-3 align-items-center p-2 pb-0">
                                 <span>테마:</span>
-                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0" data-bs-placement="top"
+                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0"
+                                        data-bs-placement="top"
                                         data-bs-theme-value="light" data-bs-title="라이트" data-bs-toggle="tooltip"
                                         type="button">
                                     <svg class="bi bi-sun fa-fw mode-switch" height="16" style="fill: currentColor"
@@ -89,10 +92,12 @@
                                         <use href="#"></use>
                                     </svg>
                                 </button>
-                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0" data-bs-placement="top"
+                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0"
+                                        data-bs-placement="top"
                                         data-bs-theme-value="dark" data-bs-title="다크" data-bs-toggle="tooltip"
                                         type="button">
-                                    <svg class="bi bi-moon-stars fa-fw mode-switch" height="16" style="fill: currentColor"
+                                    <svg class="bi bi-moon-stars fa-fw mode-switch" height="16"
+                                         style="fill: currentColor"
                                          viewBox="0 0 16 16"
                                          width="16" xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -102,10 +107,12 @@
                                         <use href="#"></use>
                                     </svg>
                                 </button>
-                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0 active" data-bs-placement="top"
+                                <button class="btn btn-modeswitch nav-link text-primary-hover mb-0 active"
+                                        data-bs-placement="top"
                                         data-bs-theme-value="auto" data-bs-title="자동" data-bs-toggle="tooltip"
                                         type="button">
-                                    <svg class="bi bi-circle-half fa-fw mode-switch" height="16" style="fill: currentColor"
+                                    <svg class="bi bi-circle-half fa-fw mode-switch" height="16"
+                                         style="fill: currentColor"
                                          viewBox="0 0 16 16"
                                          width="16" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
