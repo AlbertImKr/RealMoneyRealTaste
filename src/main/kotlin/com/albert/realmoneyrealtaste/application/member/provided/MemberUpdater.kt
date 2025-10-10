@@ -32,7 +32,6 @@ interface MemberUpdater {
      * @return 수정된 회원 객체
      * @throws MemberNotFoundException 해당 ID의 회원이 존재하지 않는 경우
      * @throws IllegalArgumentException 현재 비밀번호가 일치하지 않는 경우
-     * @throws
      */
     fun updatePassword(memberId: Long, currentPassword: RawPassword, newPassword: RawPassword): Member
 

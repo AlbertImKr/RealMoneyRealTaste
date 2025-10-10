@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.Member
 
 /**
