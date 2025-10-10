@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
+import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
@@ -22,6 +23,10 @@ class MemberUpdateService(
         request: AccountUpdateRequest,
     ): Member {
         val member = memberRepository.findById(memberId) ?: throw MemberNotFoundException()
+
+        request.profileAddress?.let {
+            if (memberRepository.existsByDetailProfileAddress(it)) throw DuplicateProfileAddressException()
+        }
 
         member.updateInfo(
             nickname = request.nickname,

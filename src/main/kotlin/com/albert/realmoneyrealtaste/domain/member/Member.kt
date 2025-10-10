@@ -7,6 +7,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Index
+import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import java.time.LocalDateTime
@@ -56,6 +57,7 @@ class Member protected constructor(
         protected set
 
     @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinColumn(name = "detail_id", nullable = false, unique = true)
     var detail: MemberDetail = detail
         protected set
 
@@ -150,7 +152,7 @@ class Member protected constructor(
             email = email,
             nickname = nickname,
             passwordHash = password,
-            detail = MemberDetail.register(null, null),
+            detail = MemberDetail.register(),
             trustScore = TrustScore.create(),
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
@@ -165,7 +167,7 @@ class Member protected constructor(
             email = email,
             nickname = nickname,
             passwordHash = password,
-            detail = MemberDetail.register(null, null),
+            detail = MemberDetail.register(),
             trustScore = TrustScore.create(),
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
@@ -180,7 +182,7 @@ class Member protected constructor(
             email = email,
             nickname = nickname,
             passwordHash = password,
-            detail = MemberDetail.register(null, null),
+            detail = MemberDetail.register(),
             trustScore = TrustScore.create(),
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),

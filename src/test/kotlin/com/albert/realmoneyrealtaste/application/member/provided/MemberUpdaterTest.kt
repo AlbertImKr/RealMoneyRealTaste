@@ -3,7 +3,9 @@ package com.albert.realmoneyrealtaste.application.member.provided
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
+import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
+import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Introduction
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
@@ -115,6 +117,28 @@ class MemberUpdaterTest(
     }
 
     @Test
+    fun `updateInfo - failure - throws exception when profile address is duplicate`() {
+        val member1 = registerAndActivateMember()
+        val member2 = registerAndActivateMember(Email("member2@mail.com"), Nickname("member2"))
+        val member1Id = member1.id!!
+        val member2Id = member2.id!!
+        val duplicateProfileAddress = ProfileAddress("duplicate")
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = duplicateProfileAddress,
+            introduction = null,
+        )
+        val member1UP = memberUpdater.updateInfo(member1Id, request)
+
+        assertFailsWith<DuplicateProfileAddressException> {
+            val member2UP = memberUpdater.updateInfo(member2Id, request)
+            assertEquals(member1UP.detail.profileAddress, member2UP.detail.profileAddress)
+        }.let {
+            assertEquals("이미 사용 중인 프로필 주소입니다.", it.message)
+        }
+    }
+
+    @Test
     fun `updatePassword - success - updates password`() {
         val member = registerAndActivateMember()
         val currentPassword = MemberFixture.DEFAULT_RAW_PASSWORD
@@ -204,13 +228,19 @@ class MemberUpdaterTest(
         }
     }
 
-    private fun registerMember() = memberRegister.register(
+    private fun registerMember(
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+    ) = memberRegister.register(
         MemberRegisterRequest(
-            email = MemberFixture.DEFAULT_EMAIL,
+            email = email,
             password = MemberFixture.DEFAULT_RAW_PASSWORD,
-            nickname = MemberFixture.DEFAULT_NICKNAME
+            nickname = nickname
         )
     )
 
-    private fun registerAndActivateMember() = registerMember().also { it.activate() }
+    private fun registerAndActivateMember(
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+    ) = registerMember(email, nickname).also { it.activate() }
 }

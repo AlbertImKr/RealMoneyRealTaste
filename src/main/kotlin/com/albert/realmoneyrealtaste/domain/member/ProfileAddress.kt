@@ -5,7 +5,7 @@ import jakarta.persistence.Embeddable
 
 @Embeddable
 data class ProfileAddress(
-    @Column(name = "profile_address", length = 15)
+    @Column(name = "profile_address", length = 15, unique = true)
     val address: String,
 ) {
     init {
