@@ -390,7 +390,7 @@ class AccountUpdateFormTest {
     }
 
     @Test
-    fun `validate - success - accepts whitespace only nickname fails`() {
+    fun `validate - failure - whitespace only nickname validation fails`() {
         val form = AccountUpdateForm(
             nickname = "   ",
             profileAddress = "address",
@@ -405,7 +405,7 @@ class AccountUpdateFormTest {
     }
 
     @Test
-    fun `validate - success - multiline introduction is accepted`() {
+    fun `validate - success - accepts multiline introduction`() {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "address",
