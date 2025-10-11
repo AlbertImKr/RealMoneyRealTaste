@@ -6,6 +6,7 @@ import com.albert.realmoneyrealtaste.domain.member.exceptions.UnauthorizedRoleOp
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import com.albert.realmoneyrealtaste.domain.member.value.Role
@@ -491,6 +492,19 @@ class MemberTest {
         }.let {
             assertEquals("등록 완료 상태에서만 비밀번호 변경이 가능합니다", it.message)
         }
+    }
+
+    @Test
+    fun `changePassword without current password - success - updates password and timestamp`() {
+        val member = MemberFixture.createMember()
+        val newPassword = MemberFixture.NEW_RAW_PASSWORD
+        val encoder = MemberFixture.TEST_ENCODER
+        val beforeUpdateAt = member.updatedAt
+
+        member.changePassword(PasswordHash.of(newPassword, encoder))
+
+        assertTrue(member.verifyPassword(newPassword, encoder))
+        assertTrue(beforeUpdateAt < member.updatedAt)
     }
 
     private class TestMember : Member(

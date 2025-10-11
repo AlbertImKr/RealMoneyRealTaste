@@ -107,6 +107,11 @@ class Member protected constructor(
     fun verifyPassword(rawPassword: RawPassword, encoder: PasswordEncoder): Boolean =
         passwordHash.matches(rawPassword, encoder)
 
+    fun changePassword(newPassword: PasswordHash) {
+        passwordHash = newPassword
+        updatedAt = LocalDateTime.now()
+    }
+
     fun changePassword(currentPassword: RawPassword, newPassword: RawPassword, encoder: PasswordEncoder) {
         if (status != MemberStatus.ACTIVE) {
             throw InvalidMemberStatusException.NotActive(("등록 완료 상태에서만 비밀번호 변경이 가능합니다"))
