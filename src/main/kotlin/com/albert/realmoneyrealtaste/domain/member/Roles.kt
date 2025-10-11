@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.RoleValidationException
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
@@ -32,8 +33,8 @@ class Roles(
     }
 
     fun removeRole(role: Role) {
-        require(values.size > 1 || role != Role.USER) {
-            "최소 하나의 역할은 유지되어야 합니다"
+        if (values.size <= 1 && role == Role.USER) {
+            throw RoleValidationException.MinimumRoleRequired()
         }
         values.remove(role)
     }
@@ -46,7 +47,9 @@ class Roles(
         fun ofUser(): Roles = Roles(mutableSetOf(Role.USER))
 
         fun of(vararg roles: Role): Roles {
-            require(roles.isNotEmpty()) { "최소 하나의 역할이 필요합니다" }
+            if (roles.isEmpty()) {
+                throw RoleValidationException.EmptyRoles()
+            }
             return Roles(roles.toMutableSet())
         }
     }

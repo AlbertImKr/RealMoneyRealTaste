@@ -1,5 +1,8 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.UnauthorizedRoleOperationException
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
@@ -74,14 +77,18 @@ class Member protected constructor(
         protected set
 
     fun activate() {
-        require(status == MemberStatus.PENDING) { "등록 대기 상태에서만 등록 완료가 가능합니다" }
+        if (status != MemberStatus.PENDING) {
+            throw InvalidMemberStatusException("등록 대기 상태에서만 등록 완료가 가능합니다")
+        }
         status = MemberStatus.ACTIVE
         detail.activate()
         updatedAt = LocalDateTime.now()
     }
 
     fun deactivate() {
-        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 탈퇴가 가능합니다" }
+        if (status != MemberStatus.ACTIVE) {
+            throw InvalidMemberStatusException("등록 완료 상태에서만 탈퇴가 가능합니다")
+        }
         status = MemberStatus.DEACTIVATED
         detail.deactivate()
         updatedAt = LocalDateTime.now()
@@ -91,15 +98,20 @@ class Member protected constructor(
         passwordHash.matches(rawPassword, encoder)
 
     fun changePassword(newPassword: PasswordHash) {
-        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
+        if (status != MemberStatus.ACTIVE) {
+            throw InvalidMemberStatusException("등록 완료 상태에서만 비밀번호 변경이 가능합니다")
+        }
         passwordHash = newPassword
         updatedAt = LocalDateTime.now()
     }
 
     fun changePassword(currentPassword: RawPassword, newPassword: RawPassword, encoder: PasswordEncoder) {
-        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 비밀번호 변경이 가능합니다" }
-        val verifyPassword = passwordHash.matches(currentPassword, encoder)
-        require(verifyPassword) { "현재 비밀번호가 일치하지 않습니다" }
+        if (status != MemberStatus.ACTIVE) {
+            throw InvalidMemberStatusException("등록 완료 상태에서만 비밀번호 변경이 가능합니다")
+        }
+        if (!passwordHash.matches(currentPassword, encoder)) {
+            throw InvalidPasswordException("현재 비밀번호가 일치하지 않습니다")
+        }
         passwordHash = PasswordHash.of(newPassword, encoder)
         updatedAt = LocalDateTime.now()
     }
@@ -110,7 +122,9 @@ class Member protected constructor(
         introduction: Introduction? = null,
     ) {
         if (nickname == null && profileAddress == null && introduction == null) return
-        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 정보 수정이 가능합니다" }
+        if (status != MemberStatus.ACTIVE) {
+            throw InvalidMemberStatusException("등록 완료 상태에서만 정보 수정이 가능합니다")
+        }
         nickname?.let { this.nickname = it }
         detail.updateInfo(profileAddress, introduction)
         updatedAt = LocalDateTime.now()
@@ -122,13 +136,17 @@ class Member protected constructor(
     }
 
     fun grantRole(role: Role) {
-        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 권한 부여가 가능합니다" }
+        if (status != MemberStatus.ACTIVE) {
+            throw UnauthorizedRoleOperationException("등록 완료 상태에서만 권한 부여가 가능합니다")
+        }
         roles.addRole(role)
         updatedAt = LocalDateTime.now()
     }
 
     fun revokeRole(role: Role) {
-        require(status == MemberStatus.ACTIVE) { "등록 완료 상태에서만 권한 회수가 가능합니다" }
+        if (status != MemberStatus.ACTIVE) {
+            throw UnauthorizedRoleOperationException("등록 완료 상태에서만 권한 회수가 가능합니다")
+        }
         roles.removeRole(role)
         updatedAt = LocalDateTime.now()
     }

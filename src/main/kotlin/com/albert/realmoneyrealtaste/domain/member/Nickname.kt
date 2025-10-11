@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.NicknameValidationException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
@@ -13,9 +14,17 @@ data class Nickname(
     }
 
     private fun validate() {
-        require(value.isNotBlank()) { "닉네임은 필수입니다" }
-        require(value.length in 2..20) { "닉네임은 2-20자 사이여야 합니다" }
+        if (value.isBlank()) {
+            throw NicknameValidationException.Required()
+        }
+
+        if (value.length !in 2..20) {
+            throw NicknameValidationException.InvalidLength()
+        }
+
         val nicknameRegex = "^[가-힣a-zA-Z0-9]+$".toRegex()
-        require(nicknameRegex.matches(value)) { "닉네임은 한글, 영문, 숫자만 사용 가능합니다" }
+        if (!nicknameRegex.matches(value)) {
+            throw NicknameValidationException.InvalidFormat()
+        }
     }
 }

@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
-import org.assertj.core.api.Assertions.assertThatThrownBy
+import com.albert.realmoneyrealtaste.domain.member.exceptions.EmailValidationException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -23,7 +23,7 @@ class EmailTest {
     fun `constructor - failure - throws exception when email is empty`() {
         val emptyEmail = "   "
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<EmailValidationException.Required> {
             Email(emptyEmail)
         }.let {
             assertEquals("이메일은 필수입니다", it.message)
@@ -41,10 +41,11 @@ class EmailTest {
         ]
     )
     fun `constructor - failure - throws exception when email format is invalid`(invalidEmail: String) {
-        assertThatThrownBy {
+        assertFailsWith<EmailValidationException.InvalidFormat> {
             Email(invalidEmail)
-        }.isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("유효하지 않은 이메일 형식입니다")
+        }.let {
+            assertEquals("유효한 이메일 형식이 아닙니다", it.message)
+        }
     }
 
     @ParameterizedTest

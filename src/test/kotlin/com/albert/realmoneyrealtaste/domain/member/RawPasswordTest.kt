@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.PasswordValidationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -15,7 +16,7 @@ class RawPasswordTest {
 
     @Test
     fun `constructor - failure - throws exception when password is blank`() {
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.Required> {
             RawPassword("")
         }.let {
             assertEquals("비밀번호는 필수입니다", it.message)
@@ -26,7 +27,7 @@ class RawPasswordTest {
     fun `constructor - failure - throws exception when password is too short`() {
         val shortPassword = "Short1!" // 7 characters
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.InvalidLength> {
             RawPassword(shortPassword)
         }.let {
             assertEquals("비밀번호는 8자 이상 20자 이하여야 합니다", it.message)
@@ -37,7 +38,7 @@ class RawPasswordTest {
     fun `constructor - failure - throws exception when password is too long`() {
         val longPassword = "ThisPasswordIsWayToo!" // 21 characters
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.InvalidLength> {
             RawPassword(longPassword)
         }.let {
             assertEquals("비밀번호는 8자 이상 20자 이하여야 합니다", it.message)
@@ -48,7 +49,7 @@ class RawPasswordTest {
     fun `constructor - failure - throws exception when password contains no digit`() {
         val passwordWithoutDigit = "NoDigitsHere!"
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.MissingDigit> {
             RawPassword(passwordWithoutDigit)
         }.let {
             assertEquals("비밀번호는 숫자를 포함해야 합니다", it.message)
@@ -59,7 +60,7 @@ class RawPasswordTest {
     fun `constructor - failure - throws exception when password contains no lowercase`() {
         val passwordWithoutLowercase = "NOLOWERCASE1!"
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.MissingLowerCase> {
             RawPassword(passwordWithoutLowercase)
         }.let {
             assertEquals("비밀번호는 소문자를 포함해야 합니다", it.message)
@@ -70,7 +71,7 @@ class RawPasswordTest {
     fun `constructor - failure - throws exception when password contains no uppercase`() {
         val passwordWithoutUppercase = "nouppercase1!"
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.MissingUpperCase> {
             RawPassword(passwordWithoutUppercase)
         }.let {
             assertEquals("비밀번호는 대문자를 포함해야 합니다", it.message)
@@ -81,7 +82,7 @@ class RawPasswordTest {
     fun `constructor - failure - throws exception when password contains no special character`() {
         val passwordWithoutSpecialChar = "NoSpecialChar1"
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.MissingSpecialChar> {
             RawPassword(passwordWithoutSpecialChar)
         }.let {
             assertEquals("비밀번호는 특수문자를 포함해야 합니다", it.message)
@@ -92,7 +93,7 @@ class RawPasswordTest {
     fun `constructor - failure - throws exception when password contains invalid special character`() {
         val passwordWithInvalidChar = "InvalidChar1?"
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<PasswordValidationException.InvalidSpecialChar> {
             RawPassword(passwordWithInvalidChar)
         }.let {
             assertEquals(

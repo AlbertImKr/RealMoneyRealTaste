@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.IntroductionValidationException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
@@ -13,6 +14,8 @@ data class Introduction(
     }
 
     private fun validate() {
-        require(value.length <= 500) { "소개는 최대 500자 이내여야 합니다" }
+        if (value.length > 500) {
+            throw IntroductionValidationException.TooLong()
+        }
     }
 }

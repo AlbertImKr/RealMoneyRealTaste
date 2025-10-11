@@ -22,7 +22,9 @@ abstract class BaseEntity : Serializable {
      * @throws IllegalStateException 영속화되지 않은 회원인 경우
      */
     fun requireId(): Long {
-        return id ?: throw IllegalStateException("영속화되지 않은 회원입니다")
+        return id ?: throw IllegalStateException(
+            "${this::class.simpleName}의 ID가 설정되지 않았습니다. 영속화된 엔티티에서만 ID를 조회할 수 있습니다.",
+        )
     }
 
     override fun equals(other: Any?): Boolean {
@@ -38,13 +40,13 @@ abstract class BaseEntity : Serializable {
         return id != null && id == other.id
     }
 
-    private fun unwrapProxy(other: Any): Class<out Any>? =
-        if (other is HibernateProxy) other.hibernateLazyInitializer.persistentClass else other.javaClass
+    private fun unwrapProxy(entity: Any): Class<out Any>? =
+        if (entity is HibernateProxy) entity.hibernateLazyInitializer.persistentClass else entity.javaClass
 
     override fun hashCode(): Int =
         if (this is HibernateProxy) this.hibernateLazyInitializer.persistentClass.hashCode() else javaClass.hashCode()
 
     override fun toString(): String {
-        return this::class.simpleName + "(  id = $id )"
+        return "${this::class.simpleName}(id=$id)"
     }
 }

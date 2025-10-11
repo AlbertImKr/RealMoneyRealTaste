@@ -140,7 +140,7 @@ class BaseEntityTest {
 
         val toString = entity.toString()
 
-        assertEquals(true, toString.contains("id = $id"))
+        assertEquals(true, toString.contains("id=$id"))
         assertEquals(true, toString.contains("TestBaseEntity"))
     }
 
@@ -161,7 +161,7 @@ class BaseEntityTest {
         assertFailsWith<IllegalStateException> {
             entity.requireId()
         }.also {
-            assertEquals("영속화되지 않은 회원입니다", it.message)
+            assertEquals("${TestBaseEntity::class.simpleName}의 ID가 설정되지 않았습니다. 영속화된 엔티티에서만 ID를 조회할 수 있습니다.", it.message)
         }
     }
 

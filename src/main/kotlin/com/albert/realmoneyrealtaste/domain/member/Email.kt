@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.EmailValidationException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import org.hibernate.annotations.NaturalId
@@ -15,16 +16,19 @@ data class Email(
     }
 
     private fun validate() {
-        require(address.isNotBlank()) { EMAIL_REQUIRED_MESSAGE }
+        if (address.isBlank()) {
+            throw EmailValidationException.Required()
+        }
+
         val emailRegex = EMAIL_PATTERN.toRegex()
-        require(emailRegex.matches(address)) { EMAIL_INVALID_MESSAGE }
+        if (!emailRegex.matches(address)) {
+            throw EmailValidationException.InvalidFormat()
+        }
     }
 
     fun getDomain(): String = address.substringAfter("@")
 
     companion object {
         private const val EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*\\.[A-Za-z]{2,}$"
-        private const val EMAIL_REQUIRED_MESSAGE = "이메일은 필수입니다"
-        private const val EMAIL_INVALID_MESSAGE = "유효하지 않은 이메일 형식입니다"
     }
 }

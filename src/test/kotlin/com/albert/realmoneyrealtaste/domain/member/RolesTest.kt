@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.RoleValidationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -40,7 +41,7 @@ class RolesTest {
 
     @Test
     fun `of - failure - throws exception when no roles provided`() {
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<RoleValidationException.EmptyRoles> {
             Roles.of()
         }.let {
             assertEquals("최소 하나의 역할이 필요합니다", it.message)
@@ -157,7 +158,7 @@ class RolesTest {
     fun `removeRole - failure - throws exception when trying to remove last USER role`() {
         val roles = Roles.ofUser()
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<RoleValidationException.MinimumRoleRequired> {
             roles.removeRole(Role.USER)
         }.let {
             assertEquals("최소 하나의 역할은 유지되어야 합니다", it.message)

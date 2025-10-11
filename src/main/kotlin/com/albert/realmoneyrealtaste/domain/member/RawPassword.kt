@@ -1,15 +1,23 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.PasswordValidationException
+
 class RawPassword(val value: String) {
     init {
-        require(value.isNotBlank()) { "비밀번호는 필수입니다" }
-        require(value.length in 8..20) { "비밀번호는 8자 이상 20자 이하여야 합니다" }
-        require(value.any { it.isDigit() }) { "비밀번호는 숫자를 포함해야 합니다" }
-        require(value.any { it.isLowerCase() }) { "비밀번호는 소문자를 포함해야 합니다" }
-        require(value.any { it.isUpperCase() }) { "비밀번호는 대문자를 포함해야 합니다" }
-        require(value.any { !it.isLetterOrDigit() }) { "비밀번호는 특수문자를 포함해야 합니다" }
-        require(!value.any { !it.isLetterOrDigit() && !ALLOWED_SPECIAL_CHARS_SET.contains(it) }) {
-            "비밀번호에 허용되지 않는 특수문자가 포함되어 있습니다. 허용 특수문자: $ALLOWED_SPECIAL_CHARS"
+        if (value.isBlank()) throw PasswordValidationException.Required()
+
+        if (value.length !in 8..20) throw PasswordValidationException.InvalidLength()
+
+        if (!value.any { it.isDigit() }) throw PasswordValidationException.MissingDigit()
+
+        if (!value.any { it.isLowerCase() }) throw PasswordValidationException.MissingLowerCase()
+
+        if (!value.any { it.isUpperCase() }) throw PasswordValidationException.MissingUpperCase()
+
+        if (!value.any { !it.isLetterOrDigit() }) throw PasswordValidationException.MissingSpecialChar()
+
+        if (value.any { !it.isLetterOrDigit() && !ALLOWED_SPECIAL_CHARS_SET.contains(it) }) {
+            throw PasswordValidationException.InvalidSpecialChar(ALLOWED_SPECIAL_CHARS)
         }
     }
 

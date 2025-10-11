@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidTrustScoreException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -30,10 +31,10 @@ class TrustLevelTest {
     @ParameterizedTest
     @ValueSource(ints = [-10, 1001, 1500])
     fun `fromScore - failure - throws exception when score is out of range`(invalidScore: Int) {
-        assertFailsWith<NoSuchElementException> {
+        assertFailsWith<InvalidTrustScoreException> {
             TrustLevel.fromScore(invalidScore)
         }.let {
-            assertEquals("No enum constant for score: $invalidScore", it.message)
+            assertEquals("유효하지 않은 신뢰 점수입니다: $invalidScore", it.message)
         }
     }
 }
