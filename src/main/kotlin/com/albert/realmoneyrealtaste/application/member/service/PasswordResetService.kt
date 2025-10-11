@@ -30,15 +30,14 @@ class PasswordResetService(
     private val eventPublisher: ApplicationEventPublisher,
 ) : PasswordResetter {
 
-    override fun sendPasswordResetEmail(email: Email): Boolean {
-        val member = memberReader.findMemberByEmailOrNull(email) ?: return false
+    override fun sendPasswordResetEmail(email: Email) {
+        val member = memberReader.findMemberByEmailOrNull(email) ?: return
 
         deleteExistingTokenIfPresent(member.requireId())
 
         val token = passwordRestTokenGenerator.generate(member.requireId())
 
         publishPasswordResetRequestedEvent(member, token)
-        return true
     }
 
     override fun resetPassword(token: String, newPassword: RawPassword) {

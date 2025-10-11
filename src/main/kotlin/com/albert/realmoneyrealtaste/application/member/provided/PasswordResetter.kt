@@ -12,7 +12,7 @@ interface PasswordResetter {
      * 비밀번호 재설정 이메일 전송
      * @param email 대상 이메일
      */
-    fun sendPasswordResetEmail(email: Email): Boolean
+    fun sendPasswordResetEmail(email: Email)
 
     /**
      * 비밀번호 재설정

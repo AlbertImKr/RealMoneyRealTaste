@@ -175,15 +175,11 @@ class MemberView(
         @RequestParam email: Email,
         redirectAttributes: RedirectAttributes,
     ): String {
-        val sent = passwordResetter.sendPasswordResetEmail(email)
+        passwordResetter.sendPasswordResetEmail(email)
 
-        if (sent) {
-            redirectAttributes.addFlashAttribute("success", true)
-            redirectAttributes.addFlashAttribute("message", "비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인해주세요.")
-        } else {
-            redirectAttributes.addFlashAttribute("success", false)
-            redirectAttributes.addFlashAttribute("error", "해당 이메일로 가입된 계정을 찾을 수 없습니다.")
-        }
+        redirectAttributes.addFlashAttribute("success", true)
+        redirectAttributes.addFlashAttribute("message", "비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인해주세요.")
+
         return "redirect:/members/password-forgot"
     }
 

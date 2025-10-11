@@ -40,56 +40,7 @@ class MemberFixture {
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
-            return Member.Companion.register(email, nickname, password)
-        }
-
-        fun createMemberWithId(
-            id: Long,
-            email: Email = DEFAULT_EMAIL,
-            nickname: Nickname = DEFAULT_NICKNAME,
-            password: PasswordHash = DEFAULT_PASSWORD,
-        ): Member {
-            val member = Member.Companion.register(email, nickname, password)
-            setId(member, id)
-            return member
-        }
-
-        fun createAdminMember(
-            email: Email = DEFAULT_EMAIL,
-            nickname: Nickname = DEFAULT_NICKNAME,
-            password: PasswordHash = DEFAULT_PASSWORD,
-        ): Member {
-            return Member.Companion.registerAdmin(email, nickname, password)
-        }
-
-        fun createAdminMemberWithId(
-            id: Long,
-            email: Email = DEFAULT_EMAIL,
-            nickname: Nickname = DEFAULT_NICKNAME,
-            password: PasswordHash = DEFAULT_PASSWORD,
-        ): Member {
-            val member = Member.Companion.registerAdmin(email, nickname, password)
-            setId(member, id)
-            return member
-        }
-
-        fun createManagerMember(
-            email: Email = DEFAULT_EMAIL,
-            nickname: Nickname = DEFAULT_NICKNAME,
-            password: PasswordHash = DEFAULT_PASSWORD,
-        ): Member {
-            return Member.Companion.registerManager(email, nickname, password)
-        }
-
-        fun createManagerMemberWithId(
-            id: Long,
-            email: Email = DEFAULT_EMAIL,
-            nickname: Nickname = DEFAULT_NICKNAME,
-            password: PasswordHash = DEFAULT_PASSWORD,
-        ): Member {
-            val member = Member.Companion.registerManager(email, nickname, password)
-            setId(member, id)
-            return member
+            return Member.register(email, nickname, password)
         }
 
         fun setId(entity: BaseEntity, id: Long) {

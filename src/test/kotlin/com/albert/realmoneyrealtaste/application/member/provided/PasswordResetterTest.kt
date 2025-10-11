@@ -8,6 +8,7 @@ import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTo
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.junit.jupiter.api.assertAll
@@ -16,7 +17,6 @@ import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -204,8 +204,10 @@ class PasswordResetterTest(
 
     @Test
     fun `resetPassword - success - only affects specific member password`() {
-        val member1 = MemberFixture.createMember(email = Email("member1@example.com"))
-        val member2 = MemberFixture.createMember(email = Email("member2@example.com"))
+        val password1 = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, passwordEncoder)
+        val password2 = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, passwordEncoder)
+        val member1 = MemberFixture.createMember(email = Email("member1@example.com"), password = password1)
+        val member2 = MemberFixture.createMember(email = Email("member2@example.com"), password = password2)
         member1.activate()
         member2.activate()
         memberRepository.save(member1)
@@ -223,7 +225,7 @@ class PasswordResetterTest(
 
         assertAll(
             { assertTrue(updatedMember1.verifyPassword(newPassword, passwordEncoder)) },
-            { assertFalse(updatedMember2.verifyPassword(MemberFixture.DEFAULT_RAW_PASSWORD, passwordEncoder)) }
+            { assertTrue(updatedMember2.verifyPassword(MemberFixture.DEFAULT_RAW_PASSWORD, passwordEncoder)) }
         )
     }
 }
