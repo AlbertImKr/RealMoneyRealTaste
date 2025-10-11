@@ -12,6 +12,7 @@ import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -137,7 +138,7 @@ class MemberActivationService(
     private fun Member.activateOrThrow() {
         try {
             this.activate()
-        } catch (_: IllegalArgumentException) {
+        } catch (_: InvalidMemberStatusException) {
             throw AlreadyActivatedException()
         }
     }

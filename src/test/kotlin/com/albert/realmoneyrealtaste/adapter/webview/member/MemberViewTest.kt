@@ -260,7 +260,7 @@ class MemberViewTest : IntegrationTestBase() {
         )
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("/members/setting#password"))
-            .andExpect(flash().attribute("error", "현재 비밀번호가 일치하지 않습니다."))
+            .andExpect(flash().attribute("error", "비밀번호 변경 중 오류가 발생했습니다. 현재 비밀번호가 일치하지 않습니다"))
     }
 
     @Test
@@ -441,7 +441,7 @@ class MemberViewTest : IntegrationTestBase() {
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("/members/setting#delete"))
             .andExpect(flash().attribute("tab", "delete"))
-            .andExpect(flash().attribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다."))
+            .andExpect(flash().attribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다. 등록 완료 상태에서만 탈퇴가 가능합니다"))
     }
 
     @Test

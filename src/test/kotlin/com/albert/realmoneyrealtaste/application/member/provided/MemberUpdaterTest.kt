@@ -13,6 +13,8 @@ import com.albert.realmoneyrealtaste.domain.member.Nickname
 import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.ProfileAddress
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -109,7 +111,7 @@ class MemberUpdaterTest(
             introduction = null,
         )
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.updateInfo(memberId, request)
         }.let {
             assertEquals("등록 완료 상태에서만 정보 수정이 가능합니다", it.message)
@@ -156,7 +158,7 @@ class MemberUpdaterTest(
         val wrongPassword = RawPassword("wrongPassword123!")
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidPasswordException> {
             memberUpdater.updatePassword(member.id!!, wrongPassword, newPassword)
         }.let {
             assertEquals("현재 비밀번호가 일치하지 않습니다", it.message)
@@ -180,7 +182,7 @@ class MemberUpdaterTest(
         val currentPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.updatePassword(member.id!!, currentPassword, newPassword)
         }.let {
             assertEquals("등록 완료 상태에서만 비밀번호 변경이 가능합니다", it.message)
@@ -209,7 +211,7 @@ class MemberUpdaterTest(
     fun `deactivate - failure - throws exception when member is not active`() {
         val member = registerMember()
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.deactivate(member.id!!)
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
@@ -221,7 +223,7 @@ class MemberUpdaterTest(
         val member = registerAndActivateMember()
         memberUpdater.deactivate(member.id!!)
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.deactivate(member.id!!)
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)

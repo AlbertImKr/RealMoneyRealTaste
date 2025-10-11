@@ -115,33 +115,6 @@ class MemberTest {
     }
 
     @Test
-    fun `changePassword - success - updates password and timestamp`() {
-        val member = MemberFixture.createMember()
-        member.activate()
-        val beforeUpdateAt = member.updatedAt
-        val rawNewPassword = MemberFixture.NEW_RAW_PASSWORD
-        val encoder = MemberFixture.TEST_ENCODER
-        val newPassword = MemberFixture.NEW_PASSWORD
-
-        member.changePassword(newPassword)
-
-        assertTrue(member.verifyPassword(rawNewPassword, encoder))
-        assertTrue(beforeUpdateAt <= member.updatedAt)
-    }
-
-    @Test
-    fun `changePassword - failure - throws exception when member is not active`() {
-        val member = MemberFixture.createMember()
-        val newPassword = MemberFixture.NEW_PASSWORD
-
-        assertFailsWith<InvalidMemberStatusException> {
-            member.changePassword(newPassword)
-        }.let {
-            assertEquals("등록 완료 상태에서만 비밀번호 변경이 가능합니다", it.message)
-        }
-    }
-
-    @Test
     fun `updateInfo - success - updates member information and timestamp`() {
         val member = MemberFixture.createMember()
         member.activate()

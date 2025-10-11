@@ -78,7 +78,7 @@ class Member protected constructor(
 
     fun activate() {
         if (status != MemberStatus.PENDING) {
-            throw InvalidMemberStatusException("등록 대기 상태에서만 등록 완료가 가능합니다")
+            throw InvalidMemberStatusException.NotPending(("등록 대기 상태에서만 등록 완료가 가능합니다"))
         }
         status = MemberStatus.ACTIVE
         detail.activate()
@@ -87,7 +87,7 @@ class Member protected constructor(
 
     fun deactivate() {
         if (status != MemberStatus.ACTIVE) {
-            throw InvalidMemberStatusException("등록 완료 상태에서만 탈퇴가 가능합니다")
+            throw InvalidMemberStatusException.NotActive(("등록 완료 상태에서만 탈퇴가 가능합니다"))
         }
         status = MemberStatus.DEACTIVATED
         detail.deactivate()
@@ -97,17 +97,9 @@ class Member protected constructor(
     fun verifyPassword(rawPassword: RawPassword, encoder: PasswordEncoder): Boolean =
         passwordHash.matches(rawPassword, encoder)
 
-    fun changePassword(newPassword: PasswordHash) {
-        if (status != MemberStatus.ACTIVE) {
-            throw InvalidMemberStatusException("등록 완료 상태에서만 비밀번호 변경이 가능합니다")
-        }
-        passwordHash = newPassword
-        updatedAt = LocalDateTime.now()
-    }
-
     fun changePassword(currentPassword: RawPassword, newPassword: RawPassword, encoder: PasswordEncoder) {
         if (status != MemberStatus.ACTIVE) {
-            throw InvalidMemberStatusException("등록 완료 상태에서만 비밀번호 변경이 가능합니다")
+            throw InvalidMemberStatusException.NotActive(("등록 완료 상태에서만 비밀번호 변경이 가능합니다"))
         }
         if (!passwordHash.matches(currentPassword, encoder)) {
             throw InvalidPasswordException("현재 비밀번호가 일치하지 않습니다")
@@ -123,7 +115,7 @@ class Member protected constructor(
     ) {
         if (nickname == null && profileAddress == null && introduction == null) return
         if (status != MemberStatus.ACTIVE) {
-            throw InvalidMemberStatusException("등록 완료 상태에서만 정보 수정이 가능합니다")
+            throw InvalidMemberStatusException.NotActive(("등록 완료 상태에서만 정보 수정이 가능합니다"))
         }
         nickname?.let { this.nickname = it }
         detail.updateInfo(profileAddress, introduction)

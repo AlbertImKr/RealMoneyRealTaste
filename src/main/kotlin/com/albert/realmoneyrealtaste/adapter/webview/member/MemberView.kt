@@ -5,6 +5,7 @@ import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberDomainException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -90,7 +91,7 @@ class MemberView(
 
         try {
             memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
-        } catch (e: IllegalArgumentException) {
+        } catch (e: MemberDomainException) {
             redirectAttributes.addFlashAttribute("error", "계정 정보 업데이트 중 오류가 발생했습니다. ${e.message}")
             return "redirect:${MEMBER_SETTING_URL}"
         }
@@ -124,8 +125,8 @@ class MemberView(
                 memberPrincipal.memberId, RawPassword(request.currentPassword), RawPassword(request.newPassword)
             )
             redirectAttributes.addFlashAttribute("success", "비밀번호가 성공적으로 변경되었습니다.")
-        } catch (_: IllegalArgumentException) {
-            redirectAttributes.addFlashAttribute("error", "현재 비밀번호가 일치하지 않습니다.")
+        } catch (e: MemberDomainException) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호 변경 중 오류가 발생했습니다. ${e.message}")
         }
 
         return "redirect:${MEMBER_SETTING_URL}#password"
@@ -153,8 +154,8 @@ class MemberView(
 
             // SecurityContextHolder에서도 인증 정보 제거
             SecurityContextHolder.clearContext()
-        } catch (_: IllegalArgumentException) {
-            redirectAttributes.addFlashAttribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다.")
+        } catch (e: MemberDomainException) {
+            redirectAttributes.addFlashAttribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다. ${e.message}")
             return "redirect:${MEMBER_SETTING_URL}#delete"
         }
         return "redirect:/"

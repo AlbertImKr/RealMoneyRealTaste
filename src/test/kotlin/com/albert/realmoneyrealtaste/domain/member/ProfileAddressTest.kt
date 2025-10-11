@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ProfileAddressValidationException
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import kotlin.test.Test
@@ -38,7 +39,7 @@ class ProfileAddressTest {
     fun `constructor - failure - throws exception when profile address is too short`() {
         val invalidAddress = "ab"
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<ProfileAddressValidationException.InvalidLength> {
             ProfileAddress(invalidAddress)
         }.let {
             assertEquals("프로필 주소는 3-15자 사이여야 합니다", it.message)
@@ -49,7 +50,7 @@ class ProfileAddressTest {
     fun `constructor - failure - throws exception when profile address is too long`() {
         val invalidAddress = "a".repeat(16)
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<ProfileAddressValidationException.InvalidLength> {
             ProfileAddress(invalidAddress)
         }.let {
             assertEquals("프로필 주소는 3-15자 사이여야 합니다", it.message)
@@ -67,7 +68,7 @@ class ProfileAddressTest {
         ]
     )
     fun `constructor - failure - throws exception when profile address contains special characters`(invalidAddress: String) {
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<ProfileAddressValidationException.InvalidFormat> {
             ProfileAddress(invalidAddress)
         }.let {
             assertEquals("프로필 주소는 영문, 숫자, 한글만 사용 가능합니다", it.message)

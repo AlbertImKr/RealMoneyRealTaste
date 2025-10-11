@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ProfileAddressValidationException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
@@ -15,8 +16,12 @@ data class ProfileAddress(
     }
 
     private fun validate() {
-        require(address.length in 3..15) { "프로필 주소는 3-15자 사이여야 합니다" }
+        if (address.length !in 3..15) {
+            throw ProfileAddressValidationException.InvalidLength()
+        }
         val profileRegex = "^[a-zA-Z0-9가-힣]+$".toRegex()
-        require(profileRegex.matches(address)) { "프로필 주소는 영문, 숫자, 한글만 사용 가능합니다" }
+        if (!profileRegex.matches(address)) {
+            throw ProfileAddressValidationException.InvalidFormat()
+        }
     }
 }
