@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.security
 
-import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
-import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
 

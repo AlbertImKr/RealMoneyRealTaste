@@ -1,5 +1,8 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity

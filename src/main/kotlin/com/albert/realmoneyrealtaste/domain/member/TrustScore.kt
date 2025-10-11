@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.member.value.TrustLevel
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType

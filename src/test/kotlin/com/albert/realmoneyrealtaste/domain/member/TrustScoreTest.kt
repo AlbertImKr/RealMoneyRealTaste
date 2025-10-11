@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.value.TrustLevel
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import kotlin.test.Test

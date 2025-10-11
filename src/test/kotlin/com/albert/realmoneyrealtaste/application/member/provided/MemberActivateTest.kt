@@ -7,9 +7,12 @@ import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivat
 import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.MemberFixture
+import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.util.MemberFixture
+import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -86,7 +89,14 @@ class MemberActivateTest(
             ?.let { activationTokenRepository.delete(it) }
         flushAndClear()
 
-        val expiredToken = activationTokenGenerator.generate(member.id!!, -1)
+        val expiredToken = activationTokenRepository.save(
+            ActivationToken(
+                member.id!!,
+                UUID.randomUUID().toString(),
+                LocalDateTime.now().minusDays(2),
+                LocalDateTime.now().minusDays(1)
+            )
+        )
 
         assertFailsWith<ExpiredActivationTokenException> {
             memberActivate.activate(expiredToken.token)
@@ -96,7 +106,7 @@ class MemberActivateTest(
     @Test
     fun `activate - failure - throws exception when member does not exist`() {
         val nonExistentMemberId = 999999L
-        val token = activationTokenGenerator.generate(nonExistentMemberId, 1)
+        val token = activationTokenGenerator.generate(nonExistentMemberId)
 
         assertFailsWith<InvalidActivationTokenException> {
             memberActivate.activate(token.token)
@@ -114,7 +124,7 @@ class MemberActivateTest(
         )
         val member = memberRegister.register(request)
         member.activate()
-        val token = activationTokenRepository.findByMemberId(member.id!!)
+        val token = activationTokenRepository.findByMemberId(member.requireId())
             ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
 
         assertFailsWith<AlreadyActivatedException> {

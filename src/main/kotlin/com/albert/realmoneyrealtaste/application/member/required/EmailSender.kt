@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.required
 
-import com.albert.realmoneyrealtaste.domain.member.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Email
 
 /**
  * 이메일 전송을 담당하는 인터페이스

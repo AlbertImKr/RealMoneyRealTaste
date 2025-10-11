@@ -1,9 +1,9 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
-import com.albert.realmoneyrealtaste.domain.member.Introduction
-import com.albert.realmoneyrealtaste.domain.member.Nickname
-import com.albert.realmoneyrealtaste.domain.member.ProfileAddress
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 

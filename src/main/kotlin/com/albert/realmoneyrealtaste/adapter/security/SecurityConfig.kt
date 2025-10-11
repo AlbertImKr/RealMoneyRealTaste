@@ -15,7 +15,9 @@ class SecurityConfig {
     fun filterChain(httpSecurity: HttpSecurity): SecurityFilterChain {
         httpSecurity
             .authorizeHttpRequests {
-                it.requestMatchers("/", "/signup", "/members/activate", "/signin").permitAll()
+                it.requestMatchers("/").permitAll()
+                    .requestMatchers("/signup", "/members/activate", "/signin").permitAll()
+                    .requestMatchers("/members/password-forgot", "/members/password-reset").permitAll()
                     .requestMatchers("/assets/**").permitAll()
                     .requestMatchers("/api/**").permitAll()
                     .requestMatchers("/error").permitAll()

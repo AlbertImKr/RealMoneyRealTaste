@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFound
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
+import com.albert.realmoneyrealtaste.domain.member.value.Email
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,5 +17,14 @@ class MemberReadService(
     override fun readMemberById(memberId: Long): Member {
         return memberRepository.findById(memberId)
             ?: throw MemberNotFoundException()
+    }
+
+    override fun readMemberByEmail(email: Email): Member {
+        return memberRepository.findByEmail(email)
+            ?: throw MemberNotFoundException()
+    }
+
+    override fun findMemberByEmailOrNull(email: Email): Member? {
+        return memberRepository.findByEmail(email)
     }
 }

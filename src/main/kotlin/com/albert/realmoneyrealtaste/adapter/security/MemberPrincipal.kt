@@ -1,9 +1,9 @@
 package com.albert.realmoneyrealtaste.adapter.security
 
-import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.Nickname
-import com.albert.realmoneyrealtaste.domain.member.Role
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.Role
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.io.Serializable

@@ -35,13 +35,17 @@
                         <p class="text-center text-muted mb-4">인증 메일 재발송</p>
 
                         <!-- Success Alert -->
-                        <div class="alert alert-success" role="alert" th:if="${success}">
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" th:if="${success}">
+                            <i class="bi bi-check-circle-fill me-2"></i>
                             <span th:text="${message}">인증 이메일이 재발송되었습니다. 이메일을 확인해주세요.</span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
                         </div>
 
                         <!-- Error Alert -->
-                        <div class="alert alert-danger" role="alert" th:if="${error}">
-                            <span th:text="${message}">이메일 재발송에 실패했습니다. 잠시 후 다시 시도해주세요.</span>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error}">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <span th:text="${error}">이메일 재발송에 실패했습니다. 잠시 후 다시 시도해주세요.</span>
+                            <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
                         </div>
 
                         <!-- Email Info -->

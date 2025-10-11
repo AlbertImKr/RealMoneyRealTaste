@@ -126,6 +126,23 @@
 
             <!-- Main content START -->
             <div class="col-lg-6 vstack gap-4">
+                <!-- Account Activation Alert START -->
+                <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center" role="alert"
+                     th:if="${member.status.name() == 'PENDING'}">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>이메일 인증이 필요합니다</strong>
+                        <p class="mb-2 mt-1">계정의 모든 기능을 사용하시려면 이메일 인증을 완료해주세요.</p>
+                        <form th:action="@{/members/resend-activation}">
+                            <button class="btn btn-sm btn-warning" type="submit">
+                                <i class="bi bi-envelope-fill me-1"></i>인증 이메일 재전송
+                            </button>
+                        </form>
+                    </div>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                </div>
+                <!-- Account Activation Alert END -->
+
                 <!-- Setting Tab content START -->
                 <div class="tab-content py-0 mb-0">
 

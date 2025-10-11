@@ -2,9 +2,9 @@ package com.albert.realmoneyrealtaste.adapter.webview.auth
 
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.Nickname
-import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.security.authentication.AuthenticationManager

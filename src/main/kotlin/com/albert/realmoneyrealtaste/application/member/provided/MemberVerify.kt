@@ -1,8 +1,9 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
 /**
  * 회원 인증(로그인) 기능을 제공하는 인터페이스

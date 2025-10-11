@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RMRT - 잘못된 요청</title>
+
+    <!-- Meta Tags -->
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+    <!-- End Meta Tags -->
+
+    <!-- Dark mode -->
+    <script th:replace="~{fragments/darkmode :: darkmode-script}"></script>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" th:href="@{/assets/images/favicon.ico}">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" th:href="@{/assets/vendor/font-awesome/css/all.min.css}" type="text/css">
+    <link rel="stylesheet" th:href="@{/assets/vendor/bootstrap-icons/bootstrap-icons.css}" type="text/css">
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" th:href="@{/assets/css/style.css}" type="text/css">
+</head>
+
+<body>
+
+<!-- Header -->
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!-- MAIN CONTENT START -->
+<main class="py-5">
+    <!-- Container START -->
+    <div class="container">
+        <!-- Extra space -->
+        <div class="h-100px d-none d-lg-block"></div>
+        <div class="row align-items-center text-center py-sm-5 vh-100">
+            <!-- Error 400 START -->
+            <div class="col-lg-8 mx-auto">
+                <!-- SVG START -->
+                <figure class="m-0 pt-5 pt-md-0">
+                    <svg class="col-sm-7 col-lg-5" style="enable-background:new 0 0 1285.3 712.4;" version="1.1"
+                         viewBox="0 0 1285.3 712.4" x="0px"
+                         xml:space="preserve" xmlns="http://www.w3.org/2000/svg"
+                         y="0px">
+                        <style type="text/css">
+                            .st0 {
+                                opacity: 0.2;
+                                fill: #0B2252;
+                                enable-background: new;
+                            }
+
+                            .st1 {
+                                fill: #DAEEFF;
+                            }
+
+                            .st2 {
+                                fill: #6AC1FF;
+                            }
+
+                            .st3 {
+                                fill: #3FB790;
+                            }
+
+                            .st4 {
+                                fill: #34916F;
+                            }
+
+                            .st5 {
+                                fill: #90DAD8;
+                            }
+
+                            .st6 {
+                                fill: #FFFFFF;
+                            }
+
+                            .st7 {
+                                fill: url(#SVGID_1_);
+                            }
+
+                            .st8 {
+                                fill: #14336D;
+                            }
+
+                            .st9 {
+                                fill: #FFAA9D;
+                            }
+                        </style>
+                        <g id="illustration">
+                            <g>
+                                <ellipse class="st0" cx="642.7" cy="698.2" rx="642.6" ry="14.2"/>
+                                <g>
+                                    <path class="st1" d="M37,400.5c-17.9-0.5-37.4-6.8-37-35.6s21.3-33.3,23.5-54.8c2.1-21.5,2.2-41.6,13.5-41.8s4.1,9,9.4,19
+                                        c5.2,10,15.4,22.8,13.4,41.4c-2,18.7,11.3,25.8,10.6,41.1C69.8,385,60.2,401.2,37,400.5z"/>
+                                    <path class="st2" d="M43.7,327c-0.3-0.3-0.8-0.3-1.1,0c-0.3,0.3-0.3,0.8,0,1.1c0,0,4.7,4.7,4.2,20.6c-0.4,13.8-7.5,35.1-9.8,41.5
+                                        c-2.1-5-4.9-10.5-7.2-15.2c-1.6-3.1-2.9-5.9-3.6-7.6c-2.7-6.3,1.4-19.4,1.4-19.6c0.1-0.4-0.1-0.9-0.5-1s-0.9,0.1-1,0.5
+                                        c-0.2,0.6-4.3,13.8-1.4,20.6c0.7,1.8,2.1,4.5,3.7,7.7c4.2,8.5,10.6,21.3,10.5,26.3c-0.1,6.9-1,16.9-1,17c0,0.4,0.3,0.8,0.7,0.8
+                                        c0,0,0,0,0.1,0c0.4,0,0.7-0.3,0.8-0.7c0-0.1,0.8-10.1,1-17.1c0-2.2-1-5.7-2.6-9.6c1-2.8,10-28,10.5-43.6
+                                        C48.9,332,43.9,327.2,43.7,327z"/>
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                </figure>
+                <!-- SVG END -->
+
+                <!-- 400 info -->
+                <h1 class="display-1 mt-4">400</h1>
+                <h2 class="mb-2 h1">잘못된 요청입니다!</h2>
+                <p>요청 형식이 올바르지 않습니다. 입력하신 정보를 확인해주세요.</p>
+
+                <!-- Button -->
+                <a class="btn btn-primary-soft btn-sm" th:href="@{/}">홈으로 돌아가기</a>
+            </div>
+            <!-- Error 400 END -->
+        </div>
+
+        <!-- Extra space -->
+        <div class="h-100px d-none d-lg-block"></div>
+    </div>
+    <!-- Container END -->
+</main>
+<!-- MAIN CONTENT END -->
+
+<!-- Footer START -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<!-- Footer END -->
+
+<!-- Bootstrap JS -->
+<script th:src="@{/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js}"></script>
+
+<!-- Theme Functions -->
+<script th:src="@{/assets/js/functions.js}"></script>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.config
 
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
-import com.albert.realmoneyrealtaste.domain.member.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Email
 
 data class SentEmail(
     val to: Email,

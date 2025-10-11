@@ -3,14 +3,18 @@ package com.albert.realmoneyrealtaste.application.member.provided
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
+import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
-import com.albert.realmoneyrealtaste.domain.member.Introduction
-import com.albert.realmoneyrealtaste.domain.member.MemberFixture
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
-import com.albert.realmoneyrealtaste.domain.member.Nickname
-import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
-import com.albert.realmoneyrealtaste.domain.member.ProfileAddress
-import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
+import com.albert.realmoneyrealtaste.util.MemberFixture
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -107,10 +111,32 @@ class MemberUpdaterTest(
             introduction = null,
         )
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.updateInfo(memberId, request)
         }.let {
             assertEquals("등록 완료 상태에서만 정보 수정이 가능합니다", it.message)
+        }
+    }
+
+    @Test
+    fun `updateInfo - failure - throws exception when profile address is duplicate`() {
+        val member1 = registerAndActivateMember()
+        val member2 = registerAndActivateMember(Email("member2@mail.com"), Nickname("member2"))
+        val member1Id = member1.id!!
+        val member2Id = member2.id!!
+        val duplicateProfileAddress = ProfileAddress("duplicate")
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = duplicateProfileAddress,
+            introduction = null,
+        )
+        val member1UP = memberUpdater.updateInfo(member1Id, request)
+
+        assertFailsWith<DuplicateProfileAddressException> {
+            val member2UP = memberUpdater.updateInfo(member2Id, request)
+            assertEquals(member1UP.detail.profileAddress, member2UP.detail.profileAddress)
+        }.let {
+            assertEquals("이미 사용 중인 프로필 주소입니다.", it.message)
         }
     }
 
@@ -132,7 +158,7 @@ class MemberUpdaterTest(
         val wrongPassword = RawPassword("wrongPassword123!")
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidPasswordException> {
             memberUpdater.updatePassword(member.id!!, wrongPassword, newPassword)
         }.let {
             assertEquals("현재 비밀번호가 일치하지 않습니다", it.message)
@@ -156,7 +182,7 @@ class MemberUpdaterTest(
         val currentPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.updatePassword(member.id!!, currentPassword, newPassword)
         }.let {
             assertEquals("등록 완료 상태에서만 비밀번호 변경이 가능합니다", it.message)
@@ -185,7 +211,7 @@ class MemberUpdaterTest(
     fun `deactivate - failure - throws exception when member is not active`() {
         val member = registerMember()
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.deactivate(member.id!!)
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
@@ -197,20 +223,26 @@ class MemberUpdaterTest(
         val member = registerAndActivateMember()
         memberUpdater.deactivate(member.id!!)
 
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<InvalidMemberStatusException> {
             memberUpdater.deactivate(member.id!!)
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
         }
     }
 
-    private fun registerMember() = memberRegister.register(
+    private fun registerMember(
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+    ) = memberRegister.register(
         MemberRegisterRequest(
-            email = MemberFixture.DEFAULT_EMAIL,
+            email = email,
             password = MemberFixture.DEFAULT_RAW_PASSWORD,
-            nickname = MemberFixture.DEFAULT_NICKNAME
+            nickname = nickname
         )
     )
 
-    private fun registerAndActivateMember() = registerMember().also { it.activate() }
+    private fun registerAndActivateMember(
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+    ) = registerMember(email, nickname).also { it.activate() }
 }

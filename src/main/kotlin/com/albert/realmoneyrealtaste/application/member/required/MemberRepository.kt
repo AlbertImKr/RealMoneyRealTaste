@@ -1,7 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.required
 
-import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Member
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import org.springframework.data.repository.Repository
 
 /**
@@ -14,4 +15,6 @@ interface MemberRepository : Repository<Member, Long> {
     fun findByEmail(email: Email): Member?
 
     fun findById(id: Long): Member?
+
+    fun existsByDetailProfileAddress(profileAddress: ProfileAddress): Boolean
 }
