@@ -554,6 +554,28 @@ class MemberViewTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `passwordForgot POST - failure - returns bad request when email parameter is missing`() {
+        mockMvc.perform(
+            post("/members/password-forgot")
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `sendPasswordResetEmail POST - failure - redirects with error when email format is invalid`() {
+        mockMvc.perform(
+            post("/members/password-forgot")
+                .with(csrf())
+                .param("email", "invalid-email-format")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/password-forgot"))
+            .andExpect(flash().attribute("success", false))
+            .andExpect(flash().attribute("error", "올바른 이메일 형식을 입력해주세요."))
+    }
+
+    @Test
     fun `sendPasswordResetEmail POST - success - redirects with success message`() {
         member.activate()
 
@@ -577,8 +599,8 @@ class MemberViewTest : IntegrationTestBase() {
         )
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl("/members/password-forgot"))
-            .andExpect(flash().attribute("success", false))
-            .andExpect(flash().attribute("error", "해당 이메일로 가입된 계정을 찾을 수 없습니다."))
+            .andExpect(flash().attribute("success", true))
+            .andExpect(flash().attribute("message", "비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인해주세요."))
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetter
+import com.albert.realmoneyrealtaste.domain.member.exceptions.EmailValidationException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberDomainException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
@@ -165,25 +166,34 @@ class MemberView(
         return "redirect:/"
     }
 
-    @GetMapping("/members/password-forgot")
+    @GetMapping(MEMBER_PASSWORD_FORGOT_URL)
     fun passwordForgot(): String {
         return MEMBER_PASSWORD_FORGOT_VIEW_NAME
     }
 
-    @PostMapping("/members/password-forgot")
+    @PostMapping(MEMBER_PASSWORD_FORGOT_URL)
     fun sendPasswordResetEmail(
-        @RequestParam email: Email,
+        @RequestParam email: String,
         redirectAttributes: RedirectAttributes,
     ): String {
-        passwordResetter.sendPasswordResetEmail(email)
+
+        val emailObj = try {
+            Email(email)
+        } catch (_: EmailValidationException) {
+            redirectAttributes.addFlashAttribute("success", false)
+            redirectAttributes.addFlashAttribute("error", "올바른 이메일 형식을 입력해주세요.")
+            return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"
+        }
+
+        passwordResetter.sendPasswordResetEmail(emailObj)
 
         redirectAttributes.addFlashAttribute("success", true)
         redirectAttributes.addFlashAttribute("message", "비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인해주세요.")
 
-        return "redirect:/members/password-forgot"
+        return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"
     }
 
-    @GetMapping("/members/password-reset")
+    @GetMapping(MEMBER_PASSWORD_RESET_URL)
     fun passwordReset(
         @RequestParam("token") token: String,
         model: Model,
@@ -192,7 +202,7 @@ class MemberView(
         return MEMBER_PASSWORD_RESET_VIEW_NAME
     }
 
-    @PostMapping("/members/password-reset")
+    @PostMapping(MEMBER_PASSWORD_RESET_URL)
     fun resetPassword(
         @RequestParam token: String,
         @Valid @ModelAttribute form: PasswordResetForm,
@@ -202,13 +212,13 @@ class MemberView(
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "비밀번호 형식이 올바르지 않습니다.")
             redirectAttributes.addFlashAttribute("token", token)
-            return "redirect:/members/password-reset?token=$token"
+            return "redirect:${MEMBER_PASSWORD_RESET_URL}?token=$token"
         }
 
         if (form.newPassword != form.newPasswordConfirm) {
             redirectAttributes.addFlashAttribute("error", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다.")
             redirectAttributes.addFlashAttribute("token", token)
-            return "redirect:/members/password-reset?token=$token"
+            return "redirect:${MEMBER_PASSWORD_RESET_URL}?token=$token"
         }
 
         try {
@@ -219,7 +229,7 @@ class MemberView(
         } catch (e: ApplicationException) {
             redirectAttributes.addFlashAttribute("error", "비밀번호 재설정 중 오류가 발생했습니다. ${e.message}")
             redirectAttributes.addFlashAttribute("token", token)
-            return "redirect:/members/password-forgot"
+            return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"
         }
     }
 
@@ -233,5 +243,7 @@ class MemberView(
         const val MEMBER_PASSWORD_RESET_EMAIL_VIEW_NAME = "member/password-reset-email"
 
         const val MEMBER_SETTING_URL = "/members/setting"
+        const val MEMBER_PASSWORD_FORGOT_URL = "/members/password-forgot"
+        const val MEMBER_PASSWORD_RESET_URL = "/members/password-reset"
     }
 }
