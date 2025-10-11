@@ -1,6 +1,8 @@
-package com.albert.realmoneyrealtaste.application.member.event
+package com.albert.realmoneyrealtaste.application.member.listener
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEvent
+import com.albert.realmoneyrealtaste.application.member.event.ResendActivationEmailEvent
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
 import com.albert.realmoneyrealtaste.config.TestEmailSender
 import com.albert.realmoneyrealtaste.domain.member.MemberFixture
@@ -19,8 +21,8 @@ class MemberEventListenerTest(
     @Test
     fun `handleMemberRegistered - success - sends activation email`() {
         val memberId = 1L
-        val email = MemberFixture.DEFAULT_EMAIL
-        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val email = MemberFixture.Companion.DEFAULT_EMAIL
+        val nickname = MemberFixture.Companion.DEFAULT_NICKNAME
         val event = MemberRegisteredEvent(
             memberId = memberId,
             email = email,
@@ -36,8 +38,8 @@ class MemberEventListenerTest(
     @Test
     fun `handleResendActivationEmail - success - sends activation email`() {
         val memberId = 2L
-        val email = MemberFixture.DEFAULT_EMAIL
-        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val email = MemberFixture.Companion.DEFAULT_EMAIL
+        val nickname = MemberFixture.Companion.DEFAULT_NICKNAME
         val event = ResendActivationEmailEvent(
             memberId = memberId,
             email = email,
