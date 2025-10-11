@@ -26,4 +26,12 @@ interface MemberReader {
      * @throws MemberNotFoundException 해당 이메일의 회원이 존재하지 않는 경우
      */
     fun readMemberByEmail(email: Email): Member
+
+    /**
+     * 주어진 이메일로 회원을 조회합니다. 회원이 존재하지 않을 경우 null을 반환합니다.
+     *
+     * @param email 조회할 회원의 이메일
+     * @return 조회된 회원 객체 또는 null
+     */
+    fun findMemberByEmailOrNull(email: Email): Member?
 }

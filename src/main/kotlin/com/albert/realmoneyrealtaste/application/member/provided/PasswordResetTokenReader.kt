@@ -23,4 +23,11 @@ interface PasswordResetTokenReader {
      * @throws InvalidPasswordResetTokenException 해당 회원의 토큰이 존재하지 않는 경우
      */
     fun findByMemberId(memberId: Long): PasswordResetToken
+
+    /**
+     * 회원 ID로 비밀번호 재설정 토큰을 조회합니다. (없으면 null 반환)
+     * @param memberId 조회할 회원 ID
+     * @return 조회된 비밀번호 재설정 토큰, 없으면 null
+     */
+    fun findByMemberIdOrNull(memberId: Long): PasswordResetToken?
 }

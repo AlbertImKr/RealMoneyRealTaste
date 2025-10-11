@@ -85,7 +85,7 @@ class MemberExceptionHandlerTest {
 
         handler.handleDuplicateProfileAddress(exception, redirectAttributes)
 
-        verify { redirectAttributes.addAttribute("success", false) }
+        verify { redirectAttributes.addFlashAttribute("success", false) }
     }
 
     @Test
@@ -94,7 +94,7 @@ class MemberExceptionHandlerTest {
 
         handler.handleDuplicateProfileAddress(exception, redirectAttributes)
 
-        verify { redirectAttributes.addAttribute("error", "이미 사용 중인 프로필 주소입니다.") }
+        verify { redirectAttributes.addFlashAttribute("error", "이미 사용 중인 프로필 주소입니다.") }
     }
 
     @Test
@@ -103,7 +103,7 @@ class MemberExceptionHandlerTest {
 
         handler.handleDuplicateProfileAddress(exception, redirectAttributes)
 
-        verify { redirectAttributes.addAttribute("success", false) }
-        verify { redirectAttributes.addAttribute("error", "이미 사용 중인 프로필 주소입니다.") }
+        verify { redirectAttributes.addFlashAttribute("success", false) }
+        verify { redirectAttributes.addFlashAttribute("error", "이미 사용 중인 프로필 주소입니다.") }
     }
 }

@@ -85,7 +85,7 @@ class MemberPasswordResetEmailSenderTest(
         val sentEmail = testEmailSender.getLastSentEmail()!!
         assertAll(
             { assertNotNull(sentEmail.content) },
-            { assertTrue(sentEmail.content.contains("$baseUrl/members/reset-password?token=")) }
+            { assertTrue(sentEmail.content.contains("$baseUrl/members/password-reset?token=")) }
         )
     }
 

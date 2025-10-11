@@ -32,7 +32,7 @@ class MemberPasswordResetEmailSenderService(
         "${baseUrl}${PASSWORD_RESET_PATH}${passwordResetToken.token}"
 
     companion object {
-        const val PASSWORD_RESET_PATH = "/members/reset-password?token="
+        const val PASSWORD_RESET_PATH = "/members/password-reset?token="
         const val PASSWORD_RESET_EMAIL_SUBJECT = "[RealMoneyRealTaste] 비밀번호 재설정 안내"
     }
 }

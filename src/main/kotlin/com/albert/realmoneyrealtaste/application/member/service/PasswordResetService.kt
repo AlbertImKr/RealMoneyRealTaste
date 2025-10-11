@@ -14,9 +14,9 @@ import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import jakarta.persistence.EntityManager
-import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Transactional
 @Service
@@ -30,14 +30,15 @@ class PasswordResetService(
     private val eventPublisher: ApplicationEventPublisher,
 ) : PasswordResetter {
 
-    override fun sendPasswordResetEmail(email: Email) {
-        val member = memberReader.readMemberByEmail(email)
+    override fun sendPasswordResetEmail(email: Email): Boolean {
+        val member = memberReader.findMemberByEmailOrNull(email) ?: return false
 
         deleteExistingTokenIfPresent(member.requireId())
 
         val token = passwordRestTokenGenerator.generate(member.requireId())
 
         publishPasswordResetRequestedEvent(member, token)
+        return true
     }
 
     override fun resetPassword(token: String, newPassword: RawPassword) {
@@ -57,9 +58,7 @@ class PasswordResetService(
      * @param memberId 회원 ID
      */
     private fun deleteExistingTokenIfPresent(memberId: Long) {
-        runCatching {
-            passwordRestTokenReader.findByMemberId(memberId)
-        }.onSuccess {
+        passwordRestTokenReader.findByMemberIdOrNull(memberId)?.let {
             passwordRestTokenDeleter.delete(it)
             entityManager.flush()
         }

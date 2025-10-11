@@ -23,4 +23,8 @@ class MemberReadService(
         return memberRepository.findByEmail(email)
             ?: throw MemberNotFoundException()
     }
+
+    override fun findMemberByEmailOrNull(email: Email): Member? {
+        return memberRepository.findByEmail(email)
+    }
 }

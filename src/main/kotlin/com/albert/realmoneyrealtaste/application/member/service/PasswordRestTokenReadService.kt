@@ -13,8 +13,10 @@ class PasswordRestTokenReadService(
 ) : PasswordResetTokenReader {
 
     override fun findByToken(token: String) = passwordRestTokenRepository.findByToken(token)
-        ?: throw InvalidPasswordResetTokenException("유효하지 않은 비밀번호 재설정 토큰입니다. token=$token")
+        ?: throw InvalidPasswordResetTokenException()
 
     override fun findByMemberId(memberId: Long) = passwordRestTokenRepository.findByMemberId(memberId)
         ?: throw InvalidPasswordResetTokenException("해당 회원의 비밀번호 재설정 토큰이 존재하지 않습니다. memberId=$memberId")
+
+    override fun findByMemberIdOrNull(memberId: Long) = passwordRestTokenRepository.findByMemberId(memberId)
 }

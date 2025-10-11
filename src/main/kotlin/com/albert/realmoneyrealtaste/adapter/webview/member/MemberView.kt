@@ -1,10 +1,13 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.member.exception.ApplicationException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
+import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetter
 import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberDomainException
+import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -25,6 +28,7 @@ class MemberView(
     private val memberReader: MemberReader,
     private val memberUpdater: MemberUpdater,
     private val validator: PasswordUpdateFormValidator,
+    private val passwordResetter: PasswordResetter,
 ) {
 
     @GetMapping("/members/activate")
@@ -161,11 +165,76 @@ class MemberView(
         return "redirect:/"
     }
 
+    @GetMapping("/members/password-forgot")
+    fun passwordForgot(): String {
+        return MEMBER_PASSWORD_FORGOT_VIEW_NAME
+    }
+
+    @PostMapping("/members/password-forgot")
+    fun sendPasswordResetEmail(
+        @RequestParam email: Email,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        val sent = passwordResetter.sendPasswordResetEmail(email)
+
+        if (sent) {
+            redirectAttributes.addFlashAttribute("success", true)
+            redirectAttributes.addFlashAttribute("message", "비밀번호 재설정 이메일이 발송되었습니다. 이메일을 확인해주세요.")
+        } else {
+            redirectAttributes.addFlashAttribute("success", false)
+            redirectAttributes.addFlashAttribute("error", "해당 이메일로 가입된 계정을 찾을 수 없습니다.")
+        }
+        return "redirect:/members/password-forgot"
+    }
+
+    @GetMapping("/members/password-reset")
+    fun passwordReset(
+        @RequestParam("token") token: String,
+        model: Model,
+    ): String {
+        model.addAttribute("token", token)
+        return MEMBER_PASSWORD_RESET_VIEW_NAME
+    }
+
+    @PostMapping("/members/password-reset")
+    fun resetPassword(
+        @RequestParam token: String,
+        @Valid @ModelAttribute form: PasswordResetForm,
+        bindingResult: BindingResult,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호 형식이 올바르지 않습니다.")
+            redirectAttributes.addFlashAttribute("token", token)
+            return "redirect:/members/password-reset?token=$token"
+        }
+
+        if (form.newPassword != form.newPasswordConfirm) {
+            redirectAttributes.addFlashAttribute("error", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+            redirectAttributes.addFlashAttribute("token", token)
+            return "redirect:/members/password-reset?token=$token"
+        }
+
+        try {
+            passwordResetter.resetPassword(token, RawPassword(form.newPassword))
+            redirectAttributes.addFlashAttribute("success", true)
+            redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
+            return "redirect:/members/signin"
+        } catch (e: ApplicationException) {
+            redirectAttributes.addFlashAttribute("error", "비밀번호 재설정 중 오류가 발생했습니다. ${e.message}")
+            redirectAttributes.addFlashAttribute("token", token)
+            return "redirect:/members/password-forgot"
+        }
+    }
+
     companion object {
         const val MEMBER_ACTIVATE_VIEW_NAME = "member/activate"
         const val MEMBER_ACTIVATION_VIEW_NAME = "member/activation"
         const val MEMBER_RESEND_ACTIVATION_VIEW_NAME = "member/resend-activation"
         const val MEMBER_SETTING_VIEW_NAME = "member/setting"
+        const val MEMBER_PASSWORD_FORGOT_VIEW_NAME = "member/password-forgot"
+        const val MEMBER_PASSWORD_RESET_VIEW_NAME = "member/password-reset"
+        const val MEMBER_PASSWORD_RESET_EMAIL_VIEW_NAME = "member/password-reset-email"
 
         const val MEMBER_SETTING_URL = "/members/setting"
     }

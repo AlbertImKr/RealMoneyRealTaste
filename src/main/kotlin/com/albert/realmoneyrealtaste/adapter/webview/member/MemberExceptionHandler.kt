@@ -42,8 +42,8 @@ class MemberExceptionHandler {
         ex: DuplicateProfileAddressException,
         redirectAttributes: RedirectAttributes,
     ): String {
-        redirectAttributes.addAttribute("success", false)
-        redirectAttributes.addAttribute("error", "이미 사용 중인 프로필 주소입니다.")
+        redirectAttributes.addFlashAttribute("success", false)
+        redirectAttributes.addFlashAttribute("error", "이미 사용 중인 프로필 주소입니다.")
 
         return "redirect:${MEMBER_SETTING_URL}"
     }

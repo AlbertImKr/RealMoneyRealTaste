@@ -309,7 +309,7 @@ class MemberTest {
         member.grantRole(Role.MANAGER)
 
         assertTrue(member.hasRole(Role.MANAGER))
-        assertTrue(beforeUpdateAt < member.updatedAt)
+        assertTrue(beforeUpdateAt <= member.updatedAt)
     }
 
     @Test

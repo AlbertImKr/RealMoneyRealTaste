@@ -19,4 +19,13 @@ class EmailTemplateService(
         }
         return templateEngine.process(MemberView.MEMBER_ACTIVATION_VIEW_NAME, context)
     }
+
+    override fun buildPasswordResetEmail(nickname: String, passwordResetLink: String, expirationHours: Long): String {
+        val context = Context().apply {
+            setVariable("nickname", nickname)
+            setVariable("passwordResetLink", passwordResetLink)
+            setVariable("expirationHours", expirationHours)
+        }
+        return templateEngine.process(MemberView.MEMBER_PASSWORD_RESET_EMAIL_VIEW_NAME, context)
+    }
 }
