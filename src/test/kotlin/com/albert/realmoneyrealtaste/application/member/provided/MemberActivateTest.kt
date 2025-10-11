@@ -7,9 +7,9 @@ import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivat
 import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.MemberFixture
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.util.MemberFixture
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

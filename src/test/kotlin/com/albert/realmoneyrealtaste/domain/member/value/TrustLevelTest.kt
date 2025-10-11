@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.domain.member.value
 
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidTrustScoreException
 import org.junit.jupiter.api.Assertions.assertEquals

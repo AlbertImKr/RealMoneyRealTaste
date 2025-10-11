@@ -6,8 +6,8 @@ import com.albert.realmoneyrealtaste.application.member.exception.DuplicateEmail
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
-import com.albert.realmoneyrealtaste.domain.member.PasswordHash
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

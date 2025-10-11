@@ -4,8 +4,8 @@ import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivat
 import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
-import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Member
+import com.albert.realmoneyrealtaste.domain.member.value.Email
 
 /**
  * 회원 계정 활성화 기능을 제공하는 인터페이스

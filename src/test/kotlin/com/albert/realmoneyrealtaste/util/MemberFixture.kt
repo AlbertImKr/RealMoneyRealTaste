@@ -1,4 +1,12 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.util
+
+import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.member.Member
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
 class MemberFixture {
 
@@ -16,16 +24,16 @@ class MemberFixture {
                 return passwordHash == encode(rawPassword)
             }
         }
-        val DEFAULT_PASSWORD = PasswordHash.of(DEFAULT_RAW_PASSWORD, TEST_ENCODER)
+        val DEFAULT_PASSWORD = PasswordHash.Companion.of(DEFAULT_RAW_PASSWORD, TEST_ENCODER)
         val NEW_RAW_PASSWORD = RawPassword("NewDefault1!")
-        val NEW_PASSWORD = PasswordHash.of(NEW_RAW_PASSWORD, TEST_ENCODER)
+        val NEW_PASSWORD = PasswordHash.Companion.of(NEW_RAW_PASSWORD, TEST_ENCODER)
 
         fun createMember(
             email: Email = DEFAULT_EMAIL,
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
-            return Member.register(email, nickname, password)
+            return Member.Companion.register(email, nickname, password)
         }
 
         fun createMemberWithId(
@@ -34,7 +42,7 @@ class MemberFixture {
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
-            val member = Member.register(email, nickname, password)
+            val member = Member.Companion.register(email, nickname, password)
             setId(member, id)
             return member
         }
@@ -44,7 +52,7 @@ class MemberFixture {
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
-            return Member.registerAdmin(email, nickname, password)
+            return Member.Companion.registerAdmin(email, nickname, password)
         }
 
         fun createAdminMemberWithId(
@@ -53,7 +61,7 @@ class MemberFixture {
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
-            val member = Member.registerAdmin(email, nickname, password)
+            val member = Member.Companion.registerAdmin(email, nickname, password)
             setId(member, id)
             return member
         }
@@ -63,7 +71,7 @@ class MemberFixture {
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
-            return Member.registerManager(email, nickname, password)
+            return Member.Companion.registerManager(email, nickname, password)
         }
 
         fun createManagerMemberWithId(
@@ -72,7 +80,7 @@ class MemberFixture {
             nickname: Nickname = DEFAULT_NICKNAME,
             password: PasswordHash = DEFAULT_PASSWORD,
         ): Member {
-            val member = Member.registerManager(email, nickname, password)
+            val member = Member.Companion.registerManager(email, nickname, password)
             setId(member, id)
             return member
         }

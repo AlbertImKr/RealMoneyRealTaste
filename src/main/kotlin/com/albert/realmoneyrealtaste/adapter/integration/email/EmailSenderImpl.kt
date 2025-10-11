@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.integration.email
 
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
-import com.albert.realmoneyrealtaste.domain.member.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Email
 import org.springframework.context.annotation.Profile
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper

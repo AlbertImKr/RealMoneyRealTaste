@@ -4,8 +4,8 @@ import com.albert.realmoneyrealtaste.application.member.provided.ActivationToken
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivationEmailSender
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
 import com.albert.realmoneyrealtaste.application.member.required.EmailTemplate
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 

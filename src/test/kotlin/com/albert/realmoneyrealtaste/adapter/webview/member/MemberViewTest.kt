@@ -6,7 +6,7 @@ import com.albert.realmoneyrealtaste.application.member.provided.ActivationToken
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.MemberFixture
+import com.albert.realmoneyrealtaste.util.MemberFixture
 import com.albert.realmoneyrealtaste.util.WithMockMember
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired

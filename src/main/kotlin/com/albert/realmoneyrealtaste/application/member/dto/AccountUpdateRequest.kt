@@ -1,8 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.dto
 
-import com.albert.realmoneyrealtaste.domain.member.Introduction
-import com.albert.realmoneyrealtaste.domain.member.Nickname
-import com.albert.realmoneyrealtaste.domain.member.ProfileAddress
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 
 data class AccountUpdateRequest(
     val nickname: Nickname?,

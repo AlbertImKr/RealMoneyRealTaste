@@ -1,5 +1,6 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.domain.member.value
 
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 

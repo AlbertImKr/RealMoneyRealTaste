@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals

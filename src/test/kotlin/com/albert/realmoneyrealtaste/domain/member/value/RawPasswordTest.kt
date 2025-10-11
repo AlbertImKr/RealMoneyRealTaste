@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.domain.member.value
 
 import com.albert.realmoneyrealtaste.domain.member.exceptions.PasswordValidationException
 import kotlin.test.Test

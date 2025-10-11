@@ -1,8 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.required
 
-import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.ProfileAddress
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import org.springframework.data.repository.Repository
 
 /**

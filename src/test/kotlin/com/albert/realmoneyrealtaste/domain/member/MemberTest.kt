@@ -3,6 +3,15 @@ package com.albert.realmoneyrealtaste.domain.member
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.UnauthorizedRoleOperationException
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.value.Role
+import com.albert.realmoneyrealtaste.domain.member.value.Roles
+import com.albert.realmoneyrealtaste.domain.member.value.TrustLevel
+import com.albert.realmoneyrealtaste.util.MemberFixture
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -4,10 +4,10 @@ import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberVerify
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
-import com.albert.realmoneyrealtaste.domain.member.Email
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
-import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

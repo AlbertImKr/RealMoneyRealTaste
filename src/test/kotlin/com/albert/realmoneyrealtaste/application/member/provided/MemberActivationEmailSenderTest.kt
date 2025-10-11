@@ -3,9 +3,9 @@ package com.albert.realmoneyrealtaste.application.member.provided
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
 import com.albert.realmoneyrealtaste.config.TestEmailSender
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.MemberFixture
-import com.albert.realmoneyrealtaste.domain.member.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.springframework.beans.factory.annotation.Value
 import kotlin.test.Test
 import kotlin.test.assertEquals

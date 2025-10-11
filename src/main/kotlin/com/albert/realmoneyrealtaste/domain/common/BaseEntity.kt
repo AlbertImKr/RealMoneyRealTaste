@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.domain.common
 
 import jakarta.persistence.Column
 import jakarta.persistence.GeneratedValue

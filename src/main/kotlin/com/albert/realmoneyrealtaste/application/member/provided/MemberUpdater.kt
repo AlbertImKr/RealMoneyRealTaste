@@ -4,9 +4,9 @@ import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.RawPassword
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
 /**
  * 회원 정보 수정 기능을 제공하는 인터페이스

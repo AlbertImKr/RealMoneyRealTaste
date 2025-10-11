@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.integration
 
 import com.albert.realmoneyrealtaste.adapter.integration.email.EmailSenderImpl
-import com.albert.realmoneyrealtaste.domain.member.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Email
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just

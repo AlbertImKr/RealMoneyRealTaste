@@ -5,7 +5,7 @@ import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEv
 import com.albert.realmoneyrealtaste.application.member.event.ResendActivationEmailEvent
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
 import com.albert.realmoneyrealtaste.config.TestEmailSender
-import com.albert.realmoneyrealtaste.domain.member.MemberFixture
+import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.springframework.beans.factory.annotation.Value
 import kotlin.test.Test
 import kotlin.test.assertEquals

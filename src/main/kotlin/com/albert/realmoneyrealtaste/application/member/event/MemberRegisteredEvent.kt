@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.event
 
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 
 data class MemberRegisteredEvent(
     val memberId: Long,

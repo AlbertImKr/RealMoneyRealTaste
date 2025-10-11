@@ -1,8 +1,18 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.common.BaseEntity
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.UnauthorizedRoleOperationException
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.value.Role
+import com.albert.realmoneyrealtaste.domain.member.value.Roles
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded

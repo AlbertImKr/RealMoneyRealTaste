@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.domain.member.value
 
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidTrustScoreException
 
@@ -10,7 +10,7 @@ enum class TrustLevel(val scoreRange: IntRange) {
 
     companion object {
         fun fromScore(score: Int): TrustLevel {
-            return TrustLevel.entries.firstOrNull { score in it.scoreRange }
+            return entries.firstOrNull { score in it.scoreRange }
                 ?: throw InvalidTrustScoreException(score)
         }
     }

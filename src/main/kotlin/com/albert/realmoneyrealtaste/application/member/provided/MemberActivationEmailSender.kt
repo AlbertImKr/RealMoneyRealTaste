@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
-import com.albert.realmoneyrealtaste.domain.member.Email
-import com.albert.realmoneyrealtaste.domain.member.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 
 /**
  * 회원 활성화 이메일 전송 기능을 제공하는 인터페이스

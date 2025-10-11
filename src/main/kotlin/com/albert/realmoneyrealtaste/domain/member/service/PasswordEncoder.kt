@@ -1,4 +1,6 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.domain.member.service
+
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
 interface PasswordEncoder {
 

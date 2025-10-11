@@ -6,9 +6,9 @@ import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFound
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.PasswordEncoder
-import com.albert.realmoneyrealtaste.domain.member.ProfileAddress
-import com.albert.realmoneyrealtaste.domain.member.RawPassword
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 

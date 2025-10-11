@@ -1,6 +1,8 @@
-package com.albert.realmoneyrealtaste.domain.member
+package com.albert.realmoneyrealtaste.domain.member.value
 
-import com.albert.realmoneyrealtaste.domain.member.MemberFixture.Companion.TEST_ENCODER
+import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
+import com.albert.realmoneyrealtaste.util.MemberFixture
+import com.albert.realmoneyrealtaste.util.MemberFixture.Companion.TEST_ENCODER
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import kotlin.test.Test
