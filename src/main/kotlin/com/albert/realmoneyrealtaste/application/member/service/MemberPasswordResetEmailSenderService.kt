@@ -22,17 +22,17 @@ class MemberPasswordResetEmailSenderService(
 
         val content = emailTemplate.buildPasswordResetEmail(nickname.value, passwordResetLink, resetExpirationHours)
 
-        emailSender.send(email, PASSWORD_RESET_EMAIL_SUBJECT, content, true)
+        emailSender.send(email, PWD_RESET_EMAIL_SUBJECT, content, true)
     }
 
     /**
      * 비밀번호 재설정 링크 생성
      */
     private fun createPasswordResetLink(passwordResetToken: PasswordResetToken): String =
-        "${baseUrl}${PASSWORD_RESET_PATH}${passwordResetToken.token}"
+        "${baseUrl}${PSD_RESET_PATH}${passwordResetToken.token}"
 
     companion object {
-        const val PASSWORD_RESET_PATH = "/members/password-reset?token="
-        const val PASSWORD_RESET_EMAIL_SUBJECT = "[RealMoneyRealTaste] 비밀번호 재설정 안내"
+        const val PSD_RESET_PATH = "/members/password-reset?token="
+        const val PWD_RESET_EMAIL_SUBJECT = "[RealMoneyRealTaste] 비밀번호 재설정 안내"
     }
 }
