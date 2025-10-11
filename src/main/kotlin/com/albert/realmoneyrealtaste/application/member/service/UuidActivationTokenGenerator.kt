@@ -6,6 +6,7 @@ import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.transaction.Transactional
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.UUID
@@ -15,9 +16,10 @@ import java.util.UUID
 class UuidActivationTokenGenerator(
     private val activationTokenRepository: ActivationTokenRepository,
     @PersistenceContext private val entityManager: EntityManager,
+    @param:Value("\${app.member.activation-token.expiration-hours}") private val expirationHours: Long,
 ) : ActivationTokenGenerator {
 
-    override fun generate(memberId: Long, expirationHours: Long): ActivationToken {
+    override fun generate(memberId: Long): ActivationToken {
         deleteExistingTokenIfPresent(memberId)
 
         return createAndSaveToken(memberId, expirationHours)

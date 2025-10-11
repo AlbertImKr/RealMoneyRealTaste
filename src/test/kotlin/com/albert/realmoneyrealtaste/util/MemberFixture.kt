@@ -1,12 +1,15 @@
 package com.albert.realmoneyrealtaste.util
 
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
+import java.time.LocalDateTime
+import java.util.UUID
 
 class MemberFixture {
 
@@ -24,9 +27,13 @@ class MemberFixture {
                 return passwordHash == encode(rawPassword)
             }
         }
-        val DEFAULT_PASSWORD = PasswordHash.Companion.of(DEFAULT_RAW_PASSWORD, TEST_ENCODER)
+        val DEFAULT_PASSWORD = PasswordHash.of(DEFAULT_RAW_PASSWORD, TEST_ENCODER)
         val NEW_RAW_PASSWORD = RawPassword("NewDefault1!")
-        val NEW_PASSWORD = PasswordHash.Companion.of(NEW_RAW_PASSWORD, TEST_ENCODER)
+
+        fun createActivationToken(memberId: Long): ActivationToken {
+            val now = LocalDateTime.now()
+            return ActivationToken(memberId, UUID.randomUUID().toString(), now, now.plusDays(1))
+        }
 
         fun createMember(
             email: Email = DEFAULT_EMAIL,

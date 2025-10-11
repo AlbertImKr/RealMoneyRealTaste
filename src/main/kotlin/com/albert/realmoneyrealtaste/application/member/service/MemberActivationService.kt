@@ -1,13 +1,15 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
-import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEvent
+import com.albert.realmoneyrealtaste.application.member.event.ResendActivationEmailEvent
 import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
 import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
+import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenDeleter
+import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
+import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
-import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
-import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
@@ -20,38 +22,53 @@ import org.springframework.stereotype.Service
 @Transactional
 @Service
 class MemberActivationService(
-    private val activationTokenRepository: ActivationTokenRepository,
-    private val memberRepository: MemberRepository,
+    private val actionTokenReader: ActivationTokenReader,
+    private val actionTokenDeleter: ActivationTokenDeleter,
+    private val memberReader: MemberReader,
     private val eventPublisher: ApplicationEventPublisher,
+    private val activationTokenGenerator: ActivationTokenGenerator,
 ) : MemberActivate {
 
     override fun activate(token: String): Member {
-        val activationToken = findActivationTokenOrThrow(token)
+        val activationToken = actionTokenReader.findByToken(token)
+
         validateTokenNotExpired(activationToken)
+
         val member = findMemberByTokenOrThrow(activationToken)
 
         member.activateOrThrow()
-        deleteToken(activationToken)
+        actionTokenDeleter.delete(activationToken)
 
         return member
     }
 
     override fun resendActivationEmail(email: Email) {
-        val member = findMemberByEmailOrThrow(email)
+        val member = memberReader.readMemberByEmail(email)
+
         validateMemberNotActivated(member)
-        publishMemberRegisteredEvent(member)
+
+        val newToken = activationTokenGenerator.generate(member.requireId())
+
+        publishResendActivationEmailEvent(member, newToken)
     }
 
     /**
-     * 이메일로 회원 조회
+     * 인증 이메일 재전송 이벤트 발행
      *
-     * @param email 회원 이메일
-     * @return 조회된 회원
-     * @throws MemberNotFoundException 회원이 존재하지 않는 경우
+     * @param member 회원
+     * @param newToken 새로 생성된 활성화 토큰
      */
-    private fun findMemberByEmailOrThrow(email: Email): Member {
-        return memberRepository.findByEmail(email)
-            ?: throw MemberNotFoundException()
+    private fun publishResendActivationEmailEvent(
+        member: Member,
+        newToken: ActivationToken,
+    ) {
+        eventPublisher.publishEvent(
+            ResendActivationEmailEvent(
+                email = member.email,
+                nickname = member.nickname,
+                activationToken = newToken
+            )
+        )
     }
 
     /**
@@ -64,33 +81,6 @@ class MemberActivationService(
         if (member.status == MemberStatus.ACTIVE) {
             throw AlreadyActivatedException()
         }
-    }
-
-    /**
-     * 회원 등록 이벤트를 발행
-     *
-     * @param member 등록된 회원
-     */
-    private fun publishMemberRegisteredEvent(member: Member) {
-        eventPublisher.publishEvent(
-            MemberRegisteredEvent(
-                memberId = member.requireId(),
-                email = member.email,
-                nickname = member.nickname,
-            )
-        )
-    }
-
-    /**
-     * 토큰으로 활성화 토큰을 조회
-     *
-     * @param token 활성화 토큰 문자열
-     * @return 조회된 활성화 토큰
-     * @throws InvalidActivationTokenException 토큰이 존재하지 않는 경우
-     */
-    private fun findActivationTokenOrThrow(token: String): ActivationToken {
-        return activationTokenRepository.findByToken(token)
-            ?: throw InvalidActivationTokenException()
     }
 
     /**
@@ -114,11 +104,12 @@ class MemberActivationService(
      * @throws InvalidActivationTokenException 토큰에 해당하는 회원이 없는 경우
      */
     private fun findMemberByTokenOrThrow(activationToken: ActivationToken): Member {
-        return memberRepository.findById(activationToken.memberId)
-            ?: run {
-                deleteToken(activationToken)
-                throw InvalidActivationTokenException()
-            }
+        return try {
+            memberReader.readMemberById(activationToken.memberId)
+        } catch (_: MemberNotFoundException) {
+            deleteToken(activationToken)
+            throw InvalidActivationTokenException()
+        }
     }
 
     /**
@@ -127,7 +118,7 @@ class MemberActivationService(
      * @param activationToken 활성화 토큰
      */
     private fun deleteToken(activationToken: ActivationToken) {
-        activationTokenRepository.delete(activationToken)
+        actionTokenDeleter.delete(activationToken)
     }
 
     /**

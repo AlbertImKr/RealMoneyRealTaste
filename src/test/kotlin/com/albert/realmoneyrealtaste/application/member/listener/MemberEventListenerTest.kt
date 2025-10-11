@@ -6,13 +6,11 @@ import com.albert.realmoneyrealtaste.application.member.event.ResendActivationEm
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
 import com.albert.realmoneyrealtaste.config.TestEmailSender
 import com.albert.realmoneyrealtaste.util.MemberFixture
-import org.springframework.beans.factory.annotation.Value
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class MemberEventListenerTest(
     val memberEventListener: MemberEventListener,
-    @param:Value("\${app.base-url}") val baseUrl: String,
     emailSender: EmailSender,
 ) : IntegrationTestBase() {
 
@@ -21,12 +19,13 @@ class MemberEventListenerTest(
     @Test
     fun `handleMemberRegistered - success - sends activation email`() {
         val memberId = 1L
-        val email = MemberFixture.Companion.DEFAULT_EMAIL
-        val nickname = MemberFixture.Companion.DEFAULT_NICKNAME
+        val email = MemberFixture.DEFAULT_EMAIL
+        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val activationToken = MemberFixture.createActivationToken(memberId)
         val event = MemberRegisteredEvent(
-            memberId = memberId,
             email = email,
-            nickname = nickname
+            nickname = nickname,
+            activationToken = activationToken
         )
 
         testEmailSender.clear()
@@ -38,12 +37,13 @@ class MemberEventListenerTest(
     @Test
     fun `handleResendActivationEmail - success - sends activation email`() {
         val memberId = 2L
-        val email = MemberFixture.Companion.DEFAULT_EMAIL
-        val nickname = MemberFixture.Companion.DEFAULT_NICKNAME
+        val email = MemberFixture.DEFAULT_EMAIL
+        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val activationToken = MemberFixture.createActivationToken(memberId)
         val event = ResendActivationEmailEvent(
-            memberId = memberId,
             email = email,
-            nickname = nickname
+            nickname = nickname,
+            activationToken = activationToken
         )
 
         testEmailSender.clear()

@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.application.member.provided
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.required.EmailSender
 import com.albert.realmoneyrealtaste.config.TestEmailSender
+import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.util.MemberFixture
@@ -23,12 +24,12 @@ class MemberActivationEmailSenderTest(
 
     @Test
     fun `sendActivationEmail - success - sends email with correct recipient`() {
-        val memberId = 1L
         val email = MemberFixture.DEFAULT_EMAIL
         val nickname = MemberFixture.DEFAULT_NICKNAME
+        val activationToken = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId, email, nickname)
+        memberActivationEmailSender.sendActivationEmail(email, nickname, activationToken)
 
         assertEquals(1, testEmailSender.count())
         val sentEmail = testEmailSender.getLastSentEmail()!!
@@ -37,12 +38,12 @@ class MemberActivationEmailSenderTest(
 
     @Test
     fun `sendActivationEmail - success - sends email with correct subject`() {
-        val memberId = 2L
         val email = Email("test@example.com")
         val nickname = Nickname("테스터")
+        val activationToken = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId, email, nickname)
+        memberActivationEmailSender.sendActivationEmail(email, nickname, activationToken)
 
         val sentEmail = testEmailSender.getLastSentEmail()!!
         assertEquals("[RealMoneyRealTaste] 이메일 인증 안내", sentEmail.subject)
@@ -50,12 +51,12 @@ class MemberActivationEmailSenderTest(
 
     @Test
     fun `sendActivationEmail - success - sends HTML email`() {
-        val memberId = 3L
         val email = Email("html@example.com")
         val nickname = Nickname("HTML유저")
+        val activationToken = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId, email, nickname)
+        memberActivationEmailSender.sendActivationEmail(email, nickname, activationToken)
 
         val sentEmail = testEmailSender.getLastSentEmail()!!
         assertTrue(sentEmail.isHtml)
@@ -63,12 +64,12 @@ class MemberActivationEmailSenderTest(
 
     @Test
     fun `sendActivationEmail - success - includes activation link in content`() {
-        val memberId = 4L
         val email = Email("link@example.com")
         val nickname = Nickname("링크테스트")
+        val activationToken = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId, email, nickname)
+        memberActivationEmailSender.sendActivationEmail(email, nickname, activationToken)
 
         val sentEmail = testEmailSender.getLastSentEmail()!!
         assertTrue(sentEmail.content.contains("$baseUrl/members/activate?token="))
@@ -76,12 +77,12 @@ class MemberActivationEmailSenderTest(
 
     @Test
     fun `sendActivationEmail - success - includes nickname in content`() {
-        val memberId = 5L
         val email = Email("nickname@example.com")
         val nickname = Nickname("닉네임테스트")
+        val activationToken = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId, email, nickname)
+        memberActivationEmailSender.sendActivationEmail(email, nickname, activationToken)
 
         val sentEmail = testEmailSender.getLastSentEmail()!!
         assertTrue(sentEmail.content.contains(nickname.value))
@@ -89,56 +90,52 @@ class MemberActivationEmailSenderTest(
 
     @Test
     fun `sendActivationEmail - success - includes expiration hours in content`() {
-        val memberId = 6L
         val email = Email("expiration@example.com")
         val nickname = Nickname("만료시간")
+        val activationToken = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId, email, nickname)
+        memberActivationEmailSender.sendActivationEmail(email, nickname, activationToken)
 
         val sentEmail = testEmailSender.getLastSentEmail()!!
         assertTrue(sentEmail.content.contains(expirationHours.toString()))
     }
 
     @Test
-    fun `sendActivationEmail - success - generates activation token for member`() {
-        val memberId = 7L
+    fun `sendActivationEmail - success - includes provided activation token in content`() {
         val email = Email("token@example.com")
         val nickname = Nickname("토큰생성")
+        val activationToken = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId, email, nickname)
+        memberActivationEmailSender.sendActivationEmail(email, nickname, activationToken)
 
         val sentEmail = testEmailSender.getLastSentEmail()!!
         assertNotNull(sentEmail.content)
-
-        val tokenPattern = Regex("token=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}")
-        assertTrue(tokenPattern.containsMatchIn(sentEmail.content))
+        assertTrue(sentEmail.content.contains("token=${activationToken.token}"))
     }
 
     @Test
-    fun `sendActivationEmail - success - generates unique tokens for different members`() {
-        val memberId1 = 8L
-        val memberId2 = 9L
+    fun `sendActivationEmail - success - uses different tokens for different activation tokens`() {
         val email1 = Email("unique1@example.com")
         val email2 = Email("unique2@example.com")
         val nickname = Nickname("고유성테스트")
+        val activationToken1 = createTestActivationToken()
+        val activationToken2 = createTestActivationToken()
 
         testEmailSender.clear()
-        memberActivationEmailSender.sendActivationEmail(memberId1, email1, nickname)
+        memberActivationEmailSender.sendActivationEmail(email1, nickname, activationToken1)
         val firstEmail = testEmailSender.getLastSentEmail()!!
 
-        memberActivationEmailSender.sendActivationEmail(memberId2, email2, nickname)
+        memberActivationEmailSender.sendActivationEmail(email2, nickname, activationToken2)
         val secondEmail = testEmailSender.getLastSentEmail()!!
 
         assertTrue(firstEmail.content != secondEmail.content)
+        assertTrue(firstEmail.content.contains(activationToken1.token))
+        assertTrue(secondEmail.content.contains(activationToken2.token))
+    }
 
-        val tokenPattern = Regex("token=([a-f0-9-]+)")
-        val firstToken = tokenPattern.find(firstEmail.content)?.groupValues?.get(1)
-        val secondToken = tokenPattern.find(secondEmail.content)?.groupValues?.get(1)
-
-        assertNotNull(firstToken)
-        assertNotNull(secondToken)
-        assertTrue(firstToken != secondToken)
+    private fun createTestActivationToken(memberId: Long = 1L): ActivationToken {
+        return MemberFixture.createActivationToken(memberId)
     }
 }

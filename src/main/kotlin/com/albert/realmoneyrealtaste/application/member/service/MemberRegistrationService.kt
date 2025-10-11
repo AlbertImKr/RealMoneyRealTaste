@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.application.member.service
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEvent
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateEmailException
+import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
@@ -18,6 +19,7 @@ class MemberRegistrationService(
     private val passwordEncoder: PasswordEncoder,
     private val memberRepository: MemberRepository,
     private val eventPublisher: ApplicationEventPublisher,
+    private val activationTokenGenerator: ActivationTokenGenerator,
 ) : MemberRegister {
 
     override fun register(request: MemberRegisterRequest): Member {
@@ -52,11 +54,12 @@ class MemberRegistrationService(
      * @param member 등록된 회원
      */
     private fun publishMemberRegisteredEvent(member: Member) {
+        val activationToken = activationTokenGenerator.generate(member.requireId())
         eventPublisher.publishEvent(
             MemberRegisteredEvent(
-                memberId = member.requireId(),
                 email = member.email,
                 nickname = member.nickname,
+                activationToken = activationToken,
             )
         )
     }
