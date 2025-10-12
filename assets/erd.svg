@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="582pt" height="558pt"
+     viewBox="0.00 0.00 582.00 558.00">
+    <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 554.2)">
+        <title>activation_tokens</title>
+        <polygon fill="white" stroke="none" points="-4,4 -4,-554.2 578.31,-554.2 578.31,4 -4,4"/>
+        <!-- activation_tokens -->
+        <g id="node1" class="node">
+            <title>activation_tokens</title>
+            <polygon fill="none" stroke="black" points="0,-424.9 0,-549.7 152.45,-549.7 152.45,-424.9 0,-424.9"/>
+            <text xml:space="preserve" text-anchor="middle" x="76.22" y="-533.1" font-family="Times,serif"
+                  font-size="14.00">activation_tokens</text>
+            <polyline fill="none" stroke="black" points="0,-524.9 152.45,-524.9"/>
+            <text xml:space="preserve" text-anchor="start" x="8" y="-508.3" font-family="Times,serif" font-size="14.00">created_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="8" y="-491.5" font-family="Times,serif" font-size="14.00"> expires_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="8" y="-474.7" font-family="Times,serif" font-size="14.00"> member_id : bigint</text>
+            <text xml:space="preserve" text-anchor="start" x="8" y="-457.9" font-family="Times,serif" font-size="14.00"> token : varchar(255)</text>
+            <polyline fill="none" stroke="black" points="0,-449.7 152.45,-449.7"/>
+            <text xml:space="preserve" text-anchor="start" x="8" y="-433.1" font-family="Times,serif" font-size="14.00">id : bigint</text>
+        </g>
+        <!-- members -->
+        <g id="node4" class="node">
+            <title>members</title>
+            <polygon fill="none" stroke="black"
+                     points="147.17,-195.9 147.17,-371.1 421.27,-371.1 421.27,-195.9 147.17,-195.9"/>
+            <text xml:space="preserve" text-anchor="middle" x="284.22" y="-354.5" font-family="Times,serif"
+                  font-size="14.00">members</text>
+            <polyline fill="none" stroke="black" points="147.17,-346.3 421.27,-346.3"/>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-329.7" font-family="Times,serif"
+                  font-size="14.00">detail_id : bigint</text>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-312.9" font-family="Times,serif"
+                  font-size="14.00"> trust_score_id : bigint</text>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-296.1" font-family="Times,serif"
+                  font-size="14.00"> updated_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-279.3" font-family="Times,serif"
+                  font-size="14.00"> nickname : varchar(20)</text>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-262.5" font-family="Times,serif"
+                  font-size="14.00"> email : varchar(255)</text>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-245.7" font-family="Times,serif"
+                  font-size="14.00"> password_hash : varchar(255)</text>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-228.9" font-family="Times,serif"
+                  font-size="14.00"> status : enum('active', 'deactivated', 'pending')</text>
+            <polyline fill="none" stroke="black" points="147.17,-220.7 421.27,-220.7"/>
+            <text xml:space="preserve" text-anchor="start" x="155.17" y="-204.1" font-family="Times,serif"
+                  font-size="14.00">id : bigint</text>
+        </g>
+        <!-- activation_tokens&#45;&gt;members -->
+        <g id="edge1" class="edge">
+            <title>activation_tokens-&gt;members</title>
+            <path fill="none" stroke="#595959"
+                  d="M152.81,-434C158.03,-434 161.28,-434 161.28,-434 161.28,-434 161.28,-383 161.28,-383"/>
+            <polygon fill="#595959" stroke="#595959" points="164.78,-383 161.28,-373 157.78,-383 164.78,-383"/>
+            <text xml:space="preserve" text-anchor="middle" x="115.49" y="-393.8" font-family="Times,serif"
+                  font-size="14.00">member_id:id</text>
+        </g>
+        <!-- member_detail -->
+        <g id="node2" class="node">
+            <title>member_detail</title>
+            <polygon fill="none" stroke="black" points="60.23,-0.5 60.23,-142.1 242.21,-142.1 242.21,-0.5 60.23,-0.5"/>
+            <text xml:space="preserve" text-anchor="middle" x="151.22" y="-125.5" font-family="Times,serif"
+                  font-size="14.00">member_detail</text>
+            <polyline fill="none" stroke="black" points="60.23,-117.3 242.21,-117.3"/>
+            <text xml:space="preserve" text-anchor="start" x="68.23" y="-100.7" font-family="Times,serif"
+                  font-size="14.00">activated_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="68.23" y="-83.9" font-family="Times,serif"
+                  font-size="14.00"> deactivated_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="68.23" y="-67.1" font-family="Times,serif"
+                  font-size="14.00"> registered_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="68.23" y="-50.3" font-family="Times,serif"
+                  font-size="14.00"> profile_address : varchar(15)</text>
+            <text xml:space="preserve" text-anchor="start" x="68.23" y="-33.5" font-family="Times,serif"
+                  font-size="14.00"> introduction : varchar(500)</text>
+            <polyline fill="none" stroke="black" points="60.23,-25.3 242.21,-25.3"/>
+            <text xml:space="preserve" text-anchor="start" x="68.23" y="-8.7" font-family="Times,serif"
+                  font-size="14.00">id : bigint</text>
+        </g>
+        <!-- member_roles -->
+        <g id="node3" class="node">
+            <title>member_roles</title>
+            <polygon fill="none" stroke="black"
+                     points="170.11,-454.1 170.11,-520.5 398.34,-520.5 398.34,-454.1 170.11,-454.1"/>
+            <text xml:space="preserve" text-anchor="middle" x="284.22" y="-503.9" font-family="Times,serif"
+                  font-size="14.00">member_roles</text>
+            <polyline fill="none" stroke="black" points="170.11,-495.7 398.34,-495.7"/>
+            <text xml:space="preserve" text-anchor="start" x="178.11" y="-479.1" font-family="Times,serif"
+                  font-size="14.00">member_id : bigint</text>
+            <text xml:space="preserve" text-anchor="start" x="178.11" y="-462.3" font-family="Times,serif"
+                  font-size="14.00"> role : enum('admin', 'manager', 'user')</text>
+        </g>
+        <!-- member_roles&#45;&gt;members -->
+        <g id="edge2" class="edge">
+            <title>member_roles-&gt;members</title>
+            <path fill="none" stroke="#595959" d="M284.22,-453.65C284.22,-453.65 284.22,-382.81 284.22,-382.81"/>
+            <polygon fill="#595959" stroke="#595959"
+                     points="287.72,-382.81 284.22,-372.81 280.72,-382.81 287.72,-382.81"/>
+            <text xml:space="preserve" text-anchor="middle" x="323.49" y="-393.8" font-family="Times,serif"
+                  font-size="14.00">member_id:id</text>
+        </g>
+        <!-- members&#45;&gt;member_detail -->
+        <g id="edge3" class="edge">
+            <title>members-&gt;member_detail</title>
+            <path fill="none" stroke="#595959" d="M194.69,-195.66C194.69,-195.66 194.69,-154.1 194.69,-154.1"/>
+            <polygon fill="#595959" stroke="#595959" points="198.19,-154.1 194.69,-144.1 191.19,-154.1 198.19,-154.1"/>
+            <text xml:space="preserve" text-anchor="middle" x="183.11" y="-164.8" font-family="Times,serif"
+                  font-size="14.00">detail_id:id</text>
+        </g>
+        <!-- trust_score -->
+        <g id="node6" class="node">
+            <title>trust_score</title>
+            <polygon fill="none" stroke="black"
+                     points="260.14,-8.9 260.14,-133.7 574.31,-133.7 574.31,-8.9 260.14,-8.9"/>
+            <text xml:space="preserve" text-anchor="middle" x="417.22" y="-117.1" font-family="Times,serif"
+                  font-size="14.00">trust_score</text>
+            <polyline fill="none" stroke="black" points="260.14,-108.9 574.31,-108.9"/>
+            <text xml:space="preserve" text-anchor="start" x="268.14" y="-92.3" font-family="Times,serif"
+                  font-size="14.00">ad_review_count : int</text>
+            <text xml:space="preserve" text-anchor="start" x="268.14" y="-75.5" font-family="Times,serif"
+                  font-size="14.00"> real_money_review_count : int</text>
+            <text xml:space="preserve" text-anchor="start" x="268.14" y="-58.7" font-family="Times,serif"
+                  font-size="14.00"> trust_score : int</text>
+            <text xml:space="preserve" text-anchor="start" x="268.14" y="-41.9" font-family="Times,serif"
+                  font-size="14.00"> trust_level : enum('bronze', 'diamond', 'gold', 'silver')</text>
+            <polyline fill="none" stroke="black" points="260.14,-33.7 574.31,-33.7"/>
+            <text xml:space="preserve" text-anchor="start" x="268.14" y="-17.1" font-family="Times,serif"
+                  font-size="14.00">id : bigint</text>
+        </g>
+        <!-- members&#45;&gt;trust_score -->
+        <g id="edge4" class="edge">
+            <title>members-&gt;trust_score</title>
+            <path fill="none" stroke="#595959" d="M340.71,-195.66C340.71,-195.66 340.71,-145.66 340.71,-145.66"/>
+            <polygon fill="#595959" stroke="#595959"
+                     points="344.21,-145.66 340.71,-135.66 337.21,-145.66 344.21,-145.66"/>
+            <text xml:space="preserve" text-anchor="middle" x="464.27" y="-164.8" font-family="Times,serif"
+                  font-size="14.00">trust_score_id:id</text>
+        </g>
+        <!-- password_reset_tokens -->
+        <g id="node5" class="node">
+            <title>password_reset_tokens</title>
+            <polygon fill="none" stroke="black" points="416,-424.9 416,-549.7 568.45,-549.7 568.45,-424.9 416,-424.9"/>
+            <text xml:space="preserve" text-anchor="middle" x="492.22" y="-533.1" font-family="Times,serif"
+                  font-size="14.00">password_reset_tokens</text>
+            <polyline fill="none" stroke="black" points="416,-524.9 568.45,-524.9"/>
+            <text xml:space="preserve" text-anchor="start" x="424" y="-508.3" font-family="Times,serif"
+                  font-size="14.00">created_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="424" y="-491.5" font-family="Times,serif"
+                  font-size="14.00"> expires_at : datetime(6)</text>
+            <text xml:space="preserve" text-anchor="start" x="424" y="-474.7" font-family="Times,serif"
+                  font-size="14.00"> member_id : bigint</text>
+            <text xml:space="preserve" text-anchor="start" x="424" y="-457.9" font-family="Times,serif"
+                  font-size="14.00"> token : varchar(255)</text>
+            <polyline fill="none" stroke="black" points="416,-449.7 568.45,-449.7"/>
+            <text xml:space="preserve" text-anchor="start" x="424" y="-433.1" font-family="Times,serif"
+                  font-size="14.00">id : bigint</text>
+        </g>
+        <!-- password_reset_tokens&#45;&gt;members -->
+        <g id="edge5" class="edge">
+            <title>password_reset_tokens-&gt;members</title>
+            <path fill="none" stroke="#595959"
+                  d="M415.63,-444C410.41,-444 407.17,-444 407.17,-444 407.17,-444 407.17,-382.78 407.17,-382.78"/>
+            <polygon fill="#595959" stroke="#595959"
+                     points="410.67,-382.78 407.17,-372.78 403.67,-382.78 410.67,-382.78"/>
+            <text xml:space="preserve" text-anchor="middle" x="531.49" y="-393.8" font-family="Times,serif"
+                  font-size="14.00">member_id:id</text>
+        </g>
+    </g>
+</svg>
