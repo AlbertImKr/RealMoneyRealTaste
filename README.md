@@ -23,10 +23,31 @@
 - [3. RMRT 도메인 모델](#3-rmrt-도메인-모델)
     - [3.1 회원 애그리거트 (Member Aggregate)](#31-회원-애그리거트-member-aggregate)
         - [3.1.1 회원 (Member)](#311-회원-member)
-        - [3.1.2 회원 상세(MemberDetail)](#312-회원-상세memberdetail)
-        - [3.1.3 회원 상태(MemberStatus)](#313-회원-상태memberstatus)
-        - [3.1.4 신뢰도 점수(TrustScore)](#314-신뢰도-점수trustscore)
-        - [3.1.5 신뢰도 레벨(TrustLevel)](#315-신뢰도-레벨trustlevel)
+      - [3.1.2 회원 상세 (MemberDetail)](#312-회원-상세-memberdetail)
+      - [3.1.3 회원 상태 (MemberStatus)](#313-회원-상태-memberstatus)
+      - [3.1.4 신뢰도 점수 (TrustScore)](#314-신뢰도-점수-trustscore)
+      - [3.1.5 신뢰도 레벨 (TrustLevel)](#315-신뢰도-레벨-trustlevel)
+      - [3.1.6 역할 (Role)](#316-역할-role)
+      - [3.1.7 역할 목록 (Roles)](#317-역할-목록-roles)
+      - [3.1.8 이메일 (Email)](#318-이메일-email)
+      - [3.1.9 닉네임 (Nickname)](#319-닉네임-nickname)
+      - [3.1.10 비밀번호 해시 (PasswordHash)](#3110-비밀번호-해시-passwordhash)
+      - [3.1.11 평문 비밀번호 (RawPassword)](#3111-평문-비밀번호-rawpassword)
+      - [3.1.12 프로필 주소 (ProfileAddress)](#3112-프로필-주소-profileaddress)
+      - [3.1.13 자기 소개 (Introduction)](#3113-자기-소개-introduction)
+      - [3.1.14 비밀번호 인코더 (PasswordEncoder)](#3114-비밀번호-인코더-passwordencoder)
+    - [3.2 활성화 토큰 애그리거트 (Activation Token Aggregate)](#32-활성화-토큰-애그리거트-activation-token-aggregate)
+        - [3.2.1 활성화 토큰 (ActivationToken)](#321-활성화-토큰-activationtoken)
+    - [3.3 비밀번호 재설정 토큰 애그리거트 (Password Reset Token Aggregate)](#33-비밀번호-재설정-토큰-애그리거트-password-reset-token-aggregate)
+        - [3.3.1 비밀번호 재설정 토큰 (PasswordResetToken)](#331-비밀번호-재설정-토큰-passwordresettoken)
+    - [3.4 BaseEntity](#34-baseentity)
+    - [3.5 연관관계 정리](#35-연관관계-정리)
+    - [3.6 영속성 전략](#36-영속성-전략)
+    - [3.7 설계 특징](#37-설계-특징)
+    - [3.8 애플리케이션 레이어](#38-애플리케이션-레이어)
+    - [3.9 아키텍처 패턴](#39-아키텍처-패턴)
+    - [3.10 테스트 전략](#310-테스트-전략)
+    - [3.11 확장 고려사항](#311-확장-고려사항)
 
 ## 1. 도메인 개요
 
@@ -381,13 +402,13 @@
     - 내돈내산 리뷰 추가
     - 점수 +5, 리뷰 수 +1
   - 최대값 1000으로 제한
-    - 레벨 재계산
+      - 레벨 재계산
 
 * `addAdReview(): void`
     - 광고성 리뷰 추가
     - 점수 +1, 리뷰 수 +1
   - 최대값 1000으로 제한
-    - 레벨 재계산
+      - 레벨 재계산
 
 * `penalize(int): void`
     - 점수 감소
@@ -397,7 +418,7 @@
 * `getRealMoneyRatio(): double`
     - 내돈내산 리뷰 비율 계산
   - 전체 리뷰가 0인 경우 0.0 반환
-    - 전체 리뷰 대비 내돈내산 리뷰 비율
+      - 전체 리뷰 대비 내돈내산 리뷰 비율
 
 #### 상수
 
@@ -905,7 +926,7 @@
 * **특징**:
     - 독립적 생명주기
   - Member와 논리적 연관
-    - 별도 트랜잭션 처리 가능
+      - 별도 트랜잭션 처리 가능
   - 일시적 데이터 (인증 후 삭제)
 
 #### PasswordResetToken Aggregate
@@ -1368,33 +1389,27 @@ RuntimeException
 
 ## 3.10 테스트 전략
 
-### 3.10.1 단위 테스트
+### 3.10.1 단위 테스트 (Unit Tests)
 
-#### Domain 테스트
+#### Domain Layer
 
-* Value Object 생성 및 검증
-* Entity 행위 테스트
-* 비즈니스 규칙 검증
+* Value Object: 생성 검증, 제약조건, 예외 상황
+* Entity: 비즈니스 로직, 상태 전이, 도메인 규칙
+* BaseEntity: Hibernate Proxy 처리, equals/hashCode
 
-#### Application 테스트
+### 3.10.2 통합 테스트 (Integration Tests)
 
-* 서비스 로직 테스트
-* Mock 사용하여 의존성 제거
-* 이벤트 발행 검증
+#### Application Layer
 
-### 3.10.2 통합 테스트
+* Service 테스트: 실제 Spring Context 및 DB 사용
+* 트랜잭션 롤백으로 테스트 격리
+* 실제 Bean 주입 (Mock 최소 사용)
 
-#### Repository 테스트
+#### Adapter Layer
 
-* 실제 DB 사용 (Testcontainers)
-* 영속성 검증
-* 쿼리 성능 확인
-
-#### End-to-End 테스트
-
-* Controller → Service → Repository
-* 전체 흐름 검증
-* 보안 설정 포함
+* View Controller: MockMvc로 HTTP 요청/응답 검증
+* 보안: @WithMockMember 커스텀 애노테이션
+* Flash 속성, 리다이렉트, View 이름 검증
 
 ---
 
