@@ -39,6 +39,8 @@ class Post protected constructor(
 
     heartCount: Int,
 
+    viewCount: Int,
+
     createdAt: LocalDateTime,
 
     updatedAt: LocalDateTime,
@@ -69,6 +71,10 @@ class Post protected constructor(
     var heartCount: Int = heartCount
         protected set
 
+    @Column(name = "view_count", nullable = false)
+    var viewCount: Int = viewCount
+        protected set
+
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: LocalDateTime = createdAt
         protected set
@@ -79,8 +85,12 @@ class Post protected constructor(
 
     /**
      * 게시글 내용을 수정합니다.
+     *
+     * @throws InvalidPostStatusException 게시글이 공개 상태가 아닌 경우
+     * @throws UnauthorizedPostOperationException 수정 권한이 없는 경우
      */
-    fun update(content: PostContent, images: PostImages, restaurant: Restaurant) {
+    fun update(memberId: Long, content: PostContent, images: PostImages, restaurant: Restaurant) {
+        ensureCanEditBy(memberId)
         ensurePublished()
         this.content = content
         this.images = images
@@ -92,8 +102,10 @@ class Post protected constructor(
      * 게시글을 삭제합니다 (Soft Delete).
      *
      * @throws InvalidPostStatusException 게시글이 공개 상태가 아닌 경우
+     * @throws UnauthorizedPostOperationException 삭제 권한이 없는 경우
      */
-    fun delete() {
+    fun delete(memberId: Long) {
+        ensureCanEditBy(memberId)
         ensurePublished()
         this.status = PostStatus.DELETED
         this.updatedAt = LocalDateTime.now()
@@ -116,9 +128,7 @@ class Post protected constructor(
      * @throws UnauthorizedPostOperationException 권한이 없는 경우
      */
     fun ensureCanEditBy(memberId: Long) {
-        if (!canEditBy(memberId)) {
-            throw UnauthorizedPostOperationException("게시글을 수정할 권한이 없습니다.")
-        }
+        if (!canEditBy(memberId)) throw UnauthorizedPostOperationException("게시글을 수정할 권한이 없습니다.")
     }
 
     /**
@@ -126,10 +136,8 @@ class Post protected constructor(
      *
      * @throws InvalidPostStatusException 공개 상태가 아닌 경우
      */
-    private fun ensurePublished() {
-        if (status != PostStatus.PUBLISHED) {
-            throw InvalidPostStatusException("게시글이 공개 상태가 아닙니다: $status")
-        }
+    fun ensurePublished() {
+        if (status != PostStatus.PUBLISHED) throw InvalidPostStatusException("게시글이 공개 상태가 아닙니다: $status")
     }
 
     companion object {
@@ -147,6 +155,7 @@ class Post protected constructor(
                 images = images,
                 status = PostStatus.PUBLISHED,
                 heartCount = 0,
+                viewCount = 0,
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now()
             )

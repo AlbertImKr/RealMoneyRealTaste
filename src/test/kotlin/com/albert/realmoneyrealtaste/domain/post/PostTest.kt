@@ -62,7 +62,7 @@ class PostTest {
         )
         val beforeUpdateAt = post.updatedAt
 
-        post.update(newContent, newImages, newRestaurant)
+        post.update(PostFixture.DEFAULT_AUTHOR_MEMBER_ID, newContent, newImages, newRestaurant)
 
         assertEquals("새로운 내용입니다!", post.content.text)
         assertEquals(4, post.content.rating)
@@ -75,14 +75,27 @@ class PostTest {
     @Test
     fun `update - failure - throws exception when post is deleted`() {
         val post = PostFixture.createPost()
-        post.delete()
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
         val newContent = PostContent("새로운 내용", 4)
         val newImages = PostImages.empty()
 
         assertFailsWith<InvalidPostStatusException> {
-            post.update(newContent, newImages, post.restaurant)
+            post.update(PostFixture.DEFAULT_AUTHOR_MEMBER_ID, newContent, newImages, post.restaurant)
         }.let {
             assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
+        }
+    }
+
+    @Test
+    fun `update - failure - throws exception when member is not author`() {
+        val post = PostFixture.createPost()
+        val newContent = PostContent("새로운 내용", 4)
+        val newImages = PostImages.empty()
+
+        assertFailsWith<UnauthorizedPostOperationException> {
+            post.update(999L, newContent, newImages, post.restaurant)
+        }.let {
+            assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
         }
     }
 
@@ -92,7 +105,7 @@ class PostTest {
         val beforeUpdateAt = post.updatedAt
 
         Thread.sleep(10)
-        post.delete()
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
 
         assertEquals(PostStatus.DELETED, post.status)
         assertTrue(beforeUpdateAt < post.updatedAt)
@@ -101,12 +114,23 @@ class PostTest {
     @Test
     fun `delete - failure - throws exception when already deleted`() {
         val post = PostFixture.createPost()
-        post.delete()
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
 
         assertFailsWith<InvalidPostStatusException> {
-            post.delete()
+            post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
         }.let {
             assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
+        }
+    }
+
+    @Test
+    fun `delete - failure - throws exception when member is not author`() {
+        val post = PostFixture.createPost()
+
+        assertFailsWith<UnauthorizedPostOperationException> {
+            post.delete(999L)
+        }.let {
+            assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
         }
     }
 
@@ -182,6 +206,9 @@ class PostTest {
         val newTime = LocalDateTime.now().minusDays(1)
         post.setCreatedAtForTest(newTime)
         assertEquals(newTime, post.createdAt)
+
+        post.setViewCountForTest(100)
+        assertEquals(100, post.viewCount)
     }
 
     private class TestPost : Post(
@@ -191,6 +218,7 @@ class PostTest {
         images = PostFixture.DEFAULT_IMAGES,
         status = PostStatus.PUBLISHED,
         heartCount = 0,
+        viewCount = 0,
         createdAt = LocalDateTime.now().minusMinutes(10),
         updatedAt = LocalDateTime.now()
     ) {
@@ -204,6 +232,10 @@ class PostTest {
 
         fun setCreatedAtForTest(time: LocalDateTime) {
             this.createdAt = time
+        }
+
+        fun setViewCountForTest(count: Int) {
+            this.viewCount = count
         }
     }
 }
