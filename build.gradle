@@ -50,6 +50,7 @@ dependencies {
     testImplementation 'org.testcontainers:mysql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "io.mockk:mockk:1.14.6"
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
 }
 
 kotlin {
