@@ -140,6 +140,8 @@ class Post protected constructor(
         if (status != PostStatus.PUBLISHED) throw InvalidPostStatusException("게시글이 공개 상태가 아닙니다: $status")
     }
 
+    fun isDeleted(): Boolean = status == PostStatus.DELETED
+
     companion object {
         fun create(
             authorMemberId: Long,

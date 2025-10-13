@@ -185,6 +185,21 @@ class PostTest {
     }
 
     @Test
+    fun `isDeleted - success - returns false for published post`() {
+        val post = PostFixture.createPost()
+
+        assertFalse(post.isDeleted())
+    }
+
+    @Test
+    fun `isDeleted - success - returns true for deleted post`() {
+        val post = PostFixture.createPost()
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
+
+        assertTrue(post.isDeleted())
+    }
+
+    @Test
     fun `requireId - success - returns id when set`() {
         val post = PostFixture.createPost()
         PostFixture.setId(post, 123L)
