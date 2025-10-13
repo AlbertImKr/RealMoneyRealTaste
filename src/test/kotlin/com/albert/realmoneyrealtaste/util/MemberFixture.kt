@@ -15,8 +15,12 @@ class MemberFixture {
 
     companion object {
         const val DEFAULT_USERNAME = "default@gmail.com"
+        const val OTHER_EMAIL_ADDRESS = "other@gmai.com"
+        const val OTHER_NICKNAME_VALUE = "otherNick"
         val DEFAULT_EMAIL = Email(DEFAULT_USERNAME)
+        val OTHER_EMAIL = Email(OTHER_EMAIL_ADDRESS)
         val DEFAULT_NICKNAME = Nickname("defaultNick")
+        val OTHER_NICKNAME = Nickname(OTHER_NICKNAME_VALUE)
         val DEFAULT_RAW_PASSWORD = RawPassword("Default1!")
         val TEST_ENCODER = object : PasswordEncoder {
             override fun encode(rawPassword: RawPassword): String {

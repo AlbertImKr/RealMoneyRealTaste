@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.domain.util
+package com.albert.realmoneyrealtaste.util
 
 import com.albert.realmoneyrealtaste.domain.post.Post
 import com.albert.realmoneyrealtaste.domain.post.value.Author
@@ -10,7 +10,6 @@ import java.lang.reflect.Field
 class PostFixture {
 
     companion object {
-        // Default Test Data
         const val DEFAULT_AUTHOR_MEMBER_ID = 1L
         const val DEFAULT_AUTHOR_NICKNAME = "테스트작성자"
         const val DEFAULT_RESTAURANT_NAME = "맛있는집"
@@ -24,7 +23,6 @@ class PostFixture {
             "https://example.com/image2.jpg"
         )
 
-        // Value Objects
         val DEFAULT_AUTHOR = Author(DEFAULT_AUTHOR_MEMBER_ID, DEFAULT_AUTHOR_NICKNAME)
 
         val DEFAULT_RESTAURANT = Restaurant(
@@ -41,6 +39,13 @@ class PostFixture {
 
         val DEFAULT_IMAGES = PostImages(DEFAULT_IMAGE_URLS)
 
+        fun createImages(count: Int): PostImages {
+            return PostImages((1..count).map {
+                val randomId = (1000..9999).random() // 1000~9999 범위의 랜덤 숫자
+                "https://example.com/image$randomId.jpg"
+            })
+        }
+
         /**
          * 기본 Post 생성
          */
@@ -51,7 +56,7 @@ class PostFixture {
             content: PostContent = DEFAULT_CONTENT,
             images: PostImages = DEFAULT_IMAGES,
         ): Post {
-            return Post.Companion.create(
+            return Post.create(
                 authorMemberId = authorMemberId,
                 authorNickname = authorNickname,
                 restaurant = restaurant,
@@ -60,11 +65,18 @@ class PostFixture {
             )
         }
 
+        fun createContent(text: String, rating: Int): PostContent {
+            return PostContent(
+                text = text,
+                rating = rating
+            )
+        }
+
         /**
          * 이미지가 없는 Post 생성
          */
         fun createPostWithoutImages(): Post {
-            return createPost(images = PostImages.Companion.empty())
+            return createPost(images = PostImages.empty())
         }
 
         /**

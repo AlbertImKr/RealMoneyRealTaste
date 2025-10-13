@@ -6,7 +6,7 @@ import com.albert.realmoneyrealtaste.domain.post.value.Author
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
 import com.albert.realmoneyrealtaste.domain.post.value.Restaurant
-import com.albert.realmoneyrealtaste.domain.util.PostFixture
+import com.albert.realmoneyrealtaste.util.PostFixture
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
