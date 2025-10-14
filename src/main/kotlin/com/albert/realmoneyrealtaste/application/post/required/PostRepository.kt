@@ -112,4 +112,13 @@ interface PostRepository : Repository<Post, Long> {
     @Modifying
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :postId")
     fun incrementViewCount(postId: Long)
+
+    /**
+     * 모든 게시글을 조회합니다.
+     *
+     * @param status 제외할 게시글 상태 (기본값: DELETED)
+     * @param pageable 페이징 정보
+     * @return 모든 게시글 목록 (페이징)
+     */
+    fun findAllByStatusNot(status: PostStatus, pageable: Pageable): Page<Post>
 }

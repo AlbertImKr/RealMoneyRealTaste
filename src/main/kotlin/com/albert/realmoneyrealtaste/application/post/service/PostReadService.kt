@@ -23,7 +23,7 @@ class PostReadService(
 ) : PostReader {
 
     override fun readPostById(memberId: Long, postId: Long): Post {
-        validateMemberExists(memberId)
+        memberReader.readMemberById(memberId)
 
         val post = findPostByIdOrThrow(postId)
 
@@ -52,14 +52,8 @@ class PostReadService(
         return postRepository.searchByCondition(condition, pageable)
     }
 
-    /**
-     * 회원 존재 여부를 검증합니다.
-     *
-     * @param memberId 회원 ID
-     * @throws MemberNotFoundException 회원이 존재하지 않는 경우
-     */
-    private fun validateMemberExists(memberId: Long) {
-        memberReader.readMemberById(memberId)
+    override fun readAllPosts(pageable: Pageable): Page<Post> {
+        return postRepository.findAllByStatusNot(PostStatus.DELETED, pageable)
     }
 
     /**
