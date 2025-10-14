@@ -1,11 +1,11 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.application.member.exception.ExpiredPasswordResetTokenException
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidPasswordResetTokenException
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredPasswordResetTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordResetTokenException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash

@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.member.exceptions
 
+import com.albert.realmoneyrealtaste.domain.common.ValueObjectValidationException
+
 /**
  * 프로필 주소 검증 예외
  */

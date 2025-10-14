@@ -1,7 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.event.PasswordResetRequestedEvent
-import com.albert.realmoneyrealtaste.application.member.exception.ExpiredPasswordResetTokenException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetTokenDeleter
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetTokenGenerator
@@ -9,6 +8,7 @@ import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetTo
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetter
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredPasswordResetTokenException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash

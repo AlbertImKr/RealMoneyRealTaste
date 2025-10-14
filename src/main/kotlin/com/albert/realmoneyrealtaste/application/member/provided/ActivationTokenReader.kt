@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
 
 /**
  * 활성화 토큰 조회자

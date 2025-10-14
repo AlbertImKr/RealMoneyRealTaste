@@ -1,10 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.event.ResendActivationEmailEvent
-import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
-import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenDeleter
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenReader
@@ -13,7 +9,11 @@ import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
+import com.albert.realmoneyrealtaste.domain.member.exceptions.AlreadyActivatedException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredActivationTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher

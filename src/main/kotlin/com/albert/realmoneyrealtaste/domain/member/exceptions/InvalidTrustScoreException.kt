@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.member.exceptions
 
+import com.albert.realmoneyrealtaste.domain.common.ValueObjectValidationException
+
 /**
  * 신뢰 점수 검증 예외
  */

@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.member.exceptions
 
+import com.albert.realmoneyrealtaste.domain.common.ValueObjectValidationException
+
 /**
  * 권한 검증 예외
  */

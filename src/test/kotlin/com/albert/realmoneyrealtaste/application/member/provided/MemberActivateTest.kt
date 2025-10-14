@@ -2,13 +2,13 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
-import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
-import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
+import com.albert.realmoneyrealtaste.domain.member.exceptions.AlreadyActivatedException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredActivationTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import java.time.LocalDateTime
