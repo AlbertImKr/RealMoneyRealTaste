@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.application.member.exception.ApplicationException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberApplicationException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
@@ -226,7 +226,7 @@ class MemberView(
             redirectAttributes.addFlashAttribute("success", true)
             redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
             return "redirect:/members/signin"
-        } catch (e: ApplicationException) {
+        } catch (e: MemberApplicationException) {
             redirectAttributes.addFlashAttribute("error", "비밀번호 재설정 중 오류가 발생했습니다. ${e.message}")
             redirectAttributes.addFlashAttribute("token", token)
             return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"
