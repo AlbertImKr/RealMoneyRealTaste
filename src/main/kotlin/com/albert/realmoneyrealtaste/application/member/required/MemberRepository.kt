@@ -28,15 +28,6 @@ interface MemberRepository : Repository<Member, Long> {
     fun findByEmail(email: Email): Member?
 
     /**
-     * 이메일과 상태로 회원 조회 (특정 상태가 아닌 경우)
-     *
-     * @param email 조회할 이메일
-     * @param status 제외할 회원 상태
-     * @return 조회된 회원 엔티티 또는 null
-     */
-    fun findByEmailAndStatusNot(email: Email, status: MemberStatus = MemberStatus.DEACTIVATED): Member?
-
-    /**
      * ID로 회원 조회
      *
      * @param id 조회할 회원 ID

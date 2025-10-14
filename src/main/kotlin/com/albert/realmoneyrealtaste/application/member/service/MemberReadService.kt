@@ -19,17 +19,14 @@ class MemberReadService(
             ?: throw MemberNotFoundException()
     }
 
-    override fun readActiveMemberById(memberId: Long): Member? {
+    override fun readActiveMemberById(memberId: Long): Member {
         return memberRepository.findByIdAndStatusNot(memberId)
+            ?: throw MemberNotFoundException()
     }
 
     override fun readMemberByEmail(email: Email): Member {
         return memberRepository.findByEmail(email)
             ?: throw MemberNotFoundException()
-    }
-
-    override fun readActiveMemberByEmail(email: Email): Member? {
-        return memberRepository.findByEmailAndStatusNot(email)
     }
 
     override fun findMemberByEmailOrNull(email: Email): Member? {
