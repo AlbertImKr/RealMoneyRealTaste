@@ -55,4 +55,12 @@ interface PostReader {
      * @return 게시글 목록 (페이징)
      */
     fun searchPosts(condition: PostSearchCondition, pageable: Pageable): Page<Post>
+
+    /**
+     * 모든 게시글을 조회합니다.
+     *
+     * @param pageable 페이징 정보
+     * @return 모든 게시글 목록 (페이징)
+     */
+    fun readAllPosts(pageable: Pageable): Page<Post>
 }

@@ -12,6 +12,8 @@ data class MemberPrincipal(
     val memberId: Long,
     val email: Email,
     val nickname: Nickname,
+    val active: Boolean,
+    val introduction: String,
     private val roles: Set<Role>,
 ) : Serializable {
 
@@ -25,7 +27,9 @@ data class MemberPrincipal(
                 memberId = member.id!!,
                 email = member.email,
                 nickname = member.nickname,
-                roles = member.roles.getRoles()
+                roles = member.roles.getRoles(),
+                active = member.isActive(),
+                introduction = member.detail.introduction?.value ?: ""
             )
         }
     }

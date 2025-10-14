@@ -158,7 +158,7 @@ class Member protected constructor(
         updatedAt = LocalDateTime.now()
     }
 
-    fun canWriteReview(): Boolean = status == MemberStatus.ACTIVE
+    fun isActive(): Boolean = status == MemberStatus.ACTIVE
 
     fun canManage(): Boolean = status == MemberStatus.ACTIVE && roles.isManager()
 

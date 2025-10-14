@@ -269,7 +269,7 @@ class MemberTest {
         val member = MemberFixture.createMember()
         member.activate()
 
-        val canWriteReview = member.canWriteReview()
+        val canWriteReview = member.isActive()
 
         assertTrue(canWriteReview)
     }
@@ -278,7 +278,7 @@ class MemberTest {
     fun `canWriteReview - success - returns false when member is not active`() {
         val member = MemberFixture.createMember()
 
-        val canWriteReview = member.canWriteReview()
+        val canWriteReview = member.isActive()
 
         assertFalse(canWriteReview)
     }
