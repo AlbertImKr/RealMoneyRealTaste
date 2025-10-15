@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>게시글 작성 - Real Money Real Taste</title>
+
+    <!-- Meta Tags -->
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+    <!-- End Meta Tags -->
+
+    <!-- Dark mode -->
+    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
+    <!-- End Dark mode -->
+
+    <!-- Favicon -->
+    <link href="/assets/images/favicon.ico" rel="shortcut icon">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Plugins CSS -->
+    <link href="/assets/vendor/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" type="text/css">
+
+    <!-- Theme CSS -->
+    <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<!-- Header (네비게이션 바 포함) -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+
+                <!-- 게시글 작성 카드 -->
+                <div class="card card-body mt-4">
+                    <h1 class="h4 mb-4">새 게시글 작성</h1>
+
+                    <!-- 에러 메시지 표시 -->
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert" th:if="${error}">
+                        <span th:text="${error}"></span>
+                        <button class="btn-close" data-bs-dismiss="alert" type="button"></button>
+                    </div>
+
+                    <!-- 게시글 작성 폼 -->
+                    <form method="post" th:action="@{/posts/new}" th:object="${postCreateForm}">
+
+                        <!-- 맛집 정보 섹션 -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">맛집 정보</h5>
+
+                            <!-- 맛집 이름 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="restaurantName">맛집 이름 <span class="text-danger">*</span></label>
+                                <input class="form-control"
+                                       id="restaurantName"
+                                       placeholder="맛집 이름을 입력하세요"
+                                       required
+                                       th:field="*{restaurantName}"
+                                       type="text">
+                                <div class="invalid-feedback" th:errors="*{restaurantName}"
+                                     th:if="${#fields.hasErrors('restaurantName')}"></div>
+                            </div>
+
+                            <!-- 맛집 주소 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="restaurantAddress">주소 <span class="text-danger">*</span></label>
+                                <input class="form-control"
+                                       id="restaurantAddress"
+                                       placeholder="맛집 주소를 입력하세요"
+                                       required
+                                       th:field="*{restaurantAddress}"
+                                       type="text">
+                                <div class="invalid-feedback" th:errors="*{restaurantAddress}"
+                                     th:if="${#fields.hasErrors('restaurantAddress')}"></div>
+                            </div>
+
+                            <!-- 위도/경도 (숨김 필드) -->
+                            <input id="restaurantLatitude" th:field="*{restaurantLatitude}" type="hidden">
+                            <input id="restaurantLongitude" th:field="*{restaurantLongitude}" type="hidden">
+                        </div>
+
+                        <!-- 리뷰 내용 섹션 -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">리뷰 내용</h5>
+
+                            <!-- 평점 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="contentRating">평점 <span
+                                        class="text-danger">*</span></label>
+                                <div class="d-flex align-items-center">
+                                    <div class="rating-stars" id="rating-stars">
+                                        <i class="bi bi-star fs-3 text-warning cursor-pointer" data-rating="1"></i>
+                                        <i class="bi bi-star fs-3 text-warning cursor-pointer" data-rating="2"></i>
+                                        <i class="bi bi-star fs-3 text-warning cursor-pointer" data-rating="3"></i>
+                                        <i class="bi bi-star fs-3 text-warning cursor-pointer" data-rating="4"></i>
+                                        <i class="bi bi-star fs-3 text-warning cursor-pointer" data-rating="5"></i>
+                                    </div>
+                                    <span class="ms-3 text-muted" id="rating-text">평점을 선택하세요</span>
+                                </div>
+                                <input id="contentRating" required th:field="*{contentRating}" type="hidden">
+                                <div class="invalid-feedback d-block" th:errors="*{contentRating}"
+                                     th:if="${#fields.hasErrors('contentRating')}"></div>
+                            </div>
+
+                            <!-- 리뷰 내용 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="contentText">리뷰 내용 <span
+                                        class="text-danger">*</span></label>
+                                <textarea class="form-control"
+                                          id="contentText"
+                                          placeholder="맛집에 대한 솔직한 리뷰를 작성해주세요. 음식의 맛, 분위기, 서비스 등을 자유롭게 공유해주세요."
+                                          required
+                                          rows="8"
+                                          th:field="*{contentText}"></textarea>
+                                <div class="form-text">최소 10자 이상 작성해주세요.</div>
+                                <div class="invalid-feedback" th:errors="*{contentText}"
+                                     th:if="${#fields.hasErrors('contentText')}"></div>
+                            </div>
+                        </div>
+
+                        <!-- 사진 업로드 섹션 -->
+                        <div class="mb-4">
+                            <h5 class="mb-3">사진 추가 (최소 1장, 최대 5장)</h5>
+                            <div class="mb-3">
+                                <label class="form-label" for="imageUrl0">사진 URL</label>
+                                <div id="image-url-container">
+                                    <!-- 첫 번째 이미지 입력 필드 -->
+                                    <div class="input-group mb-2" data-image-index="0">
+                                        <input class="form-control image-url-input"
+                                               data-index="0"
+                                               id="imageUrl0"
+                                               name="imagesUrls[0]"
+                                               placeholder="이미지 URL을 입력하세요 (최대 5장)"
+                                               type="text">
+                                        <button class="btn btn-outline-danger remove-image-btn" style="display: none;"
+                                                type="button">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary" id="add-image-btn" type="button">
+                                    <i class="bi bi-plus-circle me-1"></i> 사진 추가
+                                </button>
+                                <div class="form-text">최대 5장까지 추가할 수 있습니다.</div>
+                            </div>
+                        </div>
+
+                        <!-- 버튼 -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a class="btn btn-light" th:href="@{/}">취소</a>
+                            <button class="btn btn-primary" type="submit">게시하기</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- **************** MAIN CONTENT END **************** -->
+
+<!-- Bootstrap JS -->
+<script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Theme Functions -->
+<script src="/assets/js/functions.js"></script>
+
+<!-- Custom Script -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        // 평점 선택 기능
+        const stars = document.querySelectorAll('#rating-stars i');
+        const ratingInput = document.getElementById('contentRating');
+        const ratingText = document.getElementById('rating-text');
+
+        stars.forEach(star => {
+            star.addEventListener('click', function () {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                ratingInput.value = rating;
+
+                // 별 채우기
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.classList.remove('bi-star');
+                        s.classList.add('bi-star-fill');
+                    } else {
+                        s.classList.remove('bi-star-fill');
+                        s.classList.add('bi-star');
+                    }
+                });
+
+                // 텍스트 업데이트
+                ratingText.textContent = rating + '점';
+            });
+
+            // 호버 효과
+            star.addEventListener('mouseenter', function () {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                stars.forEach((s, index) => {
+                    if (index < rating) {
+                        s.style.opacity = '1';
+                    } else {
+                        s.style.opacity = '0.5';
+                    }
+                });
+            });
+        });
+
+        document.getElementById('rating-stars').addEventListener('mouseleave', function () {
+            stars.forEach(s => {
+                s.style.opacity = '1';
+            });
+        });
+
+        // 이미지 URL 관리
+        let imageCount = 1;
+        const maxImages = 5;
+        const addImageBtn = document.getElementById('add-image-btn');
+        const imageUrlContainer = document.getElementById('image-url-container');
+
+        function updateImageIndices() {
+            const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
+            inputGroups.forEach((group, index) => {
+                const input = group.querySelector('.image-url-input');
+                input.setAttribute('data-index', index);
+                input.setAttribute('name', `imagesUrls[${index}]`);
+                input.setAttribute('id', `imageUrl${index}`);
+                group.setAttribute('data-image-index', index);
+            });
+            imageCount = inputGroups.length;
+
+            // 최대 개수 도달 시 추가 버튼 숨김
+            addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'block';
+
+            // 삭제 버튼 표시/숨김
+            inputGroups.forEach((group, index) => {
+                const removeBtn = group.querySelector('.remove-image-btn');
+                if (removeBtn) {
+                    removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
+                }
+            });
+        }
+
+        addImageBtn.addEventListener('click', function () {
+            if (imageCount >= maxImages) return;
+
+            const newIndex = imageCount;
+            const newInputGroup = document.createElement('div');
+            newInputGroup.className = 'input-group mb-2';
+            newInputGroup.setAttribute('data-image-index', newIndex);
+            newInputGroup.innerHTML = `
+                <input type="text"
+                       class="form-control image-url-input"
+                       id="imageUrl${newIndex}"
+                       name="imagesUrls[${newIndex}]"
+                       placeholder="이미지 URL을 입력하세요"
+                       data-index="${newIndex}">
+                <button class="btn btn-outline-danger remove-image-btn" type="button">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+
+            imageUrlContainer.appendChild(newInputGroup);
+
+            // 삭제 버튼 이벤트
+            const removeBtn = newInputGroup.querySelector('.remove-image-btn');
+            removeBtn.addEventListener('click', function () {
+                newInputGroup.remove();
+                updateImageIndices();
+            });
+
+            updateImageIndices();
+        });
+
+        // 첫 번째 삭제 버튼 이벤트
+        imageUrlContainer.addEventListener('click', function (e) {
+            if (e.target.closest('.remove-image-btn')) {
+                const inputGroup = e.target.closest('.input-group');
+                if (imageCount > 1) {
+                    inputGroup.remove();
+                    updateImageIndices();
+                }
+            }
+        });
+
+        // 초기 상태 설정
+        updateImageIndices();
+    });
+</script>
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .rating-stars i {
+        transition: all 0.2s ease;
+    }
+
+    .rating-stars i:hover {
+        transform: scale(1.1);
+    }
+</style>
+
+</body>
+</html>
