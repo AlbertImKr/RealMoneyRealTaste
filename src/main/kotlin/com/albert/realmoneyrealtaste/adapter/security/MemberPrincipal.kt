@@ -23,13 +23,14 @@ data class MemberPrincipal(
 
     companion object {
         fun from(member: Member): MemberPrincipal {
+            val introValue = member.detail.introduction?.value
             return MemberPrincipal(
                 memberId = member.requireId(),
                 email = member.email,
                 nickname = member.nickname,
                 roles = member.roles.getRoles(),
                 active = member.isActive(),
-                introduction = member.detail.introduction?.value ?: "아직 자기소개가 없어요!",
+                introduction = introValue ?: "아직 자기소개가 없어요!",
             )
         }
     }
