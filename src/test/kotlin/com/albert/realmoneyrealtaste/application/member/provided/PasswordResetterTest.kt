@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.event.PasswordResetRequestedEvent
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
@@ -12,6 +13,8 @@ import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.junit.jupiter.api.assertAll
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.event.ApplicationEvents
 import org.springframework.test.context.event.RecordApplicationEvents
 import java.time.LocalDateTime
 import kotlin.test.Test
@@ -30,6 +33,9 @@ class PasswordResetterTest(
     val passwordEncoder: PasswordEncoder,
 ) : IntegrationTestBase() {
 
+    @Autowired
+    lateinit var applicationEvents: ApplicationEvents
+
     @Test
     fun `sendPasswordResetEmail - success - generates token and publishes event`() {
         val member = MemberFixture.createMember()
@@ -40,6 +46,16 @@ class PasswordResetterTest(
 
         val savedToken = passwordResetTokenReader.findByMemberId(member.requireId())
         assertNotNull(savedToken)
+    }
+
+    @Test
+    fun `sendPasswordResetEmail - failure - does nothing when email does not exist`() {
+        val nonExistentEmail = Email("notExists@gmail.com")
+        applicationEvents.clear()
+
+        passwordResetter.sendPasswordResetEmail(nonExistentEmail)
+
+        assertEquals(applicationEvents.stream(PasswordResetRequestedEvent::class.java).count().toInt(), 0)
     }
 
     @Test
