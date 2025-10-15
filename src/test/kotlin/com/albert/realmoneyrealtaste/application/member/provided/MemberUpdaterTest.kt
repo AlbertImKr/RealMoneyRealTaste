@@ -4,10 +4,10 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RMRT - 진짜 내돈내산 푸디 소셜 플랫폼</title>
+
+    <!-- Meta Tags -->
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+    <!-- End Meta Tags -->
+
+    <!-- Dark mode -->
+    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
+    <!-- End Dark mode -->
+
+    <!-- Favicon -->
+    <link href="/assets/images/favicon.ico" rel="shortcut icon">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Plugins CSS -->
+    <link href="/assets/vendor/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/OverlayScrollbars-master/css/OverlayScrollbars.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/tiny-slider/dist/tiny-slider.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/choices.js/public/assets/styles/choices.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/glightbox-master/dist/css/glightbox.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/dropzone/dist/dropzone.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/flatpickr/dist/flatpickr.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/plyr/plyr.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/zuck.js/dist/zuck.min.css" rel="stylesheet" type="text/css">
+
+    <!-- Theme CSS -->
+    <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+<body>
+
+<!-- Header START -->
+<header th:replace="~{fragments/header :: header}"></header>
+<!-- Header END -->
+
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+
+    <!-- Container START -->
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- Sidenav START -->
+            <div class="col-lg-3">
+
+                <!-- Advanced filter responsive toggler START -->
+                <div class="d-flex align-items-center d-lg-none">
+                    <button aria-controls="offcanvasSideNavbar" class="border-0 bg-transparent" data-bs-target="#offcanvasSideNavbar"
+                            data-bs-toggle="offcanvas" type="button">
+                        <span class="btn btn-primary"><i class="fa-solid fa-sliders-h"></i></span>
+                        <span class="h6 mb-0 fw-bold d-lg-none ms-2">My profile</span>
+                    </button>
+                </div>
+                <!-- Advanced filter responsive toggler END -->
+
+                <!-- Navbar START-->
+                <nav aria-label="Side Navbar" class="navbar navbar-expand-lg mx-0">
+                    <div class="offcanvas offcanvas-start" id="offcanvasSideNavbar" tabindex="-1">
+                        <!-- Offcanvas header -->
+                        <div class="offcanvas-header">
+                            <button aria-label="Close" class="btn-close text-reset ms-auto" data-bs-dismiss="offcanvas"
+                                    type="button"></button>
+                        </div>
+
+                        <!-- Offcanvas body -->
+                        <div class="offcanvas-body d-block px-2 px-lg-0">
+                            <!-- Card START -->
+                            <div class="card overflow-hidden">
+                                <!-- Cover image -->
+                                <div class="h-50px"
+                                     style="background-image:url(/assets/images/bg/01.jpg); background-position: center; background-size: cover; background-repeat: no-repeat;"></div>
+                                <!-- Card body START -->
+                                <div class="card-body pt-0">
+                                    <!-- 로그인된 경우: 프로필 정보 표시 -->
+                                    <div th:if="${member != null}">
+                                        <div class="text-center">
+                                            <!-- Info -->
+                                            <h5 class="mb-0">
+                                                <a href="#" th:text="${member.nickname.value}">회원 닉네임</a>
+                                            </h5>
+                                            <p class="mt-3" th:text="${member.detail.introduction}"></p>
+
+                                            <!-- User stat START -->
+                                            <div class="hstack gap-2 gap-xl-3 justify-content-center">
+                                                <!-- User stat item -->
+                                                <div>
+                                                    <h6 class="mb-0">256</h6>
+                                                    <small>Post</small>
+                                                </div>
+                                                <!-- Divider -->
+                                                <div class="vr"></div>
+                                                <!-- User stat item -->
+                                                <div>
+                                                    <h6 class="mb-0">2.5K</h6>
+                                                    <small>Followers</small>
+                                                </div>
+                                                <!-- Divider -->
+                                                <div class="vr"></div>
+                                                <!-- User stat item -->
+                                                <div>
+                                                    <h6 class="mb-0">365</h6>
+                                                    <small>Following</small>
+                                                </div>
+                                            </div>
+                                            <!-- User stat END -->
+                                        </div>
+
+                                        <!-- Divider -->
+                                        <hr>
+
+                                        <!-- Side Nav START -->
+                                        <ul class="nav nav-link-secondary flex-column fw-bold gap-2">
+                                            <li class="nav-item">
+                                                <a class="nav-link" th:href="@{/posts/mime}">
+                                                    <img alt=""
+                                                         class="me-2 h-20px fa-fw"
+                                                         src="/assets/images/icon/home-outline-filled.svg"><span>My Posts</span>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" th:href="@{/members/setting}">
+                                                    <img alt=""
+                                                         class="me-2 h-20px fa-fw"
+                                                         src="/assets/images/icon/cog-outline-filled.svg"><span>Settings</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                        <!-- Side Nav END -->
+                                    </div>
+
+                                    <!-- 로그인 안된 경우: 로그인 버튼 표시 -->
+                                    <div class="text-center py-5" th:unless="${member != null}">
+                                        <h5 class="mb-2">RMRT에 오신 것을 환영합니다</h5>
+                                        <p class="text-muted mb-4">로그인하고 푸디들과 소통해보세요</p>
+                                        <a class="btn btn-primary btn-lg" th:href="@{/signin}">
+                                            <i class="bi bi-box-arrow-in-right me-2"></i>로그인
+                                        </a>
+                                        <div class="mt-3">
+                                            <small class="text-muted">
+                                                계정이 없으신가요?
+                                                <a class="text-decoration-none" th:href="@{/signup}">회원가입</a>
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Card body END -->
+                            </div>
+                            <!-- Card END -->
+
+                            <!-- Helper link START -->
+                            <ul class="nav small mt-4 justify-content-center lh-1">
+                                <li class="nav-item">
+                                    <a class="nav-link" th:href="@{/about}">소개</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" th:href="@{/help}">고객지원</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" th:href="@{/privacy}">개인정보처리방침</a>
+                                </li>
+                            </ul>
+                            <!-- Helper link END -->
+                            <!-- Copyright -->
+                            <!-- Copyright START -->
+                            <p class="text-center mb-0">
+                                ©2025 <a href="https://github.com/AlbertImKr/RealMoneyRealTaste"
+                                         target="_blank">RealMoneyRealTaste</a>
+                            </p>
+                            <p class="text-center mb-0">
+                                All rights reserved.
+                            </p>
+                            <!-- Copyright END -->
+                        </div>
+                    </div>
+                </nav>
+                <!-- Navbar END-->
+            </div>
+            <!-- Sidenav END -->
+
+            <!-- Main content START -->
+            <div class="col-md-8 col-lg-6 vstack gap-4">
+
+                <!-- Create post card START -->
+                <div class="card card-body" th:if="${member != null}">
+                    <div class="d-flex mb-3">
+                        <!-- Post input -->
+                        <button class="form-control rounded text-start"
+                                data-bs-target="#modalCreateFeed"
+                                data-bs-toggle="modal">
+                <span class="text-muted" th:text="${member.nickname.value} + '님, 어떤 맛집을 다녀오셨나요?'">
+                    맛집 리뷰를 공유해주세요...
+                </span>
+                        </button>
+                    </div>
+                    <!-- Share feed toolbar START -->
+                    <ul class="nav nav-pills nav-stack small fw-normal">
+                        <li class="nav-item">
+                            <button class="nav-link bg-light py-1 px-2 mb-0"
+                                    data-bs-target="#modalCreateFeed"
+                                    data-bs-toggle="modal">
+                                <i class="bi bi-image-fill text-success pe-2"></i>사진
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link bg-light py-1 px-2 mb-0"
+                                    data-bs-target="#modalCreateFeed"
+                                    data-bs-toggle="modal">
+                                <i class="bi bi-geo-alt-fill text-danger pe-2"></i>위치
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link bg-light py-1 px-2 mb-0"
+                                    data-bs-target="#modalCreateFeed"
+                                    data-bs-toggle="modal">
+                                <i class="bi bi-star-fill text-warning pe-2"></i>평점
+                            </button>
+                        </li>
+                    </ul>
+                    <!-- Share feed toolbar END -->
+                </div>
+                <!-- Create post card END -->
+
+                <!-- 포스트가 없을 때 -->
+                <div class="card text-center py-5" th:if="${posts == null or posts.isEmpty()}">
+                    <div class="card-body">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <h5 class="mt-3">아직 포스트가 없습니다</h5>
+                        <p class="text-muted">첫 번째 포스트를 작성해보세요!</p>
+                    </div>
+                </div>
+
+                <!-- 포스트 리스트 -->
+                <div class="card" th:each="post : ${posts.content}">
+                    <!-- Card header START -->
+                    <div class="card-header border-0 pb-0">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <!-- Info -->
+                                <div>
+                                    <div class="nav nav-divider">
+                                        <h6 class="nav-item card-title mb-0">
+                                            <a th:href="@{/members/{id}(id=${post.author.memberId})}"
+                                               th:text="${post.author.nickname}">Lori Ferguson</a>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Card feed action dropdown START -->
+                            <div class="dropdown">
+                                <a aria-expanded="false" class="text-secondary btn btn-secondary-soft-hover py-1 px-2"
+                                   data-bs-toggle="dropdown"
+                                   href="#"
+                                   th:id="'cardFeedAction' + ${post.id}">
+                                    <i class="bi bi-three-dots"></i>
+                                </a>
+                                <!-- Card feed action dropdown menu -->
+                                <ul class="dropdown-menu dropdown-menu-end"
+                                    th:attr="aria-labelledby='cardFeedAction' + ${post.id}">
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-bookmark fa-fw pe-2"></i>Save post</a>
+                                    </li>
+                                    <li th:if="${member != null and member.id != post.author.memberId}">
+                                        <a class="dropdown-item" href="#">
+                                            <i class="bi bi-person-x fa-fw pe-2"></i>Unfollow
+                                            <span th:text="${post.author.nickname}"></span>
+                                        </a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-x-circle fa-fw pe-2"></i>Hide post</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-slash-circle fa-fw pe-2"></i>Block</a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-flag fa-fw pe-2"></i>Report post</a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- Card feed action dropdown END -->
+                        </div>
+                    </div>
+                    <!-- Card header END -->
+
+                    <!-- Card body START -->
+                    <div class="card-body">
+                        <p th:text="${post.content.text}">
+                            I'm thrilled to share that I've completed a graduate certificate course in project
+                            management
+                            with the president's honor roll.
+                        </p>
+
+                        <!-- Card img -->
+                        <a th:href="@{/posts/{id}(id=${post.id})}" th:if="${post.images != null}">
+                            <img alt="Post"
+                                 class="card-img"
+                                 style="cursor: pointer;"
+                                 th:src="${post.images.urls[0]}">
+                        </a>
+
+                        <!-- Feed react START -->
+                        <ul class="nav nav-stack py-3 small">
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   data-bs-container="body"
+                                   data-bs-placement="top"
+                                   data-bs-toggle="tooltip"
+                                   href="#"
+                                   th:classappend="${hearts != null and hearts.contains(post.id)} ? 'active' : ''">
+                                    <i class="bi bi-hand-thumbs-up-fill pe-1"></i>
+                                    Liked (<span th:text="${post.heartCount}">56</span>)
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">
+                                    <i class="bi bi-eye-fill pe-1"></i>
+                                    Views (<span th:text="${post.viewCount}">102</span>)
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">
+                                    <i class="bi bi-chat-fill pe-1"></i>
+                                    Comments (<span>12</span>)
+                                </a>
+                            </li>
+                            <!-- Card share action START -->
+                            <li class="nav-item dropdown ms-sm-auto">
+                                <a aria-expanded="false"
+                                   class="nav-link mb-0"
+                                   data-bs-toggle="dropdown"
+                                   href="#"
+                                   th:id="'cardShareAction' + ${post.id}">
+                                    <i class="bi bi-reply-fill flip-horizontal ps-1"></i>
+                                    Share (<span>3</span>)
+                                </a>
+                                <!-- Card share action dropdown menu -->
+                                <ul class="dropdown-menu dropdown-menu-end"
+                                    th:attr="aria-labelledby='cardShareAction' + ${post.id}">
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-envelope fa-fw pe-2"></i>Send via Direct Message</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-bookmark-check fa-fw pe-2"></i>Bookmark</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-link fa-fw pe-2"></i>Copy link to post</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-share fa-fw pe-2"></i>Share post via …</a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item" href="#">
+                                        <i class="bi bi-pencil-square fa-fw pe-2"></i>Share to News Feed</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <!-- Card share action END -->
+                        </ul>
+                        <!-- Feed react END -->
+                    </div>
+                    <!-- Card body END -->
+
+                    <!-- Card footer START -->
+                    <!-- Card footer END -->
+                </div>
+                <!-- Card post item END -->
+
+                <!-- Pagination START -->
+                <nav aria-label="Page navigation"
+                     th:if="${posts != null and !posts.isEmpty() and posts.totalPages > 1}">
+                    <ul class="pagination justify-content-center">
+                        <!-- Previous -->
+                        <li class="page-item" th:classappend="${posts.first} ? 'disabled'">
+                            <a class="page-link"
+                               tabindex="-1"
+                               th:href="@{/posts(page=${posts.number - 1})}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+
+                        <!-- Page numbers -->
+                        <li class="page-item"
+                            th:classappend="${i == posts.number} ? 'active'"
+                            th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}">
+                            <a class="page-link"
+                               th:href="@{/posts(page=${i})}"
+                               th:text="${i + 1}">1</a>
+                        </li>
+
+                        <!-- Next -->
+                        <li class="page-item" th:classappend="${posts.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/posts(page=${posts.number + 1})}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- Pagination END -->
+
+            </div>
+            <!-- Main content END -->
+
+            <!-- Right sidebar START -->
+            <!-- Right sidebar END -->
+
+        </div> <!-- Row END -->
+    </div>
+    <!-- Container END -->
+
+</main>
+<!-- **************** MAIN CONTENT END **************** -->
+
+<!-- Main Chat START -->
+<!-- Main Chat END -->
+
+<!-- Modal create post START -->
+<div aria-hidden="true" aria-labelledby="modalLabelCreateFeed" class="modal fade" id="modalCreateFeed" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <!-- Modal feed header START -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelCreateFeed">새 게시글 작성</h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <!-- Modal feed header END -->
+
+            <!-- Modal feed body START -->
+            <div class="modal-body">
+                <!-- 게시글 작성 폼 -->
+                <form id="createPostForm" method="post" th:action="@{/posts/new}" th:object="${postCreateForm}">
+                    <!-- 맛집 정보 섹션 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-shop text-primary me-2"></i>맛집 정보
+                        </h6>
+
+                        <!-- 맛집 이름 -->
+                        <div class="mb-2">
+                            <label class="form-label visually-hidden" for="restaurantName">맛집 이름</label>
+                            <input class="form-control"
+                                   id="restaurantName"
+                                   placeholder="맛집 이름 *"
+                                   required
+                                   th:field="*{restaurantName}"
+                                   type="text">
+                            <div class="invalid-feedback" th:errors="*{restaurantName}"
+                                 th:if="${#fields.hasErrors('restaurantName')}"></div>
+                        </div>
+
+                        <!-- 맛집 주소 -->
+                        <div class="mb-2">
+                            <label class="form-label visually-hidden" for="restaurantAddress">주소</label>
+                            <input class="form-control"
+                                   id="restaurantAddress"
+                                   placeholder="주소 *"
+                                   required
+                                   th:field="*{restaurantAddress}"
+                                   type="text">
+                            <div class="invalid-feedback" th:errors="*{restaurantAddress}"
+                                 th:if="${#fields.hasErrors('restaurantAddress')}"></div>
+                        </div>
+
+                        <!-- 위도/경도 (숨김 필드) -->
+                        <input th:field="*{restaurantLatitude}" type="hidden">
+                        <input th:field="*{restaurantLongitude}" type="hidden">
+                    </div>
+
+                    <!-- 평점 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-star-fill text-warning me-2"></i>평점
+                        </h6>
+                        <div class="d-flex align-items-center">
+                            <div class="rating-stars" id="modal-rating-stars">
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="1"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="2"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="3"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="4"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="5"></i>
+                            </div>
+                            <span class="ms-2 text-muted small" id="modal-rating-text">평점을 선택하세요</span>
+                        </div>
+                        <input id="modal-contentRating" required th:field="*{contentRating}" type="hidden">
+                        <div class="invalid-feedback d-block" th:errors="*{contentRating}"
+                             th:if="${#fields.hasErrors('contentRating')}"></div>
+                    </div>
+
+                    <!-- 리뷰 내용 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-chat-left-text text-info me-2"></i>리뷰 내용
+                        </h6>
+                        <label class="form-label visually-hidden" for="contentText">리뷰 내용</label>
+                        <textarea class="form-control"
+                                  id="contentText"
+                                  placeholder="맛집에 대한 솔직한 리뷰를 작성해주세요. 음식의 맛, 분위기, 서비스 등을 자유롭게 공유해주세요."
+                                  required
+                                  rows="5"
+                                  th:field="*{contentText}"></textarea>
+                        <div class="form-text">최소 10자 이상 작성해주세요.</div>
+                        <div class="invalid-feedback" th:errors="*{contentText}"
+                             th:if="${#fields.hasErrors('contentText')}"></div>
+                    </div>
+
+                    <!-- 사진 업로드 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-image text-success me-2"></i>사진 추가
+                        </h6>
+                        <div id="modal-image-url-container">
+                            <!-- 첫 번째 이미지 입력 필드 -->
+                            <div class="input-group mb-2" data-image-index="0">
+                                <label class="input-group-text visually-hidden" for="imageUrl0">이미지 URL</label>
+                                <input class="form-control image-url-input"
+                                       data-index="0"
+                                       id="imageUrl0"
+                                       name="imagesUrls[0]"
+                                       placeholder="이미지 URL을 입력하세요"
+                                       type="text">
+                                <button class="btn btn-outline-danger remove-image-btn"
+                                        style="display: none;"
+                                        type="button">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary"
+                                id="modal-add-image-btn"
+                                type="button">
+                            <i class="bi bi-plus-circle me-1"></i> 사진 추가
+                        </button>
+                        <div class="form-text">최대 5장까지 추가할 수 있습니다.</div>
+                    </div>
+
+                    <!-- 추가 옵션 아이콘 (선택사항) -->
+                    <div class="hstack gap-2 mb-3">
+                        <span class="icon-md bg-success bg-opacity-10 text-success rounded-circle">
+                            <i class="bi bi-image-fill"></i>
+                        </span>
+                        <span class="icon-md bg-danger bg-opacity-10 text-danger rounded-circle">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </span>
+                        <span class="icon-md bg-warning bg-opacity-10 text-warning rounded-circle">
+                            <i class="bi bi-emoji-smile-fill"></i>
+                        </span>
+                    </div>
+
+                </form>
+            </div>
+            <!-- Modal feed body END -->
+
+            <!-- Modal feed footer -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">취소</button>
+                <button class="btn btn-primary" form="createPostForm" type="submit">
+                    <i class="bi bi-send-fill me-1"></i>게시하기
+                </button>
+            </div>
+            <!-- Modal feed footer -->
+
+        </div>
+    </div>
+</div>
+<!-- Modal create post END -->
+
+<!-- =======================
+JS libraries, plugins and custom scripts -->
+
+<!-- Bootstrap JS -->
+<script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Vendors -->
+<script src="/assets/vendor/tiny-slider/dist/tiny-slider.js"></script>
+<script src="/assets/vendor/OverlayScrollbars-master/js/OverlayScrollbars.min.js"></script>
+<script src="/assets/vendor/choices.js/public/assets/scripts/choices.min.js"></script>
+<script src="/assets/vendor/glightbox-master/dist/js/glightbox.min.js"></script>
+<script src="/assets/vendor/flatpickr/dist/flatpickr.min.js"></script>
+<script src="/assets/vendor/plyr/plyr.js"></script>
+<script src="/assets/vendor/dropzone/dist/min/dropzone.min.js"></script>
+<script src="/assets/vendor/zuck.js/dist/zuck.min.js"></script>
+<script src="/assets/js/zuck-stories.js"></script>
+
+<!-- Theme Functions -->
+<script src="/assets/js/functions.js"></script>
+
+<!-- Modal Script -->
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        // 모달이 열릴 때마다 초기화
+        const modalElement = document.getElementById('modalCreateFeed');
+        if (modalElement) {
+            modalElement.addEventListener('shown.bs.modal', function () {
+                initModalRatingStars();
+                initModalImageUpload();
+            });
+        }
+
+        // 평점 선택 기능
+        function initModalRatingStars() {
+            const stars = document.querySelectorAll('#modal-rating-stars i');
+            const ratingInput = document.getElementById('modal-contentRating');
+            const ratingText = document.getElementById('modal-rating-text');
+
+            if (!stars.length) return;
+
+            stars.forEach(star => {
+                star.addEventListener('click', function () {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    ratingInput.value = rating;
+
+                    // 별 채우기
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.remove('bi-star');
+                            s.classList.add('bi-star-fill');
+                        } else {
+                            s.classList.remove('bi-star-fill');
+                            s.classList.add('bi-star');
+                        }
+                    });
+
+                    // 텍스트 업데이트
+                    ratingText.textContent = rating + '점';
+                });
+
+                // 호버 효과
+                star.addEventListener('mouseenter', function () {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.style.opacity = '1';
+                        } else {
+                            s.style.opacity = '0.5';
+                        }
+                    });
+                });
+            });
+
+            const ratingContainer = document.getElementById('modal-rating-stars');
+            if (ratingContainer) {
+                ratingContainer.addEventListener('mouseleave', function () {
+                    stars.forEach(s => {
+                        s.style.opacity = '1';
+                    });
+                });
+            }
+        }
+
+        // 이미지 URL 관리
+        function initModalImageUpload() {
+            let imageCount = 1;
+            const maxImages = 5;
+            const addImageBtn = document.getElementById('modal-add-image-btn');
+            const imageUrlContainer = document.getElementById('modal-image-url-container');
+
+            if (!addImageBtn || !imageUrlContainer) return;
+
+            function updateImageIndices() {
+                const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
+                inputGroups.forEach((group, index) => {
+                    const input = group.querySelector('.image-url-input');
+                    input.setAttribute('data-index', index);
+                    input.setAttribute('name', `imagesUrls[${index}]`);
+                    group.setAttribute('data-image-index', index);
+                });
+                imageCount = inputGroups.length;
+
+                // 최대 개수 도달 시 추가 버튼 숨김
+                addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'inline-block';
+
+                // 삭제 버튼 표시/숨김
+                inputGroups.forEach((group, index) => {
+                    const removeBtn = group.querySelector('.remove-image-btn');
+                    if (removeBtn) {
+                        removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
+                    }
+                });
+            }
+
+            addImageBtn.addEventListener('click', function () {
+                if (imageCount >= maxImages) return;
+
+                const newIndex = imageCount;
+                const newInputGroup = document.createElement('div');
+                newInputGroup.className = 'input-group mb-2';
+                newInputGroup.setAttribute('data-image-index', newIndex);
+                newInputGroup.innerHTML = `
+                <input type="text"
+                       class="form-control image-url-input"
+                       name="imagesUrls[${newIndex}]"
+                       placeholder="이미지 URL을 입력하세요"
+                       data-index="${newIndex}">
+                <button class="btn btn-outline-danger remove-image-btn" type="button">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+
+                imageUrlContainer.appendChild(newInputGroup);
+
+                // 삭제 버튼 이벤트
+                const removeBtn = newInputGroup.querySelector('.remove-image-btn');
+                removeBtn.addEventListener('click', function () {
+                    newInputGroup.remove();
+                    updateImageIndices();
+                });
+
+                updateImageIndices();
+            });
+
+            // 삭제 버튼 이벤트
+            imageUrlContainer.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-image-btn')) {
+                    const inputGroup = e.target.closest('.input-group');
+                    if (imageCount > 1) {
+                        inputGroup.remove();
+                        updateImageIndices();
+                    }
+                }
+            });
+
+            // 초기 상태 설정
+            updateImageIndices();
+        }
+    });
+</script>
+
+
+</body>
+</html>

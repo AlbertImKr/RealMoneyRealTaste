@@ -9,5 +9,7 @@ annotation class WithMockMember(
     val memberId: Long = 1L,
     val email: String = "test@example.com",
     val nickname: String = "테스트",
+    val introduction: String = "안녕하세요. 테스트입니다.",
+    val active: Boolean = true,
     val roles: Array<String> = ["USER"],
 )

@@ -399,4 +399,78 @@ class PostReaderTest(
 
         assertEquals(expectedCount, result.totalElements)
     }
+
+    @Test
+    fun `readAllPosts - success - reads all posts with pagination`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..15).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        val pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"))
+        flushAndClear()
+
+        val result = postReader.readAllPosts(pageRequest)
+
+        assertFalse(result.isEmpty)
+        assertEquals(15, result.totalElements)
+        assertEquals(2, result.totalPages)
+        assertEquals(10, result.numberOfElements)
+        result.forEachIndexed { index, post ->
+            assertEquals(posts[14 - index].requireId(), post.requireId())
+            assertEquals(posts[14 - index].author.memberId, post.author.memberId)
+            assertEquals(posts[14 - index].author.nickname, post.author.nickname)
+            assertEquals(posts[14 - index].restaurant.name, post.restaurant.name)
+            assertEquals(posts[14 - index].content.text, post.content.text)
+            assertEquals(posts[14 - index].content.rating, post.content.rating)
+            assertEquals(posts[14 - index].images.urls, post.images.urls)
+            assertEquals(posts[14 - index].status, post.status)
+            assertEquals(posts[14 - index].heartCount, post.heartCount)
+            assertEquals(posts[14 - index].viewCount, post.viewCount)
+        }
+    }
+
+    @Test
+    fun `readAllPosts - success - excludes deleted posts`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..12).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        posts[0].delete(authorMemberId)
+        posts[1].delete(authorMemberId)
+        val pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"))
+        flushAndClear()
+
+        val result = postReader.readAllPosts(pageRequest)
+
+        assertFalse(result.isEmpty)
+        assertEquals(10, result.numberOfElements)
+        assertEquals(10, result.totalElements)
+        assertEquals(1, result.totalPages)
+        result.forEachIndexed { index, post ->
+            assertEquals(posts[11 - index].requireId(), post.requireId())
+            assertEquals(posts[11 - index].author.memberId, post.author.memberId)
+            assertEquals(posts[11 - index].author.nickname, post.author.nickname)
+            assertEquals(posts[11 - index].restaurant.name, post.restaurant.name)
+            assertEquals(posts[11 - index].content.text, post.content.text)
+            assertEquals(posts[11 - index].content.rating, post.content.rating)
+            assertEquals(posts[11 - index].images.urls, post.images.urls)
+            assertEquals(posts[11 - index].status, post.status)
+            assertEquals(posts[11 - index].heartCount, post.heartCount)
+            assertEquals(posts[11 - index].viewCount, post.viewCount)
+        }
+    }
 }

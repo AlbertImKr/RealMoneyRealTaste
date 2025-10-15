@@ -1,8 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
 import org.junit.jupiter.api.Assertions.assertAll
 import kotlin.test.Test
 import kotlin.test.assertEquals

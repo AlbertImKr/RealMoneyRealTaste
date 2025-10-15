@@ -12,6 +12,8 @@ data class MemberPrincipal(
     val memberId: Long,
     val email: Email,
     val nickname: Nickname,
+    val active: Boolean,
+    val introduction: String,
     private val roles: Set<Role>,
 ) : Serializable {
 
@@ -21,11 +23,14 @@ data class MemberPrincipal(
 
     companion object {
         fun from(member: Member): MemberPrincipal {
+            val introValue = member.detail.introduction?.value
             return MemberPrincipal(
-                memberId = member.id!!,
+                memberId = member.requireId(),
                 email = member.email,
                 nickname = member.nickname,
-                roles = member.roles.getRoles()
+                roles = member.roles.getRoles(),
+                active = member.isActive(),
+                introduction = introValue ?: "아직 자기소개가 없어요!",
             )
         }
     }

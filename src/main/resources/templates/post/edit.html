@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RMRT - 게시물 수정</title>
+
+    <!-- Meta Tags -->
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+
+    <!-- Dark mode -->
+    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
+
+    <!-- Favicon -->
+    <link href="/assets/images/favicon.ico" rel="shortcut icon">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <!-- Plugins CSS -->
+    <link href="/assets/vendor/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" type="text/css">
+
+    <!-- Theme CSS -->
+    <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<!-- Header START -->
+<header th:replace="~{fragments/header :: header}"></header>
+<!-- Header END -->
+
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+
+    <!-- Container START -->
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <!-- Page title -->
+                <div class="my-4">
+                    <h1 class="h3">게시물 수정</h1>
+                    <p class="text-muted">내돈내산 리뷰를 수정하세요</p>
+                </div>
+
+                <!-- Edit form START -->
+                <div class="card card-body">
+                    <form enctype="multipart/form-data" id="postEditForm" method="post"
+                          onsubmit="return validateForm()" th:action="@{/posts/{id}/edit(id=${postEditForm.id})}">
+
+                        <!-- Hidden ID -->
+                        <input name="id" th:value="${postEditForm.id}" type="hidden">
+
+                        <!-- Restaurant Name -->
+                        <div class="mb-3">
+                            <label class="form-label" for="restaurantName">
+                                <i class="bi bi-shop text-primary me-1"></i>맛집 이름 <span
+                                    class="text-danger">*</span>
+                            </label>
+                            <input class="form-control"
+                                   id="restaurantName"
+                                   maxlength="100"
+                                   name="restaurantName"
+                                   placeholder="맛집 이름을 입력하세요"
+                                   required
+                                   th:value="${postEditForm.restaurantName}"
+                                   type="text">
+                            <div class="form-text">예: 홍대 맛집, 강남 초밥집</div>
+                        </div>
+
+                        <!-- Restaurant Address -->
+                        <div class="mb-3">
+                            <label class="form-label" for="restaurantAddress">
+                                <i class="bi bi-geo-alt text-danger me-1"></i>주소 <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input class="form-control"
+                                       id="restaurantAddress"
+                                       maxlength="200"
+                                       name="restaurantAddress"
+                                       placeholder="주소를 입력하세요"
+                                       required
+                                       th:value="${postEditForm.restaurantAddress}"
+                                       type="text">
+                                <button class="btn btn-outline-secondary" onclick="searchAddress()" type="button">
+                                    <i class="bi bi-search"></i> 주소 검색
+                                </button>
+                            </div>
+                            <input id="restaurantLatitude" name="restaurantLatitude" th:value="${postEditForm.restaurantLatitude}"
+                                   type="hidden">
+                            <input id="restaurantLongitude" name="restaurantLongitude" th:value="${postEditForm.restaurantLongitude}"
+                                   type="hidden">
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="mb-3">
+                            <label class="form-label" for="contentRating">
+                                <i class="bi bi-star-fill text-warning me-1"></i>평점 <span class="text-danger">*</span>
+                            </label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rating-input" id="ratingStars">
+                                    <button class="btn btn-link p-0 text-warning fs-3" onclick="setRating(this)"
+                                            th:classappend="${i <= postEditForm.contentRating} ? 'active' : ''"
+                                            th:data-rating="${i}"
+                                            th:each="i : ${#numbers.sequence(1, 5)}"
+                                            type="button">
+                                        <i th:class="${i <= postEditForm.contentRating} ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                                    </button>
+                                </div>
+                                <span class="text-muted" id="ratingValue"
+                                      th:text="${postEditForm.contentRating} + '.0'">5.0</span>
+                            </div>
+                            <input id="contentRating" name="contentRating" required
+                                   th:value="${postEditForm.contentRating}" type="hidden">
+                        </div>
+
+                        <!-- Content -->
+                        <div class="mb-3">
+                            <label class="form-label" for="contentText">
+                                <i class="bi bi-pencil-square text-success me-1"></i>리뷰 내용 <span
+                                    class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control"
+                                      id="contentText"
+                                      maxlength="2000"
+                                      minlength="10"
+                                      name="contentText"
+                                      placeholder="솔직한 리뷰를 작성해주세요. 광고나 협찬이 아닌 진짜 내돈내산 후기를 공유해주세요!"
+                                      required
+                                      rows="6"
+                                      th:text="${postEditForm.contentText}"></textarea>
+                            <div class="form-text d-flex justify-content-between">
+                                <span>최소 10자 이상 작성해주세요</span>
+                                <span id="charCount">0 / 2000</span>
+                            </div>
+                        </div>
+
+                        <!-- Current Images -->
+                        <div class="mb-3"
+                             th:if="${postEditForm.imagesUrls != null && !postEditForm.imagesUrls.isEmpty()}">
+                            <label class="form-label" for="currentImages">
+                                <i class="bi bi-images text-info me-1"></i>현재 이미지
+                            </label>
+                            <div class="row g-2" id="currentImages">
+                                <div class="col-6 col-md-4 position-relative"
+                                     th:each="img, iterStat : ${postEditForm.imagesUrls}">
+                                    <img alt="맛집 사진" class="img-thumbnail rounded" th:src="${img}">
+                                    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2"
+                                            onclick="removeCurrentImage(this)"
+                                            th:data-image-url="${img}"
+                                            type="button">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <input id="remainingImages" name="imagesUrls" th:value="${#strings.listJoin(postEditForm.imagesUrls, ',')}"
+                                   type="hidden">
+                        </div>
+
+                        <!-- New Images Upload -->
+                        <div class="mb-3">
+                            <label class="form-label" for="newImages">
+                                <i class="bi bi-image text-info me-1"></i>새 이미지 추가
+                            </label>
+                            <input accept="image/*"
+                                   class="form-control"
+                                   id="newImages"
+                                   multiple
+                                   name="newImages"
+                                   onchange="previewNewImages(this)"
+                                   type="file">
+                            <div class="form-text">JPG, PNG 파일만 업로드 가능 (최대 5장)</div>
+
+                            <!-- New Image Preview -->
+                            <div class="row g-2 mt-2" id="newImagePreview"></div>
+                        </div>
+
+                        <!-- Action buttons -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn btn-secondary" onclick="cancelEdit()" type="button">
+                                <i class="bi bi-x-circle me-1"></i>취소
+                            </button>
+                            <button class="btn btn-primary" id="submitBtn" type="submit">
+                                <i class="bi bi-check-circle me-1"></i>수정 완료
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Edit form END -->
+            </div>
+        </div>
+    </div>
+    <!-- Container END -->
+
+</main>
+<!-- **************** MAIN CONTENT END **************** -->
+
+<!-- Footer START -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<!-- Footer END -->
+
+<!-- =======================
+JS libraries, plugins and custom scripts -->
+
+<!-- Bootstrap JS -->
+<script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Theme Functions -->
+<script src="/assets/js/functions.js"></script>
+
+<!-- Post Edit Functions -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const postId = /*[[${postEditForm.id}]]*/ 0;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        updateCharCount();
+        const contentTextarea = document.getElementById('contentText');
+        contentTextarea.addEventListener('input', updateCharCount);
+    });
+
+    // Character count
+    function updateCharCount() {
+        const content = document.getElementById('contentText').value;
+        const charCount = document.getElementById('charCount');
+        charCount.textContent = `${content.length} / 2000`;
+
+        if (content.length > 1900) {
+            charCount.classList.add('text-warning');
+        } else {
+            charCount.classList.remove('text-warning');
+        }
+    }
+
+    // Rating
+    function setRating(button) {
+        const rating = parseInt(button.getAttribute('data-rating'));
+        document.getElementById('contentRating').value = rating;
+        document.getElementById('ratingValue').textContent = rating + '.0';
+
+        // Update star display
+        const stars = document.querySelectorAll('#ratingStars button');
+        stars.forEach((star, index) => {
+            const starRating = index + 1;
+            const icon = star.querySelector('i');
+            if (starRating <= rating) {
+                star.classList.add('active');
+                icon.className = 'bi bi-star-fill';
+            } else {
+                star.classList.remove('active');
+                icon.className = 'bi bi-star';
+            }
+        });
+    }
+
+    // Remove current image
+    function removeCurrentImage(button) {
+        const imageUrl = button.getAttribute('data-image-url');
+        const remainingImagesInput = document.getElementById('remainingImages');
+        const currentImages = remainingImagesInput.value.split(',').filter(url => url !== imageUrl);
+        remainingImagesInput.value = currentImages.join(',');
+
+        // Remove from display
+        button.closest('.col-6').remove();
+
+        // Show message if all images removed
+        if (currentImages.length === 0) {
+            document.getElementById('currentImages').innerHTML = '<p class="text-muted">삭제된 이미지가 없습니다.</p>';
+        }
+    }
+
+    // Preview new images
+    function previewNewImages(input) {
+        const preview = document.getElementById('newImagePreview');
+        preview.innerHTML = '';
+
+        if (input.files) {
+            Array.from(input.files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const col = document.createElement('div');
+                        col.className = 'col-6 col-md-4';
+                        col.innerHTML = `
+                            <img src="${e.target.result}" class="img-thumbnail rounded" alt="새 이미지">
+                        `;
+                        preview.appendChild(col);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Address search (placeholder)
+    function searchAddress() {
+        alert('주소 검색 기능은 추후 카카오 지도 API 등을 연동하여 구현될 예정입니다.');
+        // TODO: Implement address search with Kakao Map API
+    }
+
+    // Cancel edit
+    function cancelEdit() {
+        if (confirm('수정을 취소하시겠습니까? 작성한 내용이 저장되지 않습니다.')) {
+            window.location.href = `/posts/${postId}`;
+        }
+    }
+
+    // Validate form before submit
+    function validateForm() {
+        const restaurantName = document.getElementById('restaurantName').value.trim();
+        const restaurantAddress = document.getElementById('restaurantAddress').value.trim();
+        const rating = document.getElementById('contentRating').value;
+        const content = document.getElementById('contentText').value.trim();
+
+        if (!restaurantName) {
+            alert('맛집 이름을 입력해주세요.');
+            return false;
+        }
+
+        if (!restaurantAddress) {
+            alert('주소를 입력해주세요.');
+            return false;
+        }
+
+        if (!rating || rating < 1 || rating > 5) {
+            alert('평점을 선택해주세요.');
+            return false;
+        }
+
+        if (content.length < 10) {
+            alert('리뷰 내용을 최소 10자 이상 작성해주세요.');
+            return false;
+        }
+
+        // Disable submit button
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>수정 중...';
+
+        return true;
+    }
+
+    /*]]>*/
+</script>
+
+</body>
+</html>

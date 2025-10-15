@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 

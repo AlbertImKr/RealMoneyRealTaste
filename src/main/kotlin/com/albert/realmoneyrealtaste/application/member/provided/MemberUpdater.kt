@@ -2,10 +2,10 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
 import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
 /**

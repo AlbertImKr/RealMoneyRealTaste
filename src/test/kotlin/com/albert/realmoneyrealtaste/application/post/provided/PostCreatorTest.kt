@@ -1,9 +1,9 @@
 package com.albert.realmoneyrealtaste.application.post.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.post.dto.PostCreateRequest
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.domain.post.PostStatus

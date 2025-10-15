@@ -1,10 +1,10 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.webview.member.MemberView.Companion.MEMBER_SETTING_URL
-import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
-import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.AlreadyActivatedException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredActivationTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler

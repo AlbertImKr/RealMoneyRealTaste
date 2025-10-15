@@ -1,9 +1,9 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
-import com.albert.realmoneyrealtaste.application.member.exception.AlreadyActivatedException
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
-import com.albert.realmoneyrealtaste.application.member.exception.ExpiredActivationTokenException
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidActivationTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.AlreadyActivatedException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredActivationTokenException
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.ui.Model

@@ -23,13 +23,27 @@ class PostReadService(
 ) : PostReader {
 
     override fun readPostById(memberId: Long, postId: Long): Post {
-        validateMemberExists(memberId)
+        memberReader.readMemberById(memberId)
 
         val post = findPostByIdOrThrow(postId)
 
         validatePostIsNotDeleted(post)
 
         publishViewEventIfNeeded(memberId, post)
+
+        return post
+    }
+
+    override fun readPostByAuthorAndId(authorId: Long, postId: Long): Post {
+        memberReader.readMemberById(authorId)
+
+        val post = findPostByIdOrThrow(postId)
+
+        validatePostIsNotDeleted(post)
+
+        if (post.author.memberId != authorId) {
+            throw PostNotFoundException("작성자가 아닌 사용자는 해당 게시글을 조회할 수 없습니다: $postId")
+        }
 
         return post
     }
@@ -52,14 +66,8 @@ class PostReadService(
         return postRepository.searchByCondition(condition, pageable)
     }
 
-    /**
-     * 회원 존재 여부를 검증합니다.
-     *
-     * @param memberId 회원 ID
-     * @throws MemberNotFoundException 회원이 존재하지 않는 경우
-     */
-    private fun validateMemberExists(memberId: Long) {
-        memberReader.readMemberById(memberId)
+    override fun readAllPosts(pageable: Pageable): Page<Post> {
+        return postRepository.findAllByStatusNot(PostStatus.DELETED, pageable)
     }
 
     /**

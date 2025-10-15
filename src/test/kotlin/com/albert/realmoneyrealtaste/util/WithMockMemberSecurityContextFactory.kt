@@ -15,9 +15,11 @@ class WithMockMemberSecurityContextFactory : WithSecurityContextFactory<WithMock
             memberId = annotation.memberId,
             email = Email(annotation.email),
             nickname = Nickname(annotation.nickname),
+            active = annotation.active,
+            introduction = annotation.introduction,
             roles = annotation.roles
                 .map { role -> Role.valueOf(role) }
-                .toSet()
+                .toSet(),
         )
 
         val auth = UsernamePasswordAuthenticationToken(

@@ -39,7 +39,7 @@ class SecurityConfig {
                     .permitAll()
             }
             .sessionManagement {
-                it.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                it.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                     .maximumSessions(1)
                     .maxSessionsPreventsLogin(false)
             }

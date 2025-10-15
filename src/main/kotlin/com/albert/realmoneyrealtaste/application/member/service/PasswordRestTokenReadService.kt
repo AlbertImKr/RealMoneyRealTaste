@@ -1,8 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidPasswordResetTokenException
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetTokenReader
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordResetTokenException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
-import com.albert.realmoneyrealtaste.application.member.exception.InvalidPasswordResetTokenException
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
+import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordResetTokenException
 
 /**
  * 비밀번호 재설정 토큰 조회기

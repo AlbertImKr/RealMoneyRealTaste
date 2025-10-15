@@ -2,8 +2,8 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import kotlin.test.Test
 import kotlin.test.assertEquals

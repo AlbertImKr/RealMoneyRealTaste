@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
-import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.Member
+import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 
 /**
@@ -17,6 +17,15 @@ interface MemberReader {
      * @throws MemberNotFoundException 해당 ID의 회원이 존재하지 않는 경우
      */
     fun readMemberById(memberId: Long): Member
+
+    /**
+     * 주어진 회원 ID로 활성화된 회원을 조회합니다.
+     *
+     * @param memberId 조회할 회원의 ID
+     * @return 조회된 활성화된 회원 객체
+     * @throws MemberNotFoundException 해당 ID의 활성화된 회원이 존재하지 않는 경우
+     */
+    fun readActiveMemberById(memberId: Long): Member
 
     /**
      * 주어진 이메일로 회원을 조회합니다.
