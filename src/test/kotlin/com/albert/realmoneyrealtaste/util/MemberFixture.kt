@@ -47,6 +47,17 @@ class MemberFixture {
             return Member.register(email, nickname, password)
         }
 
+        fun createMemberWithId(
+            id: Long,
+            email: Email = DEFAULT_EMAIL,
+            nickname: Nickname = DEFAULT_NICKNAME,
+            password: PasswordHash = DEFAULT_PASSWORD,
+        ): Member {
+            val member = Member.register(email, nickname, password)
+            setId(member, id)
+            return member
+        }
+
         fun setId(entity: BaseEntity, id: Long) {
             val field = BaseEntity::class.java.getDeclaredField("id")
             field.isAccessible = true

@@ -29,7 +29,7 @@ data class MemberPrincipal(
                 nickname = member.nickname,
                 roles = member.roles.getRoles(),
                 active = member.isActive(),
-                introduction = member.detail.introduction?.value ?: ""
+                introduction = member.detail.introduction?.value ?: "아직 자기소개가 없어요!"
             )
         }
     }
