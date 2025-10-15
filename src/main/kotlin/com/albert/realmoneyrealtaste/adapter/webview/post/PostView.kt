@@ -47,7 +47,7 @@ class PostView(
         @PathVariable postId: Long,
         model: Model,
     ): String {
-        val post = postReader.readPostById(memberPrincipal.memberId, postId)
+        val post = postReader.readPostByAuthorAndId(memberPrincipal.memberId, postId)
         model.addAttribute("postEditForm", PostEditForm.fromPost(post))
         return "post/edit"
     }

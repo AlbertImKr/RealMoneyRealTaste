@@ -34,6 +34,20 @@ class PostReadService(
         return post
     }
 
+    override fun readPostByAuthorAndId(authorId: Long, postId: Long): Post {
+        memberReader.readMemberById(authorId)
+
+        val post = findPostByIdOrThrow(postId)
+
+        validatePostIsNotDeleted(post)
+
+        if (post.author.memberId != authorId) {
+            throw PostNotFoundException("작성자가 아닌 사용자는 해당 게시글을 조회할 수 없습니다: $postId")
+        }
+
+        return post
+    }
+
     override fun readPostsByMember(memberId: Long, pageable: Pageable): Page<Post> {
         memberReader.readMemberById(memberId)
 

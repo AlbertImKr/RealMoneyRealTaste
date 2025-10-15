@@ -315,7 +315,7 @@
                                    data-bs-placement="top"
                                    data-bs-toggle="tooltip"
                                    href="#"
-                                   th:classappend="${hearts.contains(post.id)} ? 'active' : ''">
+                                   th:classappend="${hearts != null and hearts.contains(post.id)} ? 'active' : ''">
                                     <i class="bi bi-hand-thumbs-up-fill pe-1"></i>
                                     Liked (<span th:text="${post.heartCount}">56</span>)
                                 </a>

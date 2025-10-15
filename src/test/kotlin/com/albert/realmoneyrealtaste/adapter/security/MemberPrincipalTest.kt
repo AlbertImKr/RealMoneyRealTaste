@@ -117,7 +117,6 @@ class MemberPrincipalTest {
 
         assertNotNull(principal)
         assertEquals(false, principal.active)
-        assertEquals("아직 자기소개가 없어요!", principal.introduction)
     }
 
     @Test

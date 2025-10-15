@@ -22,6 +22,16 @@ interface PostReader {
     fun readPostById(memberId: Long, postId: Long): Post
 
     /**
+     * 작성자 ID와 게시글 ID로 게시글을 조회합니다.
+     *
+     * @param authorId 작성자 회원 ID
+     * @param postId 조회할 게시글 ID
+     * @return 조회된 게시글
+     * @throws PostNotFoundException 게시글을 찾을 수 없는 경우
+     */
+    fun readPostByAuthorAndId(authorId: Long, postId: Long): Post
+
+    /**
      * 특정 회원이 작성한 게시글 목록을 조회합니다.
      *
      * @param memberId 작성자 회원 ID

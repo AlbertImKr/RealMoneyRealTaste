@@ -24,12 +24,12 @@ data class MemberPrincipal(
     companion object {
         fun from(member: Member): MemberPrincipal {
             return MemberPrincipal(
-                memberId = member.id!!,
+                memberId = member.requireId(),
                 email = member.email,
                 nickname = member.nickname,
                 roles = member.roles.getRoles(),
                 active = member.isActive(),
-                introduction = member.detail.introduction?.value ?: "아직 자기소개가 없어요!"
+                introduction = member.detail.introduction?.value ?: "아직 자기소개가 없어요!",
             )
         }
     }

@@ -17,8 +17,8 @@ data class PostEditForm(
 
     @field:NotBlank(message = "음식점 주소를 입력해주세요.")
     val restaurantAddress: String,
-    val restaurantLatitude: Double = 0.0,
-    val restaurantLongitude: Double = 0.0,
+    val restaurantLatitude: Double,
+    val restaurantLongitude: Double,
 
     @field:NotBlank(message = "내용을 입력해주세요.")
     val contentText: String,
