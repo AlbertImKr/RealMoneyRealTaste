@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.comment.value
 
+import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentAuthorException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
@@ -15,9 +16,23 @@ data class CommentAuthor(
     val nickname: String,
 ) {
     init {
-        require(memberId >= MIN_MEMBER_ID) { MEMBER_ID_ERROR_MESSAGE }
-        require(nickname.isNotBlank()) { NICKNAME_REQUIRED_ERROR_MESSAGE }
-        require(nickname.length <= MAX_NICKNAME_LENGTH) { NICKNAME_LENGTH_ERROR_MESSAGE }
+        validateMemberId(memberId)
+        validateNickname(nickname)
+    }
+
+    private fun validateMemberId(memberId: Long) {
+        if (memberId < MIN_MEMBER_ID) {
+            throw InvalidCommentAuthorException(MEMBER_ID_ERROR_MESSAGE)
+        }
+    }
+
+    private fun validateNickname(nickname: String) {
+        if (nickname.isBlank()) {
+            throw InvalidCommentAuthorException(NICKNAME_REQUIRED_ERROR_MESSAGE)
+        }
+        if (nickname.length > MAX_NICKNAME_LENGTH) {
+            throw InvalidCommentAuthorException(NICKNAME_LENGTH_ERROR_MESSAGE)
+        }
     }
 
     companion object {
