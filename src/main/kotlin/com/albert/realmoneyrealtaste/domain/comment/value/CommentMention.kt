@@ -94,8 +94,6 @@ data class CommentMention(
         const val NICKNAME_MAX_LENGTH = 20
         const val START_POSITION_MIN = 0
 
-        const val MENTION_PREFIX = "@"
-
         const val INVALID_MEMBER_ID_MESSAGE = "유효하지 않은 멤버 ID입니다.: %d"
         const val EMPTY_NICKNAME_MESSAGE = "닉네임은 비어 있을 수 없습니다."
         const val OVERSIZED_NICKNAME_MESSAGE = "닉네임은 $NICKNAME_MAX_LENGTH 자를 초과할 수 없습니다.: %d"
