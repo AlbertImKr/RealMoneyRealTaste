@@ -473,4 +473,44 @@ class PostReaderTest(
             assertEquals(posts[11 - index].viewCount, post.viewCount)
         }
     }
+
+    @Test
+    fun `existsPublishedPostById - success - returns true when published post exists`() {
+        val member = testMemberHelper.createActivatedMember()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = member.nickname.value,
+            )
+        )
+        flushAndClear()
+
+        val exists = postReader.existsPublishedPostById(post.requireId())
+
+        assertTrue(exists)
+    }
+
+    @Test
+    fun `existsPublishedPostById - success - returns false when post is deleted`() {
+        val member = testMemberHelper.createActivatedMember()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = member.nickname.value,
+            )
+        )
+        post.delete(member.requireId())
+        flushAndClear()
+
+        val exists = postReader.existsPublishedPostById(post.requireId())
+
+        assertFalse(exists)
+    }
+
+    @Test
+    fun `existsPublishedPostById - success - returns false when post does not exist`() {
+        val exists = postReader.existsPublishedPostById(999L)
+
+        assertFalse(exists)
+    }
 }

@@ -73,4 +73,12 @@ interface PostReader {
      * @return 모든 게시글 목록 (페이징)
      */
     fun readAllPosts(pageable: Pageable): Page<Post>
+
+    /**
+     * 게시글 ID로 공개된 게시글 존재 여부를 확인합니다.
+     *
+     * @param postId 조회할 게시글 ID
+     * @return 공개된 게시글 존재 여부
+     */
+    fun existsPublishedPostById(postId: Long): Boolean
 }
