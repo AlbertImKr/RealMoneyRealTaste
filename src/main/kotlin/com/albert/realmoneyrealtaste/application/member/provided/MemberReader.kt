@@ -43,4 +43,20 @@ interface MemberReader {
      * @return 조회된 회원 객체 또는 null
      */
     fun findMemberByEmailOrNull(email: Email): Member?
+
+    /**
+     * 주어진 회원 ID로 활성화된 회원의 존재 여부를 확인합니다.
+     *
+     * @param memberId 확인할 회원의 ID
+     * @return 활성화된 회원이 존재하면 true, 그렇지 않으면 false
+     */
+    fun existsActiveMemberById(memberId: Long): Boolean
+
+    /**
+     * 주어진 회원 ID로 회원의 닉네임을 조회합니다.
+     *
+     * @param memberId 조회할 회원의 ID
+     * @return 조회된 회원의 닉네임
+     */
+    fun getNicknameById(memberId: Long): String
 }
