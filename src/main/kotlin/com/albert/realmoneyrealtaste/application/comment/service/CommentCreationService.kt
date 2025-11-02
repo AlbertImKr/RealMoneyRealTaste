@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.application.comment.service
 import com.albert.realmoneyrealtaste.application.comment.dto.CommentCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.dto.ReplyCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentCreationException
+import com.albert.realmoneyrealtaste.application.comment.exception.CommentNotFoundException
 import com.albert.realmoneyrealtaste.application.comment.provided.CommentCreator
 import com.albert.realmoneyrealtaste.application.comment.required.CommentRepository
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
@@ -10,7 +11,6 @@ import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.domain.comment.Comment
 import com.albert.realmoneyrealtaste.domain.comment.CommentStatus
 import com.albert.realmoneyrealtaste.domain.comment.event.CommentCreatedEvent
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.CommentNotFoundException
 import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentStatusException
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
 import org.springframework.context.ApplicationEventPublisher

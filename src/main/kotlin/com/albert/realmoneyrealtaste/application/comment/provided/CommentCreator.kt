@@ -3,8 +3,8 @@ package com.albert.realmoneyrealtaste.application.comment.provided
 import com.albert.realmoneyrealtaste.application.comment.dto.CommentCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.dto.ReplyCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentCreationException
+import com.albert.realmoneyrealtaste.application.comment.exception.CommentNotFoundException
 import com.albert.realmoneyrealtaste.domain.comment.Comment
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.CommentNotFoundException
 import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentStatusException
 
 /**

@@ -4,9 +4,9 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.comment.dto.CommentCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.dto.ReplyCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentCreationException
+import com.albert.realmoneyrealtaste.application.comment.exception.CommentNotFoundException
 import com.albert.realmoneyrealtaste.application.comment.required.CommentRepository
 import com.albert.realmoneyrealtaste.domain.comment.event.CommentCreatedEvent
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.CommentNotFoundException
 import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentStatusException
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import com.albert.realmoneyrealtaste.util.TestPostHelper
