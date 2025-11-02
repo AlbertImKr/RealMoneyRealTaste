@@ -115,7 +115,8 @@ class CommentCreationService(
      * @param request 대댓글 작성 요청 DTO
      *
      * @throws CommentNotFoundException 부모 댓글이 존재하지 않는 경우 발생
-     * @throws InvalidCommentStatusException 부모 댓글이 공개 상태가 아니거나, 게시글이 다른 경우 발생 또는 대댓글인 경우 발생
+     * @throws InvalidCommentStatusException 부모 댓글이 공개 상태가 아닌 경우 발생
+     * @throws CommentCreationException 부모 댓글과 게시글이 다르거나, 부모 댓글이 대댓글인 경우 발생
      */
     private fun validateParentComment(request: ReplyCreateRequest) {
         val parentComment = commentRepository.findById(request.parentCommentId)
