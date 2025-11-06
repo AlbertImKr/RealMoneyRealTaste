@@ -38,6 +38,4 @@ jobs:
           SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
           SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
           APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
-        run: ./gradlew build sonar --info \
-          -Dorg.gradle.jvmargs="-Xmx4096m -XX:MaxMetaspaceSize=1024m" \
-          --build-cache
+        run: ./gradlew build sonar --build-cache
