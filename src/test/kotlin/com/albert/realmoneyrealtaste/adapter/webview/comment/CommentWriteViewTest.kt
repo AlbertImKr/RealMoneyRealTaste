@@ -157,7 +157,49 @@ class CommentWriteViewTest : IntegrationTestBase() {
             .andExpect(status().is4xxClientError)
     }
 
-    // Helper method for creating test data
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `createComment - failure - handles content too long`() {
+        testMemberHelper.createActivatedMember()
+        val post = postRepository.save(PostFixture.createPost(/*...*/))
+        val longContent = "a".repeat(501) // CommentContent.MAX_LENGTH 초과
+
+        mockMvc.perform(
+            post("/comments")
+                .with(csrf())
+                .param("postId", post.requireId().toString())
+                .param("content", longContent)
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(model().attribute("error", "댓글 내용은 500자를 초과할 수 없습니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `createComment - failure - parent comment deleted`() {
+        val member = testMemberHelper.createActivatedMember()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = member.nickname.value
+            )
+        )
+        val parentComment = createAndSaveComment(post.requireId(), "부모 댓글", member.requireId())
+        // Simulate deletion
+        parentComment.delete(member.requireId())
+        commentRepository.save(parentComment)
+        flushAndClear()
+
+        mockMvc.perform(
+            post("/comments")
+                .with(csrf())
+                .param("postId", post.requireId().toString())
+                .param("content", "삭제된 부모 댓글에 대댓글")
+                .param("parentCommentId", parentComment.id.toString())
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(model().attribute("error", "부모 댓글이 존재하지 않거나 삭제되었습니다."))
+    }
 
     private fun createAndSaveComment(postId: Long, text: String, authorMemberId: Long): Comment {
         val comment = Comment.create(

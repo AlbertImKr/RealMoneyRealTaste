@@ -123,7 +123,7 @@ class CommentCreationService(
             .orElseThrow { CommentNotFoundException("부모 댓글을 찾을 수 없습니다: ${request.parentCommentId}") }
 
         if (parentComment.status != CommentStatus.PUBLISHED) {
-            throw InvalidCommentStatusException("공개된 댓글에만 대댓글을 작성할 수 있습니다: ${parentComment.status}")
+            throw InvalidCommentStatusException("부모 댓글이 존재하지 않거나 삭제되었습니다.")
         }
 
         if (parentComment.postId != request.postId) {

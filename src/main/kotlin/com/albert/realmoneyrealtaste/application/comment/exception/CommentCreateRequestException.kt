@@ -9,4 +9,6 @@ sealed class CommentCreateRequestException(message: String) : CommentApplication
     class InvalidMemberIdException(message: String) : CommentCreateRequestException(message)
 
     class EmptyContentException(message: String) : CommentCreateRequestException(message)
+
+    class ExceedContentLengthException(message: String) : CommentCreateRequestException(message)
 }

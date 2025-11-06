@@ -26,5 +26,9 @@ data class CommentCreateRequest(
         if (content.isBlank()) {
             throw CommentCreateRequestException.EmptyContentException("댓글 내용은 필수입니다.")
         }
+
+        if (content.length > 500) {
+            throw CommentCreateRequestException.ExceedContentLengthException("댓글 내용은 500자를 초과할 수 없습니다.")
+        }
     }
 }

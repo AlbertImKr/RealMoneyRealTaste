@@ -276,7 +276,7 @@ class CommentCreatorTest(
         }
 
         assertEquals(
-            "공개된 댓글에만 대댓글을 작성할 수 있습니다: DELETED",
+            "부모 댓글이 존재하지 않거나 삭제되었습니다.",
             exception.message
         )
     }
