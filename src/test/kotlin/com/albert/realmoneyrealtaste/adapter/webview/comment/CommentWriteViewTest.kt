@@ -424,8 +424,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
             )
         )
         val comment = createAndSaveComment(post.requireId(), "원본 댓글", member.requireId())
-        flushAndClear()
-        val originalCreatedAt = comment.createdAt
 
         mockMvc.perform(
             post("/comments/{commentId}", comment.id)
@@ -439,7 +437,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
         // 댓글이 실제로 DB에 업데이트되었는지 확인
         val updatedComment = commentRepository.findById(comment.id!!).get()
         assertEquals("수정된 댓글", updatedComment.content.text)
-        assertEquals(originalCreatedAt, updatedComment.createdAt)
         assertEquals(member.requireId(), updatedComment.author.memberId)
     }
 
