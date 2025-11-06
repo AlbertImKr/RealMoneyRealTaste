@@ -15,7 +15,7 @@ class CommentWriteView(
     private val commentCreator: CommentCreator,
 ) {
 
-    @PostMapping("/api/comments")
+    @PostMapping("/comments")
     fun createComment(
         @RequestParam postId: Long,
         @RequestParam content: String,

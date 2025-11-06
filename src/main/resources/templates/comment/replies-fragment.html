@@ -107,7 +107,7 @@
             </div>
             <div class="flex-grow-1">
                 <form class="d-flex gap-1"
-                      th:attr="hx-post='/api/comments',
+                      th:attr="hx-post='/comments',
                                hx-target='#replies-' + ${commentId},
                                hx-swap='beforeend'">
                     <input name="parentCommentId" th:value="${commentId}" type="hidden">
