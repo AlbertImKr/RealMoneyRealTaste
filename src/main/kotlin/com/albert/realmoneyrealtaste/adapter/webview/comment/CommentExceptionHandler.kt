@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.adapter.webview.comment
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentCreateRequestException
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentCreationException
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentNotFoundException
+import com.albert.realmoneyrealtaste.application.comment.exception.CommentUpdateRequestException
 import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentStatusException
 import com.albert.realmoneyrealtaste.domain.comment.exceptions.UnauthorizedCommentOperationException
 import org.springframework.http.HttpStatus
@@ -50,6 +51,16 @@ class CommentExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handleInvalidStatus(
         ex: InvalidCommentStatusException,
+        model: Model,
+    ): String {
+        model.addAttribute("error", ex.message)
+        return ERROR_VIEW_400
+    }
+
+    @ExceptionHandler(CommentUpdateRequestException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun handleUpdateValidationExceptions(
+        ex: CommentUpdateRequestException,
         model: Model,
     ): String {
         model.addAttribute("error", ex.message)
