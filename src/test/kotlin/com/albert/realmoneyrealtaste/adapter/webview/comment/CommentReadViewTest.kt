@@ -4,8 +4,6 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.comment.required.CommentRepository
 import com.albert.realmoneyrealtaste.domain.comment.Comment
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
-import com.albert.realmoneyrealtaste.util.MemberFixture
-import com.albert.realmoneyrealtaste.util.WithMockMember
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -23,7 +21,6 @@ class CommentReadViewTest : IntegrationTestBase() {
     private lateinit var commentRepository: CommentRepository
 
     @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `getCommentsFragment - success - returns comments fragment with comments data`() {
         val postId = 1L
         createAndSaveComment(postId, "첫 번째 댓글")
@@ -44,7 +41,6 @@ class CommentReadViewTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `getRepliesFragment - success - returns replies fragment with replies data`() {
         val postId = 1L
         val parentComment = createAndSaveComment(postId, "부모 댓글")
@@ -67,7 +63,6 @@ class CommentReadViewTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `getModalCommentsFragment - success - returns modal comments fragment`() {
         val postId = 1L
         createAndSaveComment(postId, "모달용 댓글")
@@ -86,7 +81,6 @@ class CommentReadViewTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `getModalRepliesFragment - success - returns modal replies fragment`() {
         val postId = 1L
         val parentComment = createAndSaveComment(postId, "부모 댓글")
@@ -96,7 +90,7 @@ class CommentReadViewTest : IntegrationTestBase() {
         flushAndClear()
 
         mockMvc.perform(
-            get("/comment/modal-replies-fragment")
+            get("/comments/modal-replies-fragment")
                 .param("commentId", parentCommentId.toString())
                 .param("page", "0")
                 .param("size", "10")

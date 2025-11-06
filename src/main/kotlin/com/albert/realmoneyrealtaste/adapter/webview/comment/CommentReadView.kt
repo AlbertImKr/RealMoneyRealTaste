@@ -58,7 +58,7 @@ class CommentReadView(
         return "comment/modal-comments :: modal-comments-list"
     }
 
-    @GetMapping("/comment/modal-replies-fragment")
+    @GetMapping("/comments/modal-replies-fragment")
     fun getModalRepliesFragment(
         @RequestParam commentId: Long,
         @PageableDefault pageable: Pageable,

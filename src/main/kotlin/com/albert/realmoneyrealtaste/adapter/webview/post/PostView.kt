@@ -62,10 +62,6 @@ class PostView(
         return "redirect:/posts/$postId"
     }
 
-    companion object {
-        const val POST_DETAIL_VIEW_NAME = "post/detail"
-    }
-
     @GetMapping("/posts/{postId}/modal")
     fun readPostDetailModal(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
@@ -77,5 +73,9 @@ class PostView(
         model.addAttribute("post", post)
 
         return "post/modal-detail :: post-detail-modal"
+    }
+
+    companion object {
+        const val POST_DETAIL_VIEW_NAME = "post/detail"
     }
 }

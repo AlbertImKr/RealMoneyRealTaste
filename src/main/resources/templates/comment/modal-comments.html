@@ -145,7 +145,7 @@
                                     <span aria-hidden="true" class="badge bg-primary ms-1">0</span>
                                 </button>
                                 <button aria-label="답글 작성" class="btn btn-outline-secondary"
-                                        th:attr="hx-get='/comment/modal-replies-fragment?commentId=' + ${comment.id},
+                                        th:attr="hx-get='/comments/modal-replies-fragment?commentId=' + ${comment.id},
 hx-target='#modal-replies-' + ${comment.id},
 hx-swap='innerHTML',
 hx-indicator='#modal-reply-loading-' + ${comment.id}" type="button">
@@ -315,7 +315,7 @@ hx-indicator='#modal-reply-loading-' + ${comment.id}" type="button">
                             좋아요
                             <span class="badge bg-success ms-1">0</span>
                         </button>
-                        <button class="btn btn-outline-success" th:attr="hx-get='/comment/modal-replies-fragment?commentId=' + ${comment.id},
+                        <button class="btn btn-outline-success" th:attr="hx-get='/comments/modal-replies-fragment?commentId=' + ${comment.id},
      hx-target='#modal-replies-' + ${comment.id},
      hx-swap='innerHTML'"
                                 type="button">

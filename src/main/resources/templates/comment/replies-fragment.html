@@ -78,7 +78,7 @@
     <!-- 답글 더보기 (Click to Load 패턴) -->
     <div class="text-center mt-3" th:if="${replies.hasNext()}">
         <button class="btn btn-link btn-sm text-muted p-0"
-                th:attr="hx-get='/comment/replies-fragment?commentId=' + ${commentId} + '&page=' + ${replies.number + 1},
+                th:attr="hx-get='/comments/replies-fragment?commentId=' + ${commentId} + '&page=' + ${replies.number + 1},
                          hx-target='this',
                          hx-swap='outerHTML',
                          hx-indicator='#more-replies-loading-' + ${commentId}">
@@ -184,7 +184,7 @@
             <i class="bi bi-exclamation-triangle me-1"></i>답글을 불러올 수 없습니다
         </p>
         <button class="btn btn-sm btn-outline-primary"
-                th:attr="hx-get='/comment/replies-fragment?commentId=' + ${commentId},
+                th:attr="hx-get='/comments/replies-fragment?commentId=' + ${commentId},
                          hx-target='this',
                          hx-swap='outerHTML'">
             <i class="bi bi-arrow-clockwise me-1"></i>다시 시도

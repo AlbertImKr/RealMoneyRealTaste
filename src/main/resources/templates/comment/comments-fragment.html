@@ -106,7 +106,7 @@
                         <!-- 답글 보기/작성 버튼 -->
                         <div th:id="'reply-load-section-' + ${comment.id}">
                             <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center"
-                                    th:attr="hx-get='/comment/replies-fragment?commentId=' + ${comment.id},
+                                    th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
                                              hx-target='#replies-' + ${comment.id},
                                              hx-swap='innerHTML',
                                              hx-indicator='#reply-loading-' + ${comment.id}">
@@ -248,7 +248,7 @@
                 <!-- 답글 보기 버튼 -->
                 <div th:id="'reply-load-section-' + ${comment.id}">
                     <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center"
-                            th:attr="hx-get='/comment/replies-fragment?commentId=' + ${comment.id},
+                            th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
                                      hx-target='#replies-' + ${comment.id},
                                      hx-swap='innerHTML'">
                         <i class="bi bi-reply me-1"></i>
