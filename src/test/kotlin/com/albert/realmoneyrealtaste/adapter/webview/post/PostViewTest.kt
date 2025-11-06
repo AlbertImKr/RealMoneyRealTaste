@@ -496,4 +496,50 @@ class PostViewTest : IntegrationTestBase() {
         )
             .andExpect(status().is4xxClientError)
     }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readPostDetailModal - success - returns modal fragment with post information`() {
+        val member = testMemberHelper.createActivatedMember()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = member.nickname.value
+            )
+        )
+
+        mockMvc.perform(
+            get("/posts/{postId}/modal", post.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name("post/modal-detail :: post-detail-modal"))
+            .andExpect(model().attributeExists("post"))
+    }
+
+    @Test
+    fun `readPostDetailModal - failure - returns forbidden when not authenticated`() {
+        val member = testMemberHelper.createActivatedMember()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = member.nickname.value
+            )
+        )
+
+        mockMvc.perform(
+            get("/posts/{postId}/modal", post.requireId())
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readPostDetailModal - failure - returns error when post not found`() {
+        testMemberHelper.createActivatedMember()
+
+        mockMvc.perform(
+            get("/posts/{postId}/modal", 99999L)
+        )
+            .andExpect(status().is4xxClientError)
+    }
 }
