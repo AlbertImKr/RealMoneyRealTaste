@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
-class CommentWebController(
+class CommentReadView(
     private val commentReader: CommentReader,
 ) {
 
