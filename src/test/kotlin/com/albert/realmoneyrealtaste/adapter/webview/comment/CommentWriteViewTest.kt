@@ -424,8 +424,8 @@ class CommentWriteViewTest : IntegrationTestBase() {
             )
         )
         val comment = createAndSaveComment(post.requireId(), "원본 댓글", member.requireId())
-        val originalCreatedAt = comment.createdAt
         flushAndClear()
+        val originalCreatedAt = comment.createdAt
 
         mockMvc.perform(
             post("/comments/{commentId}", comment.id)

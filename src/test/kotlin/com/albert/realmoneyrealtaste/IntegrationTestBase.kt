@@ -37,7 +37,7 @@ abstract class IntegrationTestBase() {
 
         val tables = entityManager.createNativeQuery(
             "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()"
-        ).resultList as List<String>
+        ).resultList
 
         tables.forEach { tableName ->
             entityManager.createNativeQuery("TRUNCATE TABLE $tableName").executeUpdate()
