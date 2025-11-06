@@ -121,4 +121,13 @@ interface PostRepository : Repository<Post, Long> {
      * @return 모든 게시글 목록 (페이징)
      */
     fun findAllByStatusNot(status: PostStatus, pageable: Pageable): Page<Post>
+
+    /**
+     * 특정 상태의 게시글 존재 여부를 확인합니다.
+     *
+     * @param id 조회할 게시글 ID
+     * @param status 게시글 상태
+     * @return 게시글 존재 여부
+     */
+    fun existsByIdAndStatus(id: Long, status: PostStatus): Boolean
 }

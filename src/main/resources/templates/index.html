@@ -28,10 +28,12 @@
     <link href="/assets/vendor/dropzone/dist/dropzone.css" rel="stylesheet" type="text/css">
     <link href="/assets/vendor/flatpickr/dist/flatpickr.css" rel="stylesheet" type="text/css">
     <link href="/assets/vendor/plyr/plyr.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/zuck.js/dist/zuck.min.css" rel="stylesheet" type="text/css">
 
     <!-- Theme CSS -->
     <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.8"></script>
 
 </head>
 <body>
@@ -52,7 +54,8 @@
 
                 <!-- Advanced filter responsive toggler START -->
                 <div class="d-flex align-items-center d-lg-none">
-                    <button aria-controls="offcanvasSideNavbar" class="border-0 bg-transparent" data-bs-target="#offcanvasSideNavbar"
+                    <button aria-controls="offcanvasSideNavbar" class="border-0 bg-transparent"
+                            data-bs-target="#offcanvasSideNavbar"
                             data-bs-toggle="offcanvas" type="button">
                         <span class="btn btn-primary"><i class="fa-solid fa-sliders-h"></i></span>
                         <span class="h6 mb-0 fw-bold d-lg-none ms-2">My profile</span>
@@ -188,43 +191,7 @@
             <div class="col-md-8 col-lg-6 vstack gap-4">
 
                 <!-- Create post card START -->
-                <div class="card card-body" th:if="${member != null}">
-                    <div class="d-flex mb-3">
-                        <!-- Post input -->
-                        <button class="form-control rounded text-start"
-                                data-bs-target="#modalCreateFeed"
-                                data-bs-toggle="modal">
-                <span class="text-muted" th:text="${member.nickname.value} + '님, 어떤 맛집을 다녀오셨나요?'">
-                    맛집 리뷰를 공유해주세요...
-                </span>
-                        </button>
-                    </div>
-                    <!-- Share feed toolbar START -->
-                    <ul class="nav nav-pills nav-stack small fw-normal">
-                        <li class="nav-item">
-                            <button class="nav-link bg-light py-1 px-2 mb-0"
-                                    data-bs-target="#modalCreateFeed"
-                                    data-bs-toggle="modal">
-                                <i class="bi bi-image-fill text-success pe-2"></i>사진
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link bg-light py-1 px-2 mb-0"
-                                    data-bs-target="#modalCreateFeed"
-                                    data-bs-toggle="modal">
-                                <i class="bi bi-geo-alt-fill text-danger pe-2"></i>위치
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link bg-light py-1 px-2 mb-0"
-                                    data-bs-target="#modalCreateFeed"
-                                    data-bs-toggle="modal">
-                                <i class="bi bi-star-fill text-warning pe-2"></i>평점
-                            </button>
-                        </li>
-                    </ul>
-                    <!-- Share feed toolbar END -->
-                </div>
+                <th:block th:insert="~{post/modal-create-post :: create-post-trigger}"></th:block>
                 <!-- Create post card END -->
 
                 <!-- 포스트가 없을 때 -->
@@ -300,12 +267,19 @@
                         </p>
 
                         <!-- Card img -->
-                        <a th:href="@{/posts/{id}(id=${post.id})}" th:if="${post.images != null}">
+                        <div th:if="${post.images != null and !post.images.isEmpty()}">
                             <img alt="Post"
-                                 class="card-img"
+                                 class="card-img post-detail-trigger"
                                  style="cursor: pointer;"
+                                 th:attr="hx-get='/posts/' + ${post.id} + '/modal',
+                                         hx-target='#post-detail-modal-content',
+                                         hx-trigger='click',
+                                         hx-swap='innerHTML',
+                                         hx-indicator='#post-detail-loading',
+                                         data-bs-toggle='modal',
+                                         data-bs-target='#postDetailModal'"
                                  th:src="${post.images.urls[0]}">
-                        </a>
+                        </div>
 
                         <!-- Feed react START -->
                         <ul class="nav nav-stack py-3 small">
@@ -327,10 +301,13 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">
+                                <button class="nav-link btn p-0 border-0 bg-transparent"
+                                        data-bs-toggle="modal"
+                                        th:attr="data-bs-target='#commentsModal' + ${post.id},
+                                                 data-post-id=${post.id}">
                                     <i class="bi bi-chat-fill pe-1"></i>
-                                    Comments (<span>12</span>)
-                                </a>
+                                    Comments (<span th:id="'comment-count-' + ${post.id}">0</span>)
+                                </button>
                             </li>
                             <!-- Card share action START -->
                             <li class="nav-item dropdown ms-sm-auto">
@@ -370,9 +347,6 @@
                         <!-- Feed react END -->
                     </div>
                     <!-- Card body END -->
-
-                    <!-- Card footer START -->
-                    <!-- Card footer END -->
                 </div>
                 <!-- Card post item END -->
 
@@ -417,162 +391,68 @@
         </div> <!-- Row END -->
     </div>
     <!-- Container END -->
-
 </main>
 <!-- **************** MAIN CONTENT END **************** -->
 
-<!-- Main Chat START -->
-<!-- Main Chat END -->
-
 <!-- Modal create post START -->
-<div aria-hidden="true" aria-labelledby="modalLabelCreateFeed" class="modal fade" id="modalCreateFeed" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-        <div class="modal-content">
-            <!-- Modal feed header START -->
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalLabelCreateFeed">새 게시글 작성</h5>
+<th:block th:insert="~{post/modal-create-post :: modal-create-post}"></th:block>
+<!-- Modal create post END -->
+
+<!-- Post Detail Modal START -->
+<div aria-hidden="true" aria-labelledby="postDetailModalLabel" class="modal fade" id="postDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl d-flex align-items-center justify-content-center min-vh-100">
+        <div class="modal-content mx-auto" style="max-height: 90vh; overflow-y: auto;">
+            <!-- Modal header START -->
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="postDetailModalLabel">
+                    <i class="bi bi-card-image text-primary me-2"></i>게시글 상세보기
+                </h5>
                 <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
             </div>
-            <!-- Modal feed header END -->
+            <!-- Modal header END -->
 
-            <!-- Modal feed body START -->
-            <div class="modal-body">
-                <!-- 게시글 작성 폼 -->
-                <form id="createPostForm" method="post" th:action="@{/posts/new}" th:object="${postCreateForm}">
-                    <!-- 맛집 정보 섹션 -->
-                    <div class="mb-3">
-                        <h6 class="mb-2">
-                            <i class="bi bi-shop text-primary me-2"></i>맛집 정보
-                        </h6>
-
-                        <!-- 맛집 이름 -->
-                        <div class="mb-2">
-                            <label class="form-label visually-hidden" for="restaurantName">맛집 이름</label>
-                            <input class="form-control"
-                                   id="restaurantName"
-                                   placeholder="맛집 이름 *"
-                                   required
-                                   th:field="*{restaurantName}"
-                                   type="text">
-                            <div class="invalid-feedback" th:errors="*{restaurantName}"
-                                 th:if="${#fields.hasErrors('restaurantName')}"></div>
+            <!-- Modal body START -->
+            <div class="modal-body p-0">
+                <!-- 로딩 상태 -->
+                <div class="htmx-indicator" id="post-detail-loading">
+                    <div class="d-flex justify-content-center align-items-center py-5">
+                        <div class="spinner-border text-primary me-3">
+                            <output class="visually-hidden">Loading...</output>
                         </div>
-
-                        <!-- 맛집 주소 -->
-                        <div class="mb-2">
-                            <label class="form-label visually-hidden" for="restaurantAddress">주소</label>
-                            <input class="form-control"
-                                   id="restaurantAddress"
-                                   placeholder="주소 *"
-                                   required
-                                   th:field="*{restaurantAddress}"
-                                   type="text">
-                            <div class="invalid-feedback" th:errors="*{restaurantAddress}"
-                                 th:if="${#fields.hasErrors('restaurantAddress')}"></div>
-                        </div>
-
-                        <!-- 위도/경도 (숨김 필드) -->
-                        <input th:field="*{restaurantLatitude}" type="hidden">
-                        <input th:field="*{restaurantLongitude}" type="hidden">
+                        <span class="text-muted">게시글을 불러오는 중...</span>
                     </div>
+                </div>
 
-                    <!-- 평점 -->
-                    <div class="mb-3">
-                        <h6 class="mb-2">
-                            <i class="bi bi-star-fill text-warning me-2"></i>평점
-                        </h6>
-                        <div class="d-flex align-items-center">
-                            <div class="rating-stars" id="modal-rating-stars">
-                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="1"></i>
-                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="2"></i>
-                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="3"></i>
-                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="4"></i>
-                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="5"></i>
-                            </div>
-                            <span class="ms-2 text-muted small" id="modal-rating-text">평점을 선택하세요</span>
-                        </div>
-                        <input id="modal-contentRating" required th:field="*{contentRating}" type="hidden">
-                        <div class="invalid-feedback d-block" th:errors="*{contentRating}"
-                             th:if="${#fields.hasErrors('contentRating')}"></div>
+                <!-- 실제 Post 내용이 로드될 영역 -->
+                <div id="post-detail-modal-content">
+                    <!-- HTMX로 동적으로 로드됨 -->
+                </div>
+            </div>
+            <!-- Modal body END -->
+
+            <!-- Modal footer START -->
+            <div class="modal-footer border-0 bg-light">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        ESC 키를 눌러 닫을 수 있습니다
                     </div>
-
-                    <!-- 리뷰 내용 -->
-                    <div class="mb-3">
-                        <h6 class="mb-2">
-                            <i class="bi bi-chat-left-text text-info me-2"></i>리뷰 내용
-                        </h6>
-                        <label class="form-label visually-hidden" for="contentText">리뷰 내용</label>
-                        <textarea class="form-control"
-                                  id="contentText"
-                                  placeholder="맛집에 대한 솔직한 리뷰를 작성해주세요. 음식의 맛, 분위기, 서비스 등을 자유롭게 공유해주세요."
-                                  required
-                                  rows="5"
-                                  th:field="*{contentText}"></textarea>
-                        <div class="form-text">최소 10자 이상 작성해주세요.</div>
-                        <div class="invalid-feedback" th:errors="*{contentText}"
-                             th:if="${#fields.hasErrors('contentText')}"></div>
-                    </div>
-
-                    <!-- 사진 업로드 -->
-                    <div class="mb-3">
-                        <h6 class="mb-2">
-                            <i class="bi bi-image text-success me-2"></i>사진 추가
-                        </h6>
-                        <div id="modal-image-url-container">
-                            <!-- 첫 번째 이미지 입력 필드 -->
-                            <div class="input-group mb-2" data-image-index="0">
-                                <label class="input-group-text visually-hidden" for="imageUrl0">이미지 URL</label>
-                                <input class="form-control image-url-input"
-                                       data-index="0"
-                                       id="imageUrl0"
-                                       name="imagesUrls[0]"
-                                       placeholder="이미지 URL을 입력하세요"
-                                       type="text">
-                                <button class="btn btn-outline-danger remove-image-btn"
-                                        style="display: none;"
-                                        type="button">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button class="btn btn-sm btn-outline-primary"
-                                id="modal-add-image-btn"
-                                type="button">
-                            <i class="bi bi-plus-circle me-1"></i> 사진 추가
+                    <fieldset class="btn-group">
+                        <legend class="visually-hidden">Modal actions</legend>
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">
+                            <i class="bi bi-x-circle me-1"></i>닫기
                         </button>
-                        <div class="form-text">최대 5장까지 추가할 수 있습니다.</div>
-                    </div>
-
-                    <!-- 추가 옵션 아이콘 (선택사항) -->
-                    <div class="hstack gap-2 mb-3">
-                        <span class="icon-md bg-success bg-opacity-10 text-success rounded-circle">
-                            <i class="bi bi-image-fill"></i>
-                        </span>
-                        <span class="icon-md bg-danger bg-opacity-10 text-danger rounded-circle">
-                            <i class="bi bi-geo-alt-fill"></i>
-                        </span>
-                        <span class="icon-md bg-warning bg-opacity-10 text-warning rounded-circle">
-                            <i class="bi bi-emoji-smile-fill"></i>
-                        </span>
-                    </div>
-
-                </form>
+                        <a class="btn btn-primary d-none" href="#" id="post-detail-link">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>새 창에서 보기
+                        </a>
+                    </fieldset>
+                </div>
             </div>
-            <!-- Modal feed body END -->
-
-            <!-- Modal feed footer -->
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">취소</button>
-                <button class="btn btn-primary" form="createPostForm" type="submit">
-                    <i class="bi bi-send-fill me-1"></i>게시하기
-                </button>
-            </div>
-            <!-- Modal feed footer -->
-
+            <!-- Modal footer END -->
         </div>
     </div>
 </div>
-<!-- Modal create post END -->
+<!-- Post Detail Modal END -->
 
 <!-- =======================
 JS libraries, plugins and custom scripts -->
@@ -588,153 +468,284 @@ JS libraries, plugins and custom scripts -->
 <script src="/assets/vendor/flatpickr/dist/flatpickr.min.js"></script>
 <script src="/assets/vendor/plyr/plyr.js"></script>
 <script src="/assets/vendor/dropzone/dist/min/dropzone.min.js"></script>
-<script src="/assets/vendor/zuck.js/dist/zuck.min.js"></script>
-<script src="/assets/js/zuck-stories.js"></script>
 
 <!-- Theme Functions -->
 <script src="/assets/js/functions.js"></script>
 
-<!-- Modal Script -->
-<script th:inline="javascript">
+<!-- HTMX 설정 스크립트 -->
+<script>
     document.addEventListener('DOMContentLoaded', function () {
-        // 모달이 열릴 때마다 초기화
-        const modalElement = document.getElementById('modalCreateFeed');
-        if (modalElement) {
-            modalElement.addEventListener('shown.bs.modal', function () {
-                initModalRatingStars();
-                initModalImageUpload();
-            });
-        }
+        // HTMX 이벤트 리스너
+        document.body.addEventListener('htmx:configRequest', function (event) {
+            // CSRF 토큰이 필요한 경우 추가
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
 
-        // 평점 선택 기능
-        function initModalRatingStars() {
-            const stars = document.querySelectorAll('#modal-rating-stars i');
-            const ratingInput = document.getElementById('modal-contentRating');
-            const ratingText = document.getElementById('modal-rating-text');
-
-            if (!stars.length) return;
-
-            stars.forEach(star => {
-                star.addEventListener('click', function () {
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    ratingInput.value = rating;
-
-                    // 별 채우기
-                    stars.forEach((s, index) => {
-                        if (index < rating) {
-                            s.classList.remove('bi-star');
-                            s.classList.add('bi-star-fill');
-                        } else {
-                            s.classList.remove('bi-star-fill');
-                            s.classList.add('bi-star');
-                        }
-                    });
-
-                    // 텍스트 업데이트
-                    ratingText.textContent = rating + '점';
-                });
-
-                // 호버 효과
-                star.addEventListener('mouseenter', function () {
-                    const rating = parseInt(this.getAttribute('data-rating'));
-                    stars.forEach((s, index) => {
-                        if (index < rating) {
-                            s.style.opacity = '1';
-                        } else {
-                            s.style.opacity = '0.5';
-                        }
-                    });
-                });
-            });
-
-            const ratingContainer = document.getElementById('modal-rating-stars');
-            if (ratingContainer) {
-                ratingContainer.addEventListener('mouseleave', function () {
-                    stars.forEach(s => {
-                        s.style.opacity = '1';
-                    });
-                });
+            if (csrfToken && csrfHeader) {
+                event.detail.headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
             }
-        }
+        });
 
-        // 이미지 URL 관리
-        function initModalImageUpload() {
-            let imageCount = 1;
-            const maxImages = 5;
-            const addImageBtn = document.getElementById('modal-add-image-btn');
-            const imageUrlContainer = document.getElementById('modal-image-url-container');
+        // 댓글 작성 후 입력 필드 초기화 및 효과 추가
+        document.body.addEventListener('htmx:afterRequest', function (event) {
+            if (event.detail.xhr.status === 200 && event.target.querySelector('input[name="content"]')) {
+                const form = event.target;
+                const input = form.querySelector('input[name="content"]');
+                if (input) {
+                    input.value = '';
+                    // 성공 피드백
+                    input.placeholder = '댓글이 작성되었습니다!';
+                    input.style.borderColor = '#28a745';
+                    setTimeout(() => {
+                        input.placeholder = '댓글을 입력하세요...';
+                        input.style.borderColor = '';
+                    }, 2000);
+                }
+            }
+        });
 
-            if (!addImageBtn || !imageUrlContainer) return;
+        // 댓글 로드 후 "댓글 보기" 버튼 숨기기 및 새 댓글 강조
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            if (event.target.id.startsWith('comments-container-')) {
+                const postId = event.target.id.replace('comments-container-', '');
+                const loadButton = document.getElementById('load-comments-' + postId);
+                if (loadButton) {
+                    loadButton.style.display = 'none';
+                }
 
-            function updateImageIndices() {
-                const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
-                inputGroups.forEach((group, index) => {
-                    const input = group.querySelector('.image-url-input');
-                    input.setAttribute('data-index', index);
-                    input.setAttribute('name', `imagesUrls[${index}]`);
-                    group.setAttribute('data-image-index', index);
-                });
-                imageCount = inputGroups.length;
+                // 새로 추가된 댓글 강조 효과
+                const newComment = event.target.querySelector('.comment-item:first-child .badge-success');
+                if (newComment) {
+                    const commentElement = newComment.closest('.comment-item');
+                    commentElement.style.backgroundColor = '#d4edda';
+                    commentElement.style.transform = 'scale(1.02)';
+                    commentElement.style.transition = 'all 0.3s ease';
 
-                // 최대 개수 도달 시 추가 버튼 숨김
-                addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'inline-block';
+                    setTimeout(() => {
+                        commentElement.style.backgroundColor = '';
+                        commentElement.style.transform = '';
+                    }, 2000);
 
-                // 삭제 버튼 표시/숨김
-                inputGroups.forEach((group, index) => {
-                    const removeBtn = group.querySelector('.remove-image-btn');
-                    if (removeBtn) {
-                        removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
+                    // 새 댓글로 부드럽게 스크롤
+                    commentElement.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+                }
+            }
+        });
+
+        // 에러 처리
+        document.body.addEventListener('htmx:responseError', function (event) {
+            console.error('HTMX Error:', event.detail);
+            alert('요청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+        });
+
+        // 모달 관련 이벤트 처리
+        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
+            button.addEventListener('click', function () {
+                const postId = this.getAttribute('data-post-id');
+                if (postId) {
+                    // 모달이 열릴 때 댓글 로드
+                    const modalElement = document.getElementById('commentsModal' + postId);
+                    if (modalElement) {
+                        modalElement.addEventListener('shown.bs.modal', function () {
+                            // 댓글 목록 로드
+                            const commentsContainer = document.getElementById('modal-comments-container-' + postId);
+                            const loadingElement = document.getElementById('modal-comments-loading-' + postId);
+
+                            if (commentsContainer && !commentsContainer.dataset.loaded) {
+                                // HTMX로 댓글 로드
+                                htmx.ajax('GET', '/comments/modal-fragments/list?postId=' + postId, {
+                                    target: '#modal-comments-container-' + postId,
+                                    swap: 'innerHTML'
+                                });
+                                commentsContainer.dataset.loaded = 'true';
+                            }
+                        }, {once: true});
                     }
-                });
-            }
-
-            addImageBtn.addEventListener('click', function () {
-                if (imageCount >= maxImages) return;
-
-                const newIndex = imageCount;
-                const newInputGroup = document.createElement('div');
-                newInputGroup.className = 'input-group mb-2';
-                newInputGroup.setAttribute('data-image-index', newIndex);
-                newInputGroup.innerHTML = `
-                <input type="text"
-                       class="form-control image-url-input"
-                       name="imagesUrls[${newIndex}]"
-                       placeholder="이미지 URL을 입력하세요"
-                       data-index="${newIndex}">
-                <button class="btn btn-outline-danger remove-image-btn" type="button">
-                    <i class="bi bi-x"></i>
-                </button>
-            `;
-
-                imageUrlContainer.appendChild(newInputGroup);
-
-                // 삭제 버튼 이벤트
-                const removeBtn = newInputGroup.querySelector('.remove-image-btn');
-                removeBtn.addEventListener('click', function () {
-                    newInputGroup.remove();
-                    updateImageIndices();
-                });
-
-                updateImageIndices();
+                }
             });
+        });
 
-            // 삭제 버튼 이벤트
-            imageUrlContainer.addEventListener('click', function (e) {
-                if (e.target.closest('.remove-image-btn')) {
-                    const inputGroup = e.target.closest('.input-group');
-                    if (imageCount > 1) {
-                        inputGroup.remove();
-                        updateImageIndices();
+        // 모달 내 댓글 작성 후 효과 추가
+        document.body.addEventListener('htmx:afterRequest', function (event) {
+            // 모달 내 댓글 작성 성공 처리
+            if (event.detail.xhr.status === 200 &&
+                event.target.closest('.modal') &&
+                event.target.querySelector('input[name="content"]')) {
+
+                const input = event.target.querySelector('input[name="content"]');
+                if (input) {
+                    input.value = '';
+                    input.placeholder = '댓글이 작성되었습니다!';
+                    input.style.borderColor = '#28a745';
+
+                    setTimeout(() => {
+                        input.placeholder = '댓글을 입력하세요...';
+                        input.style.borderColor = '';
+                    }, 2000);
+                }
+            }
+        });
+
+        // 모달 내 새 댓글 강조 효과
+        document.body.addEventListener('htmx:afterSwap', function (event) {
+            if (event.target.id.startsWith('modal-comments-container-')) {
+                // 새로 추가된 댓글 강조 효과
+                const newComment = event.target.querySelector('.comment-item:first-child .badge-success');
+                if (newComment) {
+                    const commentElement = newComment.closest('.comment-item');
+                    commentElement.style.backgroundColor = '#d4edda';
+                    commentElement.style.transform = 'scale(1.02)';
+                    commentElement.style.transition = 'all 0.3s ease';
+
+                    setTimeout(() => {
+                        commentElement.style.backgroundColor = '';
+                        commentElement.style.transform = '';
+                    }, 2000);
+
+                    // 새 댓글로 부드럽게 스크롤
+                    commentElement.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Post Detail Modal Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Post 모달 관련 이벤트 처리
+        const postDetailModal = document.getElementById('postDetailModal');
+
+        if (postDetailModal) {
+            // 모달이 열릴 때
+            postDetailModal.addEventListener('show.bs.modal', function (event) {
+                const trigger = event.relatedTarget;
+                if (trigger) {
+                    // 로딩 상태 초기화
+                    const loadingElement = document.getElementById('post-detail-loading');
+                    const contentElement = document.getElementById('post-detail-modal-content');
+
+                    if (loadingElement) loadingElement.style.display = 'block';
+                    if (contentElement) contentElement.innerHTML = '';
+
+                    // 새 창에서 보기 링크 업데이트
+                    const postId = trigger.getAttribute('hx-get')?.match(/\/posts\/(\d+)\/modal/)?.[1];
+                    const linkButton = document.getElementById('post-detail-link');
+                    if (linkButton && postId) {
+                        linkButton.href = `/posts/${postId}`;
+                        linkButton.classList.remove('d-none');
                     }
                 }
             });
 
-            // 초기 상태 설정
-            updateImageIndices();
+            // 모달이 완전히 열린 후
+            postDetailModal.addEventListener('shown.bs.modal', function (event) {
+                // 포커스를 모달 내용에 설정 (접근성)
+                const contentElement = document.getElementById('post-detail-modal-content');
+                if (contentElement) {
+                    contentElement.focus();
+                }
+            });
+
+            // 모달이 닫힐 때 정리
+            postDetailModal.addEventListener('hidden.bs.modal', function () {
+                const contentElement = document.getElementById('post-detail-modal-content');
+                const linkButton = document.getElementById('post-detail-link');
+
+                if (contentElement) {
+                    contentElement.innerHTML = '';
+                }
+                if (linkButton) {
+                    linkButton.classList.add('d-none');
+                }
+            });
         }
+
+        // HTMX 이벤트 처리 (Post Detail 모달용)
+        document.body.addEventListener('htmx:beforeRequest', function (event) {
+            if (event.detail.target?.id === 'post-detail-modal-content') {
+                // 요청 시작 시 로딩 표시
+                const loadingElement = document.getElementById('post-detail-loading');
+                if (loadingElement) {
+                    loadingElement.style.display = 'block';
+                }
+            }
+        });
+
+        document.body.addEventListener('htmx:afterRequest', function (event) {
+            if (event.detail.target?.id === 'post-detail-modal-content') {
+                // 요청 완료 시 로딩 숨김
+                const loadingElement = document.getElementById('post-detail-loading');
+                if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                }
+
+                // 성공적으로 로드되었으면 스크롤을 최상단으로
+                if (event.detail.xhr.status === 200) {
+                    const modalBody = document.querySelector('#postDetailModal .modal-body');
+                    if (modalBody) {
+                        modalBody.scrollTop = 0;
+                    }
+
+                    // 모달 내용이 로드된 후 스크립트 실행
+                    setTimeout(() => {
+                        // 모달 전용 스크립트들이 실행되도록 이벤트 발생
+                        const modalLoadedEvent = new CustomEvent('modalContentLoaded');
+                        document.dispatchEvent(modalLoadedEvent);
+                    }, 100);
+                }
+            }
+        });
+
+        document.body.addEventListener('htmx:responseError', function (event) {
+            if (event.detail.target?.id === 'post-detail-modal-content') {
+                const loadingElement = document.getElementById('post-detail-loading');
+                const contentElement = document.getElementById('post-detail-modal-content');
+
+                if (loadingElement) loadingElement.style.display = 'none';
+
+                if (contentElement) {
+                    contentElement.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="text-muted mb-2">게시글을 불러올 수 없습니다</h5>
+                            <p class="text-muted mb-3">네트워크 연결을 확인하고 다시 시도해주세요.</p>
+                            <button class="btn btn-primary" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>새로고침
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        // ESC 키로 모달 닫기 (추가 처리)
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                const modal = bootstrap.Modal.getInstance(postDetailModal);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        });
+
+        // 모달 외부 클릭으로 닫기 방지 (선택사항 - 필요에 따라 제거)
+        postDetailModal?.addEventListener('click', function (event) {
+            if (event.target === this) {
+                // 모달 배경 클릭 시에도 닫히도록 허용
+                const modal = bootstrap.Modal.getInstance(this);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        });
     });
 </script>
 
+<!-- Modal Create Post Script -->
+<th:block th:insert="~{post/modal-create-post :: modal-create-post-script}"></th:block>
 
 </body>
 </html>

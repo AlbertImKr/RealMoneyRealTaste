@@ -23,6 +23,7 @@ class TestMemberHelper(
             nickname = nickname,
             password = password,
         )
+        member.activate()
         return memberRepository.save(member)
     }
 

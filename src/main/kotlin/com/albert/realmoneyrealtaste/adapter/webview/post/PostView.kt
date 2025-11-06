@@ -62,6 +62,19 @@ class PostView(
         return "redirect:/posts/$postId"
     }
 
+    @GetMapping("/posts/{postId}/modal")
+    fun readPostDetailModal(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @PathVariable postId: Long,
+        model: Model,
+    ): String {
+        val currentUserId = memberPrincipal.memberId
+        val post = postReader.readPostById(currentUserId, postId)
+        model.addAttribute("post", post)
+
+        return "post/modal-detail :: post-detail-modal"
+    }
+
     companion object {
         const val POST_DETAIL_VIEW_NAME = "post/detail"
     }

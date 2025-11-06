@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.adapter.security
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -18,6 +19,7 @@ class SecurityConfig {
                 it.requestMatchers("/").permitAll()
                     .requestMatchers("/signup", "/members/activate", "/signin").permitAll()
                     .requestMatchers("/members/password-forgot", "/members/password-reset").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/comments/**").permitAll()
                     .requestMatchers("/assets/**").permitAll()
                     .requestMatchers("/api/**").permitAll()
                     .requestMatchers("/error").permitAll()

@@ -70,6 +70,10 @@ class PostReadService(
         return postRepository.findAllByStatusNot(PostStatus.DELETED, pageable)
     }
 
+    override fun existsPublishedPostById(postId: Long): Boolean {
+        return postRepository.existsByIdAndStatus(postId, PostStatus.PUBLISHED)
+    }
+
     /**
      * 게시글을 조회하고 존재하지 않으면 예외를 발생시킵니다.
      *

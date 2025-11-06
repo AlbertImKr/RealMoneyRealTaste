@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Comments Fragment</title>
+</head>
+<body>
+
+<div th:fragment="comments-list">
+    <!-- 댓글 수 업데이트 스크립트 -->
+    <script th:inline="javascript">
+        // 댓글 수 업데이트
+        const commentCount = /*[[${comments.totalElements}]]*/ 0;
+        const postId = /*[[${postId}]]*/ 0;
+        const countElement = document.getElementById('comment-count-' + postId);
+        if (countElement) {
+            countElement.textContent = commentCount;
+        }
+    </script>
+
+    <!-- 댓글 섹션 헤더 -->
+    <div class="border-bottom mb-3 pb-2">
+        <h6 class="mb-0">
+            <i class="bi bi-chat-left-text text-primary me-2"></i>댓글
+            <span class="badge bg-primary ms-2" th:text="${comments?.totalElements ?: 0}">0</span>
+        </h6>
+    </div>
+
+    <!-- 댓글이 없는 경우 -->
+    <div class="text-center py-4" th:if="${comments == null or comments.isEmpty()}">
+        <div class="mb-3">
+            <i class="bi bi-chat-left text-muted" style="font-size: 2rem;"></i>
+        </div>
+        <p class="text-muted mb-0">아직 댓글이 없습니다</p>
+        <small class="text-muted">첫 번째 댓글을 남겨보세요!</small>
+    </div>
+
+    <!-- 댓글 목록 -->
+    <div class="comments-container" th:if="${comments != null and !comments.isEmpty()}">
+        <div class="comment-item border-bottom py-3" th:each="comment : ${comments.content}">
+            <div class="d-flex">
+                <!-- 프로필 이미지 섹션 -->
+                <div class="flex-shrink-0 me-3">
+                    <div class="position-relative">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                             style="width: 42px; height: 42px;">
+                            <span class="text-white fw-bold"
+                                  th:text="${comment.author.nickname.substring(0, 1).toUpperCase()}">A</span>
+                        </div>
+                        <!-- 온라인 상태 표시 (선택사항) -->
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle"
+                              style="width: 12px; height: 12px;"></span>
+                    </div>
+                </div>
+
+                <!-- 댓글 내용 섹션 -->
+                <div class="flex-grow-1">
+                    <!-- 작성자 정보 헤더 -->
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center">
+                            <h6 class="mb-0 me-2 fw-bold" th:text="${comment.author.nickname}">작성자</h6>
+                            <span class="badge bg-light text-dark me-2" style="font-size: 0.7rem;">댓글</span>
+                            <small class="text-muted">
+                                <i class="bi bi-clock me-1"></i>
+                                <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 12:00</span>
+                            </small>
+                        </div>
+
+                        <!-- 댓글 옵션 드롭다운 -->
+                        <div class="dropdown">
+                            <button aria-expanded="false"
+                                    class="btn btn-sm btn-link text-muted p-1"
+                                    data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="bi bi-flag me-2"></i>신고
+                                    </a>
+                                </li>
+                                <li th:if="${comment.author.memberId == member?.id}">
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li th:if="${comment.author.memberId == member?.id}">
+                                    <a class="dropdown-item text-danger" href="#">
+                                        <i class="bi bi-trash me-2"></i>삭제
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 댓글 텍스트 -->
+                    <div class="comment-content mb-3">
+                        <p class="mb-0 lh-base" th:text="${comment.content.text}">댓글 내용입니다.</p>
+                    </div>
+
+                    <!-- 댓글 액션 버튼 섹션 -->
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center">
+                            <i class="bi bi-hand-thumbs-up me-1"></i>
+                            <span>좋아요</span>
+                            <span class="badge bg-light text-dark ms-1">0</span>
+                        </button>
+
+                        <!-- 답글 보기/작성 버튼 -->
+                        <div th:id="'reply-load-section-' + ${comment.id}">
+                            <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center"
+                                    th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
+                                             hx-target='#replies-' + ${comment.id},
+                                             hx-swap='innerHTML',
+                                             hx-indicator='#reply-loading-' + ${comment.id}">
+                                <i class="bi bi-reply me-1"></i>
+                                <span>답글</span>
+                            </button>
+
+                            <!-- 답글 로딩 인디케이터 -->
+                            <div class="htmx-indicator d-inline ms-2" th:id="'reply-loading-' + ${comment.id}">
+                                <div class="spinner-border spinner-border-sm text-primary">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 공유 버튼 (선택사항) -->
+                        <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center">
+                            <i class="bi bi-share me-1"></i>
+                            <span>공유</span>
+                        </button>
+                    </div>
+
+                    <!-- 답글 목록 컨테이너 -->
+                    <div class="replies-container" th:id="'replies-' + ${comment.id}">
+                        <!-- 답글들이 HTMX로 로드됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 댓글 더보기 섹션 -->
+    <div class="text-center mt-4" th:if="${comments?.hasNext()}">
+        <div class="border-top pt-3">
+            <button class="btn btn-outline-primary btn-sm px-4"
+                    th:attr="hx-get='/comments/fragments/list?postId=' + ${postId} + '&page=' + ${comments.number + 1},
+                             hx-target='this',
+                             hx-swap='outerHTML',
+                             hx-indicator='#more-comments-loading'">
+                <i class="bi bi-arrow-down-circle me-2"></i>
+                <span>댓글 더보기</span>
+                <span class="badge bg-primary ms-2"
+                      th:text="${comments.totalElements - comments.numberOfElements}">0</span>
+            </button>
+
+            <!-- 더보기 로딩 인디케이터 -->
+            <div class="htmx-indicator mt-3" id="more-comments-loading">
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border spinner-border-sm text-primary me-2">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="text-muted small">댓글을 불러오는 중...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 단일 댓글 프래그먼트 (새로 작성된 댓글용) -->
+<div class="comment-item border-bottom py-3" th:fragment="single-comment">
+    <!-- 댓글 수 업데이트 스크립트 -->
+    <script th:inline="javascript">
+        // 새 댓글이 추가되었으므로 댓글 수 +1
+        const postId = /*[[${comment.postId}]]*/ 0;
+        const countElement = document.getElementById('comment-count-' + postId);
+        if (countElement) {
+            const currentCount = parseInt(countElement.textContent) || 0;
+            countElement.textContent = currentCount + 1;
+        }
+    </script>
+
+    <div class="d-flex">
+        <!-- 프로필 이미지 -->
+        <div class="flex-shrink-0 me-3">
+            <div class="position-relative">
+                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center"
+                     style="width: 42px; height: 42px;">
+                    <span class="text-white fw-bold"
+                          th:text="${comment.author.nickname.substring(0, 1).toUpperCase()}">A</span>
+                </div>
+                <!-- 새 댓글 표시 -->
+                <span class="position-absolute top-0 end-0 bg-success border border-white rounded-circle"
+                      style="width: 12px; height: 12px;"></span>
+            </div>
+        </div>
+
+        <!-- 댓글 내용 -->
+        <div class="flex-grow-1">
+            <!-- 작성자 정보 -->
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center">
+                    <h6 class="mb-0 me-2 fw-bold" th:text="${comment.author.nickname}">작성자</h6>
+                    <!-- 새 댓글 배지 -->
+                    <span class="badge bg-success text-white me-2" style="font-size: 0.7rem;">
+                        <i class="bi bi-star-fill me-1"></i>새 댓글
+                    </span>
+                    <small class="text-muted">
+                        <i class="bi bi-clock me-1"></i>방금 전
+                    </small>
+                </div>
+
+                <!-- 댓글 옵션 드롭다운 -->
+                <div class="dropdown">
+                    <button aria-expanded="false"
+                            class="btn btn-sm btn-link text-muted p-1"
+                            data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-flag me-2"></i>신고
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#">
+                                <i class="bi bi-trash me-2"></i>삭제
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 댓글 텍스트 -->
+            <div class="comment-content mb-3">
+                <p class="mb-0 lh-base" th:text="${comment.content.text}">댓글 내용입니다.</p>
+            </div>
+
+            <!-- 댓글 액션 버튼 -->
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center">
+                    <i class="bi bi-hand-thumbs-up me-1"></i>
+                    <span>좋아요</span>
+                </button>
+
+                <!-- 답글 보기 버튼 -->
+                <div th:id="'reply-load-section-' + ${comment.id}">
+                    <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center"
+                            th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
+                                     hx-target='#replies-' + ${comment.id},
+                                     hx-swap='innerHTML'">
+                        <i class="bi bi-reply me-1"></i>
+                        <span>답글</span>
+                    </button>
+                </div>
+
+                <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center">
+                    <i class="bi bi-share me-1"></i>
+                    <span>공유</span>
+                </button>
+            </div>
+
+            <!-- 답글 목록 컨테이너 -->
+            <div class="replies-container mt-3" th:id="'replies-' + ${comment.id}">
+                <!-- 답글들이 HTMX로 로드됩니다 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 단일 답글 프래그먼트 (새로 작성된 답글용) -->
+<div class="reply-item border-start border-3 border-primary ps-3 mt-3 bg-light bg-opacity-50 rounded-end p-3"
+     th:fragment="single-reply">
+    <div class="d-flex">
+        <!-- 프로필 이미지 (작은 크기) -->
+        <div class="flex-shrink-0 me-2">
+            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center"
+                 style="width: 32px; height: 32px;">
+                <span class="text-white small fw-bold"
+                      th:text="${comment.author.nickname.substring(0, 1).toUpperCase()}">A</span>
+            </div>
+        </div>
+
+        <!-- 답글 내용 -->
+        <div class="flex-grow-1">
+            <!-- 작성자 정보 -->
+            <div class="d-flex align-items-center mb-1">
+                <h6 class="mb-0 me-2 small fw-bold" th:text="${comment.author.nickname}">작성자</h6>
+                <span class="badge bg-info text-white me-2" style="font-size: 0.6rem;">답글</span>
+                <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>방금 전
+                </small>
+            </div>
+
+            <!-- 답글 텍스트 -->
+            <div class="reply-content mb-2">
+                <p class="mb-0 small lh-base" th:text="${comment.content.text}">답글 내용입니다.</p>
+            </div>
+
+            <!-- 답글 액션 버튼 -->
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-link p-0 text-muted small d-flex align-items-center">
+                    <i class="bi bi-hand-thumbs-up me-1"></i>
+                    <span>좋아요</span>
+                </button>
+                <button class="btn btn-sm btn-link p-0 text-muted small d-flex align-items-center">
+                    <i class="bi bi-reply me-1"></i>
+                    <span>답글</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 답글 옵션 -->
+        <div class="dropdown">
+            <button aria-expanded="false"
+                    class="btn btn-sm btn-link text-muted p-1"
+                    data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots small"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                <li>
+                    <a class="dropdown-item small" href="#">
+                        <i class="bi bi-flag me-2"></i>신고
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item small text-danger" href="#">
+                        <i class="bi bi-trash me-2"></i>삭제
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- 댓글 작성 폼 프래그먼트 -->
+<div class="comment-form-container mt-4 border-top pt-4" th:fragment="comment-form">
+    <div class="d-flex">
+        <!-- 프로필 이미지 -->
+        <div class="flex-shrink-0 me-3">
+            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                 style="width: 40px; height: 40px;">
+                <span class="text-white fw-bold"
+                      th:text="${member?.nickname?.substring(0, 1)?.toUpperCase() ?: 'G'}">G</span>
+            </div>
+        </div>
+
+        <!-- 댓글 작성 폼 -->
+        <div class="flex-grow-1">
+            <form class="comment-form" method="post" th:action="@{/comments/new}">
+                <input name="postId" th:value="${postId}" type="hidden">
+
+                <!-- 댓글 입력 필드 -->
+                <div class="mb-3">
+                    <textarea class="form-control border-0 bg-light"
+                              maxlength="500"
+                              name="content"
+                              placeholder="댓글을 입력하세요..."
+                              required
+                              rows="3"></textarea>
+                    <div class="form-text small text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        최대 500자까지 입력 가능합니다.
+                    </div>
+                </div>
+
+                <!-- 버튼 그룹 -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex gap-2">
+                        <!-- 추가 옵션 아이콘들 -->
+                        <button class="btn btn-sm btn-light rounded-circle" title="이모지 추가" type="button">
+                            <i class="bi bi-emoji-smile"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light rounded-circle" title="사진 추가" type="button">
+                            <i class="bi bi-image"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light rounded-circle" title="멘션" type="button">
+                            <i class="bi bi-at"></i>
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" type="button">
+                            취소
+                        </button>
+                        <button class="btn btn-primary btn-sm" type="submit">
+                            <i class="bi bi-send-fill me-1"></i>
+                            댓글 작성
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

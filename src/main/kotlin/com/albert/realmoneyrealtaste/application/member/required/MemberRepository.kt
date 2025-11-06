@@ -42,7 +42,7 @@ interface MemberRepository : Repository<Member, Long> {
      * @param status 제외할 회원 상태
      * @return 조회된 회원 엔티티 또는 null
      */
-    fun findByIdAndStatusNot(id: Long, status: MemberStatus = MemberStatus.DEACTIVATED): Member?
+    fun findByIdAndStatus(id: Long, status: MemberStatus): Member?
 
     /**
      * 프로필 주소로 회원 존재 여부 확인
@@ -51,4 +51,13 @@ interface MemberRepository : Repository<Member, Long> {
      * @return 존재 여부
      */
     fun existsByDetailProfileAddress(profileAddress: ProfileAddress): Boolean
+
+    /**
+     * ID와 상태로 회원 존재 여부 확인 (특정 상태가 아닌 경우)
+     *
+     * @param id 확인할 회원 ID
+     * @param status 제외할 회원 상태
+     * @return 존재 여부
+     */
+    fun existsByIdAndStatus(id: Long, status: MemberStatus): Boolean
 }
