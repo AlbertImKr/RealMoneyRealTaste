@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Post Detail Modal Fragment</title>
+</head>
+<body>
+
+<!-- Post Detail Modal Content Fragment -->
+<div th:fragment="post-detail-modal">
+    <div class="card card-body border-0">
+        <!-- Post images carousel START (if multiple images) -->
+        <div class="position-relative" th:if="${post.images != null && !post.images.isEmpty()}">
+            <div th:if="${post.images.size() == 1}">
+                <!-- Single image -->
+                <img alt="맛집 사진" class="card-img rounded" th:src="${post.images.urls[0]}">
+            </div>
+            <div class="carousel slide" data-bs-ride="carousel" id="postImageCarouselModal"
+                 th:if="${post.images.size() > 1}">
+                <!-- Carousel indicators -->
+                <div class="carousel-indicators">
+                    <button th:attr="aria-current=${iterStat.first} ? 'true' : 'false'"
+                            th:classappend="${iterStat.first} ? 'active' : ''"
+                            th:data-bs-slide-to="${iterStat.index}"
+                            th:data-bs-target="'#postImageCarouselModal'"
+                            th:each="img, iterStat : ${post.images.urls}"
+                            type="button">
+                    </button>
+                </div>
+                <!-- Carousel inner -->
+                <div class="carousel-inner rounded">
+                    <div class="carousel-item"
+                         th:classappend="${iterStat.first} ? 'active' : ''"
+                         th:each="img, iterStat : ${post.images.urls}">
+                        <img alt="맛집 사진" class="d-block w-100 rounded" th:src="${img}">
+                    </div>
+                </div>
+                <!-- Carousel controls -->
+                <button class="carousel-control-prev" data-bs-slide="prev" data-bs-target="#postImageCarouselModal"
+                        type="button">
+                    <span aria-hidden="true" class="carousel-control-prev-icon"></span>
+                    <span class="visually-hidden">이전</span>
+                </button>
+                <button class="carousel-control-next" data-bs-slide="next" data-bs-target="#postImageCarouselModal"
+                        type="button">
+                    <span aria-hidden="true" class="carousel-control-next-icon"></span>
+                    <span class="visually-hidden">다음</span>
+                </button>
+            </div>
+        </div>
+        <!-- Post images END -->
+
+        <!-- Feed meta START -->
+        <div class="d-flex align-items-center justify-content-between my-3">
+            <div class="d-flex align-items-center">
+                <div>
+                    <div class="nav nav-divider">
+                        <h6 class="nav-item card-title mb-0">
+                            <a th:href="@{/profile/{id}(id=${post.author.memberId})}"
+                               th:text="${post.author.nickname}">사용자</a>
+                        </h6>
+                        <span class="nav-item small"
+                              th:attr="data-created-at=${post.createdAt}"
+                              th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">2023-10-01 12:00</span>
+                    </div>
+                    <p class="mb-0 small">진짜 내돈내산 리뷰어 💰</p>
+                </div>
+            </div>
+
+            <!-- Card feed action dropdown START -->
+            <div class="dropdown">
+                <a aria-expanded="false" class="text-secondary btn btn-secondary-soft-hover py-1 px-2"
+                   data-bs-toggle="dropdown" href="#" id="cardFeedActionModal">
+                    <i class="bi bi-three-dots"></i>
+                </a>
+                <!-- Card feed action dropdown menu -->
+                <ul aria-labelledby="cardFeedActionModal" class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#"> <i class="bi bi-bookmark fa-fw pe-2"></i>게시물 저장</a></li>
+                    <!-- Author only actions -->
+                    <li th:if="${currentUserId == post.author.memberId}">
+                        <a class="dropdown-item" th:href="@{/posts/{id}/edit(id=${post.id})}">
+                            <i class="bi bi-pencil-square fa-fw pe-2"></i>수정하기
+                        </a>
+                    </li>
+                    <li th:if="${currentUserId == post.author.memberId}">
+                        <button class="dropdown-item" href="#" onclick="deletePostFromModal()">
+                            <i class="bi bi-trash fa-fw pe-2"></i>삭제하기
+                        </button>
+                    </li>
+                    <!-- Other user actions -->
+                    <li th:if="${currentUserId != post.author.memberId}">
+                        <a class="dropdown-item" href="#"> <i class="bi bi-person-x fa-fw pe-2"></i>언팔로우</a>
+                    </li>
+                    <li th:if="${currentUserId != post.author.memberId}">
+                        <a class="dropdown-item" href="#"> <i class="bi bi-x-circle fa-fw pe-2"></i>게시물 숨기기</a>
+                    </li>
+                    <li th:if="${currentUserId != post.author.memberId}">
+                        <a class="dropdown-item" href="#"> <i class="bi bi-slash-circle fa-fw pe-2"></i>차단하기</a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="#"> <i class="bi bi-flag fa-fw pe-2"></i>신고하기</a></li>
+                </ul>
+            </div>
+            <!-- Card feed action dropdown END -->
+        </div>
+
+        <!-- Restaurant Info -->
+        <div class="mb-3">
+            <h1 class="h4 mb-2">
+                <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                <span th:text="${post.restaurant.name}">맛집 이름</span>
+            </h1>
+            <p class="text-muted mb-2">
+                <i class="bi bi-map me-1"></i>
+                <span th:text="${post.restaurant.address}">서울시 강남구</span>
+            </p>
+            <!-- Rating -->
+            <div class="mb-2">
+                <span th:classappend="${i <= post.content.rating} ? 'bi bi-star-fill text-warning' : 'bi bi-star text-warning'"
+                      th:each="i : ${#numbers.sequence(1, 5)}"></span>
+                <span class="ms-2 text-muted" th:text="${post.content.rating} + '.0'">5.0</span>
+            </div>
+        </div>
+
+        <!-- Post Content -->
+        <p class="mb-3" th:text="${post.content.text}">진짜 내돈내산 리뷰입니다. 광고나 협찬 없이 직접 방문해서 작성한 솔직한 후기입니다.</p>
+
+        <!-- Feed react START -->
+        <ul class="nav nav-stack flex-wrap small mb-3">
+            <li class="nav-item">
+                <button class="nav-link" href="#" onclick="toggleHeartModal()">
+                    <i class="bi bi-hand-thumbs-up-fill pe-1"></i>
+                    <span id="heartCountModal" th:text="'(' + ${post.heartCount} + ')'">0</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#commentsModal">
+                    <i class="bi bi-chat-fill pe-1"></i>
+                    <span th:text="'(' + ${commentCount} + ')'">0</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-muted">
+                    <i class="bi bi-eye-fill pe-1"></i>
+                    <span th:text="'조회 ' + ${post.viewCount}">조회 0</span>
+                </a>
+            </li>
+            <!-- Card share action START -->
+            <li class="nav-item dropdown ms-sm-auto">
+                <a aria-expanded="false" class="nav-link mb-0" data-bs-toggle="dropdown" href="#"
+                   id="cardShareActionModal">
+                    <i class="bi bi-reply-fill flip-horizontal ps-1"></i>공유
+                </a>
+                <!-- Card share action dropdown menu -->
+                <ul aria-labelledby="cardShareActionModal" class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <button class="dropdown-item" href="#" onclick="shareViaDMModal()"><i
+                                class="bi bi-envelope fa-fw pe-2"></i>DM으로 공유
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item" href="#" onclick="copyLinkModal()"><i
+                                class="bi bi-link fa-fw pe-2"></i>링크 복사
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item" href="#" onclick="shareToFeedModal()"><i
+                                class="bi bi-share fa-fw pe-2"></i>피드에 공유
+                        </button>
+                    </li>
+                </ul>
+            </li>
+            <!-- Card share action END -->
+        </ul>
+        <!-- Feed react END -->
+
+        <!-- Comment wrap START -->
+        <div id="commentsModal">
+            <h5 class="mb-3" th:if="${comments != null && !comments.isEmpty()}">
+                댓글 <span th:text="${commentCount}">0</span>
+            </h5>
+            <ul class="comment-wrap list-unstyled" th:if="${comments != null && !comments.isEmpty()}">
+                <!-- Comment item START -->
+                <li class="comment-item" th:each="comment : ${comments}">
+                    <div class="d-flex position-relative">
+                        <!-- Avatar -->
+                        <div class="avatar avatar-xs">
+                            <a th:href="@{/profile/{id}(id=${comment.authorId})}">
+                                <img alt="프로필"
+                                     class="avatar-img rounded-circle avatar-fallback"
+                                     th:src="@{/api/members/{id}/avatar(id=${comment.authorId})}">
+                            </a>
+                        </div>
+                        <div class="ms-2 w-100">
+                            <!-- Comment by -->
+                            <div class="bg-light rounded-start-top-0 p-3 rounded">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">
+                                        <a th:href="@{/profile/{id}(id=${comment.authorId})}"
+                                           th:text="${comment.authorName}">사용자</a>
+                                    </h6>
+                                    <small class="ms-2"
+                                           th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">5시간
+                                        전</small>
+                                </div>
+                                <p class="small mb-0" th:text="${comment.content}">정말 맛있었어요!</p>
+                            </div>
+                            <!-- Comment react -->
+                            <ul class="nav nav-divider py-2 small">
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">
+                                        좋아요 (<span th:text="${comment.likeCount}">3</span>)
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#"> 답글</a>
+                                </li>
+                                <li class="nav-item" th:if="${comment.replyCount > 0}">
+                                    <a class="nav-link" href="#">
+                                        답글 <span th:text="${comment.replyCount}">5</span>개 보기
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+                <!-- Comment item END -->
+            </ul>
+
+            <!-- Empty state -->
+            <div class="text-center py-5" th:if="${comments == null || comments.isEmpty()}">
+                <i class="bi bi-chat-dots display-4 text-muted"></i>
+                <p class="text-muted mt-3">첫 댓글을 남겨보세요!</p>
+            </div>
+
+            <!-- Load more comments button -->
+            <div class="text-center mt-3" th:if="${hasMoreComments}">
+                <button class="btn btn-link btn-link-loader btn-sm text-secondary d-flex align-items-center justify-content-center"
+                        href="#"
+                        onclick="loadMoreCommentsModal()">
+                    <div class="spinner-dots me-2">
+                        <span class="spinner-dot"></span>
+                        <span class="spinner-dot"></span>
+                        <span class="spinner-dot"></span>
+                    </div>
+                    댓글 더보기
+                </button>
+            </div>
+        </div>
+        <!-- Comment wrap END -->
+
+        <!-- Add comment form START -->
+        <div class="mt-4" th:if="${currentUserId != null}">
+            <form id="commentFormModal" onsubmit="submitCommentModal(event)">
+                <div class="d-flex mb-3">
+                    <label class="form-label visually-hidden" for="commentTextModal">댓글 입력</label>
+                    <textarea class="form-control" id="commentTextModal" placeholder="댓글을 입력하세요..." required
+                              rows="2"></textarea>
+                </div>
+                <button class="btn btn-primary btn-sm" type="submit">댓글 작성</button>
+            </form>
+        </div>
+        <!-- Add comment form END -->
+    </div>
+</div>
+
+<!-- Modal-specific JavaScript -->
+<script th:fragment="modal-script" th:inline="javascript">
+    // 모달 내에서 사용할 변수들
+    const modalPostId = /*[[${post.id}]]*/ 0;
+    const modalCurrentUserId = /*[[${currentUserId}]]*/ null;
+
+    // 모달용 함수들 (기존 함수들과 충돌 방지를 위해 Modal 접미사 추가)
+
+    // Handle avatar image loading errors
+    document.addEventListener('DOMContentLoaded', function () {
+        const avatarImages = document.querySelectorAll('#post-detail-modal-content .avatar-fallback');
+        avatarImages.forEach(img => {
+            img.addEventListener('error', function () {
+                this.src = '/assets/images/avatar/default.jpg';
+            });
+        });
+
+        // 상대 시간 업데이트
+        updateRelativeTimeModal();
+    });
+
+    // Toggle heart (모달용)
+    function toggleHeartModal() {
+        if (!modalCurrentUserId) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+
+        fetch(`/api/posts/${modalPostId}/hearts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const heartCountElement = document.getElementById('heartCountModal');
+                if (heartCountElement) {
+                    heartCountElement.textContent = `(${data.heartCount})`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다.');
+            });
+    }
+
+    // Delete post (모달용)
+    function deletePostFromModal() {
+        if (confirm('정말 삭제하시겠습니까?')) {
+            fetch(`/api/posts/${modalPostId}`, {
+                method: 'DELETE',
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('삭제되었습니다.');
+                        // 모달 닫기
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('postDetailModal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        // 페이지 새로고침 (삭제된 포스트 제거)
+                        location.reload();
+                    } else {
+                        alert('삭제에 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('오류가 발생했습니다.');
+                });
+        }
+    }
+
+    // Submit comment (모달용)
+    function submitCommentModal(event) {
+        event.preventDefault();
+
+        const commentText = document.getElementById('commentTextModal').value;
+
+        fetch(`/api/posts/${modalPostId}/comments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({content: commentText})
+        })
+            .then(response => {
+                if (response.ok) {
+                    // 댓글 입력 필드 초기화
+                    document.getElementById('commentTextModal').value = '';
+                    // 모달 내용 다시 로드
+                    htmx.ajax('GET', `/posts/${modalPostId}/modal`, {
+                        target: '#post-detail-modal-content',
+                        swap: 'innerHTML'
+                    });
+                } else {
+                    alert('댓글 작성에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다.');
+            });
+    }
+
+    // Copy link (모달용)
+    function copyLinkModal() {
+        const url = window.location.origin + `/posts/${modalPostId}`;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('링크가 복사되었습니다.');
+        });
+    }
+
+    // Share functions (모달용)
+    function shareViaDMModal() {
+        alert('DM 공유 기능은 준비 중입니다.');
+    }
+
+    function shareToFeedModal() {
+        alert('피드 공유 기능은 준비 중입니다.');
+    }
+
+    // Load more comments (모달용)
+    function loadMoreCommentsModal() {
+        console.log('Load more comments in modal');
+        // TODO: 댓글 페이지네이션 구현
+    }
+
+    // 상대 시간 업데이트 (모달용)
+    function updateRelativeTimeModal() {
+        document.querySelectorAll('#post-detail-modal-content [data-created-at]').forEach(function (element) {
+            const createdAt = new Date(element.getAttribute('data-created-at'));
+            const now = new Date();
+            const diffMs = now - createdAt;
+            const diffMinutes = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            const diffYears = Math.floor(diffDays / 365);
+
+            let relativeTime;
+
+            if (diffMinutes < 1) {
+                relativeTime = '방금 전';
+            } else if (diffMinutes < 60) {
+                relativeTime = diffMinutes + '분 전';
+            } else if (diffHours < 24) {
+                relativeTime = diffHours + '시간 전';
+            } else if (diffDays < 365) {
+                relativeTime = diffDays + '일 전';
+            } else {
+                relativeTime = diffYears + '년 전';
+            }
+
+            element.textContent = relativeTime;
+        });
+    }
+</script>
+
+</body>
+</html>

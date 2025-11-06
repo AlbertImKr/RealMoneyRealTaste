@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Post Creation Modal Fragment</title>
+</head>
+<body>
+
+<!-- Modal create post fragment -->
+<div aria-hidden="true" aria-labelledby="modalLabelCreateFeed" class="modal fade" id="modalCreateFeed"
+     tabindex="-1" th:fragment="modal-create-post">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <!-- Modal feed header START -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabelCreateFeed">새 게시글 작성</h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <!-- Modal feed header END -->
+
+            <!-- Modal feed body START -->
+            <div class="modal-body">
+                <!-- 게시글 작성 폼 -->
+                <form id="createPostForm" method="post" th:action="@{/posts/new}" th:object="${postCreateForm}">
+                    <!-- 맛집 정보 섹션 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-shop text-primary me-2"></i>맛집 정보
+                        </h6>
+
+                        <!-- 맛집 이름 -->
+                        <div class="mb-2">
+                            <label class="form-label visually-hidden" for="restaurantName">맛집 이름</label>
+                            <input class="form-control"
+                                   id="restaurantName"
+                                   placeholder="맛집 이름 *"
+                                   required
+                                   th:field="*{restaurantName}"
+                                   type="text">
+                            <div class="invalid-feedback" th:errors="*{restaurantName}"
+                                 th:if="${#fields.hasErrors('restaurantName')}"></div>
+                        </div>
+
+                        <!-- 맛집 주소 -->
+                        <div class="mb-2">
+                            <label class="form-label visually-hidden" for="restaurantAddress">주소</label>
+                            <input class="form-control"
+                                   id="restaurantAddress"
+                                   placeholder="주소 *"
+                                   required
+                                   th:field="*{restaurantAddress}"
+                                   type="text">
+                            <div class="invalid-feedback" th:errors="*{restaurantAddress}"
+                                 th:if="${#fields.hasErrors('restaurantAddress')}"></div>
+                        </div>
+
+                        <!-- 위도/경도 (숨김 필드) -->
+                        <input th:field="*{restaurantLatitude}" type="hidden">
+                        <input th:field="*{restaurantLongitude}" type="hidden">
+                    </div>
+
+                    <!-- 평점 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-star-fill text-warning me-2"></i>평점
+                        </h6>
+                        <div class="d-flex align-items-center">
+                            <div class="rating-stars" id="modal-rating-stars">
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="1"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="2"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="3"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="4"></i>
+                                <i class="bi bi-star fs-4 text-warning cursor-pointer me-1" data-rating="5"></i>
+                            </div>
+                            <span class="ms-2 text-muted small" id="modal-rating-text">평점을 선택하세요</span>
+                        </div>
+                        <input id="modal-contentRating" required th:field="*{contentRating}" type="hidden">
+                        <div class="invalid-feedback d-block" th:errors="*{contentRating}"
+                             th:if="${#fields.hasErrors('contentRating')}"></div>
+                    </div>
+
+                    <!-- 리뷰 내용 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-chat-left-text text-info me-2"></i>리뷰 내용
+                        </h6>
+                        <label class="form-label visually-hidden" for="contentText">리뷰 내용</label>
+                        <textarea class="form-control"
+                                  id="contentText"
+                                  placeholder="맛집에 대한 솔직한 리뷰를 작성해주세요. 음식의 맛, 분위기, 서비스 등을 자유롭게 공유해주세요."
+                                  required
+                                  rows="5"
+                                  th:field="*{contentText}"></textarea>
+                        <div class="form-text">최소 10자 이상 작성해주세요.</div>
+                        <div class="invalid-feedback" th:errors="*{contentText}"
+                             th:if="${#fields.hasErrors('contentText')}"></div>
+                    </div>
+
+                    <!-- 사진 업로드 -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-image text-success me-2"></i>사진 추가
+                        </h6>
+                        <div id="modal-image-url-container">
+                            <!-- 첫 번째 이미지 입력 필드 -->
+                            <div class="input-group mb-2" data-image-index="0">
+                                <label class="input-group-text visually-hidden" for="imageUrl0">이미지 URL</label>
+                                <input class="form-control image-url-input"
+                                       data-index="0"
+                                       id="imageUrl0"
+                                       name="imagesUrls[0]"
+                                       placeholder="이미지 URL을 입력하세요"
+                                       type="text">
+                                <button class="btn btn-outline-danger remove-image-btn"
+                                        style="display: none;"
+                                        type="button">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary"
+                                id="modal-add-image-btn"
+                                type="button">
+                            <i class="bi bi-plus-circle me-1"></i> 사진 추가
+                        </button>
+                        <div class="form-text">최대 5장까지 추가할 수 있습니다.</div>
+                    </div>
+
+                    <!-- 추가 옵션 아이콘 (선택사항) -->
+                    <div class="hstack gap-2 mb-3">
+                        <span class="icon-md bg-success bg-opacity-10 text-success rounded-circle">
+                            <i class="bi bi-image-fill"></i>
+                        </span>
+                        <span class="icon-md bg-danger bg-opacity-10 text-danger rounded-circle">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </span>
+                        <span class="icon-md bg-warning bg-opacity-10 text-warning rounded-circle">
+                            <i class="bi bi-emoji-smile-fill"></i>
+                        </span>
+                    </div>
+
+                </form>
+            </div>
+            <!-- Modal feed body END -->
+
+            <!-- Modal feed footer -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">취소</button>
+                <button class="btn btn-primary" form="createPostForm" type="submit">
+                    <i class="bi bi-send-fill me-1"></i>게시하기
+                </button>
+            </div>
+            <!-- Modal feed footer -->
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal create post JavaScript fragment -->
+<script th:fragment="modal-create-post-script" th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        // 모달이 열릴 때마다 초기화
+        const modalElement = document.getElementById('modalCreateFeed');
+        if (modalElement) {
+            modalElement.addEventListener('shown.bs.modal', function () {
+                initModalRatingStars();
+                initModalImageUpload();
+            });
+        }
+
+        // 평점 선택 기능
+        function initModalRatingStars() {
+            const stars = document.querySelectorAll('#modal-rating-stars i');
+            const ratingInput = document.getElementById('modal-contentRating');
+            const ratingText = document.getElementById('modal-rating-text');
+
+            if (!stars.length) return;
+
+            stars.forEach(star => {
+                star.addEventListener('click', function () {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    ratingInput.value = rating;
+
+                    // 별 채우기
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.classList.remove('bi-star');
+                            s.classList.add('bi-star-fill');
+                        } else {
+                            s.classList.remove('bi-star-fill');
+                            s.classList.add('bi-star');
+                        }
+                    });
+
+                    // 텍스트 업데이트
+                    ratingText.textContent = rating + '점';
+                });
+
+                // 호버 효과
+                star.addEventListener('mouseenter', function () {
+                    const rating = parseInt(this.getAttribute('data-rating'));
+                    stars.forEach((s, index) => {
+                        if (index < rating) {
+                            s.style.opacity = '1';
+                        } else {
+                            s.style.opacity = '0.5';
+                        }
+                    });
+                });
+            });
+
+            const ratingContainer = document.getElementById('modal-rating-stars');
+            if (ratingContainer) {
+                ratingContainer.addEventListener('mouseleave', function () {
+                    stars.forEach(s => {
+                        s.style.opacity = '1';
+                    });
+                });
+            }
+        }
+
+        // 이미지 URL 관리
+        function initModalImageUpload() {
+            let imageCount = 1;
+            const maxImages = 5;
+            const addImageBtn = document.getElementById('modal-add-image-btn');
+            const imageUrlContainer = document.getElementById('modal-image-url-container');
+
+            if (!addImageBtn || !imageUrlContainer) return;
+
+            function updateImageIndices() {
+                const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
+                inputGroups.forEach((group, index) => {
+                    const input = group.querySelector('.image-url-input');
+                    input.setAttribute('data-index', index);
+                    input.setAttribute('name', `imagesUrls[${index}]`);
+                    group.setAttribute('data-image-index', index);
+                });
+                imageCount = inputGroups.length;
+
+                // 최대 개수 도달 시 추가 버튼 숨김
+                addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'inline-block';
+
+                // 삭제 버튼 표시/숨김
+                inputGroups.forEach((group, index) => {
+                    const removeBtn = group.querySelector('.remove-image-btn');
+                    if (removeBtn) {
+                        removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
+                    }
+                });
+            }
+
+            addImageBtn.addEventListener('click', function () {
+                if (imageCount >= maxImages) return;
+
+                const newIndex = imageCount;
+                const newInputGroup = document.createElement('div');
+                newInputGroup.className = 'input-group mb-2';
+                newInputGroup.setAttribute('data-image-index', newIndex);
+                newInputGroup.innerHTML = `
+                <input type="text"
+                       class="form-control image-url-input"
+                       name="imagesUrls[${newIndex}]"
+                       placeholder="이미지 URL을 입력하세요"
+                       data-index="${newIndex}">
+                <button class="btn btn-outline-danger remove-image-btn" type="button">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+
+                imageUrlContainer.appendChild(newInputGroup);
+
+                // 삭제 버튼 이벤트
+                const removeBtn = newInputGroup.querySelector('.remove-image-btn');
+                removeBtn.addEventListener('click', function () {
+                    newInputGroup.remove();
+                    updateImageIndices();
+                });
+
+                updateImageIndices();
+            });
+
+            // 삭제 버튼 이벤트
+            imageUrlContainer.addEventListener('click', function (e) {
+                if (e.target.closest('.remove-image-btn')) {
+                    const inputGroup = e.target.closest('.input-group');
+                    if (imageCount > 1) {
+                        inputGroup.remove();
+                        updateImageIndices();
+                    }
+                }
+            });
+
+            // 초기 상태 설정
+            updateImageIndices();
+        }
+    });
+</script>
+
+<!-- Create post trigger button fragment -->
+<div class="card card-body" th:fragment="create-post-trigger" th:if="${member != null}">
+    <div class="d-flex mb-3">
+        <!-- Post input -->
+        <button class="form-control rounded text-start"
+                data-bs-target="#modalCreateFeed"
+                data-bs-toggle="modal">
+            <span class="text-muted" th:text="${member.nickname.value} + '님, 어떤 맛집을 다녀오셨나요?'">
+                맛집 리뷰를 공유해주세요...
+            </span>
+        </button>
+    </div>
+    <!-- Share feed toolbar START -->
+    <ul class="nav nav-pills nav-stack small fw-normal">
+        <li class="nav-item">
+            <button class="nav-link bg-light py-1 px-2 mb-0"
+                    data-bs-target="#modalCreateFeed"
+                    data-bs-toggle="modal">
+                <i class="bi bi-image-fill text-success pe-2"></i>사진
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link bg-light py-1 px-2 mb-0"
+                    data-bs-target="#modalCreateFeed"
+                    data-bs-toggle="modal">
+                <i class="bi bi-geo-alt-fill text-danger pe-2"></i>위치
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link bg-light py-1 px-2 mb-0"
+                    data-bs-target="#modalCreateFeed"
+                    data-bs-toggle="modal">
+                <i class="bi bi-star-fill text-warning pe-2"></i>평점
+            </button>
+        </li>
+    </ul>
+    <!-- Share feed toolbar END -->
+</div>
+
+</body>
+</html>
