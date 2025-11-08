@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.application.collection.exception
 
-class CollectionCreateException(
+class CollectionUpdateException(
     message: String,
     cause: Throwable,
 ) : CollectionApplicationException(message, cause)

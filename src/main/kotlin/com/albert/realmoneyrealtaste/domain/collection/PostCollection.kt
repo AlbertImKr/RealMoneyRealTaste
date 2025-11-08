@@ -223,9 +223,7 @@ class PostCollection protected constructor(
          * @param createCommand 생성 명령 객체
          * @return 생성된 컬렉션
          */
-        fun create(
-            createCommand: CollectionCreateCommand,
-        ): PostCollection {
+        fun create(createCommand: CollectionCreateCommand): PostCollection {
             val now = LocalDateTime.now()
             return PostCollection(
                 owner = CollectionOwner(createCommand.ownerMemberId),

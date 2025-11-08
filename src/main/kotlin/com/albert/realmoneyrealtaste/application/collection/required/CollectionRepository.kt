@@ -25,4 +25,9 @@ interface CollectionRepository : Repository<PostCollection, Long> {
      * 컬렉션 삭제
      */
     fun findByOwnerMemberIdAndPrivacy(ownerMemberId: Long, privacy: CollectionPrivacy): List<PostCollection>
+
+    /**
+     * 컬렉션 아이디 및 소유자 멤버 아이디로 조회
+     */
+    fun findByIdAndOwnerMemberId(collectionId: Long, ownerMemberId: Long): PostCollection?
 }

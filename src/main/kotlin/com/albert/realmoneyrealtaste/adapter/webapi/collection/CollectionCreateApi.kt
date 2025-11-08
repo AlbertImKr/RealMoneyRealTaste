@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webapi.collection
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.adapter.webapi.collection.request.CreateCollectionApiRequest
+import com.albert.realmoneyrealtaste.adapter.webapi.collection.request.CollectionCreateApiRequest
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionCreator
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class CollectionApi(
+class CollectionCreateApi(
     private val collectionCreator: CollectionCreator,
 ) {
 
@@ -21,7 +21,7 @@ class CollectionApi(
     @PostMapping("/api/collections")
     fun createCollection(
         @AuthenticationPrincipal principal: MemberPrincipal,
-        @Valid @RequestBody request: CreateCollectionApiRequest,
+        @Valid @RequestBody request: CollectionCreateApiRequest,
     ): ResponseEntity<Map<String, Any>> {
         val collection = collectionCreator.createCollection(
             request.toCommand(ownerMemberId = principal.memberId)

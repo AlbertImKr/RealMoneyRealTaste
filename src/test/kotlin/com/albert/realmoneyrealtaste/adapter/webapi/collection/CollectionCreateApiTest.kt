@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webapi.collection
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.adapter.webapi.collection.request.CreateCollectionApiRequest
+import com.albert.realmoneyrealtaste.adapter.webapi.collection.request.CollectionCreateApiRequest
 import com.albert.realmoneyrealtaste.application.collection.required.CollectionRepository
 import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import com.albert.realmoneyrealtaste.util.MemberFixture
@@ -20,7 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class CollectionApiTest : IntegrationTestBase() {
+class CollectionCreateApiTest : IntegrationTestBase() {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -39,7 +39,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - success - creates collection and returns success response`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "API 테스트 컬렉션",
             description = "API를 통해 생성된 컬렉션",
             coverImageUrl = "https://example.com/api-cover.jpg",
@@ -64,7 +64,7 @@ class CollectionApiTest : IntegrationTestBase() {
         val member = testMemberHelper.createActivatedMember()
         val initialCount = collectionRepository.countByOwnerMemberId(member.requireId())
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "저장 테스트 컬렉션",
             description = "저장 확인용",
             coverImageUrl = null,
@@ -100,7 +100,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - success - creates collection with minimal fields`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "최소 컬렉션"
             // description, coverImageUrl, visibility는 기본값 사용
         )
@@ -121,7 +121,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - success - creates private collection by default`() {
         val member = testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "기본 비공개 컬렉션",
             description = "기본값 테스트"
         )
@@ -150,7 +150,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - success - creates public collection`() {
         val member = testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "공개 API 컬렉션",
             description = "공개 설명",
             coverImageUrl = "https://example.com/public.jpg",
@@ -179,7 +179,7 @@ class CollectionApiTest : IntegrationTestBase() {
 
     @Test
     fun `createCollection - failure - returns unauthorized when not authenticated`() {
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "인증 실패 테스트",
             description = "설명"
         )
@@ -197,7 +197,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - failure - validation error when name is blank`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "",
             description = "설명"
         )
@@ -215,7 +215,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - failure - validation error when name exceeds max length`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "a".repeat(101), // 최대 길이 초과
             description = "설명"
         )
@@ -233,7 +233,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - failure - validation error when description exceeds max length`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "a".repeat(501) // 최대 길이 초과
         )
@@ -251,7 +251,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - failure - validation error when visibility is invalid`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "설명",
             visibility = "INVALID"
@@ -270,7 +270,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - failure - validation error when cover image url is invalid`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "설명",
             coverImageUrl = "invalid-url"
@@ -289,7 +289,7 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - failure - missing required content type`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "설명"
         )
@@ -308,7 +308,7 @@ class CollectionApiTest : IntegrationTestBase() {
         val member = testMemberHelper.createActivatedMember()
         val initialCount = collectionRepository.countByOwnerMemberId(member.requireId())
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "", // 빈 이름으로 검증 실패
             description = "설명"
         )
@@ -326,10 +326,30 @@ class CollectionApiTest : IntegrationTestBase() {
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `createCollection - failure - member not activated`() {
+        testMemberHelper.createMember()
+
+        val request = CollectionCreateApiRequest(
+            name = "비활성 멤버 테스트",
+            description = "설명"
+        )
+
+        mockMvc.perform(
+            post("/api/collections")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.error").exists())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - returns correct response structure`() {
         testMemberHelper.createActivatedMember()
 
-        val request = CreateCollectionApiRequest(
+        val request = CollectionCreateApiRequest(
             name = "응답 구조 테스트",
             description = "응답 구조 확인용",
             coverImageUrl = "https://example.com/test.jpg",
@@ -365,7 +385,7 @@ class CollectionApiTest : IntegrationTestBase() {
         )
 
         validUrls.forEach { url ->
-            val request = CreateCollectionApiRequest(
+            val request = CollectionCreateApiRequest(
                 name = "이미지 테스트 ${validUrls.indexOf(url)}",
                 description = "URL 테스트",
                 coverImageUrl = url
@@ -386,12 +406,12 @@ class CollectionApiTest : IntegrationTestBase() {
     fun `createCollection - success - handles null and empty cover image url`() {
         testMemberHelper.createActivatedMember()
 
-        val requestWithNull = CreateCollectionApiRequest(
+        val requestWithNull = CollectionCreateApiRequest(
             name = "NULL URL 테스트",
             description = "NULL 테스트",
             coverImageUrl = null
         )
-        val requestWithEmpty = CreateCollectionApiRequest(
+        val requestWithEmpty = CollectionCreateApiRequest(
             name = "빈 URL 테스트",
             description = "빈 값 테스트",
             coverImageUrl = ""

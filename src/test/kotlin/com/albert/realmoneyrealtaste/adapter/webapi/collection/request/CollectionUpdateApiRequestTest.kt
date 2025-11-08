@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.adapter.webapi.collection.request
 
-import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import jakarta.validation.ConstraintViolation
 import jakarta.validation.Validation
 import jakarta.validation.Validator
@@ -11,110 +10,87 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class CreateCollectionApiRequestTest {
+class CollectionUpdateApiRequestTest {
 
     private val validator: Validator = Validation.buildDefaultValidatorFactory().validator
 
     @Test
-    fun `toCommand - success - converts to CollectionCreateCommand with valid parameters`() {
-        val request = CollectionCreateApiRequest(
-            name = "테스트 컬렉션",
-            description = "테스트 설명",
-            visibility = "PUBLIC",
-            coverImageUrl = "https://example.com/cover.jpg"
+    fun `toServiceDto - success - converts to CollectionUpdateRequest with valid parameters`() {
+        val request = CollectionUpdateApiRequest(
+            name = "수정된 컬렉션",
+            description = "수정된 설명",
+            coverImageUrl = "https://example.com/updated.jpg"
         )
 
-        val command = request.toCommand(ownerMemberId = 123L)
+        val serviceDto = request.toServiceDto(collectionId = 123L, ownerMemberId = 456L)
 
         assertAll(
-            { assertEquals(123L, command.ownerMemberId) },
-            { assertEquals("테스트 컬렉션", command.name) },
-            { assertEquals("테스트 설명", command.description) },
-            { assertEquals(CollectionPrivacy.PUBLIC, command.privacy) },
-            { assertEquals("https://example.com/cover.jpg", command.coverImageUrl) }
+            { assertEquals(123L, serviceDto.collectionId) },
+            { assertEquals(456L, serviceDto.ownerMemberId) },
+            { assertEquals("수정된 컬렉션", serviceDto.newInfo.name) },
+            { assertEquals("수정된 설명", serviceDto.newInfo.description) },
+            { assertEquals("https://example.com/updated.jpg", serviceDto.newInfo.coverImageUrl) }
         )
     }
 
     @Test
-    fun `toCommand - success - converts with default values`() {
-        val request = CollectionCreateApiRequest(
-            name = "기본 컬렉션"
+    fun `toServiceDto - success - converts with default values`() {
+        val request = CollectionUpdateApiRequest(
+            name = "기본값 테스트"
         )
 
-        val command = request.toCommand(ownerMemberId = 456L)
+        val serviceDto = request.toServiceDto(collectionId = 789L, ownerMemberId = 101L)
 
         assertAll(
-            { assertEquals(456L, command.ownerMemberId) },
-            { assertEquals("기본 컬렉션", command.name) },
-            { assertEquals("", command.description) },
-            { assertEquals(CollectionPrivacy.PRIVATE, command.privacy) },
-            { assertNull(command.coverImageUrl) }
+            { assertEquals(789L, serviceDto.collectionId) },
+            { assertEquals(101L, serviceDto.ownerMemberId) },
+            { assertEquals("기본값 테스트", serviceDto.newInfo.name) },
+            { assertEquals("", serviceDto.newInfo.description) },
+            { assertNull(serviceDto.newInfo.coverImageUrl) }
         )
     }
 
     @Test
-    fun `toCommand - success - trims whitespace from inputs`() {
-        val request = CollectionCreateApiRequest(
-            name = "  컬렉션 이름  ",
-            description = "  설명  ",
-            visibility = "PUBLIC",
+    fun `toServiceDto - success - trims whitespace from inputs`() {
+        val request = CollectionUpdateApiRequest(
+            name = "  수정된 이름  ",
+            description = "  수정된 설명  ",
             coverImageUrl = "  https://example.com/image.jpg  "
         )
 
-        val command = request.toCommand(ownerMemberId = 789L)
+        val serviceDto = request.toServiceDto(collectionId = 1L, ownerMemberId = 2L)
 
         assertAll(
-            { assertEquals("컬렉션 이름", command.name) },
-            { assertEquals("설명", command.description) },
-            { assertEquals("https://example.com/image.jpg", command.coverImageUrl) }
+            { assertEquals("수정된 이름", serviceDto.newInfo.name) },
+            { assertEquals("수정된 설명", serviceDto.newInfo.description) },
+            { assertEquals("https://example.com/image.jpg", serviceDto.newInfo.coverImageUrl) }
         )
     }
 
     @Test
-    fun `toCommand - success - converts visibility to privacy correctly`() {
-        val publicRequest = CollectionCreateApiRequest(
-            name = "공개 컬렉션",
-            visibility = "PUBLIC"
-        )
-        val privateRequest = CollectionCreateApiRequest(
-            name = "비공개 컬렉션",
-            visibility = "PRIVATE"
-        )
-        val invalidRequest = CollectionCreateApiRequest(
-            name = "잘못된 컬렉션",
-            visibility = "INVALID"
-        )
-
-        assertAll(
-            { assertEquals(CollectionPrivacy.PUBLIC, publicRequest.toCommand(1L).privacy) },
-            { assertEquals(CollectionPrivacy.PRIVATE, privateRequest.toCommand(1L).privacy) },
-            { assertEquals(CollectionPrivacy.PRIVATE, invalidRequest.toCommand(1L).privacy) } // 기본값
-        )
-    }
-
-    @Test
-    fun `toCommand - success - handles empty cover image url`() {
-        val requestWithEmpty = CollectionCreateApiRequest(
+    fun `toServiceDto - success - handles empty cover image url`() {
+        val requestWithEmpty = CollectionUpdateApiRequest(
             name = "컬렉션",
+            description = "설명",
             coverImageUrl = ""
         )
-        val requestWithBlank = CollectionCreateApiRequest(
+        val requestWithBlank = CollectionUpdateApiRequest(
             name = "컬렉션",
+            description = "설명",
             coverImageUrl = "   "
         )
 
         assertAll(
-            { assertNull(requestWithEmpty.toCommand(1L).coverImageUrl) },
-            { assertNull(requestWithBlank.toCommand(1L).coverImageUrl) }
+            { assertNull(requestWithEmpty.toServiceDto(1L, 2L).newInfo.coverImageUrl) },
+            { assertNull(requestWithBlank.toServiceDto(1L, 2L).newInfo.coverImageUrl) }
         )
     }
 
     @Test
     fun `validation - success - passes with valid inputs`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "유효한 컬렉션",
             description = "유효한 설명",
-            visibility = "PUBLIC",
             coverImageUrl = "https://example.com/valid.jpg"
         )
 
@@ -125,7 +101,7 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - success - passes with minimal required fields`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "최소 컬렉션"
         )
 
@@ -136,8 +112,8 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - failure - detects blank name`() {
-        val request = CollectionCreateApiRequest(
-            name = ""
+        val request = CollectionUpdateApiRequest(
+            name = " "
         )
 
         val violations = validator.validate(request)
@@ -152,7 +128,7 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - failure - detects whitespace-only name`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "   "
         )
 
@@ -168,7 +144,7 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - failure - detects name exceeding max length`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "a".repeat(101) // 100자 초과
         )
 
@@ -184,7 +160,7 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - success - accepts name at max length`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "a".repeat(100) // 정확히 100자
         )
 
@@ -195,7 +171,7 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - failure - detects description exceeding max length`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "컬렉션",
             description = "a".repeat(501) // 500자 초과
         )
@@ -212,7 +188,7 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - success - accepts description at max length`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "컬렉션",
             description = "a".repeat(500) // 정확히 500자
         )
@@ -224,7 +200,7 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - success - accepts empty description`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "컬렉션",
             description = ""
         )
@@ -235,43 +211,9 @@ class CreateCollectionApiRequestTest {
     }
 
     @Test
-    fun `validation - failure - detects invalid visibility`() {
-        val request = CollectionCreateApiRequest(
-            name = "컬렉션",
-            visibility = "INVALID"
-        )
-
-        val violations = validator.validate(request)
-        val visibilityViolation = findViolationByProperty(violations, "visibility")
-
-        assertAll(
-            { assertTrue(violations.isNotEmpty()) },
-            { assertNotNull(visibilityViolation) },
-            { assertEquals("공개 설정은 PUBLIC 또는 PRIVATE만 가능합니다.", visibilityViolation?.message) }
-        )
-    }
-
-    @Test
-    fun `validation - success - accepts valid visibility values`() {
-        val publicRequest = CollectionCreateApiRequest(
-            name = "공개 컬렉션",
-            visibility = "PUBLIC"
-        )
-        val privateRequest = CollectionCreateApiRequest(
-            name = "비공개 컬렉션",
-            visibility = "PRIVATE"
-        )
-
-        assertAll(
-            { assertTrue(validator.validate(publicRequest).isEmpty()) },
-            { assertTrue(validator.validate(privateRequest).isEmpty()) }
-        )
-    }
-
-    @Test
     fun `validation - failure - detects cover image url exceeding max length`() {
-        val longUrl = "https://example.com/" + "a".repeat(485) + ".jpg" // 총 길이 501자
-        val request = CollectionCreateApiRequest(
+        val longUrl = "https://example.com/" + "a".repeat(481) + ".jpg" // 총 500자 초과
+        val request = CollectionUpdateApiRequest(
             name = "컬렉션",
             coverImageUrl = longUrl
         )
@@ -297,7 +239,7 @@ class CreateCollectionApiRequestTest {
         )
 
         invalidUrls.forEach { url ->
-            val request = CollectionCreateApiRequest(
+            val request = CollectionUpdateApiRequest(
                 name = "컬렉션",
                 coverImageUrl = url
             )
@@ -326,7 +268,7 @@ class CreateCollectionApiRequestTest {
         )
 
         validUrls.forEach { url ->
-            val request = CollectionCreateApiRequest(
+            val request = CollectionUpdateApiRequest(
                 name = "컬렉션",
                 coverImageUrl = url
             )
@@ -338,11 +280,11 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - success - accepts null and empty cover image url`() {
-        val requestWithNull = CollectionCreateApiRequest(
+        val requestWithNull = CollectionUpdateApiRequest(
             name = "컬렉션",
             coverImageUrl = null
         )
-        val requestWithEmpty = CollectionCreateApiRequest(
+        val requestWithEmpty = CollectionUpdateApiRequest(
             name = "컬렉션",
             coverImageUrl = ""
         )
@@ -355,39 +297,96 @@ class CreateCollectionApiRequestTest {
 
     @Test
     fun `validation - failure - detects multiple validation errors`() {
-        val request = CollectionCreateApiRequest(
+        val request = CollectionUpdateApiRequest(
             name = "", // 빈 이름
             description = "a".repeat(501), // 설명 길이 초과
-            visibility = "INVALID", // 잘못된 공개 설정
             coverImageUrl = "invalid-url" // 잘못된 URL
         )
 
         val violations = validator.validate(request)
 
         assertAll(
-            { assertEquals(4, violations.size) },
+            { assertEquals(3, violations.size) },
             { assertNotNull(findViolationByProperty(violations, "name")) },
             { assertNotNull(findViolationByProperty(violations, "description")) },
-            { assertNotNull(findViolationByProperty(violations, "visibility")) },
             { assertNotNull(findViolationByProperty(violations, "coverImageUrl")) }
         )
     }
 
     @Test
-    fun `validation - success - case insensitive visibility conversion in toCommand`() {
-        val mixedCaseRequest = CollectionCreateApiRequest(
+    fun `validation - success - accepts cover image url at max length`() {
+        val maxLengthUrl = "https://example.com/" + "a".repeat(476) + ".jpg" // 총 500자
+        val request = CollectionUpdateApiRequest(
             name = "컬렉션",
-            visibility = "public"
+            coverImageUrl = maxLengthUrl
         )
 
-        val command = mixedCaseRequest.toCommand(1L)
-        assertEquals(CollectionPrivacy.PUBLIC, command.privacy)
+        val violations = validator.validate(request)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `toServiceDto - success - creates valid CollectionInfo object`() {
+        val request = CollectionUpdateApiRequest(
+            name = "검증된 컬렉션",
+            description = "검증된 설명",
+            coverImageUrl = "https://example.com/verified.jpg"
+        )
+
+        val serviceDto = request.toServiceDto(collectionId = 100L, ownerMemberId = 200L)
+        val collectionInfo = serviceDto.newInfo
+
+        // CollectionInfo가 정상적으로 생성되는지 확인
+        assertAll(
+            { assertEquals("검증된 컬렉션", collectionInfo.name) },
+            { assertEquals("검증된 설명", collectionInfo.description) },
+            { assertEquals("https://example.com/verified.jpg", collectionInfo.coverImageUrl) }
+        )
+    }
+
+    @Test
+    fun `toServiceDto - success - handles edge cases in cover image url processing`() {
+        val requestWithOnlyWhitespace = CollectionUpdateApiRequest(
+            name = "컬렉션",
+            description = "설명",
+            coverImageUrl = "    "
+        )
+        val requestWithEmptyAfterTrim = CollectionUpdateApiRequest(
+            name = "컬렉션",
+            description = "설명",
+            coverImageUrl = "  \t  "
+        )
+
+        assertAll(
+            { assertNull(requestWithOnlyWhitespace.toServiceDto(1L, 2L).newInfo.coverImageUrl) },
+            { assertNull(requestWithEmptyAfterTrim.toServiceDto(1L, 2L).newInfo.coverImageUrl) }
+        )
+    }
+
+    @Test
+    fun `toServiceDto - success - preserves CollectionInfo invariants`() {
+        val request = CollectionUpdateApiRequest(
+            name = "불변성 테스트",
+            description = "불변성 확인용",
+            coverImageUrl = "https://example.com/invariant.jpg"
+        )
+
+        // 여러 번 호출해도 같은 결과가 나오는지 확인
+        val serviceDto1 = request.toServiceDto(1L, 2L)
+        val serviceDto2 = request.toServiceDto(1L, 2L)
+
+        assertAll(
+            { assertEquals(serviceDto1.newInfo.name, serviceDto2.newInfo.name) },
+            { assertEquals(serviceDto1.newInfo.description, serviceDto2.newInfo.description) },
+            { assertEquals(serviceDto1.newInfo.coverImageUrl, serviceDto2.newInfo.coverImageUrl) }
+        )
     }
 
     private fun findViolationByProperty(
-        violations: Set<ConstraintViolation<CollectionCreateApiRequest>>,
+        violations: Set<ConstraintViolation<CollectionUpdateApiRequest>>,
         propertyName: String,
-    ): ConstraintViolation<CollectionCreateApiRequest>? {
+    ): ConstraintViolation<CollectionUpdateApiRequest>? {
         return violations.find { it.propertyPath.toString() == propertyName }
     }
 }
