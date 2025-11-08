@@ -21,7 +21,6 @@ class SecurityConfig {
                     .requestMatchers("/members/password-forgot", "/members/password-reset").permitAll()
                     .requestMatchers(HttpMethod.GET, "/comments/**").permitAll()
                     .requestMatchers("/assets/**").permitAll()
-                    .requestMatchers("/api/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
             }

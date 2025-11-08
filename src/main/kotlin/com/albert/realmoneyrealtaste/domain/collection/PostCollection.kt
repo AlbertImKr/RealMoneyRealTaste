@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.collection
 
+import com.albert.realmoneyrealtaste.domain.collection.command.CollectionCreateCommand
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionInfo
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionOwner
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionPosts
@@ -219,26 +220,22 @@ class PostCollection protected constructor(
         /**
          * 새로운 컬렉션을 생성합니다.
          *
-         * @param ownerMemberId 소유자 회원 ID
-         * @param name 컬렉션 이름
-         * @param description 컬렉션 설명
-         * @param coverImageUrl 커버 이미지 URL (선택사항)
-         * @param privacy 공개 설정
+         * @param createCommand 생성 명령 객체
          * @return 생성된 컬렉션
          */
         fun create(
-            ownerMemberId: Long,
-            name: String,
-            description: String,
-            coverImageUrl: String? = null,
-            privacy: CollectionPrivacy = CollectionPrivacy.PUBLIC,
+            createCommand: CollectionCreateCommand,
         ): PostCollection {
             val now = LocalDateTime.now()
             return PostCollection(
-                owner = CollectionOwner(ownerMemberId),
-                info = CollectionInfo(name, description, coverImageUrl),
+                owner = CollectionOwner(createCommand.ownerMemberId),
+                info = CollectionInfo(
+                    name = createCommand.name,
+                    description = createCommand.description,
+                    coverImageUrl = createCommand.coverImageUrl
+                ),
                 posts = CollectionPosts.empty(),
-                privacy = privacy,
+                privacy = createCommand.privacy,
                 status = CollectionStatus.ACTIVE,
                 createdAt = now,
                 updatedAt = now

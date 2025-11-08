@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.collection
 
+import com.albert.realmoneyrealtaste.domain.collection.command.CollectionCreateCommand
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionInfo
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionOwner
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionPosts
@@ -17,11 +18,13 @@ class PostCollectionTest {
     @Test
     fun `create - success - creates collection with valid parameters`() {
         val collection = PostCollection.create(
-            ownerMemberId = 1L,
-            name = "맛집 모음",
-            description = "내가 다녀온 맛집들",
-            coverImageUrl = "https://example.com/cover.jpg",
-            privacy = CollectionPrivacy.PUBLIC
+            CollectionCreateCommand(
+                ownerMemberId = 1L,
+                name = "맛집 모음",
+                description = "내가 다녀온 맛집들",
+                coverImageUrl = "https://example.com/cover.jpg",
+                privacy = CollectionPrivacy.PUBLIC,
+            )
         )
 
         assertAll(
@@ -42,9 +45,11 @@ class PostCollectionTest {
     @Test
     fun `create - success - creates collection without cover image`() {
         val collection = PostCollection.create(
-            ownerMemberId = 1L,
-            name = "맛집 모음",
-            description = "내가 다녀온 맛집들"
+            CollectionCreateCommand(
+                ownerMemberId = 1L,
+                name = "맛집 모음",
+                description = "내가 다녀온 맛집들",
+            )
         )
 
         assertAll(
@@ -56,10 +61,12 @@ class PostCollectionTest {
     @Test
     fun `create - success - creates collection with private privacy`() {
         val collection = PostCollection.create(
-            ownerMemberId = 1L,
-            name = "맛집 모음",
-            description = "내가 다녀온 맛집들",
-            privacy = CollectionPrivacy.PRIVATE
+            CollectionCreateCommand(
+                ownerMemberId = 1L,
+                name = "맛집 모음",
+                description = "내가 다녀온 맛집들",
+                privacy = CollectionPrivacy.PRIVATE,
+            )
         )
 
         assertAll(
@@ -386,7 +393,15 @@ class PostCollectionTest {
 
     @Test
     fun `canViewBy - returns false for deleted private collection`() {
-        val privateCollection = PostCollection.create(2L, "Private", "설명", null, CollectionPrivacy.PRIVATE)
+        val privateCollection = PostCollection.create(
+            CollectionCreateCommand(
+                ownerMemberId = 2L,
+                name = "Private",
+                description = "설명",
+                privacy = CollectionPrivacy.PRIVATE,
+            )
+        )
+
         privateCollection.delete(2L)
 
         assertAll(
@@ -491,12 +506,22 @@ class PostCollectionTest {
     }
 
     private fun createDefaultCollection(): PostCollection {
-        return PostCollection.create(
-            ownerMemberId = 1L,
-            name = "테스트 컬렉션",
-            description = "테스트용 컬렉션입니다",
-            coverImageUrl = null,
-            privacy = CollectionPrivacy.PUBLIC
+        return PostCollection.create(createDefaultCollectionCommand())
+    }
+
+    private fun createDefaultCollectionCommand(
+        ownerMemberId: Long = 1L,
+        name: String = "테스트 컬렉션",
+        description: String = "테스트용 컬렉션입니다",
+        coverImageUrl: String? = null,
+        privacy: CollectionPrivacy = CollectionPrivacy.PUBLIC,
+    ): CollectionCreateCommand {
+        return CollectionCreateCommand(
+            ownerMemberId = ownerMemberId,
+            name = name,
+            description = description,
+            coverImageUrl = coverImageUrl,
+            privacy = privacy
         )
     }
 
