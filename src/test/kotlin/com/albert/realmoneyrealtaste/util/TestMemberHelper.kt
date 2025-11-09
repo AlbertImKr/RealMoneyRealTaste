@@ -49,4 +49,9 @@ class TestMemberHelper(
         )
         return memberRepository.save(member)
     }
+
+    fun getDefaultMember(): Member {
+        return memberRepository.findByEmail(MemberFixture.DEFAULT_EMAIL)
+            ?: throw IllegalStateException("Default member not found")
+    }
 }

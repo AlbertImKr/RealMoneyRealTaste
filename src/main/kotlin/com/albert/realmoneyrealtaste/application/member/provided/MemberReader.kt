@@ -1,8 +1,9 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 
 /**
  * 회원 조회 기능을 제공하는 인터페이스
@@ -14,7 +15,7 @@ interface MemberReader {
      *
      * @param memberId 조회할 회원의 ID
      * @return 조회된 회원 객체
-     * @throws MemberNotFoundException 해당 ID의 회원이 존재하지 않는 경우
+     * @throws MemberNotFoundException 회원을 찾을 수 없는 경우 발생
      */
     fun readMemberById(memberId: Long): Member
 
@@ -23,7 +24,7 @@ interface MemberReader {
      *
      * @param memberId 조회할 회원의 ID
      * @return 조회된 활성화된 회원 객체
-     * @throws MemberNotFoundException 해당 ID의 활성화된 회원이 존재하지 않는 경우
+     * @throws MemberNotFoundException 회원을 찾을 수 없는 경우 발생
      */
     fun readActiveMemberById(memberId: Long): Member
 
@@ -32,17 +33,9 @@ interface MemberReader {
      *
      * @param email 조회할 회원의 이메일
      * @return 조회된 회원 객체
-     * @throws MemberNotFoundException 해당 이메일의 회원이 존재하지 않는 경우
+     * @throws MemberNotFoundException 회원을 찾을 수 없는 경우 발생
      */
     fun readMemberByEmail(email: Email): Member
-
-    /**
-     * 주어진 이메일로 회원을 조회합니다. 회원이 존재하지 않을 경우 null을 반환합니다.
-     *
-     * @param email 조회할 회원의 이메일
-     * @return 조회된 회원 객체 또는 null
-     */
-    fun findMemberByEmailOrNull(email: Email): Member?
 
     /**
      * 주어진 회원 ID로 활성화된 회원의 존재 여부를 확인합니다.
@@ -57,6 +50,23 @@ interface MemberReader {
      *
      * @param memberId 조회할 회원의 ID
      * @return 조회된 회원의 닉네임
+     * @throws MemberNotFoundException 회원을 찾을 수 없는 경우 발생
      */
     fun getNicknameById(memberId: Long): String
+
+    /**
+     * 주어진 프로필 주소로 회원의 존재 여부를 확인합니다.
+     *
+     * @param profileAddress 확인할 회원의 프로필 주소
+     * @return 해당 프로필 주소를 가진 회원이 존재하면 true, 그렇지 않으면 false
+     */
+    fun existsByDetailProfileAddress(profileAddress: ProfileAddress): Boolean
+
+    /**
+     * 주어진 이메일로 회원의 존재 여부를 확인합니다.
+     *
+     * @param email 확인할 회원의 이메일
+     * @return 해당 이메일을 가진 회원이 존재하면 true, 그렇지 않으면 false
+     */
+    fun existByEmail(email: Email): Boolean
 }

@@ -2,7 +2,7 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
-import com.albert.realmoneyrealtaste.application.member.exception.DuplicateEmailException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberRegisterException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import kotlin.test.Test
@@ -42,10 +42,10 @@ class MemberRegisterTest(
 
         memberRegister.register(request)
 
-        assertFailsWith<DuplicateEmailException> {
+        assertFailsWith<MemberRegisterException> {
             memberRegister.register(request)
         }.let {
-            assertEquals("이미 사용 중인 이메일입니다.", it.message)
+            assertEquals("회원 등록 중 오류가 발생했습니다.", it.message)
         }
     }
 }

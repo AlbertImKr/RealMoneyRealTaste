@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.security
 
+import com.albert.realmoneyrealtaste.application.member.exception.MemberVerifyException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberVerify
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import org.springframework.security.authentication.AuthenticationProvider
@@ -21,7 +21,7 @@ class CustomAuthenticationProvider(
 
         val memberPrincipal = try {
             memberVerify.verify(email, password)
-        } catch (e: MemberNotFoundException) {
+        } catch (e: MemberVerifyException) {
             throw BadCredentialsException("비밀번호 또는 이메일이 일치하지 않습니다.", e)
         }
 

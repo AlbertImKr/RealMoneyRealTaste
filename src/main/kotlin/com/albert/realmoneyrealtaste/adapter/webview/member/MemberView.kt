@@ -1,12 +1,15 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberUpdateException
+import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
+import com.albert.realmoneyrealtaste.application.member.exception.PasswordChangeException
+import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetter
-import com.albert.realmoneyrealtaste.domain.member.exceptions.EmailValidationException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberDomainException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import jakarta.servlet.http.HttpServletRequest
@@ -86,16 +89,14 @@ class MemberView(
         redirectAttributes.addFlashAttribute("tab", "account")
 
         if (bindingResult.hasErrors()) {
-            val errorMessages = bindingResult.fieldErrors
-                .first()
-                .defaultMessage
+            val errorMessages = bindingResult.fieldErrors.first().defaultMessage
             redirectAttributes.addFlashAttribute("error", errorMessages)
             return "redirect:${MEMBER_SETTING_URL}"
         }
 
         try {
             memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
-        } catch (e: MemberDomainException) {
+        } catch (e: MemberUpdateException) {
             redirectAttributes.addFlashAttribute("error", "계정 정보 업데이트 중 오류가 발생했습니다. ${e.message}")
             return "redirect:${MEMBER_SETTING_URL}"
         }
@@ -110,7 +111,7 @@ class MemberView(
         bindingResult: BindingResult,
         redirectAttributes: RedirectAttributes,
     ): String {
-        redirectAttributes.addFlashAttribute("tab", "password");
+        redirectAttributes.addFlashAttribute("tab", "password")
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("error", "비밀번호 변경이 실패했습니다. 비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다")
@@ -129,7 +130,7 @@ class MemberView(
                 memberPrincipal.memberId, RawPassword(request.currentPassword), RawPassword(request.newPassword)
             )
             redirectAttributes.addFlashAttribute("success", "비밀번호가 성공적으로 변경되었습니다.")
-        } catch (e: MemberDomainException) {
+        } catch (e: PasswordChangeException) {
             redirectAttributes.addFlashAttribute("error", "비밀번호 변경 중 오류가 발생했습니다. ${e.message}")
         }
 
@@ -143,7 +144,7 @@ class MemberView(
         redirectAttributes: RedirectAttributes,
         request: HttpServletRequest,
     ): String {
-        redirectAttributes.addFlashAttribute("tab", "delete");
+        redirectAttributes.addFlashAttribute("tab", "delete")
 
         if (confirmed != true) {
             redirectAttributes.addFlashAttribute("error", "계정 삭제 확인이 필요합니다.")
@@ -158,7 +159,7 @@ class MemberView(
 
             // SecurityContextHolder에서도 인증 정보 제거
             SecurityContextHolder.clearContext()
-        } catch (e: MemberDomainException) {
+        } catch (e: MemberDeactivateException) {
             redirectAttributes.addFlashAttribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다. ${e.message}")
             return "redirect:${MEMBER_SETTING_URL}#delete"
         }
@@ -178,7 +179,7 @@ class MemberView(
 
         val emailObj = try {
             Email(email)
-        } catch (_: EmailValidationException) {
+        } catch (_: SendPasswordResetEmailException) {
             redirectAttributes.addFlashAttribute("success", false)
             redirectAttributes.addFlashAttribute("error", "올바른 이메일 형식을 입력해주세요.")
             return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"
@@ -225,7 +226,7 @@ class MemberView(
             redirectAttributes.addFlashAttribute("success", true)
             redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
             return "redirect:/members/signin"
-        } catch (e: MemberDomainException) {
+        } catch (e: PassWordResetException) {
             redirectAttributes.addFlashAttribute("error", "비밀번호 재설정 중 오류가 발생했습니다. ${e.message}")
             redirectAttributes.addFlashAttribute("token", token)
             return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"

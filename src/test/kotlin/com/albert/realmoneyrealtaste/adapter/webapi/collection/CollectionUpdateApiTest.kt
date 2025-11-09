@@ -39,7 +39,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - updates collection info and returns success response`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -63,7 +63,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - persists changes to repository`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
         val originalUpdatedAt = collection.updatedAt
 
@@ -94,7 +94,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - updates with minimal fields`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -115,7 +115,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - updates with empty description`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -142,7 +142,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - removes cover image by setting null`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -183,8 +183,6 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - returns not found when collection does not exist`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionUpdateApiRequest(
             name = "존재하지 않는 컬렉션",
             description = "테스트"
@@ -199,10 +197,9 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(memberId = 2, email = "other@test.com")
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - returns error when not owner`() {
-        val owner = testMemberHelper.createActivatedMember()
-        val other = testMemberHelper.createActivatedMember(
+        val owner = testMemberHelper.createActivatedMember(
             email = "other@test.com",
             nickname = "다른사람"
         )
@@ -224,7 +221,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when name is blank`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -243,7 +240,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when name exceeds max length`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -262,7 +259,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when description exceeds max length`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -281,7 +278,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when cover image url is invalid`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -301,7 +298,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - missing required content type`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -320,7 +317,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - does not persist changes when validation fails`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
         val originalName = collection.info.name
         val originalDescription = collection.info.description
@@ -348,7 +345,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - handles various valid image url formats`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
 
         val validUrls = listOf(
             "https://example.com/image.jpg",
@@ -378,7 +375,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - returns correct response structure`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
 
         val request = CollectionUpdateApiRequest(
@@ -408,7 +405,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - maintains collection properties except info`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val collection = createTestCollection(member.requireId())
         val originalPrivacy = collection.privacy
         val originalPostCount = collection.posts.size()

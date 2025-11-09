@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
-import com.albert.realmoneyrealtaste.application.member.exception.DuplicateEmailException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberRegisterException
 import com.albert.realmoneyrealtaste.domain.member.Member
 
 /**
@@ -14,7 +14,7 @@ fun interface MemberRegister {
      *
      * @param request 회원 등록 요청 데이터
      * @return 등록된 회원 객체
-     * @throws DuplicateEmailException 이메일이 이미 사용 중인 경우
+     * @throws MemberRegisterException 회원 등록에 실패한 경우 발생
      */
     fun register(request: MemberRegisterRequest): Member
 }

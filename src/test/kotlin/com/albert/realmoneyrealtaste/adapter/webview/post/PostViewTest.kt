@@ -31,8 +31,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createPost - success - creates post and redirects to home`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/posts/new")
                 .with(csrf())
@@ -67,8 +65,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createPost - failure - validation error when required fields are missing`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/posts/new")
                 .with(csrf())
@@ -80,8 +76,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createPost - failure - validation error when rating is out of range`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/posts/new")
                 .with(csrf())
@@ -99,7 +93,7 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readPost - success - returns post detail view with post information`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -107,7 +101,6 @@ class PostViewTest : IntegrationTestBase() {
                 images = PostFixture.createImages(2)
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             get("/posts/{postId}", post.requireId())
@@ -127,7 +120,6 @@ class PostViewTest : IntegrationTestBase() {
                 authorNickname = member.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             get("/posts/{postId}", post.requireId())
@@ -138,8 +130,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readPost - failure - returns error when post not found`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             get("/posts/{postId}", 99999L)
         )
@@ -153,14 +143,12 @@ class PostViewTest : IntegrationTestBase() {
             email = "author@example.com",
             nickname = "author"
         )
-        testMemberHelper.createActivatedMember() // viewer
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = author.requireId(),
                 authorNickname = author.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             get("/posts/{postId}", post.requireId())
@@ -172,7 +160,7 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `editPost GET - success - returns edit view with post edit form`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -180,7 +168,6 @@ class PostViewTest : IntegrationTestBase() {
                 images = PostFixture.createImages(2)
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             get("/posts/{postId}/edit", post.requireId())
@@ -199,7 +186,6 @@ class PostViewTest : IntegrationTestBase() {
                 authorNickname = member.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             get("/posts/{postId}/edit", post.requireId())
@@ -210,8 +196,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `editPost GET - failure - returns error when post not found`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             get("/posts/{postId}/edit", 99999L)
         )
@@ -219,10 +203,9 @@ class PostViewTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(memberId = 2, email = "other@example.com")
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `editPost GET - failure - returns error when user is not author`() {
-        val author = testMemberHelper.createActivatedMember()
-        testMemberHelper.createActivatedMember(
+        val author = testMemberHelper.createActivatedMember(
             email = "other@example.com",
             nickname = "other"
         )
@@ -232,7 +215,6 @@ class PostViewTest : IntegrationTestBase() {
                 authorNickname = author.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             get("/posts/{postId}/edit", post.requireId())
@@ -243,7 +225,7 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePost POST - success - updates post and redirects to post detail`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -251,7 +233,6 @@ class PostViewTest : IntegrationTestBase() {
                 images = PostFixture.createImages(2)
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -278,7 +259,6 @@ class PostViewTest : IntegrationTestBase() {
                 authorNickname = member.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -292,14 +272,13 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePost POST - failure - validation error when content is blank`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
                 authorNickname = member.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -311,10 +290,9 @@ class PostViewTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(email = "other@example.com")
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePost POST - failure - returns error when user is not author`() {
-        val author = testMemberHelper.createActivatedMember()
-        testMemberHelper.createActivatedMember(
+        val author = testMemberHelper.createActivatedMember(
             email = "other@example.com",
             nickname = "other"
         )
@@ -324,7 +302,6 @@ class PostViewTest : IntegrationTestBase() {
                 authorNickname = author.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -338,14 +315,13 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePost POST - failure - validation error when rating is negative`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
                 authorNickname = member.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -359,7 +335,7 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePost POST - failure - not allowed to set more than 5 images`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -367,7 +343,6 @@ class PostViewTest : IntegrationTestBase() {
                 images = PostFixture.createImages(2)
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -394,8 +369,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createPost - failure - validation error when images is empty URLs`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/posts/new")
                 .with(csrf())
@@ -413,8 +386,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createPost - failure - validation error when images exceed maximum count`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/posts/new")
                 .with(csrf())
@@ -440,8 +411,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createPost - failure -  - creates post without images`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/posts/new")
                 .with(csrf())
@@ -458,14 +427,13 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readPost - success - author reads their own post`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
                 authorNickname = member.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             get("/posts/{postId}", post.requireId())
@@ -479,14 +447,13 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePost POST - failure - validation error when content exceeds maximum length`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
                 authorNickname = member.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -500,7 +467,7 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readPostDetailModal - success - returns modal fragment with post information`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -535,8 +502,6 @@ class PostViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readPostDetailModal - failure - returns error when post not found`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             get("/posts/{postId}/modal", 99999L)
         )

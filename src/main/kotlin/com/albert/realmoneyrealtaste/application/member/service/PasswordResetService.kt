@@ -1,6 +1,9 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.event.PasswordResetRequestedEvent
+import com.albert.realmoneyrealtaste.application.member.exception.ExpiredPasswordResetTokenException
+import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
+import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetTokenDeleter
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetTokenGenerator
@@ -8,7 +11,6 @@ import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetTo
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetter
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
-import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredPasswordResetTokenException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
@@ -30,25 +32,39 @@ class PasswordResetService(
     private val eventPublisher: ApplicationEventPublisher,
 ) : PasswordResetter {
 
+    companion object {
+        private const val ERROR_SENDING_PASSWORD_RESET_EMAIL = "비밀번호 재설정 이메일 전송 중 오류가 발생했습니다"
+        private const val ERROR_RESETTING_PASSWORD = "비밀번호 재설정 중 오류가 발생했습니다"
+        private const val ERROR_INVALID_TOKEN = "유효하지 않은 비밀번호 재설정 토큰입니다"
+    }
+
     override fun sendPasswordResetEmail(email: Email) {
-        val member = memberReader.findMemberByEmailOrNull(email) ?: return
+        try {
+            val member = memberReader.readMemberByEmail(email)
 
-        deleteExistingTokenIfPresent(member.requireId())
+            deleteExistingTokenIfPresent(member.requireId())
 
-        val token = passwordRestTokenGenerator.generate(member.requireId())
+            val token = passwordRestTokenGenerator.generate(member.requireId())
 
-        publishPasswordResetRequestedEvent(member, token)
+            publishPasswordResetRequestedEvent(member, token)
+        } catch (e: IllegalArgumentException) {
+            throw SendPasswordResetEmailException(ERROR_SENDING_PASSWORD_RESET_EMAIL, e)
+        }
     }
 
     override fun resetPassword(token: String, newPassword: RawPassword) {
-        val resetToken = passwordRestTokenReader.findByToken(token)
-        validateTokenNotExpired(resetToken)
+        try {
+            val resetToken = passwordRestTokenReader.findByToken(token)
+            validateTokenNotExpired(resetToken)
 
-        val member = memberReader.readMemberById(resetToken.memberId)
+            val member = memberReader.readMemberById(resetToken.memberId)
 
-        member.changePassword(PasswordHash.of(newPassword, passwordEncoder))
+            member.changePassword(PasswordHash.of(newPassword, passwordEncoder))
 
-        deleteToken(resetToken)
+            deleteToken(resetToken)
+        } catch (e: IllegalArgumentException) {
+            throw PassWordResetException(ERROR_RESETTING_PASSWORD, e)
+        }
     }
 
     /**
@@ -85,7 +101,7 @@ class PasswordResetService(
     private fun validateTokenNotExpired(token: PasswordResetToken) {
         if (token.isExpired()) {
             deleteToken(token)
-            throw ExpiredPasswordResetTokenException()
+            throw ExpiredPasswordResetTokenException(ERROR_INVALID_TOKEN)
         }
     }
 

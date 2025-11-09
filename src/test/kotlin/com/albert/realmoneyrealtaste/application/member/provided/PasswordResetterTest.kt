@@ -2,11 +2,12 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.event.PasswordResetRequestedEvent
+import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
+import com.albert.realmoneyrealtaste.application.member.exception.PasswordResetTokenNotFoundException
+import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
-import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredPasswordResetTokenException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordResetTokenException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
@@ -53,7 +54,9 @@ class PasswordResetterTest(
         val nonExistentEmail = Email("notExists@gmail.com")
         applicationEvents.clear()
 
-        passwordResetter.sendPasswordResetEmail(nonExistentEmail)
+        assertFailsWith<SendPasswordResetEmailException> {
+            passwordResetter.sendPasswordResetEmail(nonExistentEmail)
+        }
 
         assertEquals(applicationEvents.stream(PasswordResetRequestedEvent::class.java).count().toInt(), 0)
     }
@@ -114,7 +117,7 @@ class PasswordResetterTest(
         val updatedMember = memberReader.readMemberById(member.requireId())
         assertAll(
             { assertTrue(updatedMember.verifyPassword(newPassword, passwordEncoder)) },
-            { assertFailsWith<InvalidPasswordResetTokenException> { passwordResetTokenReader.findByMemberId(member.requireId()) } }
+            { assertFailsWith<PasswordResetTokenNotFoundException> { passwordResetTokenReader.findByMemberId(member.requireId()) } }
         )
     }
 
@@ -123,7 +126,7 @@ class PasswordResetterTest(
         val nonExistentToken = "non-existent-token"
         val newPassword = RawPassword("newPassword123!")
 
-        assertFailsWith<InvalidPasswordResetTokenException> {
+        assertFailsWith<PassWordResetException> {
             passwordResetter.resetPassword(nonExistentToken, newPassword)
         }
     }
@@ -144,11 +147,11 @@ class PasswordResetterTest(
 
         val newPassword = RawPassword("newPassword123!")
 
-        assertFailsWith<ExpiredPasswordResetTokenException> {
+        assertFailsWith<PassWordResetException> {
             passwordResetter.resetPassword(expiredToken.token, newPassword)
         }
 
-        assertFailsWith<InvalidPasswordResetTokenException> {
+        assertFailsWith<PassWordResetException> {
             passwordResetter.resetPassword(expiredToken.token, newPassword)
         }
     }
@@ -189,7 +192,7 @@ class PasswordResetterTest(
 
         val anotherPassword = RawPassword("anotherPassword123!")
 
-        assertFailsWith<InvalidPasswordResetTokenException> {
+        assertFailsWith<PassWordResetException> {
             passwordResetter.resetPassword(token.token, anotherPassword)
         }
     }

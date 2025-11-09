@@ -2,13 +2,11 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
+import com.albert.realmoneyrealtaste.application.member.exception.MemberActivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberResendActivationEmailException
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
-import com.albert.realmoneyrealtaste.domain.member.exceptions.AlreadyActivatedException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredActivationTokenException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import java.time.LocalDateTime
@@ -40,7 +38,7 @@ class MemberActivateTest(
         val activatedMember = memberActivate.activate(token.token)
 
         assertEquals(MemberStatus.ACTIVE, activatedMember.status)
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<MemberActivateException> {
             memberActivate.activate(token.token)
         }
     }
@@ -49,7 +47,7 @@ class MemberActivateTest(
     fun `activate - failure - throws exception when token is invalid`() {
         val invalidToken = "invalid.token.value"
 
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<MemberActivateException> {
             memberActivate.activate(invalidToken)
         }
     }
@@ -69,7 +67,7 @@ class MemberActivateTest(
 
         memberActivate.activate(token.token)
 
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<MemberActivateException> {
             memberActivate.activate(token.token)
         }
     }
@@ -98,7 +96,7 @@ class MemberActivateTest(
             )
         )
 
-        assertFailsWith<ExpiredActivationTokenException> {
+        assertFailsWith<MemberActivateException> {
             memberActivate.activate(expiredToken.token)
         }
     }
@@ -108,7 +106,7 @@ class MemberActivateTest(
         val nonExistentMemberId = 999999L
         val token = activationTokenGenerator.generate(nonExistentMemberId)
 
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<MemberActivateException> {
             memberActivate.activate(token.token)
         }
     }
@@ -127,7 +125,7 @@ class MemberActivateTest(
         val token = activationTokenRepository.findByMemberId(member.requireId())
             ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
 
-        assertFailsWith<AlreadyActivatedException> {
+        assertFailsWith<MemberActivateException> {
             memberActivate.activate(token.token)
         }
     }
@@ -150,7 +148,7 @@ class MemberActivateTest(
     fun `resendActivationEmail - failure - throws exception when member not found`() {
         val nonExistentEmail = Email("nonexistent@example.com")
 
-        assertFailsWith<MemberNotFoundException> {
+        assertFailsWith<MemberResendActivationEmailException> {
             memberActivate.resendActivationEmail(nonExistentEmail)
         }
     }
@@ -170,7 +168,7 @@ class MemberActivateTest(
 
         memberActivate.activate(token.token)
 
-        assertFailsWith<AlreadyActivatedException> {
+        assertFailsWith<MemberResendActivationEmailException> {
             memberActivate.resendActivationEmail(email)
         }
     }
