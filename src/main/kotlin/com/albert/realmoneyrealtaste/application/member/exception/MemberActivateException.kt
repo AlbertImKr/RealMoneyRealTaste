@@ -6,4 +6,4 @@ package com.albert.realmoneyrealtaste.application.member.exception
  * @param message 예외 메시지
  * @param cause 예외 원인
  */
-class MemberActivateException(message: String, cause: Throwable? = null) : MemberApplicationException(message, cause)
+class MemberActivateException(message: String, cause: Throwable) : MemberApplicationException(message, cause)
