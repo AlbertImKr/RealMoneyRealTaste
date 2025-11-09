@@ -1,8 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.member
 
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.UnauthorizedRoleOperationException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
@@ -57,7 +54,7 @@ class MemberTest {
         val member = MemberFixture.createMember()
         member.activate()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.activate()
         }.let {
             assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
@@ -70,7 +67,7 @@ class MemberTest {
         member.activate()
         member.deactivate()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.activate()
         }.let {
             assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
@@ -95,7 +92,7 @@ class MemberTest {
         member.activate()
         member.deactivate()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.deactivate()
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
@@ -106,7 +103,7 @@ class MemberTest {
     fun `deactivate - failure - throws exception when member is not active`() {
         val member = MemberFixture.createMember()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.deactivate()
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
@@ -149,7 +146,7 @@ class MemberTest {
     fun `updateInfo - failure - throws exception when member is not active`() {
         val member = MemberFixture.createMember()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.updateInfo(
                 nickname = Nickname("newNick"),
                 profileAddress = ProfileAddress("address123"),
@@ -316,10 +313,10 @@ class MemberTest {
     fun `grantRole - failure - throws exception when member is not active`() {
         val member = MemberFixture.createMember()
 
-        assertFailsWith<UnauthorizedRoleOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             member.grantRole(Role.MANAGER)
         }.let {
-            assertEquals("등록 완료 상태에서만 권한 부여가 가능합니다", it.message)
+            assertEquals("등록 완료 상태에서만 권한 변경이 가능합니다", it.message)
         }
     }
 
@@ -340,10 +337,10 @@ class MemberTest {
     fun `revokeRole - failure - throws exception when member is not active`() {
         val member = MemberFixture.createMember()
 
-        assertFailsWith<UnauthorizedRoleOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             member.revokeRole(Role.USER)
         }.let {
-            assertEquals("등록 완료 상태에서만 권한 회수가 가능합니다", it.message)
+            assertEquals("등록 완료 상태에서만 권한 변경이 가능합니다", it.message)
         }
     }
 
@@ -473,7 +470,7 @@ class MemberTest {
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
         val encoder = MemberFixture.TEST_ENCODER
 
-        assertFailsWith<InvalidPasswordException> {
+        assertFailsWith<IllegalArgumentException> {
             member.changePassword(wrongPassword, newPassword, encoder)
         }.let {
             assertEquals("현재 비밀번호가 일치하지 않습니다", it.message)
@@ -487,7 +484,7 @@ class MemberTest {
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
         val encoder = MemberFixture.TEST_ENCODER
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.changePassword(currentPassword, newPassword, encoder)
         }.let {
             assertEquals("등록 완료 상태에서만 비밀번호 변경이 가능합니다", it.message)
