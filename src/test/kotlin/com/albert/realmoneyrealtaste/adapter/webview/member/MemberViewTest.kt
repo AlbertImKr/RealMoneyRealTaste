@@ -42,11 +42,11 @@ class MemberViewTest : IntegrationTestBase() {
         val token = createValidActivationToken(member.requireId())
 
         mockMvc.perform(
-            get("/members/activate")
+            get(MemberUrls.ACTIVATION)
                 .param("token", token.token)
         )
             .andExpect(status().isOk)
-            .andExpect(view().name(MemberView.MEMBER_ACTIVATE_VIEW_NAME))
+            .andExpect(view().name(MemberViews.ACTIVATE))
             .andExpect(model().attribute("nickname", member.nickname.value))
             .andExpect(model().attribute("success", true))
     }
@@ -54,7 +54,7 @@ class MemberViewTest : IntegrationTestBase() {
     @Test
     fun `activate - failure - returns error when token is invalid`() {
         mockMvc.perform(
-            get("/members/activate")
+            get(MemberUrls.ACTIVATION)
                 .param("token", "invalid-token")
         )
             .andExpect(status().is3xxRedirection)
@@ -65,9 +65,9 @@ class MemberViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `resendActivationEmail GET - success - shows resend activation page`() {
-        mockMvc.perform(get("/members/resend-activation"))
+        mockMvc.perform(get(MemberUrls.RESEND_ACTIVATION))
             .andExpect(status().isOk)
-            .andExpect(view().name(MemberView.MEMBER_RESEND_ACTIVATION_VIEW_NAME))
+            .andExpect(view().name(MemberViews.RESEND_ACTIVATION))
             .andExpect(model().attributeExists("email"))
     }
 
@@ -75,11 +75,11 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME, active = false)
     fun `resendActivationEmail POST - success - resends activation email`() {
         mockMvc.perform(
-            post("/members/resend-activation")
+            post(MemberUrls.RESEND_ACTIVATION)
                 .with(csrf())
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/members/resend-activation"))
+            .andExpect(redirectedUrl(MemberUrls.RESEND_ACTIVATION))
             .andExpect(flash().attribute("success", true))
             .andExpect(flash().attributeExists("message"))
     }
@@ -87,7 +87,7 @@ class MemberViewTest : IntegrationTestBase() {
     @Test
     fun `resendActivationEmail - failure - returns forbidden when not authenticated`() {
         mockMvc.perform(
-            post("/members/resend-activation")
+            post(MemberUrls.RESEND_ACTIVATION)
                 .with(csrf())
         )
             .andExpect(status().isForbidden)
@@ -96,15 +96,15 @@ class MemberViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `setting - success - shows member setting page`() {
-        mockMvc.perform(get("/members/setting"))
+        mockMvc.perform(get(MemberUrls.SETTING))
             .andExpect(status().isOk)
-            .andExpect(view().name(MemberView.MEMBER_SETTING_VIEW_NAME))
+            .andExpect(view().name(MemberViews.SETTING))
             .andExpect(model().attributeExists("member"))
     }
 
     @Test
     fun `setting - failure - returns forbidden when not authenticated`() {
-        mockMvc.perform(get("/members/setting"))
+        mockMvc.perform(get(MemberUrls.SETTING))
             .andExpect(status().isForbidden)
     }
 
@@ -112,14 +112,14 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateAccount - success - updates account info and redirects`() {
         mockMvc.perform(
-            post("/members/setting/account")
+            post(MemberUrls.SETTING_ACCOUNT)
                 .with(csrf())
                 .param("nickname", "새로운닉네임")
                 .param("profileAddress", "newaddress")
                 .param("introduction", "새로운 소개")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl(MemberView.MEMBER_SETTING_URL))
+            .andExpect(redirectedUrl(MemberUrls.SETTING + "#account"))
             .andExpect(flash().attribute("tab", "account"))
             .andExpect(flash().attribute("success", "계정 정보가 성공적으로 업데이트되었습니다."))
     }
@@ -128,14 +128,14 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateAccount - failure - validation error when nickname is too short`() {
         mockMvc.perform(
-            post("/members/setting/account")
+            post(MemberUrls.SETTING_ACCOUNT)
                 .with(csrf())
                 .param("nickname", "a") // 너무 짧은 닉네임
                 .param("profileAddress", "address")
                 .param("introduction", "소개")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl(MemberView.MEMBER_SETTING_URL))
+            .andExpect(redirectedUrl(MemberUrls.SETTING + "#account"))
             .andExpect(flash().attribute("tab", "account"))
             .andExpect(flash().attributeExists("error"))
     }
@@ -144,14 +144,14 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateAccount - failure - validation error when nickname is too long`() {
         mockMvc.perform(
-            post("/members/setting/account")
+            post(MemberUrls.SETTING_ACCOUNT)
                 .with(csrf())
                 .param("nickname", "a".repeat(21)) // 너무 긴 닉네임
                 .param("profileAddress", "address")
                 .param("introduction", "소개")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl(MemberView.MEMBER_SETTING_URL))
+            .andExpect(redirectedUrl(MemberUrls.SETTING + "#account"))
             .andExpect(flash().attribute("tab", "account"))
             .andExpect(flash().attributeExists("error"))
     }
@@ -160,14 +160,14 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePassword - success - updates password and redirects`() {
         mockMvc.perform(
-            post("/members/setting/password")
+            post(MemberUrls.SETTING_PASSWORD)
                 .with(csrf())
                 .param("currentPassword", MemberFixture.DEFAULT_RAW_PASSWORD.value)
                 .param("newPassword", "NewPassword1!")
                 .param("confirmNewPassword", "NewPassword1!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("${MemberView.MEMBER_SETTING_URL}#password"))
+            .andExpect(redirectedUrl("${MemberUrls.SETTING}#password"))
             .andExpect(flash().attribute("tab", "password"))
             .andExpect(flash().attribute("success", "비밀번호가 성공적으로 변경되었습니다."))
     }
@@ -176,14 +176,14 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePassword - failure - validation error when password format is invalid`() {
         mockMvc.perform(
-            post("/members/setting/password")
+            post(MemberUrls.SETTING_PASSWORD)
                 .with(csrf())
                 .param("currentPassword", "Default1!")
                 .param("newPassword", "weak") // 약한 비밀번호
                 .param("confirmNewPassword", "weak")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("${MemberView.MEMBER_SETTING_URL}#password"))
+            .andExpect(redirectedUrl("${MemberUrls.SETTING}#password"))
             .andExpect(flash().attribute("tab", "password"))
             .andExpect(flash().attributeExists("error"))
     }
@@ -192,14 +192,14 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePassword - failure - validation error when passwords do not match`() {
         mockMvc.perform(
-            post("/members/setting/password")
+            post(MemberUrls.SETTING_PASSWORD)
                 .with(csrf())
                 .param("currentPassword", "Default1!")
                 .param("newPassword", "NewPassword1!")
                 .param("confirmNewPassword", "DifferentPassword1!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("${MemberView.MEMBER_SETTING_URL}#password"))
+            .andExpect(redirectedUrl("${MemberUrls.SETTING}#password"))
             .andExpect(flash().attribute("tab", "password"))
             .andExpect(flash().attributeExists("error"))
     }
@@ -209,7 +209,7 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `deleteAccount - success - deactivates member and redirects to home`() {
         mockMvc.perform(
-            post("/members/setting/delete")
+            post(MemberUrls.SETTING_DELETE)
                 .with(csrf())
                 .param("confirmed", "true")
         )
@@ -221,12 +221,12 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `deleteAccount - failure - returns error when confirmation is missing`() {
         mockMvc.perform(
-            post("/members/setting/delete")
+            post(MemberUrls.SETTING_DELETE)
                 .with(csrf())
                 .param("confirmed", "false")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("${MemberView.MEMBER_SETTING_URL}#delete"))
+            .andExpect(redirectedUrl("${MemberUrls.SETTING}#delete"))
             .andExpect(flash().attribute("tab", "delete"))
             .andExpect(flash().attribute("error", "계정 삭제 확인이 필요합니다."))
     }
@@ -235,12 +235,12 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `deleteAccount - failure - returns error when confirmed is null`() {
         mockMvc.perform(
-            post("/members/setting/delete")
+            post(MemberUrls.SETTING_DELETE)
                 .with(csrf())
             // confirmed 파라미터 없음
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("${MemberView.MEMBER_SETTING_URL}#delete"))
+            .andExpect(redirectedUrl("${MemberUrls.SETTING}#delete"))
             .andExpect(flash().attribute("tab", "delete"))
             .andExpect(flash().attribute("error", "계정 삭제 확인이 필요합니다."))
     }
@@ -248,9 +248,9 @@ class MemberViewTest : IntegrationTestBase() {
     // 비밀번호 찾기 테스트
     @Test
     fun `passwordForgot GET - success - shows password forgot page`() {
-        mockMvc.perform(get(MemberView.MEMBER_PASSWORD_FORGOT_URL))
+        mockMvc.perform(get(MemberUrls.PASSWORD_FORGOT))
             .andExpect(status().isOk)
-            .andExpect(view().name(MemberView.MEMBER_PASSWORD_FORGOT_VIEW_NAME))
+            .andExpect(view().name(MemberViews.PASSWORD_FORGOT))
     }
 
     @Test
@@ -258,12 +258,12 @@ class MemberViewTest : IntegrationTestBase() {
         val member = testMemberHelper.createActivatedMember()
 
         mockMvc.perform(
-            post(MemberView.MEMBER_PASSWORD_FORGOT_URL)
+            post(MemberUrls.PASSWORD_FORGOT)
                 .with(csrf())
                 .param("email", member.email.address)
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl(MemberView.MEMBER_PASSWORD_FORGOT_URL))
+            .andExpect(redirectedUrl(MemberUrls.PASSWORD_FORGOT))
             .andExpect(flash().attribute("success", true))
             .andExpect(flash().attributeExists("message"))
     }
@@ -271,12 +271,12 @@ class MemberViewTest : IntegrationTestBase() {
     @Test
     fun `sendPasswordResetEmail - failure - returns error when email format is invalid`() {
         mockMvc.perform(
-            post(MemberView.MEMBER_PASSWORD_FORGOT_URL)
+            post(MemberUrls.PASSWORD_FORGOT)
                 .with(csrf())
                 .param("email", "invalid-email")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl(MemberView.MEMBER_PASSWORD_FORGOT_URL))
+            .andExpect(redirectedUrl(MemberUrls.PASSWORD_FORGOT))
             .andExpect(flash().attribute("success", false))
             .andExpect(flash().attribute("error", "올바른 이메일 형식을 입력해주세요."))
     }
@@ -286,11 +286,11 @@ class MemberViewTest : IntegrationTestBase() {
         val token = "valid-reset-token"
 
         mockMvc.perform(
-            get(MemberView.MEMBER_PASSWORD_RESET_URL)
+            get(MemberUrls.PASSWORD_RESET)
                 .param("token", token)
         )
             .andExpect(status().isOk)
-            .andExpect(view().name(MemberView.MEMBER_PASSWORD_RESET_VIEW_NAME))
+            .andExpect(view().name(MemberViews.PASSWORD_RESET))
             .andExpect(model().attribute("token", token))
     }
 
@@ -300,7 +300,7 @@ class MemberViewTest : IntegrationTestBase() {
         val token = createValidPasswordResetToken(member.requireId())
 
         mockMvc.perform(
-            post(MemberView.MEMBER_PASSWORD_RESET_URL)
+            post(MemberUrls.PASSWORD_RESET)
                 .with(csrf())
                 .param("token", token.token)
                 .param("newPassword", "NewPassword1!")
@@ -317,14 +317,14 @@ class MemberViewTest : IntegrationTestBase() {
         val token = "valid-token"
 
         mockMvc.perform(
-            post(MemberView.MEMBER_PASSWORD_RESET_URL)
+            post(MemberUrls.PASSWORD_RESET)
                 .with(csrf())
                 .param("token", token)
                 .param("newPassword", "weak") // 약한 비밀번호
                 .param("newPasswordConfirm", "weak")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("${MemberView.MEMBER_PASSWORD_RESET_URL}?token=$token"))
+            .andExpect(redirectedUrl("${MemberUrls.PASSWORD_RESET}?token=$token"))
             .andExpect(flash().attribute("error", "비밀번호 형식이 올바르지 않습니다."))
             .andExpect(flash().attribute("token", token))
     }
@@ -334,14 +334,14 @@ class MemberViewTest : IntegrationTestBase() {
         val token = "valid-token"
 
         mockMvc.perform(
-            post(MemberView.MEMBER_PASSWORD_RESET_URL)
+            post(MemberUrls.PASSWORD_RESET)
                 .with(csrf())
                 .param("token", token)
                 .param("newPassword", "NewPassword1!")
                 .param("newPasswordConfirm", "DifferentPassword1!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("${MemberView.MEMBER_PASSWORD_RESET_URL}?token=$token"))
+            .andExpect(redirectedUrl("${MemberUrls.PASSWORD_RESET}?token=$token"))
             .andExpect(flash().attribute("error", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."))
             .andExpect(flash().attribute("token", token))
     }
@@ -351,14 +351,14 @@ class MemberViewTest : IntegrationTestBase() {
         val invalidToken = "invalid-token"
 
         mockMvc.perform(
-            post(MemberView.MEMBER_PASSWORD_RESET_URL)
+            post(MemberUrls.PASSWORD_RESET)
                 .with(csrf())
                 .param("token", invalidToken)
                 .param("newPassword", "NewPassword1!")
                 .param("newPasswordConfirm", "NewPassword1!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl(MemberView.MEMBER_PASSWORD_FORGOT_URL))
+            .andExpect(redirectedUrl(MemberUrls.PASSWORD_RESET + "?token=$invalidToken"))
             .andExpect(flash().attributeExists("error"))
             .andExpect(flash().attribute("token", invalidToken))
     }
@@ -367,7 +367,7 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateAccount - failure - requires csrf token`() {
         mockMvc.perform(
-            post("/members/setting/account")
+            post(MemberUrls.SETTING_ACCOUNT)
                 // .with(csrf()) 제거하여 CSRF 토큰 누락 상황 테스트
                 .param("nickname", "새로운닉네임")
                 .param("profileAddress", "newaddress")
@@ -380,7 +380,7 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updatePassword - failure - requires csrf token`() {
         mockMvc.perform(
-            post("/members/setting/password")
+            post(MemberUrls.SETTING_PASSWORD)
                 // .with(csrf()) 제거
                 .param("currentPassword", "Default1!")
                 .param("newPassword", "NewPassword1!")
@@ -393,7 +393,7 @@ class MemberViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `deleteAccount - failure - requires csrf token`() {
         mockMvc.perform(
-            post("/members/setting/delete")
+            post(MemberUrls.SETTING_DELETE)
                 // .with(csrf()) 제거
                 .param("confirmed", "true")
         )

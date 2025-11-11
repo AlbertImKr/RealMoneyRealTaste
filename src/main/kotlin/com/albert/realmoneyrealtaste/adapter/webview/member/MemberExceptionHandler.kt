@@ -1,7 +1,5 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
-import com.albert.realmoneyrealtaste.adapter.webview.member.MemberView.Companion.MEMBER_ACTIVATION_URL
-import com.albert.realmoneyrealtaste.adapter.webview.member.MemberView.Companion.MEMBER_SETTING_URL
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberActivateException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberResendActivationEmailException
@@ -20,7 +18,7 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "이미 사용 중인 프로필 주소입니다.")
 
-        return "redirect:${MEMBER_SETTING_URL}"
+        return "redirect:${MemberViews.SETTING}"
     }
 
     @ExceptionHandler(MemberActivateException::class)
@@ -31,7 +29,7 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "회원 활성화에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:${MEMBER_ACTIVATION_URL}"
+        return "redirect:${MemberViews.ACTIVATE}"
     }
 
     @ExceptionHandler(MemberResendActivationEmailException::class)
@@ -42,6 +40,6 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "활성화 이메일 재전송에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:${MemberView.MEMBER_RESEND_ACTIVATION_URL}"
+        return "redirect:${MemberViews.RESEND_ACTIVATION}"
     }
 }
