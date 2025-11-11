@@ -1,9 +1,9 @@
 package com.albert.realmoneyrealtaste.util
 
+import com.albert.realmoneyrealtaste.config.TestPasswordEncoder
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
@@ -22,15 +22,7 @@ class MemberFixture {
         val DEFAULT_NICKNAME = Nickname("defaultNick")
         val OTHER_NICKNAME = Nickname(OTHER_NICKNAME_VALUE)
         val DEFAULT_RAW_PASSWORD = RawPassword("Default1!")
-        val TEST_ENCODER = object : PasswordEncoder {
-            override fun encode(rawPassword: RawPassword): String {
-                return "hashed-${rawPassword.value}"
-            }
-
-            override fun matches(rawPassword: RawPassword, passwordHash: String): Boolean {
-                return passwordHash == encode(rawPassword)
-            }
-        }
+        val TEST_ENCODER = TestPasswordEncoder()
         val DEFAULT_PASSWORD = PasswordHash.of(DEFAULT_RAW_PASSWORD, TEST_ENCODER)
         val NEW_RAW_PASSWORD = RawPassword("NewDefault1!")
 

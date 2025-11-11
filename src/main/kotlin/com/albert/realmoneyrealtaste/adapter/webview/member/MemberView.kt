@@ -4,8 +4,6 @@ import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberUpdateException
 import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
-import com.albert.realmoneyrealtaste.application.member.exception.PasswordChangeException
-import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
@@ -34,7 +32,26 @@ class MemberView(
     private val passwordResetter: PasswordResetter,
 ) {
 
-    @GetMapping("/members/activate")
+    companion object {
+        const val MEMBER_ACTIVATE_VIEW_NAME = "member/activate"
+        const val MEMBER_ACTIVATION_VIEW_NAME = "member/activation"
+        const val MEMBER_RESEND_ACTIVATION_VIEW_NAME = "member/resend-activation"
+        const val MEMBER_SETTING_VIEW_NAME = "member/setting"
+        const val MEMBER_PASSWORD_FORGOT_VIEW_NAME = "member/password-forgot"
+        const val MEMBER_PASSWORD_RESET_VIEW_NAME = "member/password-reset"
+        const val MEMBER_PASSWORD_RESET_EMAIL_VIEW_NAME = "member/password-reset-email"
+
+        const val MEMBER_PASSWORD_FORGOT_URL = "/members/password-forgot"
+        const val MEMBER_PASSWORD_RESET_URL = "/members/password-reset"
+        const val MEMBER_ACTIVATION_URL = "/members/activate"
+        const val MEMBER_RESEND_ACTIVATION_URL = "/members/resend-activation"
+        const val MEMBER_SETTING_URL = "/members/setting"
+        const val MEMBER_SETTING_ACCOUNT_URL = "/members/setting/account"
+        const val MEMBER_SETTING_PASSWORD_URL = "/members/setting/password"
+        const val MEMBER_SETTING_DELETE_URL = "/members/setting/delete"
+    }
+
+    @GetMapping(MEMBER_ACTIVATION_URL)
     fun activate(
         @RequestParam("token") token: String,
         model: Model,
@@ -47,7 +64,7 @@ class MemberView(
         return MEMBER_ACTIVATE_VIEW_NAME
     }
 
-    @GetMapping("/members/resend-activation")
+    @GetMapping(MEMBER_RESEND_ACTIVATION_URL)
     fun resendActivationEmail(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         model: Model,
@@ -56,7 +73,7 @@ class MemberView(
         return MEMBER_RESEND_ACTIVATION_VIEW_NAME
     }
 
-    @PostMapping("/members/resend-activation")
+    @PostMapping(MEMBER_RESEND_ACTIVATION_URL)
     fun resendActivationEmail(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         redirectAttributes: RedirectAttributes,
@@ -69,7 +86,7 @@ class MemberView(
         return "redirect:/members/resend-activation"
     }
 
-    @GetMapping("/members/setting")
+    @GetMapping(MEMBER_SETTING_URL)
     fun setting(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         model: Model,
@@ -79,7 +96,7 @@ class MemberView(
         return MEMBER_SETTING_VIEW_NAME
     }
 
-    @PostMapping("/members/setting/account")
+    @PostMapping(MEMBER_SETTING_ACCOUNT_URL)
     fun updateAccount(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @Valid @ModelAttribute form: AccountUpdateForm,
@@ -104,7 +121,7 @@ class MemberView(
         return "redirect:${MEMBER_SETTING_URL}"
     }
 
-    @PostMapping("/members/setting/password")
+    @PostMapping(MEMBER_SETTING_PASSWORD_URL)
     fun updatePassword(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @Valid @ModelAttribute request: PasswordUpdateForm,
@@ -125,19 +142,15 @@ class MemberView(
             return "redirect:${MEMBER_SETTING_URL}#password"
         }
 
-        try {
-            memberUpdater.updatePassword(
-                memberPrincipal.memberId, RawPassword(request.currentPassword), RawPassword(request.newPassword)
-            )
-            redirectAttributes.addFlashAttribute("success", "비밀번호가 성공적으로 변경되었습니다.")
-        } catch (e: PasswordChangeException) {
-            redirectAttributes.addFlashAttribute("error", "비밀번호 변경 중 오류가 발생했습니다. ${e.message}")
-        }
+        memberUpdater.updatePassword(
+            memberPrincipal.memberId, RawPassword(request.currentPassword), RawPassword(request.newPassword)
+        )
+        redirectAttributes.addFlashAttribute("success", "비밀번호가 성공적으로 변경되었습니다.")
 
         return "redirect:${MEMBER_SETTING_URL}#password"
     }
 
-    @PostMapping("/members/setting/delete")
+    @PostMapping(MEMBER_SETTING_DELETE_URL)
     fun deleteAccount(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @RequestParam confirmed: Boolean?,
@@ -179,7 +192,7 @@ class MemberView(
 
         val emailObj = try {
             Email(email)
-        } catch (_: SendPasswordResetEmailException) {
+        } catch (_: IllegalArgumentException) {
             redirectAttributes.addFlashAttribute("success", false)
             redirectAttributes.addFlashAttribute("error", "올바른 이메일 형식을 입력해주세요.")
             return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"
@@ -231,19 +244,5 @@ class MemberView(
             redirectAttributes.addFlashAttribute("token", token)
             return "redirect:${MEMBER_PASSWORD_FORGOT_URL}"
         }
-    }
-
-    companion object {
-        const val MEMBER_ACTIVATE_VIEW_NAME = "member/activate"
-        const val MEMBER_ACTIVATION_VIEW_NAME = "member/activation"
-        const val MEMBER_RESEND_ACTIVATION_VIEW_NAME = "member/resend-activation"
-        const val MEMBER_SETTING_VIEW_NAME = "member/setting"
-        const val MEMBER_PASSWORD_FORGOT_VIEW_NAME = "member/password-forgot"
-        const val MEMBER_PASSWORD_RESET_VIEW_NAME = "member/password-reset"
-        const val MEMBER_PASSWORD_RESET_EMAIL_VIEW_NAME = "member/password-reset-email"
-
-        const val MEMBER_SETTING_URL = "/members/setting"
-        const val MEMBER_PASSWORD_FORGOT_URL = "/members/password-forgot"
-        const val MEMBER_PASSWORD_RESET_URL = "/members/password-reset"
     }
 }
