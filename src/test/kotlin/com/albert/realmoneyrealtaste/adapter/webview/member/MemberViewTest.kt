@@ -358,9 +358,9 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("newPasswordConfirm", "NewPassword1!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl(MemberUrls.PASSWORD_RESET + "?token=$invalidToken"))
+            .andExpect(redirectedUrl("/members/signin"))
             .andExpect(flash().attributeExists("error"))
-            .andExpect(flash().attribute("token", invalidToken))
+            .andExpect(flash().attribute("success", false))
     }
 
     @Test

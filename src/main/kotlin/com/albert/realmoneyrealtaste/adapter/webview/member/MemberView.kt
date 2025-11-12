@@ -1,9 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
-import com.albert.realmoneyrealtaste.application.member.exception.MemberUpdateException
-import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
@@ -92,12 +89,8 @@ class MemberView(
             return "redirect:${MemberUrls.SETTING}#account"
         }
 
-        try {
-            memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
-        } catch (e: MemberUpdateException) {
-            redirectAttributes.addFlashAttribute("error", "계정 정보 업데이트 중 오류가 발생했습니다. ${e.message}")
-            return "redirect:${MemberUrls.SETTING}#account"
-        }
+        memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
+
         redirectAttributes.addFlashAttribute("success", "계정 정보가 성공적으로 업데이트되었습니다.")
         return "redirect:${MemberUrls.SETTING}#account"
     }
@@ -145,18 +138,13 @@ class MemberView(
             return "redirect:${MemberUrls.SETTING}#delete"
         }
 
-        try {
-            memberUpdater.deactivate(memberPrincipal.memberId)
+        memberUpdater.deactivate(memberPrincipal.memberId)
 
-            // 세션 무효화 및 로그아웃 처리
-            request.session.invalidate()
+        // 세션 무효화 및 로그아웃 처리
+        request.session.invalidate()
 
-            // SecurityContextHolder에서도 인증 정보 제거
-            SecurityContextHolder.clearContext()
-        } catch (e: MemberDeactivateException) {
-            redirectAttributes.addFlashAttribute("error", "계정이 이미 비활성화되었거나 삭제할 수 없습니다. ${e.message}")
-            return "redirect:${MemberUrls.SETTING}#delete"
-        }
+        SecurityContextHolder.clearContext()
+
         return "redirect:/"
     }
 
@@ -215,15 +203,9 @@ class MemberView(
             return "redirect:${MemberUrls.PASSWORD_RESET}?token=$token"
         }
 
-        try {
-            passwordResetter.resetPassword(token, RawPassword(form.newPassword))
-            redirectAttributes.addFlashAttribute("success", true)
-            redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
-            return "redirect:/members/signin"
-        } catch (e: PassWordResetException) {
-            redirectAttributes.addFlashAttribute("error", "비밀번호 재설정 중 오류가 발생했습니다. ${e.message}")
-            redirectAttributes.addFlashAttribute("token", token)
-            return "redirect:${MemberUrls.PASSWORD_RESET}?token=$token"
-        }
+        passwordResetter.resetPassword(token, RawPassword(form.newPassword))
+        redirectAttributes.addFlashAttribute("success", true)
+        redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
+        return "redirect:/members/signin"
     }
 }
