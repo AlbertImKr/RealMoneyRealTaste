@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.member.value
 
-import com.albert.realmoneyrealtaste.domain.member.exceptions.IntroductionValidationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -38,10 +37,10 @@ class IntroductionTest {
     fun `constructor - failure - throws exception when text exceeds maximum length`() {
         val tooLongText = "A".repeat(501)
 
-        assertFailsWith<IntroductionValidationException.TooLong> {
+        assertFailsWith<IllegalArgumentException> {
             Introduction(tooLongText)
         }.let {
-            assertEquals("소개는 최대 500자 이내여야 합니다", it.message)
+            assertEquals("자기소개는 최대 500 자까지 작성할 수 있습니다", it.message)
         }
     }
 

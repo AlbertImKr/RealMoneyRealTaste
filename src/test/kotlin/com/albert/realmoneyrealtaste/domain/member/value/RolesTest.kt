@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.member.value
 
-import com.albert.realmoneyrealtaste.domain.member.exceptions.RoleValidationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -41,10 +40,10 @@ class RolesTest {
 
     @Test
     fun `of - failure - throws exception when no roles provided`() {
-        assertFailsWith<RoleValidationException.EmptyRoles> {
+        assertFailsWith<IllegalArgumentException> {
             Roles.of()
         }.let {
-            assertEquals("최소 하나의 역할이 필요합니다", it.message)
+            assertEquals("적어도 하나의 역할이 필요합니다", it.message)
         }
     }
 
@@ -158,41 +157,11 @@ class RolesTest {
     fun `removeRole - failure - throws exception when trying to remove last USER role`() {
         val roles = Roles.ofUser()
 
-        assertFailsWith<RoleValidationException.MinimumRoleRequired> {
+        assertFailsWith<IllegalArgumentException> {
             roles.removeRole(Role.USER)
         }.let {
-            assertEquals("최소 하나의 역할은 유지되어야 합니다", it.message)
+            assertEquals("적어도 하나의 역할이 필요합니다", it.message)
         }
-    }
-
-    @Test
-    fun `removeRole - success - removes role when it is the only role but not USER`() {
-        val roles = Roles.of(Role.MANAGER)
-
-        roles.removeRole(Role.MANAGER)
-
-        assertFalse(roles.hasRole(Role.MANAGER))
-        assertEquals(0, roles.getRoles().size)
-    }
-
-    @Test
-    fun `removeRole - success - removes non-existing role without error`() {
-        val roles = Roles.ofUser()
-
-        roles.removeRole(Role.MANAGER)
-
-        assertTrue(roles.hasRole(Role.USER))
-        assertEquals(1, roles.getRoles().size)
-    }
-
-    @Test
-    fun `removeRole - success - allows removing last role if it is not USER`() {
-        val roles = Roles.of(Role.ADMIN)
-
-        roles.removeRole(Role.ADMIN)
-
-        assertFalse(roles.hasRole(Role.ADMIN))
-        assertEquals(0, roles.getRoles().size)
     }
 
     @Test

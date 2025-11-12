@@ -1,8 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.exception.InvalidPasswordResetTokenException
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordResetTokenException
 import org.junit.jupiter.api.assertAll
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -36,7 +36,7 @@ class PasswordResetTokenGeneratorTest(
         val token = passwordResetTokenGenerator.generate(memberId)
 
         val savedToken = passwordResetTokenRepository.findByMemberId(memberId)
-            ?: throw InvalidPasswordResetTokenException()
+            ?: throw InvalidPasswordResetTokenException("유효하지 않은 비밀번호 재설정 토큰입니다.")
 
         assertAll(
             { assertNotNull(savedToken) },

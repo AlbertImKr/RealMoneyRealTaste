@@ -1,9 +1,11 @@
 package com.albert.realmoneyrealtaste.application.member.required
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +18,7 @@ class MemberRepositoryTest(
 
     @Test
     fun `save - success - saves and returns member`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
 
         val savedMember = memberRepository.save(member)
 
@@ -29,7 +31,7 @@ class MemberRepositoryTest(
 
     @Test
     fun `save - success - assigns id to new member`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
 
         val savedMember = memberRepository.save(member)
 
@@ -39,7 +41,7 @@ class MemberRepositoryTest(
     @Test
     fun `findByEmail - success - returns member when exists`() {
         val email = Email("find-by-email@example.com")
-        val member = MemberFixture.createMember(email)
+        val member = createMember(email)
         memberRepository.save(member)
         flushAndClear()
 
@@ -60,7 +62,7 @@ class MemberRepositoryTest(
 
     @Test
     fun `findById - success - returns member when exists`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         val savedMember = memberRepository.save(member)
         flushAndClear()
 
@@ -82,7 +84,7 @@ class MemberRepositoryTest(
 
     @Test
     fun `save - success - updates existing member`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         val savedMember = memberRepository.save(member)
         flushAndClear()
 
@@ -101,8 +103,8 @@ class MemberRepositoryTest(
         val nickname1 = Nickname("member1")
         val email2 = Email("member2@example.com")
         val nickname2 = Nickname("member2")
-        memberRepository.save(MemberFixture.createMember(email = email1, nickname = nickname1))
-        memberRepository.save(MemberFixture.createMember(email = email2, nickname = nickname2))
+        memberRepository.save(createMember(email = email1, nickname = nickname1))
+        memberRepository.save(createMember(email = email2, nickname = nickname2))
         flushAndClear()
 
         val foundMember = memberRepository.findByEmail(email1)
@@ -114,12 +116,12 @@ class MemberRepositoryTest(
     @Test
     fun `findById - success - returns correct member when multiple members exist`() {
         val member1 = memberRepository.save(
-            MemberFixture.createMember(
+            createMember(
                 email = Email("id1@example.com"),
                 nickname = Nickname("id1")
             )
         )
-        memberRepository.save(MemberFixture.createMember(email = Email("id2@example.com"), nickname = Nickname("id2")))
+        memberRepository.save(createMember(email = Email("id2@example.com"), nickname = Nickname("id2")))
         flushAndClear()
 
         val foundMember = memberRepository.findById(member1.id!!)
@@ -132,12 +134,26 @@ class MemberRepositoryTest(
     @Test
     fun `findByEmail - success - is case sensitive`() {
         val email = Email("CaseSensitive@example.com")
-        memberRepository.save((MemberFixture.createMember(email = email)))
+        memberRepository.save((createMember(email = email)))
         flushAndClear()
 
         val foundWithSameCase = memberRepository.findByEmail(email)
         memberRepository.findByEmail(email)
 
         assertNotNull(foundWithSameCase)
+    }
+
+    fun createMember(
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+    ): Member {
+        return Member.register(
+            email = email,
+            nickname = nickname,
+            password = PasswordHash.of(
+                MemberFixture.DEFAULT_RAW_PASSWORD,
+                MemberFixture.TEST_ENCODER
+            )
+        )
     }
 }

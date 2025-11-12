@@ -1,8 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.member
 
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.UnauthorizedRoleOperationException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
@@ -26,7 +23,7 @@ class MemberTest {
     fun `register - success - creates member with initial status and trust score`() {
         val email = MemberFixture.DEFAULT_EMAIL
         val nickname = MemberFixture.DEFAULT_NICKNAME
-        val password = MemberFixture.DEFAULT_PASSWORD
+        val password = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, MemberFixture.TEST_ENCODER)
         val now = LocalDateTime.now()
 
         val member = Member.register(email, nickname, password)
@@ -43,7 +40,7 @@ class MemberTest {
 
     @Test
     fun `activate - success - changes status to active and updates timestamp`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         val beforeUpdatedAt = member.updatedAt
 
         member.activate()
@@ -54,10 +51,10 @@ class MemberTest {
 
     @Test
     fun `activate - failure - throws exception when member is already active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.activate()
         }.let {
             assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
@@ -66,11 +63,11 @@ class MemberTest {
 
     @Test
     fun `activate - failure - throws exception when member is deactivated`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.deactivate()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.activate()
         }.let {
             assertEquals("등록 대기 상태에서만 등록 완료가 가능합니다", it.message)
@@ -79,7 +76,7 @@ class MemberTest {
 
     @Test
     fun `deactivate - success - changes status to deactivated and updates timestamp`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         val beforeUpdateAt = member.updatedAt
         member.activate()
 
@@ -91,11 +88,11 @@ class MemberTest {
 
     @Test
     fun `deactivate - failure - throws exception when member is already deactivated`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.deactivate()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.deactivate()
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
@@ -104,9 +101,9 @@ class MemberTest {
 
     @Test
     fun `deactivate - failure - throws exception when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.deactivate()
         }.let {
             assertEquals("등록 완료 상태에서만 탈퇴가 가능합니다", it.message)
@@ -115,7 +112,7 @@ class MemberTest {
 
     @Test
     fun `verifyPassword - success - returns true when password matches`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val encoder = MemberFixture.TEST_ENCODER
 
@@ -126,7 +123,7 @@ class MemberTest {
 
     @Test
     fun `updateInfo - success - updates member information and timestamp`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val newNickname = Nickname("newNick")
         val newProfileAddress = ProfileAddress("address123")
@@ -147,9 +144,9 @@ class MemberTest {
 
     @Test
     fun `updateInfo - failure - throws exception when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.updateInfo(
                 nickname = Nickname("newNick"),
                 profileAddress = ProfileAddress("address123"),
@@ -162,7 +159,7 @@ class MemberTest {
 
     @Test
     fun `updateInfo - success - keeps existing values when no parameters provided`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val beforeNickname = member.nickname
         val beforeProfileAddress = member.detail.profileAddress
@@ -179,7 +176,7 @@ class MemberTest {
 
     @Test
     fun `updateInfo - success - updates only nickname when other parameters are null`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val newNickname = Nickname("newNick")
         val beforeProfileAddress = member.detail.profileAddress
@@ -196,7 +193,7 @@ class MemberTest {
 
     @Test
     fun `updateInfo - success - updates only profile address when other parameters are null`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val beforeNickname = member.nickname
         val newProfileAddress = ProfileAddress("newAddress")
@@ -213,7 +210,7 @@ class MemberTest {
 
     @Test
     fun `updateInfo - success - updates only introduction when other parameters are null`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val beforeNickname = member.nickname
         val beforeProfileAddress = member.detail.profileAddress
@@ -230,7 +227,7 @@ class MemberTest {
 
     @Test
     fun `updateInfo - success - updates multiple fields when provided`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val newNickname = Nickname("newNick")
         val newProfileAddress = ProfileAddress("newAddress")
@@ -247,7 +244,7 @@ class MemberTest {
 
     @Test
     fun `updateTrustScore - success - updates trust score and timestamp`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val beforeUpdateAt = member.updatedAt
         val updatedTrustScore = TrustScore.create()
@@ -266,7 +263,7 @@ class MemberTest {
 
     @Test
     fun `canWriteReview - success - returns true when member is active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
 
         val canWriteReview = member.isActive()
@@ -276,7 +273,7 @@ class MemberTest {
 
     @Test
     fun `canWriteReview - success - returns false when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
 
         val canWriteReview = member.isActive()
 
@@ -302,7 +299,7 @@ class MemberTest {
 
     @Test
     fun `grantRole - success - adds role and updates timestamp`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val beforeUpdateAt = member.updatedAt
 
@@ -314,18 +311,18 @@ class MemberTest {
 
     @Test
     fun `grantRole - failure - throws exception when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
 
-        assertFailsWith<UnauthorizedRoleOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             member.grantRole(Role.MANAGER)
         }.let {
-            assertEquals("등록 완료 상태에서만 권한 부여가 가능합니다", it.message)
+            assertEquals("등록 완료 상태에서만 권한 변경이 가능합니다", it.message)
         }
     }
 
     @Test
     fun `revokeRole - success - removes role and updates timestamp`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.grantRole(Role.MANAGER)
         val beforeUpdateAt = member.updatedAt
@@ -338,18 +335,18 @@ class MemberTest {
 
     @Test
     fun `revokeRole - failure - throws exception when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
 
-        assertFailsWith<UnauthorizedRoleOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             member.revokeRole(Role.USER)
         }.let {
-            assertEquals("등록 완료 상태에서만 권한 회수가 가능합니다", it.message)
+            assertEquals("등록 완료 상태에서만 권한 변경이 가능합니다", it.message)
         }
     }
 
     @Test
     fun `canManage - success - returns true when member is active and has manager role`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.grantRole(Role.MANAGER)
 
@@ -358,7 +355,7 @@ class MemberTest {
 
     @Test
     fun `canManage - success - returns false when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.grantRole(Role.MANAGER)
         member.deactivate()
@@ -368,7 +365,7 @@ class MemberTest {
 
     @Test
     fun `canManage - success - returns false when member does not have manager role`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
 
         assertFalse(member.canManage())
@@ -376,7 +373,7 @@ class MemberTest {
 
     @Test
     fun `canAdministrate - success - returns true when member is active and has admin role`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.grantRole(Role.ADMIN)
 
@@ -385,7 +382,7 @@ class MemberTest {
 
     @Test
     fun `canAdministrate - failure - returns false when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.grantRole(Role.ADMIN)
         member.deactivate()
@@ -395,7 +392,7 @@ class MemberTest {
 
     @Test
     fun `canAdministrate - success - returns false when member does not have admin role`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
 
         assertFalse(member.canAdministrate())
@@ -403,7 +400,7 @@ class MemberTest {
 
     @Test
     fun `hasRole - success - returns true when member has specific role`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
 
         assertTrue(member.hasRole(Role.USER))
@@ -412,7 +409,7 @@ class MemberTest {
 
     @Test
     fun `hasAnyRole - success - returns true when member has any of the specified roles`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         member.grantRole(Role.MANAGER)
 
@@ -425,7 +422,7 @@ class MemberTest {
     fun `registerManager - success - creates member with manager role`() {
         val email = MemberFixture.DEFAULT_EMAIL
         val nickname = MemberFixture.DEFAULT_NICKNAME
-        val password = MemberFixture.DEFAULT_PASSWORD
+        val password = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, MemberFixture.TEST_ENCODER)
 
         val member = Member.registerManager(email, nickname, password)
 
@@ -439,7 +436,7 @@ class MemberTest {
     fun `registerAdmin - success - creates member with admin role`() {
         val email = MemberFixture.DEFAULT_EMAIL
         val nickname = MemberFixture.DEFAULT_NICKNAME
-        val password = MemberFixture.DEFAULT_PASSWORD
+        val password = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, MemberFixture.TEST_ENCODER)
 
         val member = Member.registerAdmin(email, nickname, password)
 
@@ -451,7 +448,7 @@ class MemberTest {
 
     @Test
     fun `changePassword with current password - success - updates password when current password matches`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val currentPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
@@ -467,13 +464,13 @@ class MemberTest {
 
     @Test
     fun `changePassword with current password - failure - throws exception when current password does not match`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val wrongPassword = RawPassword("wrongPassword123!")
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
         val encoder = MemberFixture.TEST_ENCODER
 
-        assertFailsWith<InvalidPasswordException> {
+        assertFailsWith<IllegalArgumentException> {
             member.changePassword(wrongPassword, newPassword, encoder)
         }.let {
             assertEquals("현재 비밀번호가 일치하지 않습니다", it.message)
@@ -482,12 +479,12 @@ class MemberTest {
 
     @Test
     fun `changePassword with current password - failure - throws exception when member is not active`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         val currentPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
         val encoder = MemberFixture.TEST_ENCODER
 
-        assertFailsWith<InvalidMemberStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             member.changePassword(currentPassword, newPassword, encoder)
         }.let {
             assertEquals("등록 완료 상태에서만 비밀번호 변경이 가능합니다", it.message)
@@ -496,7 +493,7 @@ class MemberTest {
 
     @Test
     fun `changePassword without current password - success - updates password and timestamp`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         val newPassword = MemberFixture.NEW_RAW_PASSWORD
         val encoder = MemberFixture.TEST_ENCODER
         val beforeUpdateAt = member.updatedAt
@@ -507,10 +504,25 @@ class MemberTest {
         assertTrue(beforeUpdateAt < member.updatedAt)
     }
 
+    private fun createMember(
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+        password: RawPassword = MemberFixture.DEFAULT_RAW_PASSWORD,
+    ): Member {
+        return Member.register(
+            email = email,
+            nickname = nickname,
+            password = PasswordHash.of(password, MemberFixture.TEST_ENCODER)
+        )
+    }
+
     private class TestMember : Member(
         email = MemberFixture.DEFAULT_EMAIL,
         nickname = MemberFixture.DEFAULT_NICKNAME,
-        passwordHash = MemberFixture.DEFAULT_PASSWORD,
+        passwordHash = PasswordHash.of(
+            MemberFixture.DEFAULT_RAW_PASSWORD,
+            MemberFixture.TEST_ENCODER
+        ),
         status = MemberStatus.PENDING,
         detail = MemberDetail.register(null, null),
         trustScore = TrustScore.create(),

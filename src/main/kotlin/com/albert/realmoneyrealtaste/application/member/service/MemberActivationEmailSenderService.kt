@@ -17,6 +17,11 @@ class MemberActivationEmailSenderService(
     @param:Value("\${app.base-url}") private val baseUrl: String,
 ) : MemberActivationEmailSender {
 
+    companion object {
+        const val ACTIVATION_PATH = "/members/activate?token="
+        const val ACTIVATION_EMAIL_SUBJECT = "[RealMoneyRealTaste] 이메일 인증 안내"
+    }
+
     override fun sendActivationEmail(email: Email, nickname: Nickname, activationToken: ActivationToken) {
         val activationLink = createActivationLink(activationToken)
 
@@ -30,10 +35,5 @@ class MemberActivationEmailSenderService(
      */
     private fun createActivationLink(activationToken: ActivationToken): String {
         return "${baseUrl}${ACTIVATION_PATH}${activationToken.token}"
-    }
-
-    companion object {
-        const val ACTIVATION_PATH = "/members/activate?token="
-        const val ACTIVATION_EMAIL_SUBJECT = "[RealMoneyRealTaste] 이메일 인증 안내"
     }
 }

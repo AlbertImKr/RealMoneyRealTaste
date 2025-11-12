@@ -1,8 +1,9 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.exception.InvalidPasswordResetTokenException
+import com.albert.realmoneyrealtaste.application.member.exception.PasswordResetTokenNotFoundException
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordResetTokenException
 import org.junit.jupiter.api.assertAll
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -146,7 +147,7 @@ class PasswordResetTokenReaderTest(
     fun `findByMemberId - failure - throws exception when member has no token`() {
         val nonExistentMemberId = 999L
 
-        assertFailsWith<InvalidPasswordResetTokenException> {
+        assertFailsWith<PasswordResetTokenNotFoundException> {
             passwordResetTokenReader.findByMemberId(nonExistentMemberId)
         }
     }
@@ -176,7 +177,7 @@ class PasswordResetTokenReaderTest(
 
         passwordResetTokenRepository.delete(generatedToken)
 
-        assertFailsWith<InvalidPasswordResetTokenException> {
+        assertFailsWith<PasswordResetTokenNotFoundException> {
             passwordResetTokenReader.findByMemberId(memberId)
         }
     }

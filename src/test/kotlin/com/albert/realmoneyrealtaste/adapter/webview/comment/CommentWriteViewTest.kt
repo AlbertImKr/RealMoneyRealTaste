@@ -36,7 +36,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createComment - success - creates new comment and returns comment fragment`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -59,7 +59,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createComment - success - creates reply and returns reply fragment`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -104,8 +104,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createComment - failure - returns error when post not found`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/comments")
                 .with(csrf())
@@ -118,7 +116,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createComment - failure - returns error when content is blank`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -139,7 +137,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createComment - failure - returns error when parent comment not found`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -161,7 +159,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createComment - failure - handles content too long`() {
-        testMemberHelper.createActivatedMember()
         val post = postRepository.save(PostFixture.createPost(/*...*/))
         val longContent = "a".repeat(501) // CommentContent.MAX_LENGTH 초과
 
@@ -178,7 +175,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createComment - failure - parent comment deleted`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -205,7 +202,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - success - updates comment and returns comment fragment`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -228,7 +225,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - success - updates reply and returns reply fragment`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -272,8 +269,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - failure - returns not found when comment does not exist`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/comments/{commentId}", 99999L)
                 .with(csrf())
@@ -286,8 +281,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - failure - returns forbidden when user is not comment author`() {
-        testMemberHelper.createActivatedMember(email = "author@test.com")
-        val author = testMemberHelper.createActivatedMember(email = MemberFixture.DEFAULT_USERNAME)
+        val author = testMemberHelper.createActivatedMember(email = "author@email.com", nickname = "AuthorUser")
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = author.requireId(),
@@ -309,7 +303,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - failure - returns bad request when content is blank`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -331,7 +325,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - failure - returns bad request when content is too long`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -354,8 +348,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - failure - returns bad request when comment id is not positive`() {
-        testMemberHelper.createActivatedMember()
-
         mockMvc.perform(
             post("/comments/{commentId}", -1)
                 .with(csrf())
@@ -366,31 +358,9 @@ class CommentWriteViewTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME, memberId = -1L)
-    fun `updateComment - failure - returns bad request when member id is invalid`() {
-        val member = testMemberHelper.createActivatedMember()
-        val post = postRepository.save(
-            PostFixture.createPost(
-                authorMemberId = member.requireId(),
-                authorNickname = member.nickname.value
-            )
-        )
-        val comment = createAndSaveComment(post.requireId(), "원본 댓글", member.requireId())
-        flushAndClear()
-
-        mockMvc.perform(
-            post("/comments/{commentId}", comment.id)
-                .with(csrf())
-                .param("content", "댓글 수정 시도")
-        )
-            .andExpect(status().isBadRequest)
-            .andExpect(model().attributeExists("error"))
-    }
-
-    @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - failure - returns bad request when trying to update deleted comment`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),
@@ -416,7 +386,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateComment - success - preserves comment properties after update`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val post = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = member.requireId(),

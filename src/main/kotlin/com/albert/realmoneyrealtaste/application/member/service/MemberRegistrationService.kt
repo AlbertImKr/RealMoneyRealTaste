@@ -3,7 +3,9 @@ package com.albert.realmoneyrealtaste.application.member.service
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEvent
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateEmailException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberRegisterException
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
@@ -20,20 +22,30 @@ class MemberRegistrationService(
     private val memberRepository: MemberRepository,
     private val eventPublisher: ApplicationEventPublisher,
     private val activationTokenGenerator: ActivationTokenGenerator,
+    private val memberReader: MemberReader,
 ) : MemberRegister {
 
+    companion object {
+        const val ERROR_MEMBER_DUPLICATE_EMAIL = "이미 사용 중인 이메일입니다."
+        const val ERROR_MEMBER_REGISTRATION_FAILED = "회원 등록 중 오류가 발생했습니다."
+    }
+
     override fun register(request: MemberRegisterRequest): Member {
-        validateEmailNotDuplicated(request)
+        try {
+            validateEmailNotDuplicated(request)
 
-        val passwordHash = PasswordHash.of(request.password, passwordEncoder)
+            val passwordHash = PasswordHash.of(request.password, passwordEncoder)
 
-        val member = Member.register(request.email, request.nickname, passwordHash)
+            val member = Member.register(request.email, request.nickname, passwordHash)
 
-        val savedMember = memberRepository.save(member)
+            val savedMember = memberRepository.save(member)
 
-        publishMemberRegisteredEvent(savedMember)
+            publishMemberRegisteredEvent(savedMember)
 
-        return savedMember
+            return savedMember
+        } catch (e: IllegalArgumentException) {
+            throw MemberRegisterException(ERROR_MEMBER_REGISTRATION_FAILED, e)
+        }
     }
 
     /**
@@ -43,8 +55,10 @@ class MemberRegistrationService(
      * @throws DuplicateEmailException 이미 사용 중인 이메일인 경우
      */
     private fun validateEmailNotDuplicated(request: MemberRegisterRequest) {
-        memberRepository.findByEmail(request.email)?.let {
-            throw DuplicateEmailException()
+        memberReader.existByEmail(request.email).let {
+            if (it) {
+                throw DuplicateEmailException("$ERROR_MEMBER_DUPLICATE_EMAIL: ${request.email.address}")
+            }
         }
     }
 

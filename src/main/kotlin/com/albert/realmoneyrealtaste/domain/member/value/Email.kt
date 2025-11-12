@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.member.value
 
-import com.albert.realmoneyrealtaste.domain.member.exceptions.EmailValidationException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import org.hibernate.annotations.NaturalId
@@ -8,7 +7,7 @@ import org.hibernate.annotations.NaturalId
 @Embeddable
 data class Email(
     @NaturalId
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = COLUMN_NAME, nullable = false, unique = true)
     val address: String,
 ) {
     init {
@@ -16,19 +15,22 @@ data class Email(
     }
 
     private fun validate() {
-        if (address.isBlank()) {
-            throw EmailValidationException.Required()
-        }
+        require(address.isNotBlank()) { ERROR_EMPTY }
 
-        val emailRegex = EMAIL_PATTERN.toRegex()
-        if (!emailRegex.matches(address)) {
-            throw EmailValidationException.InvalidFormat()
-        }
+        val emailRegex = PATTERN.toRegex()
+        require(emailRegex.matches(address)) { ERROR_INVALID }
     }
 
-    fun getDomain(): String = address.substringAfter("@")
+    fun getDomain(): String = address.substringAfter(DELIMITER)
 
     companion object {
-        private const val EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*\\.[A-Za-z]{2,}$"
+        const val COLUMN_NAME = "email"
+
+        const val PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)*\\.[A-Za-z]{2,}$"
+
+        const val ERROR_EMPTY = "이메일은 필수입니다"
+        const val ERROR_INVALID = "유효한 이메일 형식이 아닙니다"
+
+        const val DELIMITER = "@"
     }
 }

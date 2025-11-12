@@ -1,9 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.member
 
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.UnauthorizedRoleOperationException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
@@ -87,18 +84,16 @@ class Member protected constructor(
         protected set
 
     fun activate() {
-        if (status != MemberStatus.PENDING) {
-            throw InvalidMemberStatusException.NotPending(("등록 대기 상태에서만 등록 완료가 가능합니다"))
-        }
+        require(status == MemberStatus.PENDING) { ERROR_INVALID_STATUS_FOR_ACTIVATION }
+
         status = MemberStatus.ACTIVE
         detail.activate()
         updatedAt = LocalDateTime.now()
     }
 
     fun deactivate() {
-        if (status != MemberStatus.ACTIVE) {
-            throw InvalidMemberStatusException.NotActive(("등록 완료 상태에서만 탈퇴가 가능합니다"))
-        }
+        require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_DEACTIVATION }
+
         status = MemberStatus.DEACTIVATED
         detail.deactivate()
         updatedAt = LocalDateTime.now()
@@ -113,12 +108,10 @@ class Member protected constructor(
     }
 
     fun changePassword(currentPassword: RawPassword, newPassword: RawPassword, encoder: PasswordEncoder) {
-        if (status != MemberStatus.ACTIVE) {
-            throw InvalidMemberStatusException.NotActive(("등록 완료 상태에서만 비밀번호 변경이 가능합니다"))
-        }
-        if (!passwordHash.matches(currentPassword, encoder)) {
-            throw InvalidPasswordException("현재 비밀번호가 일치하지 않습니다")
-        }
+        require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_PASSWORD_CHANGE }
+
+        require(passwordHash.matches(currentPassword, encoder)) { ERROR_INVALID_PASSWORD }
+
         passwordHash = PasswordHash.of(newPassword, encoder)
         updatedAt = LocalDateTime.now()
     }
@@ -129,9 +122,9 @@ class Member protected constructor(
         introduction: Introduction? = null,
     ) {
         if (nickname == null && profileAddress == null && introduction == null) return
-        if (status != MemberStatus.ACTIVE) {
-            throw InvalidMemberStatusException.NotActive(("등록 완료 상태에서만 정보 수정이 가능합니다"))
-        }
+
+        require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_INFO_UPDATE }
+
         nickname?.let { this.nickname = it }
         detail.updateInfo(profileAddress, introduction)
         updatedAt = LocalDateTime.now()
@@ -143,17 +136,15 @@ class Member protected constructor(
     }
 
     fun grantRole(role: Role) {
-        if (status != MemberStatus.ACTIVE) {
-            throw UnauthorizedRoleOperationException("등록 완료 상태에서만 권한 부여가 가능합니다")
-        }
+        require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_ROLE_CHANGE }
+
         roles.addRole(role)
         updatedAt = LocalDateTime.now()
     }
 
     fun revokeRole(role: Role) {
-        if (status != MemberStatus.ACTIVE) {
-            throw UnauthorizedRoleOperationException("등록 완료 상태에서만 권한 회수가 가능합니다")
-        }
+        require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_ROLE_CHANGE }
+
         roles.removeRole(role)
         updatedAt = LocalDateTime.now()
     }
@@ -169,6 +160,13 @@ class Member protected constructor(
     fun hasAnyRole(vararg roleList: Role): Boolean = roles.hasAnyRole(*roleList)
 
     companion object {
+        const val ERROR_INVALID_STATUS_FOR_ACTIVATION = "등록 대기 상태에서만 등록 완료가 가능합니다"
+        const val ERROR_INVALID_STATUS_FOR_DEACTIVATION = "등록 완료 상태에서만 탈퇴가 가능합니다"
+        const val ERROR_INVALID_STATUS_FOR_INFO_UPDATE = "등록 완료 상태에서만 정보 수정이 가능합니다"
+        const val ERROR_INVALID_STATUS_FOR_PASSWORD_CHANGE = "등록 완료 상태에서만 비밀번호 변경이 가능합니다"
+        const val ERROR_INVALID_PASSWORD = "현재 비밀번호가 일치하지 않습니다"
+        const val ERROR_INVALID_STATUS_FOR_ROLE_CHANGE = "등록 완료 상태에서만 권한 변경이 가능합니다"
+
         fun register(
             email: Email,
             nickname: Nickname,

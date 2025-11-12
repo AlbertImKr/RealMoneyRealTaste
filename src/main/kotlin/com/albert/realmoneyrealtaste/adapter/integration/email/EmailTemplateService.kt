@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.integration.email
 
-import com.albert.realmoneyrealtaste.adapter.webview.member.MemberView
+import com.albert.realmoneyrealtaste.adapter.webview.member.MemberViews
 import com.albert.realmoneyrealtaste.application.member.required.EmailTemplate
 import org.springframework.stereotype.Service
 import org.thymeleaf.TemplateEngine
@@ -17,7 +17,7 @@ class EmailTemplateService(
             setVariable("activationLink", activationLink)
             setVariable("expirationHours", expirationHours)
         }
-        return templateEngine.process(MemberView.MEMBER_ACTIVATION_VIEW_NAME, context)
+        return templateEngine.process(MemberViews.ACTIVATION, context)
     }
 
     override fun buildPasswordResetEmail(nickname: String, passwordResetLink: String, expirationHours: Long): String {
@@ -26,6 +26,6 @@ class EmailTemplateService(
             setVariable("passwordResetLink", passwordResetLink)
             setVariable("expirationHours", expirationHours)
         }
-        return templateEngine.process(MemberView.MEMBER_PASSWORD_RESET_EMAIL_VIEW_NAME, context)
+        return templateEngine.process(MemberViews.PASSWORD_RESET_EMAIL, context)
     }
 }

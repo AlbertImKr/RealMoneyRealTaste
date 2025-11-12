@@ -2,16 +2,14 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MemberReaderTest(
@@ -107,32 +105,6 @@ class MemberReaderTest(
         assertFailsWith<MemberNotFoundException> {
             memberReader.readMemberByEmail(nonExistentEmail)
         }
-    }
-
-    @Test
-    fun `findMemberByEmailOrNull - success - returns member when member exists`() {
-        val request = MemberRegisterRequest(
-            email = MemberFixture.DEFAULT_EMAIL,
-            password = MemberFixture.DEFAULT_RAW_PASSWORD,
-            nickname = MemberFixture.DEFAULT_NICKNAME
-        )
-        val registeredMember = memberRegister.register(request)
-
-        val member = memberReader.findMemberByEmailOrNull(MemberFixture.DEFAULT_EMAIL)
-
-        assertNotNull(member)
-        assertEquals(registeredMember.id, member.id)
-        assertEquals(registeredMember.email, member.email)
-        assertEquals(registeredMember.nickname, member.nickname)
-    }
-
-    @Test
-    fun `findMemberByEmailOrNull - success - returns null when member does not exist`() {
-        val nonExistentEmail = Email("nonexistent@example.com")
-
-        val member = memberReader.findMemberByEmailOrNull(nonExistentEmail)
-
-        assertNull(member)
     }
 
     @Test

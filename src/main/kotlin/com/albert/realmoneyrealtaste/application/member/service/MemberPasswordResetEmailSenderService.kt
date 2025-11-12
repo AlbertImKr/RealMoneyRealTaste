@@ -17,6 +17,11 @@ class MemberPasswordResetEmailSenderService(
     @param:Value("\${app.base-url}") private val baseUrl: String,
 ) : MemberPasswordResetEmailSender {
 
+    companion object {
+        const val RESET_PATH = "/members/password-reset?token="
+        const val RESET_EMAIL_SUBJECT = "[RealMoneyRealTaste] 비밀번호 재설정 안내"
+    }
+
     override fun sendResetEmail(email: Email, nickname: Nickname, passwordResetToken: PasswordResetToken) {
         val passwordResetLink = createPasswordResetLink(passwordResetToken)
 
@@ -30,9 +35,4 @@ class MemberPasswordResetEmailSenderService(
      */
     private fun createPasswordResetLink(passwordResetToken: PasswordResetToken): String =
         "${baseUrl}${RESET_PATH}${passwordResetToken.token}"
-
-    companion object {
-        const val RESET_PATH = "/members/password-reset?token="
-        const val RESET_EMAIL_SUBJECT = "[RealMoneyRealTaste] 비밀번호 재설정 안내"
-    }
 }

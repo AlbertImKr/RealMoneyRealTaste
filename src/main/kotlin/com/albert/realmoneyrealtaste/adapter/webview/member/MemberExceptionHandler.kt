@@ -1,50 +1,70 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
-import com.albert.realmoneyrealtaste.adapter.webview.member.MemberView.Companion.MEMBER_SETTING_URL
-import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.AlreadyActivatedException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredActivationTokenException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
-import org.springframework.ui.Model
+import com.albert.realmoneyrealtaste.application.member.exception.MemberActivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberResendActivationEmailException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberUpdateException
+import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
+import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 
-@ControllerAdvice
+@ControllerAdvice(annotations = [Controller::class])
 class MemberExceptionHandler {
 
-    @ExceptionHandler(
-        ExpiredActivationTokenException::class,
-        InvalidActivationTokenException::class,
-    )
-    fun handleActivationTokenExceptions(
-        ex: RuntimeException,
-        model: Model,
-    ): String {
-        model.addAttribute("success", false)
-
-        return MemberView.MEMBER_ACTIVATE_VIEW_NAME
-    }
-
-    @ExceptionHandler
-    fun handleAlreadyActivated(
-        ex: AlreadyActivatedException,
-        model: Model,
-    ): String {
-        model.addAttribute("success", true)
-        model.addAttribute("message", "이미 활성화된 회원입니다.")
-
-        return MemberView.MEMBER_ACTIVATE_VIEW_NAME
-    }
-
-    @ExceptionHandler
-    fun handleDuplicateProfileAddress(
-        ex: DuplicateProfileAddressException,
+    @ExceptionHandler(MemberActivateException::class)
+    fun handleMemberActivateException(
+        ex: MemberActivateException,
         redirectAttributes: RedirectAttributes,
     ): String {
         redirectAttributes.addFlashAttribute("success", false)
-        redirectAttributes.addFlashAttribute("error", "이미 사용 중인 프로필 주소입니다.")
+        redirectAttributes.addFlashAttribute("error", "회원 활성화에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:${MEMBER_SETTING_URL}"
+        return "redirect:${MemberUrls.ACTIVATION}"
+    }
+
+    @ExceptionHandler(MemberResendActivationEmailException::class)
+    fun handleMemberResendActivationEmailException(
+        ex: MemberResendActivationEmailException,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        redirectAttributes.addFlashAttribute("success", false)
+        redirectAttributes.addFlashAttribute("error", "활성화 이메일 재전송에 실패했습니다. 다시 시도해주세요.")
+
+        return "redirect:${MemberUrls.RESEND_ACTIVATION}"
+    }
+
+    @ExceptionHandler(MemberUpdateException::class)
+    fun handleMemberUpdateException(
+        ex: MemberUpdateException,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        redirectAttributes.addFlashAttribute("success", false)
+        redirectAttributes.addFlashAttribute("error", "회원 정보 수정에 실패했습니다. 다시 시도해주세요.")
+
+        return "redirect:${MemberUrls.SETTING}#account"
+    }
+
+    @ExceptionHandler(MemberDeactivateException::class)
+    fun handleMemberDeactivateException(
+        ex: MemberDeactivateException,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        redirectAttributes.addFlashAttribute("success", false)
+        redirectAttributes.addFlashAttribute("error", "회원 탈퇴에 실패했습니다. 다시 시도해주세요.")
+
+        return "redirect:${MemberUrls.SETTING}#delete"
+    }
+
+    @ExceptionHandler(PassWordResetException::class)
+    fun handlePassWordResetException(
+        ex: PassWordResetException,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        redirectAttributes.addFlashAttribute("success", false)
+        redirectAttributes.addFlashAttribute("error", "비밀번호 재설정에 실패했습니다. 다시 시도해주세요.")
+
+        return "redirect:/"
     }
 }

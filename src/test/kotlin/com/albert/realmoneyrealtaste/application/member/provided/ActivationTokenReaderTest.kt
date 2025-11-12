@@ -1,8 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.member.exception.ActivationTokenNotFoundException
 import com.albert.realmoneyrealtaste.application.member.required.ActivationTokenRepository
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
 import org.junit.jupiter.api.Assertions.assertAll
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -49,14 +49,14 @@ class ActivationTokenReaderTest(
     fun `findByToken - failure - throws exception when token does not exist`() {
         val nonExistentToken = "non-existent-token-12345"
 
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<ActivationTokenNotFoundException> {
             activationTokenReader.findByToken(nonExistentToken)
         }
     }
 
     @Test
     fun `findByToken - failure - throws exception when token is empty string`() {
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<ActivationTokenNotFoundException> {
             activationTokenReader.findByToken("")
         }
     }
@@ -89,7 +89,7 @@ class ActivationTokenReaderTest(
 
         activationTokenRepository.delete(generatedToken)
 
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<ActivationTokenNotFoundException> {
             activationTokenReader.findByToken(tokenString)
         }
     }
@@ -116,7 +116,7 @@ class ActivationTokenReaderTest(
     fun `findByToken - failure - throws exception with invalid UUID format token`() {
         val invalidToken = "invalid-token-format"
 
-        assertFailsWith<InvalidActivationTokenException> {
+        assertFailsWith<ActivationTokenNotFoundException> {
             activationTokenReader.findByToken(invalidToken)
         }
     }

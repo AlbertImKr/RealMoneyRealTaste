@@ -1,6 +1,8 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.event.ResendActivationEmailEvent
+import com.albert.realmoneyrealtaste.application.member.exception.MemberActivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberResendActivationEmailException
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenDeleter
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenReader
@@ -8,12 +10,6 @@ import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.MemberStatus
-import com.albert.realmoneyrealtaste.domain.member.exceptions.AlreadyActivatedException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.ExpiredActivationTokenException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidActivationTokenException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
@@ -22,34 +18,50 @@ import org.springframework.stereotype.Service
 @Transactional
 @Service
 class MemberActivationService(
-    private val actionTokenReader: ActivationTokenReader,
-    private val actionTokenDeleter: ActivationTokenDeleter,
+    private val activationTokenReader: ActivationTokenReader,
+    private val activationTokenDeleter: ActivationTokenDeleter,
     private val memberReader: MemberReader,
     private val eventPublisher: ApplicationEventPublisher,
     private val activationTokenGenerator: ActivationTokenGenerator,
 ) : MemberActivate {
 
+    companion object {
+        const val ERROR_ACTIVATION_TOKEN_ALREADY_ACTIVATED = "이미 활성화된 회원입니다."
+        const val ERROR_ACTIVATION_TOKEN_EXPIRED = "활성화 토큰이 만료되었습니다."
+        const val ERROR_ACTIVATION_TOKEN_RESEND_EMAIL_FAILED = "인증 이메일 재전송에 실패했습니다."
+        const val ERROR_MEMBER_ACTIVATE_FAILED = "회원 활성화에 실패했습니다."
+    }
+
     override fun activate(token: String): Member {
-        val activationToken = actionTokenReader.findByToken(token)
+        try {
+            val activationToken = activationTokenReader.findByToken(token)
 
-        validateTokenNotExpired(activationToken)
+            validateTokenNotExpired(activationToken)
 
-        val member = findMemberByTokenOrThrow(activationToken)
+            val member = memberReader.readMemberById(activationToken.memberId)
 
-        member.activateOrThrow()
-        actionTokenDeleter.delete(activationToken)
+            member.activate()
 
-        return member
+            activationTokenDeleter.delete(activationToken)
+
+            return member
+        } catch (e: IllegalArgumentException) {
+            throw MemberActivateException(ERROR_MEMBER_ACTIVATE_FAILED, e)
+        }
     }
 
     override fun resendActivationEmail(email: Email) {
-        val member = memberReader.readMemberByEmail(email)
+        try {
+            val member = memberReader.readMemberByEmail(email)
 
-        validateMemberNotActivated(member)
+            require(!member.isActive()) { ERROR_ACTIVATION_TOKEN_ALREADY_ACTIVATED }
 
-        val newToken = activationTokenGenerator.generate(member.requireId())
+            val newToken = activationTokenGenerator.generate(member.requireId())
 
-        publishResendActivationEmailEvent(member, newToken)
+            publishResendActivationEmailEvent(member, newToken)
+        } catch (e: IllegalArgumentException) {
+            throw MemberResendActivationEmailException(ERROR_ACTIVATION_TOKEN_RESEND_EMAIL_FAILED, e)
+        }
     }
 
     /**
@@ -72,43 +84,15 @@ class MemberActivationService(
     }
 
     /**
-     * 회원이 이미 활성화된 상태인지 검증
-     *
-     * @param member 회원
-     * @throws AlreadyActivatedException 이미 활성화된 회원인 경우
-     */
-    private fun validateMemberNotActivated(member: Member) {
-        if (member.status == MemberStatus.ACTIVE) {
-            throw AlreadyActivatedException()
-        }
-    }
-
-    /**
      * 활성화 토큰이 만료되었는지 검증하고 만료되었다면 토큰을 삭제
      *
      * @param activationToken 활성화 토큰
-     * @throws ExpiredActivationTokenException 토큰이 만료된 경우
+     * @throws IllegalArgumentException 활성화 토큰이 만료된 경우
      */
     private fun validateTokenNotExpired(activationToken: ActivationToken) {
         if (activationToken.isExpired()) {
             deleteToken(activationToken)
-            throw ExpiredActivationTokenException()
-        }
-    }
-
-    /**
-     * 활성화 토큰에서 회원을 조회하고 없으면 토큰을 삭제
-     *
-     * @param activationToken 활성화 토큰
-     * @return 조회된 회원
-     * @throws InvalidActivationTokenException 토큰에 해당하는 회원이 없는 경우
-     */
-    private fun findMemberByTokenOrThrow(activationToken: ActivationToken): Member {
-        return try {
-            memberReader.readMemberById(activationToken.memberId)
-        } catch (_: MemberNotFoundException) {
-            deleteToken(activationToken)
-            throw InvalidActivationTokenException()
+            throw IllegalArgumentException(ERROR_ACTIVATION_TOKEN_EXPIRED)
         }
     }
 
@@ -118,19 +102,6 @@ class MemberActivationService(
      * @param activationToken 활성화 토큰
      */
     private fun deleteToken(activationToken: ActivationToken) {
-        actionTokenDeleter.delete(activationToken)
-    }
-
-    /**
-     * 회원을 활성화
-     *
-     * @throws AlreadyActivatedException 이미 활성화된 회원인 경우
-     */
-    private fun Member.activateOrThrow() {
-        try {
-            this.activate()
-        } catch (_: InvalidMemberStatusException) {
-            throw AlreadyActivatedException()
-        }
+        activationTokenDeleter.delete(activationToken)
     }
 }

@@ -3,24 +3,27 @@ package com.albert.realmoneyrealtaste.util
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
-import com.albert.realmoneyrealtaste.domain.member.value.Role
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.test.context.support.WithSecurityContextFactory
+import org.springframework.stereotype.Component
 
+@Component
 class WithMockMemberSecurityContextFactory : WithSecurityContextFactory<WithMockMember> {
+
+    @Autowired
+    lateinit var testMemberHelper: TestMemberHelper
+
     override fun createSecurityContext(annotation: WithMockMember): SecurityContext {
-        val principal = MemberPrincipal(
-            memberId = annotation.memberId,
+        val member = testMemberHelper.createMember(
             email = Email(annotation.email),
             nickname = Nickname(annotation.nickname),
-            active = annotation.active,
-            introduction = annotation.introduction,
-            roles = annotation.roles
-                .map { role -> Role.valueOf(role) }
-                .toSet(),
         )
+        if (annotation.active) member.activate()
+
+        val principal = MemberPrincipal.from(member)
 
         val auth = UsernamePasswordAuthenticationToken(
             principal,

@@ -1,11 +1,10 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
-import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberUpdateException
+import com.albert.realmoneyrealtaste.application.member.exception.PasswordChangeException
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidMemberStatusException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.InvalidPasswordException
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
 /**
@@ -19,9 +18,7 @@ interface MemberUpdater {
      * @param memberId 수정할 회원의 ID
      * @param request 수정할 회원 정보가 담긴 요청 객체
      * @return 수정된 회원 객체
-     * @throws MemberNotFoundException 해당 ID의 회원이 존재하지 않는 경우
-     * @throws InvalidMemberStatusException 멤버가 등록 완료 상태가 아닌 경우
-     * @throws DuplicateProfileAddressException 프로필 주소가 이미 사용 중인 경우
+     * @throws MemberUpdateException 회원 정보 수정에 실패한 경우 발생
      */
     fun updateInfo(memberId: Long, request: AccountUpdateRequest): Member
 
@@ -32,9 +29,7 @@ interface MemberUpdater {
      * @param currentPassword 현재 비밀번호
      * @param newPassword 새로운 비밀번호
      * @return 수정된 회원 객체
-     * @throws MemberNotFoundException 해당 ID의 회원이 존재하지 않는 경우
-     * @throws InvalidMemberStatusException 멤버가 등록 완료 상태가 아닌 경우
-     * @throws InvalidPasswordException 현재 비밀번호가 일치하지 않는 경우
+     * @throws PasswordChangeException 비밀번호 변경에 실패한 경우 발생
      */
     fun updatePassword(memberId: Long, currentPassword: RawPassword, newPassword: RawPassword): Member
 
@@ -43,8 +38,7 @@ interface MemberUpdater {
      *
      * @param memberId 비활성화할 회원의 ID
      * @return 비활성화된 회원 객체
-     * @throws MemberNotFoundException 해당 ID의 회원이 존재하지 않는 경우
-     * @throws InvalidMemberStatusException 멤버가 등록 완료 상태가 아닌 경우
+     * @throws MemberDeactivateException 회원 탈퇴에 실패한 경우 발생
      */
     fun deactivate(memberId: Long): Member
 }

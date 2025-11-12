@@ -37,8 +37,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - creates collection and returns success response`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "API 테스트 컬렉션",
             description = "API를 통해 생성된 컬렉션",
@@ -61,7 +59,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - saves collection to repository`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val initialCount = collectionRepository.countByOwnerMemberId(member.requireId())
 
         val request = CollectionCreateApiRequest(
@@ -98,8 +96,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - creates collection with minimal fields`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "최소 컬렉션"
             // description, coverImageUrl, visibility는 기본값 사용
@@ -119,8 +115,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - creates private collection by default`() {
-        val member = testMemberHelper.createActivatedMember()
-
+        val member = testMemberHelper.getDefaultMember()
         val request = CollectionCreateApiRequest(
             name = "기본 비공개 컬렉션",
             description = "기본값 테스트"
@@ -148,8 +143,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - creates public collection`() {
-        val member = testMemberHelper.createActivatedMember()
-
+        val member = testMemberHelper.getDefaultMember()
         val request = CollectionCreateApiRequest(
             name = "공개 API 컬렉션",
             description = "공개 설명",
@@ -195,8 +189,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - failure - validation error when name is blank`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "",
             description = "설명"
@@ -213,8 +205,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - failure - validation error when name exceeds max length`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "a".repeat(101), // 최대 길이 초과
             description = "설명"
@@ -231,8 +221,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - failure - validation error when description exceeds max length`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "a".repeat(501) // 최대 길이 초과
@@ -249,8 +237,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - failure - validation error when visibility is invalid`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "설명",
@@ -268,8 +254,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - failure - validation error when cover image url is invalid`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "설명",
@@ -287,8 +271,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - failure - missing required content type`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "컬렉션",
             description = "설명"
@@ -305,7 +287,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - failure - does not save collection when validation fails`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val initialCount = collectionRepository.countByOwnerMemberId(member.requireId())
 
         val request = CollectionCreateApiRequest(
@@ -325,10 +307,8 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME, active = false)
     fun `createCollection - failure - member not activated`() {
-        testMemberHelper.createMember()
-
         val request = CollectionCreateApiRequest(
             name = "비활성 멤버 테스트",
             description = "설명"
@@ -347,8 +327,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - returns correct response structure`() {
-        testMemberHelper.createActivatedMember()
-
         val request = CollectionCreateApiRequest(
             name = "응답 구조 테스트",
             description = "응답 구조 확인용",
@@ -376,8 +354,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - handles various valid image url formats`() {
-        testMemberHelper.createActivatedMember()
-
         val validUrls = listOf(
             "https://example.com/image.jpg",
             "http://example.com/image.png",
@@ -404,8 +380,6 @@ class CollectionCreateApiTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createCollection - success - handles null and empty cover image url`() {
-        testMemberHelper.createActivatedMember()
-
         val requestWithNull = CollectionCreateApiRequest(
             name = "NULL URL 테스트",
             description = "NULL 테스트",

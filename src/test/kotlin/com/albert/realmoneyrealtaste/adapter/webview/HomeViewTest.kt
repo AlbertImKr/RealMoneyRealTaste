@@ -61,7 +61,6 @@ class HomeViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `home - success - returns home view with posts and member info for authenticated user`() {
-        testMemberHelper.createActivatedMember()
         val author = testMemberHelper.createActivatedMember(
             email = "author@example.com",
             nickname = "author"
@@ -94,7 +93,7 @@ class HomeViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `home - success - includes heart information for authenticated user's liked posts`() {
-        val member = testMemberHelper.createActivatedMember()
+        val member = testMemberHelper.getDefaultMember()
         val author = testMemberHelper.createActivatedMember(
             email = "author@example.com",
             nickname = "author"
@@ -144,7 +143,6 @@ class HomeViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `home - success - returns empty hearts when user has no liked posts`() {
-        testMemberHelper.createActivatedMember()
         val author = testMemberHelper.createActivatedMember(
             email = "author@example.com",
             nickname = "author"
@@ -219,7 +217,6 @@ class HomeViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `home - success - excludes deleted posts from results`() {
-        testMemberHelper.createActivatedMember()
         val author = testMemberHelper.createActivatedMember(
             email = "author@example.com",
             nickname = "author"
@@ -252,7 +249,6 @@ class HomeViewTest : IntegrationTestBase() {
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `home - success - handles multiple authors correctly`() {
-        testMemberHelper.createActivatedMember()
         val author1 = testMemberHelper.createActivatedMember(
             email = "author1@example.com",
             nickname = "author1"

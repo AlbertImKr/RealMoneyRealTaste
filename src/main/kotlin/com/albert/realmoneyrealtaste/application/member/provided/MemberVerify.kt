@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberVerifyException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
@@ -16,7 +16,7 @@ fun interface MemberVerify {
      * @param email 인증에 사용할 이메일
      * @param password 인증에 사용할 비밀번호
      * @return 인증 성공 시 true, 실패 시 false
-     * @throws MemberNotFoundException 회원을 찾을 수 없거나 비밀번호가 일치하지 않는 경우
+     * @throws MemberVerifyException 인증에 실패한 경우 발생
      */
     fun verify(email: Email, password: RawPassword): MemberPrincipal
 }

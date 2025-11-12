@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.member.value
 
-import com.albert.realmoneyrealtaste.domain.member.exceptions.RoleValidationException
 import jakarta.persistence.CollectionTable
 import jakarta.persistence.Column
 import jakarta.persistence.ElementCollection
@@ -14,10 +13,10 @@ import jakarta.persistence.JoinColumn
 class Roles(
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
-        name = "member_roles",
-        joinColumns = [JoinColumn(name = "member_id")]
+        name = COLLECTION_TABLE_NAME,
+        joinColumns = [JoinColumn(name = JOIN_COLUMN_NAME)]
     )
-    @Column(name = "role")
+    @Column(name = COLUMN_NAME)
     @Enumerated(EnumType.STRING)
     private val values: MutableSet<Role>,
 ) {
@@ -28,15 +27,12 @@ class Roles(
 
     fun hasAnyRole(vararg roles: Role): Boolean = roles.any { values.contains(it) }
 
-    fun addRole(role: Role) {
-        values.add(role)
-    }
+    fun addRole(role: Role) = values.add(role)
 
-    fun removeRole(role: Role) {
-        if (values.size <= 1 && role == Role.USER) {
-            throw RoleValidationException.MinimumRoleRequired()
-        }
-        values.remove(role)
+    fun removeRole(role: Role): Boolean {
+        require(values.size > 1) { ERROR_EMPTY_ROLES }
+
+        return values.remove(role)
     }
 
     fun isAdmin(): Boolean = hasRole(Role.ADMIN)
@@ -44,12 +40,17 @@ class Roles(
     fun isManager(): Boolean = hasRole(Role.MANAGER)
 
     companion object {
+        const val COLLECTION_TABLE_NAME = "member_roles"
+        const val JOIN_COLUMN_NAME = "member_id"
+        const val COLUMN_NAME = "role"
+
+        const val ERROR_EMPTY_ROLES = "적어도 하나의 역할이 필요합니다"
+
         fun ofUser(): Roles = Roles(mutableSetOf(Role.USER))
 
         fun of(vararg roles: Role): Roles {
-            if (roles.isEmpty()) {
-                throw RoleValidationException.EmptyRoles()
-            }
+            require(roles.isNotEmpty()) { ERROR_EMPTY_ROLES }
+
             return Roles(roles.toMutableSet())
         }
     }

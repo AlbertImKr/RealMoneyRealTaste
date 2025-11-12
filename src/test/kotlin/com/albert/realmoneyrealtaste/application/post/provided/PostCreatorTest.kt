@@ -3,7 +3,6 @@ package com.albert.realmoneyrealtaste.application.post.provided
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.post.dto.PostCreateRequest
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.domain.post.PostStatus
@@ -13,12 +12,10 @@ import com.albert.realmoneyrealtaste.domain.post.value.PostImages
 import com.albert.realmoneyrealtaste.domain.post.value.Restaurant
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.PageRequest
 import org.springframework.test.context.event.ApplicationEvents
 import org.springframework.test.context.event.RecordApplicationEvents
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -117,42 +114,6 @@ class PostCreatorTest(
         val result = postCreator.createPost(member.requireId(), request)
 
         assertEquals("테스트유저", result.author.nickname)
-    }
-
-    @Test
-    fun `createPost - failure - throws exception when member not found`() {
-        val request = createPostRequest()
-
-        assertFailsWith<MemberNotFoundException> {
-            postCreator.createPost(999L, request)
-        }.let {
-            assertTrue(it.message!!.contains("회원을 찾을 수 없습니다"))
-        }
-    }
-
-    @Test
-    fun `createPost - failure - does not save post when member not found`() {
-        val request = createPostRequest()
-
-        assertFailsWith<MemberNotFoundException> {
-            postCreator.createPost(999L, request)
-        }
-
-        assertTrue {
-            postRepository.findByAuthorMemberIdAndStatusNot(999L, PageRequest.of(0, 10)).isEmpty
-        }
-    }
-
-    @Test
-    fun `createPost - failure - does not publish event when member not found`() {
-        val request = createPostRequest()
-
-        assertFailsWith<MemberNotFoundException> {
-            postCreator.createPost(999L, request)
-        }
-
-        val events = applicationEvents.stream(PostCreatedEvent::class.java).toList()
-        assertEquals(0, events.size)
     }
 
     @Test

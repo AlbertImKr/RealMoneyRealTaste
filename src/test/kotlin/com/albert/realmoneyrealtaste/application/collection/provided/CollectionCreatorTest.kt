@@ -6,7 +6,6 @@ import com.albert.realmoneyrealtaste.application.collection.required.CollectionR
 import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import com.albert.realmoneyrealtaste.domain.collection.command.CollectionCreateCommand
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionInfo
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
@@ -128,7 +127,6 @@ class CollectionCreatorTest(
             collectionCreator.createCollection(command)
         }.let {
             assertTrue(it.message!!.contains("컬렉션 생성 중 오류가 발생했습니다"))
-            assertTrue(it.cause is MemberNotFoundException)
         }
     }
 

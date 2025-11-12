@@ -2,7 +2,7 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberVerifyException
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import kotlin.test.Test
@@ -16,7 +16,7 @@ class MemberVerifyTest(
 
     @Test
     fun `verify - failure - throws MemberNotFoundException when member does not exist`() {
-        assertFailsWith<MemberNotFoundException> {
+        assertFailsWith<MemberVerifyException> {
             memberVerify.verify(
                 email = MemberFixture.DEFAULT_EMAIL,
                 password = MemberFixture.DEFAULT_RAW_PASSWORD
@@ -36,7 +36,7 @@ class MemberVerifyTest(
         memberRegister.register(request)
         val wrongPassword = RawPassword("wrong${password.value}")
 
-        assertFailsWith<MemberNotFoundException> {
+        assertFailsWith<MemberVerifyException> {
             memberVerify.verify(
                 email = email,
                 password = wrongPassword

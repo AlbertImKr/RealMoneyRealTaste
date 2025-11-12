@@ -2,10 +2,12 @@ package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberUpdateException
+import com.albert.realmoneyrealtaste.application.member.exception.PasswordChangeException
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
-import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
-import com.albert.realmoneyrealtaste.domain.member.exceptions.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
@@ -15,25 +17,35 @@ import org.springframework.stereotype.Service
 @Transactional
 @Service
 class MemberUpdateService(
-    private val memberRepository: MemberRepository,
+    private val memberReader: MemberReader,
     private val passwordEncoder: PasswordEncoder,
 ) : MemberUpdater {
+
+    companion object {
+        private const val ERROR_MEMBER_INFO_UPDATE = "회원 정보 업데이트 중 오류가 발생했습니다"
+        private const val ERROR_PASSWORD_UPDATE = "비밀번호 변경 중 오류가 발생했습니다"
+        private const val ERROR_MEMBER_DEACTIVATE = "회원 탈퇴 중 오류가 발생했습니다"
+    }
 
     override fun updateInfo(
         memberId: Long,
         request: AccountUpdateRequest,
     ): Member {
-        val member = findMemberByIdOrThrow(memberId)
+        try {
+            val member = memberReader.readMemberById(memberId)
 
-        validateProfileAddressNotDuplicated(request.profileAddress)
+            validateProfileAddressNotDuplicated(request.profileAddress)
 
-        member.updateInfo(
-            nickname = request.nickname,
-            profileAddress = request.profileAddress,
-            introduction = request.introduction,
-        )
+            member.updateInfo(
+                nickname = request.nickname,
+                profileAddress = request.profileAddress,
+                introduction = request.introduction,
+            )
 
-        return member
+            return member
+        } catch (e: IllegalArgumentException) {
+            throw MemberUpdateException(ERROR_MEMBER_INFO_UPDATE, e)
+        }
     }
 
     override fun updatePassword(
@@ -41,42 +53,38 @@ class MemberUpdateService(
         currentPassword: RawPassword,
         newPassword: RawPassword,
     ): Member {
-        val member = findMemberByIdOrThrow(memberId)
+        try {
+            val member = memberReader.readMemberById(memberId)
 
-        member.changePassword(currentPassword, newPassword, passwordEncoder)
+            member.changePassword(currentPassword, newPassword, passwordEncoder)
 
-        return member
+            return member
+        } catch (e: IllegalArgumentException) {
+            throw PasswordChangeException(ERROR_PASSWORD_UPDATE, e)
+        }
     }
 
     override fun deactivate(memberId: Long): Member {
-        val member = findMemberByIdOrThrow(memberId)
+        try {
 
-        member.deactivate()
+            val member = memberReader.readMemberById(memberId)
 
-        return member
-    }
+            member.deactivate()
 
-    /**
-     * 회원 ID로 회원을 조회합니다.
-     *
-     * @param memberId 회원 ID
-     * @return 조회된 회원
-     * @throws MemberNotFoundException 회원을 찾을 수 없는 경우
-     */
-    private fun findMemberByIdOrThrow(memberId: Long): Member {
-        return memberRepository.findById(memberId)
-            ?: throw MemberNotFoundException()
+            return member
+        } catch (e: IllegalArgumentException) {
+            throw MemberDeactivateException(ERROR_MEMBER_DEACTIVATE, e)
+        }
     }
 
     /**
      * 프로필 주소 중복 여부를 검증합니다.
      *
      * @param profileAddress 검증할 프로필 주소
-     * @throws DuplicateProfileAddressException 프로필 주소가 이미 사용 중인 경우
      */
     private fun validateProfileAddressNotDuplicated(profileAddress: ProfileAddress?) {
         profileAddress?.let {
-            if (memberRepository.existsByDetailProfileAddress(it)) {
+            if (memberReader.existsByDetailProfileAddress(it)) {
                 throw DuplicateProfileAddressException()
             }
         }

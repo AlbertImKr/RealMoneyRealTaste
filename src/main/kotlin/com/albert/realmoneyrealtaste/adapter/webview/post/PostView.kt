@@ -58,7 +58,7 @@ class PostView(
         @PathVariable postId: Long,
         @Valid @ModelAttribute postEditForm: PostEditForm,
     ): String {
-        postUpdater.updatePost(memberPrincipal.memberId, postId, postEditForm.toPostEditRequest())
+        postUpdater.updatePost(postId, memberPrincipal.memberId, postEditForm.toPostEditRequest())
         return "redirect:/posts/$postId"
     }
 
