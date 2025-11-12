@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.common
 
-import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.hibernate.proxy.HibernateProxy
 import org.hibernate.proxy.LazyInitializer
 import org.mockito.Mockito
@@ -23,7 +22,7 @@ class BaseEntityTest {
         val entity = TestBaseEntity()
         val expectedId = 42L
 
-        MemberFixture.Companion.setId(entity, expectedId)
+        setId(entity, expectedId)
 
         assertEquals(expectedId, entity.id)
     }
@@ -43,7 +42,7 @@ class BaseEntityTest {
     @Test
     fun `equals - success - returns true for same object`() {
         val entity = TestBaseEntity()
-        MemberFixture.Companion.setId(entity, 1L)
+        setId(entity, 1L)
 
         assertEquals(entity, entity)
     }
@@ -51,7 +50,7 @@ class BaseEntityTest {
     @Test
     fun `equals - failure - returns false for null object`() {
         val entity = TestBaseEntity()
-        MemberFixture.Companion.setId(entity, 1L)
+        setId(entity, 1L)
 
         assertEquals(false, entity.equals(null))
     }
@@ -59,16 +58,16 @@ class BaseEntityTest {
     @Test
     fun `equals - success - returns true for same class and id`() {
         val id = 1L
-        val entity1 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, id) }
-        val entity2 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, id) }
+        val entity1 = TestBaseEntity().apply { setId(this, id) }
+        val entity2 = TestBaseEntity().apply { setId(this, id) }
 
         assertEquals(entity1, entity2)
     }
 
     @Test
     fun `equals - failure - returns false for same class but different id`() {
-        val entity1 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, 1L) }
-        val entity2 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, 2L) }
+        val entity1 = TestBaseEntity().apply { setId(this, 1L) }
+        val entity2 = TestBaseEntity().apply { setId(this, 2L) }
 
         assertNotEquals(entity1, entity2)
     }
@@ -76,7 +75,7 @@ class BaseEntityTest {
     @Test
     fun `equals - failure - returns false when id is null`() {
         val entity1 = TestBaseEntity()
-        val entity2 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, 2L) }
+        val entity2 = TestBaseEntity().apply { setId(this, 2L) }
 
         assertNotEquals(entity1, entity2)
     }
@@ -84,8 +83,8 @@ class BaseEntityTest {
     @Test
     fun `equals - success - returns true for HibernateProxy with same class and id`() {
         val id = 1L
-        val entity = TestBaseEntity().apply { MemberFixture.Companion.setId(this, id) }
-        val proxy = TestHibernateProxy().apply { MemberFixture.Companion.setId(this, id) }
+        val entity = TestBaseEntity().apply { setId(this, id) }
+        val proxy = TestHibernateProxy().apply { setId(this, id) }
 
         assertEquals(true, proxy.equals(entity))
         assertEquals(true, entity.equals(proxy))
@@ -94,8 +93,8 @@ class BaseEntityTest {
     @Test
     fun `equals - failure - returns false for HibernateProxy with different class`() {
         val id = 1L
-        val proxy = TestHibernateProxy().apply { MemberFixture.Companion.setId(this, id) }
-        val other = AnotherBaseEntity().apply { MemberFixture.Companion.setId(this, id) }
+        val proxy = TestHibernateProxy().apply { setId(this, id) }
+        val other = AnotherBaseEntity().apply { setId(this, id) }
 
         assertEquals(false, proxy.equals(other))
         assertEquals(false, other.equals(proxy))
@@ -111,23 +110,23 @@ class BaseEntityTest {
 
     @Test
     fun `hashCode - success - is consistent for same class`() {
-        val entity1 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, 1L) }
-        val entity2 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, 2L) }
+        val entity1 = TestBaseEntity().apply { setId(this, 1L) }
+        val entity2 = TestBaseEntity().apply { setId(this, 2L) }
 
         assertEquals(entity1.hashCode(), entity2.hashCode())
     }
 
     @Test
     fun `hashCode - success - differs for different classes`() {
-        val entity1 = TestBaseEntity().apply { MemberFixture.Companion.setId(this, 1L) }
-        val entity2 = AnotherBaseEntity().apply { MemberFixture.Companion.setId(this, 2L) }
+        val entity1 = TestBaseEntity().apply { setId(this, 1L) }
+        val entity2 = AnotherBaseEntity().apply { setId(this, 2L) }
 
         assertNotEquals(entity1.hashCode(), entity2.hashCode())
     }
 
     @Test
     fun `hashCode - success - matches for HibernateProxy`() {
-        val entity = TestBaseEntity().apply { MemberFixture.Companion.setId(this, 1L) }
+        val entity = TestBaseEntity().apply { setId(this, 1L) }
         val proxy = TestHibernateProxy()
 
         assertEquals(proxy.hashCode(), entity.hashCode())
@@ -136,7 +135,7 @@ class BaseEntityTest {
     @Test
     fun `toString - success - includes class name and id`() {
         val id = 1L
-        val entity = TestBaseEntity().apply { MemberFixture.Companion.setId(this, id) }
+        val entity = TestBaseEntity().apply { setId(this, id) }
 
         val toString = entity.toString()
 
@@ -147,7 +146,7 @@ class BaseEntityTest {
     @Test
     fun `requireId - success - returns id when entity is persisted`() {
         val expectedId = 100L
-        val entity = TestBaseEntity().apply { MemberFixture.Companion.setId(this, expectedId) }
+        val entity = TestBaseEntity().apply { setId(this, expectedId) }
 
         val id = entity.requireId()
 
@@ -189,5 +188,11 @@ class BaseEntityTest {
 
         override fun getHibernateLazyInitializer(): LazyInitializer = lazyInitializer
         override fun writeReplace(): Any = this
+    }
+
+    fun setId(entity: BaseEntity, id: Long) {
+        val field = BaseEntity::class.java.getDeclaredField("id")
+        field.isAccessible = true
+        field.set(entity, id)
     }
 }

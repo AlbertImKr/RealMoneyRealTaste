@@ -7,9 +7,11 @@ import com.albert.realmoneyrealtaste.application.member.exception.PasswordResetT
 import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
+import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import com.albert.realmoneyrealtaste.util.MemberFixture
@@ -39,7 +41,7 @@ class PasswordResetterTest(
 
     @Test
     fun `sendPasswordResetEmail - success - generates token and publishes event`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         memberRepository.save(member)
 
@@ -63,7 +65,7 @@ class PasswordResetterTest(
 
     @Test
     fun `sendPasswordResetEmail - success - deletes existing token before generating new one`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         memberRepository.save(member)
 
@@ -83,7 +85,7 @@ class PasswordResetterTest(
 
     @Test
     fun `sendPasswordResetEmail - success - creates valid token`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         memberRepository.save(member)
 
@@ -103,7 +105,7 @@ class PasswordResetterTest(
 
     @Test
     fun `resetPassword - success - changes password and deletes token`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         memberRepository.save(member)
 
@@ -133,7 +135,7 @@ class PasswordResetterTest(
 
     @Test
     fun `resetPassword - failure - throws exception when token is expired`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         memberRepository.save(member)
 
@@ -158,7 +160,7 @@ class PasswordResetterTest(
 
     @Test
     fun `resetPassword - success - old password no longer works after reset`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         val oldPassword = MemberFixture.DEFAULT_RAW_PASSWORD
         memberRepository.save(member)
@@ -179,7 +181,7 @@ class PasswordResetterTest(
 
     @Test
     fun `resetPassword - failure - cannot reuse token after successful reset`() {
-        val member = MemberFixture.createMember()
+        val member = createMember()
         member.activate()
         memberRepository.save(member)
 
@@ -199,8 +201,8 @@ class PasswordResetterTest(
 
     @Test
     fun `sendPasswordResetEmail - success - multiple members can have tokens simultaneously`() {
-        val member1 = MemberFixture.createMember(email = Email("member1@example.com"))
-        val member2 = MemberFixture.createMember(email = Email("member2@example.com"))
+        val member1 = createMember(email = Email("member1@example.com"))
+        val member2 = createMember(email = Email("member2@example.com"))
         member1.activate()
         member2.activate()
         memberRepository.save(member1)
@@ -223,10 +225,9 @@ class PasswordResetterTest(
 
     @Test
     fun `resetPassword - success - only affects specific member password`() {
-        val password1 = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, passwordEncoder)
-        val password2 = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, passwordEncoder)
-        val member1 = MemberFixture.createMember(email = Email("member1@example.com"), password = password1)
-        val member2 = MemberFixture.createMember(email = Email("member2@example.com"), password = password2)
+        val password = MemberFixture.DEFAULT_RAW_PASSWORD
+        val member1 = createMember(email = Email("member1@example.com"), password = password)
+        val member2 = createMember(email = Email("member2@example.com"), password = password)
         member1.activate()
         member2.activate()
         memberRepository.save(member1)
@@ -245,6 +246,18 @@ class PasswordResetterTest(
         assertAll(
             { assertTrue(updatedMember1.verifyPassword(newPassword, passwordEncoder)) },
             { assertTrue(updatedMember2.verifyPassword(MemberFixture.DEFAULT_RAW_PASSWORD, passwordEncoder)) }
+        )
+    }
+
+    fun createMember(
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+        password: RawPassword = MemberFixture.DEFAULT_RAW_PASSWORD,
+    ): Member {
+        return Member.register(
+            email = email,
+            nickname = nickname,
+            password = PasswordHash.of(password, passwordEncoder)
         )
     }
 }

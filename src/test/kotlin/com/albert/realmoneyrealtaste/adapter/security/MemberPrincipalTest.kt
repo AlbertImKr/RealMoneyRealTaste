@@ -1,8 +1,12 @@
 package com.albert.realmoneyrealtaste.adapter.security
 
+import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
+import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
+import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import com.albert.realmoneyrealtaste.domain.member.value.Role
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -67,7 +71,7 @@ class MemberPrincipalTest {
 
     @Test
     fun `from - success - creates MemberPrincipal from Member`() {
-        val member = MemberFixture.createMemberWithId(42L)
+        val member = createMemberWithId(42L)
         member.activate()
 
         val principal = MemberPrincipal.from(member)
@@ -83,7 +87,7 @@ class MemberPrincipalTest {
 
     @Test
     fun `from - success - creates principal when member is not active`() {
-        val member = MemberFixture.createMemberWithId(42L)
+        val member = createMemberWithId(42L)
 
         val principal = MemberPrincipal.from(member)
 
@@ -93,7 +97,7 @@ class MemberPrincipalTest {
 
     @Test
     fun `from - success - creates principal with multiple roles`() {
-        val member = MemberFixture.createMemberWithId(42L)
+        val member = createMemberWithId(42L)
         member.activate()
         member.grantRole(Role.MANAGER)
         member.grantRole(Role.ADMIN)
@@ -109,7 +113,7 @@ class MemberPrincipalTest {
 
     @Test
     fun `from - success - creates principal with deactivated member`() {
-        val member = MemberFixture.createMemberWithId(42L)
+        val member = createMemberWithId(42L)
         member.activate()
         member.deactivate()
 
@@ -121,7 +125,7 @@ class MemberPrincipalTest {
 
     @Test
     fun `from - success - sets introduction value when it exists`() {
-        val member = MemberFixture.createMemberWithId(42L)
+        val member = createMemberWithId(42L)
         member.activate()
         member.updateInfo(introduction = Introduction("안녕하세요"))
 
@@ -132,7 +136,7 @@ class MemberPrincipalTest {
 
     @Test
     fun `from - success - sets empty string when introduction is null`() {
-        val member = MemberFixture.createMemberWithId(42L)
+        val member = createMemberWithId(42L)
         member.activate()
 
         val principal = MemberPrincipal.from(member)
@@ -142,7 +146,7 @@ class MemberPrincipalTest {
 
     @Test
     fun `from - success - sets empty string when introduction value is empty`() {
-        val member = MemberFixture.createMemberWithId(42L)
+        val member = createMemberWithId(42L)
         member.activate()
         member.updateInfo(introduction = Introduction(""))  // 빈 문자열
 
@@ -191,5 +195,29 @@ class MemberPrincipalTest {
         assertTrue(authorities.any { it.authority == "ROLE_USER" })
         assertTrue(authorities.any { it.authority == "ROLE_MANAGER" })
         assertTrue(authorities.any { it.authority == "ROLE_ADMIN" })
+    }
+
+    fun createMemberWithId(
+        id: Long,
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+        password: RawPassword = MemberFixture.DEFAULT_RAW_PASSWORD,
+    ): Member {
+        val member = Member.register(
+            email = email,
+            nickname = nickname,
+            password = PasswordHash.of(
+                password,
+                MemberFixture.TEST_ENCODER
+            ),
+        )
+        setId(member, id)
+        return member
+    }
+
+    fun setId(entity: BaseEntity, id: Long) {
+        val field = BaseEntity::class.java.getDeclaredField("id")
+        field.isAccessible = true
+        field.set(entity, id)
     }
 }
