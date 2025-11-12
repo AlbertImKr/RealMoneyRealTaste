@@ -24,13 +24,13 @@ class AuthView(
     private val validator: SignupFormValidator,
 ) {
 
-    @GetMapping("/signup")
+    @GetMapping(AuthUrls.SIGN_UP)
     fun signupForm(model: Model): String {
         model.addAttribute("signupForm", SignupForm())
-        return SIGNUP_VIEW_NAME
+        return AuthViews.SIGN_UP
     }
 
-    @PostMapping("/signup")
+    @PostMapping(AuthUrls.SIGN_UP)
     fun signup(
         @Valid form: SignupForm,
         bindingResult: BindingResult,
@@ -38,7 +38,7 @@ class AuthView(
         validator.validate(form, bindingResult)
 
         if (bindingResult.hasErrors()) {
-            return SIGNUP_VIEW_NAME
+            return AuthViews.SIGN_UP
         }
 
         val request = MemberRegisterRequest(
@@ -49,23 +49,23 @@ class AuthView(
 
         memberRegister.register(request)
 
-        return "redirect:/signin"
+        return "redirect:${AuthUrls.SIGN_IN}"
     }
 
-    @GetMapping("/signin")
+    @GetMapping(AuthUrls.SIGN_IN)
     fun signinForm(model: Model): String {
         model.addAttribute("signinForm", SigninForm())
-        return SIGNIN_VIEW_NAME
+        return AuthViews.SIGN_IN
     }
 
-    @PostMapping("/signin")
+    @PostMapping(AuthUrls.SIGN_IN)
     fun signin(
         @Valid form: SigninForm,
         bindingResult: BindingResult,
         request: HttpServletRequest,
     ): String {
         if (bindingResult.hasErrors()) {
-            return SIGNIN_VIEW_NAME
+            return AuthViews.SIGN_IN
         }
 
         val authentication = authenticationManager.authenticate(
@@ -80,10 +80,5 @@ class AuthView(
         )
 
         return "redirect:/"
-    }
-
-    companion object {
-        private const val SIGNUP_VIEW_NAME = "auth/signup"
-        private const val SIGNIN_VIEW_NAME = "auth/signin"
     }
 }
