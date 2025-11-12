@@ -5,6 +5,7 @@ import com.albert.realmoneyrealtaste.application.member.required.ActivationToken
 import com.albert.realmoneyrealtaste.application.member.required.PasswordResetTokenRepository
 import com.albert.realmoneyrealtaste.domain.member.ActivationToken
 import com.albert.realmoneyrealtaste.domain.member.PasswordResetToken
+import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import com.albert.realmoneyrealtaste.util.WithMockMember
@@ -85,6 +86,19 @@ class MemberViewTest : IntegrationTestBase() {
     }
 
     @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `resendActivationEmail - failure - returns error when member is already active`() {
+        mockMvc.perform(
+            post(MemberUrls.RESEND_ACTIVATION)
+                .with(csrf())
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl(MemberUrls.RESEND_ACTIVATION))
+            .andExpect(flash().attribute("success", false))
+            .andExpect(flash().attributeExists("error"))
+    }
+
+    @Test
     fun `resendActivationEmail - failure - returns forbidden when not authenticated`() {
         mockMvc.perform(
             post(MemberUrls.RESEND_ACTIVATION)
@@ -153,6 +167,29 @@ class MemberViewTest : IntegrationTestBase() {
             .andExpect(status().is3xxRedirection)
             .andExpect(redirectedUrl(MemberUrls.SETTING + "#account"))
             .andExpect(flash().attribute("tab", "account"))
+            .andExpect(flash().attributeExists("error"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateAccount - failure - profile address is duplicated`() {
+        val duplicateProfileAddress = "existingaddress"
+        val otherUser = testMemberHelper.createActivatedMember(email = "other@user.com")
+        otherUser.updateInfo(
+            profileAddress = ProfileAddress(duplicateProfileAddress),
+        )
+        flushAndClear()
+
+        mockMvc.perform(
+            post(MemberUrls.SETTING_ACCOUNT)
+                .with(csrf())
+                .param("nickname", "새로운닉네임")
+                .param("profileAddress", duplicateProfileAddress) // 중복된 프로필 주소
+                .param("introduction", "새로운 소개")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl(MemberUrls.SETTING + "#account"))
+            .andExpect(flash().attribute("success", false))
             .andExpect(flash().attributeExists("error"))
     }
 
@@ -243,6 +280,19 @@ class MemberViewTest : IntegrationTestBase() {
             .andExpect(redirectedUrl("${MemberUrls.SETTING}#delete"))
             .andExpect(flash().attribute("tab", "delete"))
             .andExpect(flash().attribute("error", "계정 삭제 확인이 필요합니다."))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME, active = false)
+    fun `deleteAccount - failure - returns error when member is not active`() {
+        mockMvc.perform(
+            post(MemberUrls.SETTING_DELETE)
+                .with(csrf())
+                .param("confirmed", "true")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/members/setting#delete"))
+            .andExpect(flash().attributeExists("error"))
     }
 
     // 비밀번호 찾기 테스트

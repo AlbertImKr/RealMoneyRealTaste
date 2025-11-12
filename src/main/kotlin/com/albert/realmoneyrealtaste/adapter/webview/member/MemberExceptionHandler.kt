@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
-import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberActivateException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberResendActivationEmailException
@@ -14,17 +13,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes
 @ControllerAdvice(annotations = [Controller::class])
 class MemberExceptionHandler {
 
-    @ExceptionHandler(DuplicateProfileAddressException::class)
-    fun handleDuplicateProfileAddress(
-        ex: DuplicateProfileAddressException,
-        redirectAttributes: RedirectAttributes,
-    ): String {
-        redirectAttributes.addFlashAttribute("success", false)
-        redirectAttributes.addFlashAttribute("error", "이미 사용 중인 프로필 주소입니다.")
-
-        return "redirect:${MemberViews.SETTING}"
-    }
-
     @ExceptionHandler(MemberActivateException::class)
     fun handleMemberActivateException(
         ex: MemberActivateException,
@@ -33,7 +21,7 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "회원 활성화에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:${MemberViews.ACTIVATE}"
+        return "redirect:${MemberUrls.ACTIVATION}"
     }
 
     @ExceptionHandler(MemberResendActivationEmailException::class)
@@ -44,7 +32,7 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "활성화 이메일 재전송에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:${MemberViews.RESEND_ACTIVATION}"
+        return "redirect:${MemberUrls.RESEND_ACTIVATION}"
     }
 
     @ExceptionHandler(MemberUpdateException::class)
@@ -55,7 +43,7 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "회원 정보 수정에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:${MemberViews.SETTING}#account"
+        return "redirect:${MemberUrls.SETTING}#account"
     }
 
     @ExceptionHandler(MemberDeactivateException::class)
@@ -66,7 +54,7 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "회원 탈퇴에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:${MemberViews.SETTING}#delete"
+        return "redirect:${MemberUrls.SETTING}#delete"
     }
 
     @ExceptionHandler(PassWordResetException::class)
