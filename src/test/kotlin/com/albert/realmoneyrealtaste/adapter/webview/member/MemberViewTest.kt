@@ -357,7 +357,7 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("newPasswordConfirm", "NewPassword1!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/members/signin"))
+            .andExpect(redirectedUrl("/"))
             .andExpect(flash().attribute("success", true))
             .andExpect(flash().attributeExists("message"))
     }
@@ -408,7 +408,7 @@ class MemberViewTest : IntegrationTestBase() {
                 .param("newPasswordConfirm", "NewPassword1!")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/members/signin"))
+            .andExpect(redirectedUrl("/"))
             .andExpect(flash().attributeExists("error"))
             .andExpect(flash().attribute("success", false))
     }

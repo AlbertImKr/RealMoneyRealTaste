@@ -206,6 +206,6 @@ class MemberView(
         passwordResetter.resetPassword(token, RawPassword(form.newPassword))
         redirectAttributes.addFlashAttribute("success", true)
         redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
-        return "redirect:/members/signin"
+        return "redirect:/"
     }
 }

@@ -65,6 +65,6 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("success", false)
         redirectAttributes.addFlashAttribute("error", "비밀번호 재설정에 실패했습니다. 다시 시도해주세요.")
 
-        return "redirect:/members/signin"
+        return "redirect:/"
     }
 }
