@@ -1,10 +1,8 @@
 package com.albert.realmoneyrealtaste.domain.post.value
 
-import com.albert.realmoneyrealtaste.domain.post.exceptions.InvalidRestaurantInfoException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class RestaurantTest {
 
@@ -25,7 +23,7 @@ class RestaurantTest {
 
     @Test
     fun `create - failure - throws exception when name is blank`() {
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = "",
                 address = "서울시 강남구",
@@ -33,7 +31,7 @@ class RestaurantTest {
                 longitude = 126.9780
             )
         }.let {
-            assertEquals("맛집 이름은 필수입니다.", it.message)
+            assertEquals(Restaurant.ERROR_NAME_BLANK, it.message)
         }
     }
 
@@ -41,7 +39,7 @@ class RestaurantTest {
     fun `create - failure - throws exception when name exceeds max length`() {
         val longName = "a".repeat(101)
 
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = longName,
                 address = "서울시 강남구",
@@ -49,13 +47,13 @@ class RestaurantTest {
                 longitude = 126.9780
             )
         }.let {
-            assertEquals("맛집 이름은 100자를 초과할 수 없습니다.", it.message)
+            assertEquals(Restaurant.ERROR_NAME_LENGTH, it.message)
         }
     }
 
     @Test
     fun `create - failure - throws exception when address is blank`() {
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = "맛있는집",
                 address = "",
@@ -63,7 +61,7 @@ class RestaurantTest {
                 longitude = 126.9780
             )
         }.let {
-            assertEquals("주소는 필수입니다.", it.message)
+            assertEquals(Restaurant.ERROR_ADDRESS_BLANK, it.message)
         }
     }
 
@@ -71,7 +69,7 @@ class RestaurantTest {
     fun `create - failure - throws exception when address exceeds max length`() {
         val longAddress = "a".repeat(256)
 
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = "맛있는집",
                 address = longAddress,
@@ -79,13 +77,13 @@ class RestaurantTest {
                 longitude = 126.9780
             )
         }.let {
-            assertEquals("주소는 255자를 초과할 수 없습니다.", it.message)
+            assertEquals(Restaurant.ERROR_ADDRESS_LENGTH, it.message)
         }
     }
 
     @Test
     fun `create - failure - throws exception when latitude is out of range`() {
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = "맛있는집",
                 address = "서울시 강남구",
@@ -93,13 +91,13 @@ class RestaurantTest {
                 longitude = 126.9780
             )
         }.let {
-            assertTrue(it.message!!.contains("위도는 -90에서 90 사이여야 합니다"))
+            assertEquals(Restaurant.ERROR_LATITUDE_RANGE, it.message)
         }
     }
 
     @Test
     fun `create - failure - throws exception when latitude is below range`() {
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = "맛있는집",
                 address = "서울시 강남구",
@@ -107,13 +105,13 @@ class RestaurantTest {
                 longitude = 126.9780
             )
         }.let {
-            assertTrue(it.message!!.contains("위도는 -90에서 90 사이여야 합니다"))
+            assertEquals(Restaurant.ERROR_LATITUDE_RANGE, it.message)
         }
     }
 
     @Test
     fun `create - failure - throws exception when longitude is out of range`() {
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = "맛있는집",
                 address = "서울시 강남구",
@@ -121,13 +119,13 @@ class RestaurantTest {
                 longitude = 181.0
             )
         }.let {
-            assertTrue(it.message!!.contains("경도는 -180에서 180 사이여야 합니다"))
+            assertEquals(Restaurant.ERROR_LONGITUDE_RANGE, it.message)
         }
     }
 
     @Test
     fun `create - failure - throws exception when longitude is below range`() {
-        assertFailsWith<InvalidRestaurantInfoException> {
+        assertFailsWith<IllegalArgumentException> {
             Restaurant(
                 name = "맛있는집",
                 address = "서울시 강남구",
@@ -135,7 +133,7 @@ class RestaurantTest {
                 longitude = -181.0
             )
         }.let {
-            assertTrue(it.message!!.contains("경도는 -180에서 180 사이여야 합니다"))
+            assertEquals(Restaurant.ERROR_LONGITUDE_RANGE, it.message)
         }
     }
 

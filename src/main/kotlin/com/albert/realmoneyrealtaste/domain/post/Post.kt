@@ -1,8 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.post
 
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
-import com.albert.realmoneyrealtaste.domain.post.exceptions.InvalidPostStatusException
-import com.albert.realmoneyrealtaste.domain.post.exceptions.UnauthorizedPostOperationException
 import com.albert.realmoneyrealtaste.domain.post.value.Author
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
@@ -46,6 +44,31 @@ class Post protected constructor(
     updatedAt: LocalDateTime,
 ) : BaseEntity() {
 
+    companion object {
+        const val ERROR_NO_EDIT_PERMISSION = "게시글 수정 권한이 없습니다."
+        const val ERROR_NOT_PUBLISHED = "게시글이 공개 상태가 아닙니다."
+
+        fun create(
+            authorMemberId: Long,
+            authorNickname: String,
+            restaurant: Restaurant,
+            content: PostContent,
+            images: PostImages,
+        ): Post {
+            return Post(
+                author = Author(authorMemberId, authorNickname),
+                restaurant = restaurant,
+                content = content,
+                images = images,
+                status = PostStatus.PUBLISHED,
+                heartCount = 0,
+                viewCount = 0,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
+        }
+    }
+
     @Embedded
     var author: Author = author
         protected set
@@ -86,8 +109,7 @@ class Post protected constructor(
     /**
      * 게시글 내용을 수정합니다.
      *
-     * @throws InvalidPostStatusException 게시글이 공개 상태가 아닌 경우
-     * @throws UnauthorizedPostOperationException 수정 권한이 없는 경우
+     * @throws IllegalArgumentException 수정 권한이 없는 경우 혹은 게시글이 공개 상태가 아닌 경우
      */
     fun update(memberId: Long, content: PostContent, images: PostImages, restaurant: Restaurant) {
         ensureCanEditBy(memberId)
@@ -101,8 +123,7 @@ class Post protected constructor(
     /**
      * 게시글을 삭제합니다 (Soft Delete).
      *
-     * @throws InvalidPostStatusException 게시글이 공개 상태가 아닌 경우
-     * @throws UnauthorizedPostOperationException 삭제 권한이 없는 경우
+     * @throws IllegalArgumentException 삭제 권한이 없는 경우 혹은 게시글이 공개 상태가 아닌 경우
      */
     fun delete(memberId: Long) {
         ensureCanEditBy(memberId)
@@ -125,42 +146,22 @@ class Post protected constructor(
      * 회원이 이 게시글을 수정할 수 없다면 예외를 발생시킵니다.
      *
      * @param memberId 회원 ID
-     * @throws UnauthorizedPostOperationException 권한이 없는 경우
+     * @throws IllegalArgumentException 수정 권한이 없는 경우
      */
     fun ensureCanEditBy(memberId: Long) {
-        if (!canEditBy(memberId)) throw UnauthorizedPostOperationException("게시글을 수정할 권한이 없습니다.")
+        require(canEditBy(memberId)) { ERROR_NO_EDIT_PERMISSION }
     }
 
     /**
      * 게시글이 공개 상태인지 확인합니다.
      *
-     * @throws InvalidPostStatusException 공개 상태가 아닌 경우
+     * @throws IllegalArgumentException 게시글이 공개 상태가 아닌 경우
      */
     fun ensurePublished() {
-        if (status != PostStatus.PUBLISHED) throw InvalidPostStatusException("게시글이 공개 상태가 아닙니다: $status")
+        require(status == PostStatus.PUBLISHED) { ERROR_NOT_PUBLISHED }
     }
+
+    fun isAuthor(memberId: Long): Boolean = author.memberId == memberId
 
     fun isDeleted(): Boolean = status == PostStatus.DELETED
-
-    companion object {
-        fun create(
-            authorMemberId: Long,
-            authorNickname: String,
-            restaurant: Restaurant,
-            content: PostContent,
-            images: PostImages,
-        ): Post {
-            return Post(
-                author = Author(authorMemberId, authorNickname),
-                restaurant = restaurant,
-                content = content,
-                images = images,
-                status = PostStatus.PUBLISHED,
-                heartCount = 0,
-                viewCount = 0,
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
-        }
-    }
 }

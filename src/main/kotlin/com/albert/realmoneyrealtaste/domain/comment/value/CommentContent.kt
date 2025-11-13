@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment.value
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentContentException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
@@ -12,17 +11,25 @@ data class CommentContent(
     @Column(name = TEXT_COLUMN, nullable = false, columnDefinition = TEXT_COLUMN_DEFINITION)
     val text: String,
 ) {
-    init {
-        validateText(text)
+    companion object {
+        const val TEXT_COLUMN = "content_text"
+        const val TEXT_COLUMN_DEFINITION = "TEXT"
+
+        const val MAX_LENGTH = 500
+
+        const val TEXT_REQUIRED_ERROR_MESSAGE = "댓글 내용은 필수입니다."
+        const val TEXT_LENGTH_ERROR_MESSAGE = "댓글 내용은 ${MAX_LENGTH}자를 초과할 수 없습니다."
+
+        const val MENTION_PATTERN = "@([a-zA-Z0-9가-힣]{2,20}) "
     }
 
-    private fun validateText(text: String) {
-        if (text.isBlank()) {
-            throw InvalidCommentContentException(TEXT_REQUIRED_ERROR_MESSAGE)
-        }
-        if (text.length > MAX_LENGTH) {
-            throw InvalidCommentContentException(TEXT_LENGTH_ERROR_MESSAGE)
-        }
+    init {
+        validate()
+    }
+
+    private fun validate() {
+        require(text.isNotBlank()) { TEXT_REQUIRED_ERROR_MESSAGE }
+        require(text.length <= MAX_LENGTH) { TEXT_LENGTH_ERROR_MESSAGE }
     }
 
     /**
@@ -34,17 +41,5 @@ data class CommentContent(
             .map { it.groupValues[1] }
             .distinct()
             .toList()
-    }
-
-    companion object {
-        const val TEXT_COLUMN = "content_text"
-        const val TEXT_COLUMN_DEFINITION = "TEXT"
-
-        const val MAX_LENGTH = 500
-
-        const val TEXT_REQUIRED_ERROR_MESSAGE = "댓글 내용은 필수입니다."
-        const val TEXT_LENGTH_ERROR_MESSAGE = "댓글 내용은 ${MAX_LENGTH}자를 초과할 수 없습니다."
-
-        const val MENTION_PATTERN = "@([a-zA-Z0-9가-힣]{2,20}) "
     }
 }

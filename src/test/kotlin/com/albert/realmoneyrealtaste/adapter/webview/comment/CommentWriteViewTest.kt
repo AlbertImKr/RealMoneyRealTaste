@@ -46,7 +46,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
         flushAndClear()
 
         mockMvc.perform(
-            post("/comments")
+            post("/posts/{postId}/comments", post.requireId())
                 .with(csrf())
                 .param("postId", post.requireId().toString())
                 .param("content", "새로운 댓글입니다")
@@ -70,7 +70,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
         flushAndClear()
 
         mockMvc.perform(
-            post("/comments")
+            post("/posts/{postId}/comments", post.requireId())
                 .with(csrf())
                 .param("postId", post.requireId().toString())
                 .param("content", "대댓글입니다")
@@ -163,9 +163,8 @@ class CommentWriteViewTest : IntegrationTestBase() {
         val longContent = "a".repeat(501) // CommentContent.MAX_LENGTH 초과
 
         mockMvc.perform(
-            post("/comments")
+            post("/posts/{postId}/comments", post.requireId())
                 .with(csrf())
-                .param("postId", post.requireId().toString())
                 .param("content", longContent)
         )
             .andExpect(status().isBadRequest)
@@ -189,14 +188,14 @@ class CommentWriteViewTest : IntegrationTestBase() {
         flushAndClear()
 
         mockMvc.perform(
-            post("/comments")
+            post("/posts/{postId}/comments", post.requireId())
                 .with(csrf())
                 .param("postId", post.requireId().toString())
                 .param("content", "삭제된 부모 댓글에 대댓글")
                 .param("parentCommentId", parentComment.id.toString())
         )
             .andExpect(status().isBadRequest)
-            .andExpect(model().attribute("error", "부모 댓글이 존재하지 않거나 삭제되었습니다."))
+            .andExpect(model().attribute("error", "댓글 작성에 실패했습니다."))
     }
 
     @Test
@@ -274,7 +273,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
                 .with(csrf())
                 .param("content", "존재하지 않는 댓글 수정")
         )
-            .andExpect(status().isNotFound)
+            .andExpect(status().isBadRequest)
             .andExpect(model().attributeExists("error"))
     }
 
@@ -296,7 +295,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
                 .with(csrf())
                 .param("content", "다른 사용자의 수정 시도")
         )
-            .andExpect(status().isForbidden)
+            .andExpect(status().isBadRequest)
             .andExpect(model().attributeExists("error"))
     }
 
@@ -379,7 +378,7 @@ class CommentWriteViewTest : IntegrationTestBase() {
                 .with(csrf())
                 .param("content", "삭제된 댓글 수정 시도")
         )
-            .andExpect(status().isNotFound)
+            .andExpect(status().isBadRequest)
             .andExpect(model().attributeExists("error"))
     }
 

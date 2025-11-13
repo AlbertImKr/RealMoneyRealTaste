@@ -28,8 +28,7 @@ class CommentReadViewTest : IntegrationTestBase() {
         flushAndClear()
 
         mockMvc.perform(
-            get("/comments/fragments/list")
-                .param("postId", postId.toString())
+            get("/posts/{postId}/comments/fragments/list", postId)
                 .param("page", "0")
                 .param("size", "10")
         )
@@ -69,8 +68,7 @@ class CommentReadViewTest : IntegrationTestBase() {
         flushAndClear()
 
         mockMvc.perform(
-            get("/comments/modal-fragments/list")
-                .param("postId", postId.toString())
+            get("/posts/{postId}/comments/modal-fragments/list", postId)
                 .param("page", "0")
                 .param("size", "10")
         )
@@ -90,7 +88,7 @@ class CommentReadViewTest : IntegrationTestBase() {
         flushAndClear()
 
         mockMvc.perform(
-            get("/comments/modal-replies-fragment")
+            get("/comments/{commentId}/modal-replies-fragment", parentCommentId)
                 .param("commentId", parentCommentId.toString())
                 .param("page", "0")
                 .param("size", "10")

@@ -148,8 +148,7 @@ class CollectionUpdaterTest : IntegrationTestBase() {
             collectionUpdater.updateInfo(request)
         }.let {
             assertAll(
-                { assertTrue(it.message!!.contains("컬렉션 정보 업데이트 중 오류가 발생했습니다")) },
-                { assertTrue(it.message!!.contains("해당 컬렉션을 찾을 수 없거나 권한이 없습니다")) },
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
                 { assertTrue(it.cause is IllegalArgumentException) }
             )
         }
@@ -179,8 +178,7 @@ class CollectionUpdaterTest : IntegrationTestBase() {
             collectionUpdater.updateInfo(request)
         }.let {
             assertAll(
-                { assertTrue(it.message!!.contains("컬렉션 정보 업데이트 중 오류가 발생했습니다")) },
-                { assertTrue(it.message!!.contains("해당 컬렉션을 찾을 수 없거나 권한이 없습니다")) },
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
                 { assertTrue(it.cause is IllegalArgumentException) }
             )
         }

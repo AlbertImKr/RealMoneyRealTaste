@@ -62,4 +62,19 @@ class CommentCreateRequestTest {
 
         assertEquals("댓글 내용은 필수입니다.", exception.message)
     }
+
+    @Test
+    fun `construct - failure - throws IllegalArgumentException when content exceeds max length`() {
+        val longContent = "a".repeat(501)
+
+        val exception = assertFailsWith<CommentCreateRequestException.ExceedContentLengthException> {
+            CommentCreateRequest(
+                postId = 10L,
+                memberId = 100L,
+                content = longContent
+            )
+        }
+
+        assertEquals("댓글 내용은 500자를 초과할 수 없습니다.", exception.message)
+    }
 }

@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment.value
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentContentException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -32,7 +31,7 @@ class CommentContentTest {
 
     @Test
     fun `create - failure - throws exception when text is empty`() {
-        assertFailsWith<InvalidCommentContentException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentContent("")
         }.let {
             assertEquals("댓글 내용은 필수입니다.", it.message)
@@ -41,7 +40,7 @@ class CommentContentTest {
 
     @Test
     fun `create - failure - throws exception when text is blank`() {
-        assertFailsWith<InvalidCommentContentException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentContent("   ")
         }.let {
             assertEquals("댓글 내용은 필수입니다.", it.message)
@@ -50,7 +49,7 @@ class CommentContentTest {
 
     @Test
     fun `create - failure - throws exception when text contains only whitespace`() {
-        assertFailsWith<InvalidCommentContentException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentContent("\t\n\r")
         }.let {
             assertEquals("댓글 내용은 필수입니다.", it.message)
@@ -61,7 +60,7 @@ class CommentContentTest {
     fun `create - failure - throws exception when text exceeds max length`() {
         val longText = "a".repeat(501)
 
-        assertFailsWith<InvalidCommentContentException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentContent(longText)
         }.let {
             assertEquals("댓글 내용은 500자를 초과할 수 없습니다.", it.message)

@@ -1,8 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentStatusException
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidParentCommentException
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.UnauthorizedCommentOperationException
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentAuthor
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
@@ -35,6 +32,49 @@ class Comment protected constructor(
     createdAt: LocalDateTime,
     updatedAt: LocalDateTime,
 ) : BaseEntity() {
+
+    companion object {
+        const val ERROR_POST_ID_MUST_BE_POSITIVE = "게시글 ID는 양수여야 합니다: %d"
+        const val ERROR_PARENT_COMMENT_ID_MUST_BE_POSITIVE = "부모 댓글 ID는 양수여야 합니다: %d"
+        const val ERROR_CANNOT_EDIT_COMMENT = "댓글을 수정할 권한이 없습니다."
+        const val ERROR_COMMENT_NOT_PUBLISHED = "댓글이 공개 상태가 아닙니다: %s"
+
+        /**
+         * 새 댓글을 생성합니다.
+         *
+         * @param postId 게시글 ID
+         * @param authorMemberId 작성자 회원 ID
+         * @param authorNickname 작성자 닉네임
+         * @param content 댓글 내용
+         * @param parentCommentId 부모 댓글 ID (대댓글인 경우)
+         * @return 생성된 댓글
+         */
+        fun create(
+            postId: Long,
+            authorMemberId: Long,
+            authorNickname: String,
+            content: CommentContent,
+            parentCommentId: Long? = null,
+        ): Comment {
+            require(postId > 0) { ERROR_POST_ID_MUST_BE_POSITIVE.format(postId) }
+
+            require(parentCommentId == null || parentCommentId > 0) {
+                ERROR_PARENT_COMMENT_ID_MUST_BE_POSITIVE.format(
+                    parentCommentId
+                )
+            }
+
+            return Comment(
+                postId = postId,
+                author = CommentAuthor(authorMemberId, authorNickname),
+                content = content,
+                parentCommentId = parentCommentId,
+                status = CommentStatus.PUBLISHED,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
+        }
+    }
 
     @Column(name = "post_id", nullable = false)
     var postId: Long = postId
@@ -70,8 +110,7 @@ class Comment protected constructor(
      *
      * @param memberId 요청한 회원 ID
      * @param content 새로운 댓글 내용
-     * @throws InvalidCommentStatusException 댓글이 공개 상태가 아닌 경우
-     * @throws UnauthorizedCommentOperationException 수정 권한이 없는 경우
+     * @throws IllegalArgumentException 댓글이 공개 상태가 아닌 경우 혹은 수정 권한이 없는 경우
      */
     fun update(memberId: Long, content: CommentContent) {
         ensureCanEditBy(memberId)
@@ -84,8 +123,7 @@ class Comment protected constructor(
      * 댓글을 삭제합니다 (Soft Delete).
      *
      * @param memberId 요청한 회원 ID
-     * @throws InvalidCommentStatusException 댓글이 공개 상태가 아닌 경우
-     * @throws UnauthorizedCommentOperationException 삭제 권한이 없는 경우
+     * @throws IllegalArgumentException 댓글이 공개 상태가 아닌 경우 혹은 삭제 권한이 없는 경우
      */
     fun delete(memberId: Long) {
         ensureCanEditBy(memberId)
@@ -108,23 +146,19 @@ class Comment protected constructor(
      * 회원이 이 댓글을 수정할 수 없다면 예외를 발생시킵니다.
      *
      * @param memberId 회원 ID
-     * @throws UnauthorizedCommentOperationException 권한이 없는 경우
+     * @throws IllegalArgumentException 권한이 없는 경우
      */
     fun ensureCanEditBy(memberId: Long) {
-        if (!canEditBy(memberId)) {
-            throw UnauthorizedCommentOperationException("댓글을 수정할 권한이 없습니다.")
-        }
+        require(canEditBy(memberId)) { ERROR_CANNOT_EDIT_COMMENT }
     }
 
     /**
      * 댓글이 공개 상태인지 확인합니다.
      *
-     * @throws InvalidCommentStatusException 공개 상태가 아닌 경우
+     * @throws IllegalArgumentException 공개 상태가 아닌 경우
      */
     fun ensurePublished() {
-        if (status != CommentStatus.PUBLISHED) {
-            throw InvalidCommentStatusException("댓글이 공개 상태가 아닙니다: $status")
-        }
+        require(status == CommentStatus.PUBLISHED) { ERROR_COMMENT_NOT_PUBLISHED.format(status.name) }
     }
 
     /**
@@ -136,41 +170,4 @@ class Comment protected constructor(
      * 삭제된 댓글인지 확인합니다.
      */
     fun isDeleted(): Boolean = status == CommentStatus.DELETED
-
-    companion object {
-        /**
-         * 새 댓글을 생성합니다.
-         *
-         * @param postId 게시글 ID
-         * @param authorMemberId 작성자 회원 ID
-         * @param authorNickname 작성자 닉네임
-         * @param content 댓글 내용
-         * @param parentCommentId 부모 댓글 ID (대댓글인 경우)
-         * @return 생성된 댓글
-         */
-        fun create(
-            postId: Long,
-            authorMemberId: Long,
-            authorNickname: String,
-            content: CommentContent,
-            parentCommentId: Long? = null,
-        ): Comment {
-            require(postId > 0) { "게시글 ID는 양수여야 합니다: $postId" }
-
-            // 대댓글의 경우 부모 댓글 ID 검증
-            if (parentCommentId != null && parentCommentId <= 0) {
-                throw InvalidParentCommentException("부모 댓글 ID는 정수여야 합니다: $parentCommentId")
-            }
-
-            return Comment(
-                postId = postId,
-                author = CommentAuthor(authorMemberId, authorNickname),
-                content = content,
-                parentCommentId = parentCommentId,
-                status = CommentStatus.PUBLISHED,
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
-            )
-        }
-    }
 }

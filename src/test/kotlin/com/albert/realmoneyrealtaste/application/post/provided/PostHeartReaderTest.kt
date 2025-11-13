@@ -58,4 +58,19 @@ class PostHeartReaderTest(
         // then
         assert(result.isEmpty())
     }
+
+    @Test
+    fun `hasHeart - success - returns true when heart exists`() {
+        // given
+        val member = testMemberHelper.createActivatedMember()
+        val memberId = member.requireId()
+        val postId = 1L
+        postHeartRepository.save(PostHeart.create(memberId = memberId, postId = postId))
+
+        // when
+        val result = postHeartReader.hasHeart(postId, memberId)
+
+        // then
+        assert(result)
+    }
 }

@@ -2,12 +2,11 @@ package com.albert.realmoneyrealtaste.application.post.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.post.dto.PostUpdateRequest
-import com.albert.realmoneyrealtaste.application.post.exception.PostNotFoundException
+import com.albert.realmoneyrealtaste.application.post.exception.PostDeleteException
+import com.albert.realmoneyrealtaste.application.post.exception.PostUpdateException
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.post.PostStatus
 import com.albert.realmoneyrealtaste.domain.post.event.PostDeletedEvent
-import com.albert.realmoneyrealtaste.domain.post.exceptions.InvalidPostStatusException
-import com.albert.realmoneyrealtaste.domain.post.exceptions.UnauthorizedPostOperationException
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
 import com.albert.realmoneyrealtaste.domain.post.value.Restaurant
@@ -20,7 +19,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 @RecordApplicationEvents
 class PostUpdaterTest(
@@ -92,11 +90,12 @@ class PostUpdaterTest(
             images = PostImages.empty(),
             restaurant = PostFixture.DEFAULT_RESTAURANT
         )
+        val notExistsPostId = 999L
 
-        assertFailsWith<PostNotFoundException> {
-            postUpdater.updatePost(999L, member.requireId(), request)
+        assertFailsWith<PostUpdateException> {
+            postUpdater.updatePost(notExistsPostId, member.requireId(), request)
         }.let {
-            assertTrue(it.message!!.contains("게시글을 찾을 수 없습니다"))
+            assertEquals("포스트 수정에 실패했습니다. postId: ${notExistsPostId}, memberId: ${member.requireId()}", it.message)
         }
     }
 
@@ -120,10 +119,10 @@ class PostUpdaterTest(
             restaurant = post.restaurant
         )
 
-        assertFailsWith<UnauthorizedPostOperationException> {
+        assertFailsWith<PostUpdateException> {
             postUpdater.updatePost(post.requireId(), other.requireId(), request)
         }.let {
-            assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
+            assertEquals("포스트 수정에 실패했습니다. postId: ${post.requireId()}, memberId: ${other.requireId()}", it.message)
         }
     }
 
@@ -144,10 +143,10 @@ class PostUpdaterTest(
             restaurant = post.restaurant
         )
 
-        assertFailsWith<InvalidPostStatusException> {
+        assertFailsWith<PostUpdateException> {
             postUpdater.updatePost(post.requireId(), member.requireId(), request)
         }.let {
-            assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
+            assertEquals("포스트 수정에 실패했습니다. postId: ${post.requireId()}, memberId: ${member.requireId()}", it.message)
         }
     }
 
@@ -191,11 +190,12 @@ class PostUpdaterTest(
     @Test
     fun `deletePost - failure - throws exception when post not found`() {
         val member = testMemberHelper.createActivatedMember()
+        val notExistsPostId = 999L
 
-        assertFailsWith<PostNotFoundException> {
-            postUpdater.deletePost(999L, member.requireId())
+        assertFailsWith<PostDeleteException> {
+            postUpdater.deletePost(notExistsPostId, member.requireId())
         }.let {
-            assertTrue(it.message!!.contains("게시글을 찾을 수 없습니다"))
+            assertEquals("포스트 삭제에 실패했습니다. postId: ${notExistsPostId}, memberId: ${member.requireId()}", it.message)
         }
     }
 
@@ -213,10 +213,10 @@ class PostUpdaterTest(
             )
         )
 
-        assertFailsWith<UnauthorizedPostOperationException> {
+        assertFailsWith<PostDeleteException> {
             postUpdater.deletePost(post.requireId(), other.requireId())
         }.let {
-            assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
+            assertEquals("포스트 삭제에 실패했습니다. postId: ${post.requireId()}, memberId: ${other.requireId()}", it.message)
         }
     }
 
@@ -231,10 +231,10 @@ class PostUpdaterTest(
         )
         post.delete(member.requireId())
 
-        assertFailsWith<InvalidPostStatusException> {
+        assertFailsWith<PostDeleteException> {
             postUpdater.deletePost(post.requireId(), member.requireId())
         }.let {
-            assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
+            assertEquals("포스트 삭제에 실패했습니다. postId: ${post.requireId()}, memberId: ${member.requireId()}", it.message)
         }
     }
 }

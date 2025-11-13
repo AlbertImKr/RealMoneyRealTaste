@@ -15,24 +15,29 @@ class CommentReadService(
 
     override fun getComments(postId: Long, pageable: Pageable): Page<Comment> {
         return commentRepository.findByPostIdAndStatus(
-            postId,
-            CommentStatus.PUBLISHED,
-            pageable
+            postId = postId,
+            status = CommentStatus.PUBLISHED,
+            pageable = pageable
         )
     }
 
     override fun getReplies(commentId: Long, pageable: Pageable): Page<Comment> {
         return commentRepository.findByParentCommentIdAndStatus(
-            commentId,
-            CommentStatus.PUBLISHED,
-            pageable
+            parentCommentId = commentId,
+            status = CommentStatus.PUBLISHED,
+            pageable = pageable
         )
     }
 
     override fun getCommentCount(postId: Long): Long {
         return commentRepository.countByPostIdAndStatus(
-            postId,
-            CommentStatus.PUBLISHED
+            postId = postId,
+            status = CommentStatus.PUBLISHED
         )
+    }
+
+    override fun findById(commentId: Long): Comment {
+        return commentRepository.findById(commentId)
+            .orElseThrow { IllegalArgumentException("댓글을 찾을 수 없습니다: $commentId") }
     }
 }

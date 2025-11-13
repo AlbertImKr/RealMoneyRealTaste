@@ -20,4 +20,9 @@ interface CommentReader {
      * 게시글의 댓글 개수를 조회합니다.
      */
     fun getCommentCount(postId: Long): Long
+
+    /**
+     * 댓글 ID로 댓글을 조회합니다.
+     */
+    fun findById(commentId: Long): Comment
 }

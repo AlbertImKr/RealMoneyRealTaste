@@ -1,10 +1,8 @@
 package com.albert.realmoneyrealtaste.domain.post.value
 
-import com.albert.realmoneyrealtaste.domain.post.exceptions.InvalidPostContentException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class PostContentTest {
 
@@ -18,10 +16,10 @@ class PostContentTest {
 
     @Test
     fun `create - failure - throws exception when text is blank`() {
-        assertFailsWith<InvalidPostContentException> {
+        assertFailsWith<IllegalArgumentException> {
             PostContent("", 5)
         }.let {
-            assertEquals("게시글 내용은 필수입니다.", it.message)
+            assertEquals(PostContent.ERROR_TEXT_BLANK, it.message)
         }
     }
 
@@ -29,10 +27,10 @@ class PostContentTest {
     fun `create - failure - throws exception when text exceeds max length`() {
         val longText = "a".repeat(2001)
 
-        assertFailsWith<InvalidPostContentException> {
+        assertFailsWith<IllegalArgumentException> {
             PostContent(longText, 5)
         }.let {
-            assertEquals("게시글 내용은 2000자를 초과할 수 없습니다.", it.message)
+            assertEquals(PostContent.ERROR_TEXT_LENGTH, it.message)
         }
     }
 
@@ -47,19 +45,19 @@ class PostContentTest {
 
     @Test
     fun `create - failure - throws exception when rating is less than min`() {
-        assertFailsWith<InvalidPostContentException> {
+        assertFailsWith<IllegalArgumentException> {
             PostContent("내용", 0)
         }.let {
-            assertTrue(it.message!!.contains("평점은 1에서 5 사이여야 합니다"))
+            assertEquals(PostContent.ERROR_RATING_RANGE, it.message)
         }
     }
 
     @Test
     fun `create - failure - throws exception when rating is greater than max`() {
-        assertFailsWith<InvalidPostContentException> {
+        assertFailsWith<IllegalArgumentException> {
             PostContent("내용", 6)
         }.let {
-            assertTrue(it.message!!.contains("평점은 1에서 5 사이여야 합니다"))
+            assertEquals(PostContent.ERROR_RATING_RANGE, it.message)
         }
     }
 

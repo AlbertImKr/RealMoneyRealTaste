@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment.value
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentAuthorException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
@@ -15,26 +14,6 @@ data class CommentAuthor(
     @Column(name = NICKNAME_COLUMN, length = MAX_NICKNAME_LENGTH, nullable = false)
     val nickname: String,
 ) {
-    init {
-        validateMemberId(memberId)
-        validateNickname(nickname)
-    }
-
-    private fun validateMemberId(memberId: Long) {
-        if (memberId < MIN_MEMBER_ID) {
-            throw InvalidCommentAuthorException(MEMBER_ID_ERROR_MESSAGE)
-        }
-    }
-
-    private fun validateNickname(nickname: String) {
-        if (nickname.isBlank()) {
-            throw InvalidCommentAuthorException(NICKNAME_REQUIRED_ERROR_MESSAGE)
-        }
-        if (nickname.length > MAX_NICKNAME_LENGTH) {
-            throw InvalidCommentAuthorException(NICKNAME_LENGTH_ERROR_MESSAGE)
-        }
-    }
-
     companion object {
         const val MEMBER_ID_COLUMN = "author_member_id"
         const val NICKNAME_COLUMN = "author_nickname"
@@ -45,5 +24,15 @@ data class CommentAuthor(
         const val MEMBER_ID_ERROR_MESSAGE = "회원 ID는 정수여야 합니다."
         const val NICKNAME_REQUIRED_ERROR_MESSAGE = "닉네임은 필수입니다."
         const val NICKNAME_LENGTH_ERROR_MESSAGE = "닉네임은 20자를 초과할 수 없습니다."
+    }
+
+    init {
+        validate()
+    }
+
+    private fun validate() {
+        require(memberId >= MIN_MEMBER_ID) { MEMBER_ID_ERROR_MESSAGE }
+        require(nickname.isNotBlank()) { NICKNAME_REQUIRED_ERROR_MESSAGE }
+        require(nickname.length <= MAX_NICKNAME_LENGTH) { NICKNAME_LENGTH_ERROR_MESSAGE }
     }
 }

@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.post.provided
 
-import com.albert.realmoneyrealtaste.application.post.exception.PostNotFoundException
+import com.albert.realmoneyrealtaste.application.post.exception.PostAddHeartException
+import com.albert.realmoneyrealtaste.application.post.exception.PostRemoveHeartException
 
 /**
  * 게시글 좋아요 관리 기능을 제공하는 인터페이스
@@ -13,7 +14,7 @@ interface PostHeartManager {
      *
      * @param postId 게시글 ID
      * @param memberId 회원 ID
-     * @throws PostNotFoundException 게시글을 찾을 수 없는 경우
+     * @throws PostAddHeartException 게시글 추가에 실패한 경우
      */
     fun addHeart(postId: Long, memberId: Long)
 
@@ -22,16 +23,7 @@ interface PostHeartManager {
      *
      * @param postId 게시글 ID
      * @param memberId 회원 ID
-     * @throws PostNotFoundException 게시글을 찾을 수 없는 경우
+     * @throws PostRemoveHeartException 게시글 제거에 실패한 경우
      */
     fun removeHeart(postId: Long, memberId: Long)
-
-    /**
-     * 회원이 해당 게시글에 좋아요를 눌렀는지 확인합니다.
-     *
-     * @param postId 게시글 ID
-     * @param memberId 회원 ID
-     * @return 좋아요 여부
-     */
-    fun hasHeart(postId: Long, memberId: Long): Boolean
 }

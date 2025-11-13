@@ -2,10 +2,9 @@ package com.albert.realmoneyrealtaste.application.comment.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.comment.dto.CommentUpdateRequest
-import com.albert.realmoneyrealtaste.application.comment.exception.CommentNotFoundException
+import com.albert.realmoneyrealtaste.application.comment.exception.CommentUpdateException
 import com.albert.realmoneyrealtaste.application.comment.required.CommentRepository
 import com.albert.realmoneyrealtaste.domain.comment.Comment
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.UnauthorizedCommentOperationException
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import org.springframework.beans.factory.annotation.Autowired
@@ -86,10 +85,11 @@ class CommentUpdaterTest : IntegrationTestBase() {
         )
 
         // when & then
-        val exception = assertFailsWith<CommentNotFoundException> {
+        val exception = assertFailsWith<CommentUpdateException> {
             commentUpdater.updateComment(request)
         }
-        assertTrue(exception.message!!.contains("댓글을 찾을 수 없습니다"))
+
+        assertEquals("댓글 수정 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test
@@ -109,9 +109,11 @@ class CommentUpdaterTest : IntegrationTestBase() {
         )
 
         // when & then
-        assertFailsWith<UnauthorizedCommentOperationException> {
+        val exception = assertFailsWith<CommentUpdateException> {
             commentUpdater.updateComment(request)
         }
+
+        assertEquals("댓글 수정 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test
@@ -136,10 +138,11 @@ class CommentUpdaterTest : IntegrationTestBase() {
         )
 
         // when & then
-        val exception = assertFailsWith<CommentNotFoundException> {
+        val exception = assertFailsWith<CommentUpdateException> {
             commentUpdater.updateComment(request)
         }
-        assertTrue(exception.message!!.contains("삭제된 댓글은 수정할 수 없습니다"))
+
+        assertEquals("댓글 수정 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test

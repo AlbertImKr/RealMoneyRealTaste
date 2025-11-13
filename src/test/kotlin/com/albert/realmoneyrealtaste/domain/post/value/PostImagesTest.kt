@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.post.value
 
-import com.albert.realmoneyrealtaste.domain.post.exceptions.InvalidPostImagesException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -30,10 +29,10 @@ class PostImagesTest {
     fun `create - failure - throws exception when exceeds max count`() {
         val urls = (1..6).map { "https://example.com/$it.jpg" }
 
-        assertFailsWith<InvalidPostImagesException> {
+        assertFailsWith<IllegalArgumentException> {
             PostImages(urls)
         }.let {
-            assertTrue(it.message!!.contains("이미지는 최대 5장까지 업로드 가능합니다"))
+            assertEquals(PostImages.ERROR_MAX_IMAGE_COUNT, it.message)
         }
     }
 
@@ -50,7 +49,7 @@ class PostImagesTest {
     fun `create - failure - throws exception when url is blank`() {
         val urls = listOf("https://example.com/1.jpg", "")
 
-        assertFailsWith<InvalidPostImagesException> {
+        assertFailsWith<IllegalArgumentException> {
             PostImages(urls)
         }.let {
             assertEquals("이미지 URL은 필수입니다.", it.message)
@@ -62,10 +61,10 @@ class PostImagesTest {
         val longUrl = "https://example.com/" + "a".repeat(500)
         val urls = listOf(longUrl)
 
-        assertFailsWith<InvalidPostImagesException> {
+        assertFailsWith<IllegalArgumentException> {
             PostImages(urls)
         }.let {
-            assertEquals("이미지 URL은 500자를 초과할 수 없습니다.", it.message)
+            assertEquals(PostImages.ERROR_URL_LENGTH, it.message)
         }
     }
 

@@ -1,8 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentStatusException
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidParentCommentException
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.UnauthorizedCommentOperationException
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentAuthor
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
 import java.time.LocalDateTime
@@ -80,7 +77,7 @@ class CommentTest {
 
     @Test
     fun `create - failure - throws exception when parentCommentId is zero`() {
-        assertFailsWith<InvalidParentCommentException> {
+        assertFailsWith<IllegalArgumentException> {
             Comment.create(
                 postId = 1L,
                 authorMemberId = 100L,
@@ -89,13 +86,13 @@ class CommentTest {
                 parentCommentId = 0L
             )
         }.let {
-            assertEquals("부모 댓글 ID는 정수여야 합니다: 0", it.message)
+            assertEquals("부모 댓글 ID는 양수여야 합니다: 0", it.message)
         }
     }
 
     @Test
     fun `create - failure - throws exception when parentCommentId is negative`() {
-        assertFailsWith<InvalidParentCommentException> {
+        assertFailsWith<IllegalArgumentException> {
             Comment.create(
                 postId = 1L,
                 authorMemberId = 100L,
@@ -104,7 +101,7 @@ class CommentTest {
                 parentCommentId = -1L
             )
         }.let {
-            assertEquals("부모 댓글 ID는 정수여야 합니다: -1", it.message)
+            assertEquals("부모 댓글 ID는 양수여야 합니다: -1", it.message)
         }
     }
 
@@ -137,7 +134,7 @@ class CommentTest {
             content = CommentContent("원본 댓글")
         )
 
-        assertFailsWith<UnauthorizedCommentOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             comment.update(999L, CommentContent("수정 시도"))
         }.let {
             assertEquals("댓글을 수정할 권한이 없습니다.", it.message)
@@ -157,7 +154,7 @@ class CommentTest {
         comment.delete(100L)
 
         // 삭제된 댓글 수정 시도
-        assertFailsWith<InvalidCommentStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             comment.update(100L, CommentContent("수정 시도"))
         }.let {
             assertEquals("댓글이 공개 상태가 아닙니다: DELETED", it.message)
@@ -193,7 +190,7 @@ class CommentTest {
             content = CommentContent("댓글 내용")
         )
 
-        assertFailsWith<UnauthorizedCommentOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             comment.delete(999L)
         }.let {
             assertEquals("댓글을 수정할 권한이 없습니다.", it.message)
@@ -213,7 +210,7 @@ class CommentTest {
         comment.delete(100L)
 
         // 이미 삭제된 댓글 재삭제 시도
-        assertFailsWith<InvalidCommentStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             comment.delete(100L)
         }.let {
             assertEquals("댓글이 공개 상태가 아닙니다: DELETED", it.message)
@@ -266,7 +263,7 @@ class CommentTest {
             content = CommentContent("댓글 내용")
         )
 
-        assertFailsWith<UnauthorizedCommentOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             comment.ensureCanEditBy(999L)
         }.let {
             assertEquals("댓글을 수정할 권한이 없습니다.", it.message)
@@ -297,7 +294,7 @@ class CommentTest {
 
         comment.delete(100L)
 
-        assertFailsWith<InvalidCommentStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             comment.ensurePublished()
         }.let {
             assertEquals("댓글이 공개 상태가 아닙니다: DELETED", it.message)
