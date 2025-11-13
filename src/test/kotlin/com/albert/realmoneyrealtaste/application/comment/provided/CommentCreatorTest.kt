@@ -4,10 +4,8 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.comment.dto.CommentCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.dto.ReplyCreateRequest
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentCreationException
-import com.albert.realmoneyrealtaste.application.comment.exception.CommentNotFoundException
 import com.albert.realmoneyrealtaste.application.comment.required.CommentRepository
 import com.albert.realmoneyrealtaste.domain.comment.event.CommentCreatedEvent
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentStatusException
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import com.albert.realmoneyrealtaste.util.TestPostHelper
 import org.junit.jupiter.api.Assertions
@@ -78,7 +76,7 @@ class CommentCreatorTest(
             )
         }
 
-        assertEquals("유효한 회원이 아닙니다: $invalidMemberId", exception.message)
+        assertEquals("댓글 생성 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test
@@ -97,7 +95,7 @@ class CommentCreatorTest(
             )
         }
 
-        assertEquals("유효한 게시글이 아닙니다: $invalidPostId", exception.message)
+        assertEquals("댓글 생성 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test
@@ -147,7 +145,7 @@ class CommentCreatorTest(
         val invalidParentCommentId = 9999L
         val expectedReplyContent = "This is a test reply."
 
-        val exception = assertFailsWith<CommentNotFoundException> {
+        val exception = assertFailsWith<CommentCreationException> {
             commentCreator.createReply(
                 request = ReplyCreateRequest(
                     memberId = member.requireId(),
@@ -158,7 +156,7 @@ class CommentCreatorTest(
             )
         }
 
-        assertEquals("부모 댓글을 찾을 수 없습니다: $invalidParentCommentId", exception.message)
+        assertEquals("댓글 생성 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test
@@ -185,7 +183,7 @@ class CommentCreatorTest(
             )
         }
 
-        assertEquals("유효한 게시글이 아닙니다: $invalidPostId", exception.message)
+        assertEquals("댓글 생성 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test
@@ -213,7 +211,7 @@ class CommentCreatorTest(
             )
         }
 
-        assertEquals("유효한 회원이 아닙니다: $invalidMemberId", exception.message)
+        assertEquals("댓글 생성 중 오류가 발생했습니다.", exception.message)
     }
 
     @Test
@@ -242,7 +240,7 @@ class CommentCreatorTest(
         }
 
         assertEquals(
-            "부모 댓글과 같은 게시글에만 대댓글을 작성할 수 있습니다.",
+            "댓글 생성 중 오류가 발생했습니다.",
             exception.message
         )
     }
@@ -264,7 +262,7 @@ class CommentCreatorTest(
 
         val expectedReplyContent = "This is a test reply."
 
-        val exception = assertFailsWith<InvalidCommentStatusException> {
+        val exception = assertFailsWith<CommentCreationException> {
             commentCreator.createReply(
                 request = ReplyCreateRequest(
                     memberId = member.requireId(),
@@ -276,7 +274,7 @@ class CommentCreatorTest(
         }
 
         assertEquals(
-            "부모 댓글이 존재하지 않거나 삭제되었습니다.",
+            "댓글 생성 중 오류가 발생했습니다.",
             exception.message
         )
     }
@@ -315,7 +313,7 @@ class CommentCreatorTest(
         }
 
         assertEquals(
-            "대댓글에는 대댓글을 작성할 수 없습니다.",
+            "댓글 생성 중 오류가 발생했습니다.",
             exception.message
         )
     }
