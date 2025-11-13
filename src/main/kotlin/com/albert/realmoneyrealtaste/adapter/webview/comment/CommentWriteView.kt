@@ -19,9 +19,9 @@ class CommentWriteView(
     private val commentUpdater: CommentUpdater,
 ) {
 
-    @PostMapping("/comments")
+    @PostMapping(CommentUrls.COMMENT_CREATE)
     fun createComment(
-        @RequestParam postId: Long,
+        @PathVariable postId: Long,
         @RequestParam content: String,
         @RequestParam(required = false) parentCommentId: Long?,
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
@@ -57,13 +57,13 @@ class CommentWriteView(
 
         // 답글과 일반 댓글에 따라 다른 프래그먼트 반환
         return if (parentCommentId != null) {
-            "comment/replies-fragment :: comments-list"
+            CommentViews.REPLIES_FRAGMENT_COMMENTS
         } else {
-            "comment/comments-fragment :: replies-list"
+            CommentViews.COMMENTS_FRAGMENT_REPLIES
         }
     }
 
-    @PostMapping("/comments/{commentId}")
+    @PostMapping(CommentUrls.COMMENT_UPDATE)
     fun updateComment(
         @PathVariable commentId: Long,
         @RequestParam content: String,
@@ -82,9 +82,9 @@ class CommentWriteView(
 
         // 수정된 댓글이 답글인지 일반 댓글인지에 따라 다른 프래그먼트 반환
         return if (updatedComment.isReply()) {
-            "comment/replies-fragment :: reply-item"
+            CommentViews.REPLY_ITEM_FRAGMENT
         } else {
-            "comment/comments-fragment :: comment-item"
+            CommentViews.COMMENT_ITEM_FRAGMENT
         }
     }
 }

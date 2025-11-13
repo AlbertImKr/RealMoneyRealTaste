@@ -9,16 +9,15 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class CommentReadView(
     private val commentReader: CommentReader,
 ) {
 
-    @GetMapping("/comments/fragments/list")
+    @GetMapping(CommentUrls.COMMENTS_FRAGMENTS_LIST)
     fun getCommentsFragment(
-        @RequestParam postId: Long,
+        @PathVariable postId: Long,
         @PageableDefault pageable: Pageable,
         model: Model,
     ): String {
@@ -27,10 +26,10 @@ class CommentReadView(
         model.addAttribute("comments", comments)
         model.addAttribute("postId", postId)
 
-        return "comment/comments-fragment :: comments-list"
+        return CommentViews.COMMENTS_LIST_FRAGMENT
     }
 
-    @GetMapping("/comments/{commentId}/replies/fragments/list")
+    @GetMapping(CommentUrls.REPLIES_FRAGMENTS_LIST)
     fun getRepliesFragment(
         @PathVariable commentId: Long,
         @PageableDefault pageable: Pageable,
@@ -41,12 +40,12 @@ class CommentReadView(
         model.addAttribute("replies", replies)
         model.addAttribute("commentId", commentId)
 
-        return "comment/replies-fragment :: replies-list"
+        return CommentViews.REPLIES_LIST_FRAGMENT
     }
 
-    @GetMapping("/comments/modal-fragments/list")
+    @GetMapping(CommentUrls.MODAL_COMMENTS_FRAGMENTS_LIST)
     fun getModalCommentsFragment(
-        @RequestParam postId: Long,
+        @PathVariable postId: Long,
         @PageableDefault pageable: Pageable,
         model: Model,
     ): String {
@@ -55,12 +54,12 @@ class CommentReadView(
         model.addAttribute("comments", comments)
         model.addAttribute("postId", postId)
 
-        return "comment/modal-comments :: modal-comments-list"
+        return CommentViews.MODAL_COMMENTS_LIST_FRAGMENT
     }
 
-    @GetMapping("/comments/modal-replies-fragment")
+    @GetMapping(CommentUrls.MODAL_REPLIES_FRAGMENT)
     fun getModalRepliesFragment(
-        @RequestParam commentId: Long,
+        @PathVariable commentId: Long,
         @PageableDefault pageable: Pageable,
         model: Model,
     ): String {
@@ -69,6 +68,6 @@ class CommentReadView(
         model.addAttribute("replies", replies)
         model.addAttribute("commentId", commentId)
 
-        return "comment/modal-comments :: modal-replies-list"
+        return CommentViews.MODAL_REPLIES_FRAGMENT
     }
 }
