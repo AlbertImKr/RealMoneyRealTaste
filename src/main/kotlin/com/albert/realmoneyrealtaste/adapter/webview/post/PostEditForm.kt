@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size
 import org.hibernate.validator.constraints.Range
 
 data class PostEditForm(
-    val id: Long,
+    val id: Long?,
 
     @field:NotBlank(message = "음식점 이름을 입력해주세요.")
     val restaurantName: String,

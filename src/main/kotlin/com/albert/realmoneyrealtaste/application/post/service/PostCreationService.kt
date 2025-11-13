@@ -25,7 +25,6 @@ class PostCreationService(
 
     override fun createPost(memberId: Long, request: PostCreateRequest): Post {
         try {
-
             val member = memberReader.readActiveMemberById(memberId)
 
             val post = Post.create(memberId, member.nickname.value, request.restaurant, request.content, request.images)

@@ -19,16 +19,16 @@ class PostView(
     private val postReader: PostReader,
     private val postUpdater: PostUpdater,
 ) {
-    @PostMapping("/posts/new")
+    @PostMapping(PostUrls.CREATE)
     fun createPost(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @Valid @ModelAttribute form: PostCreateForm,
     ): String {
-        postCreator.createPost(memberPrincipal.memberId, form.toPostCreateRequest())
-        return "redirect:/"
+        val post = postCreator.createPost(memberPrincipal.memberId, form.toPostCreateRequest())
+        return PostUrls.REDIRECT_READ_DETAIL.format(post.requireId())
     }
 
-    @GetMapping("/posts/{postId}")
+    @GetMapping(PostUrls.READ_DETAIL)
     fun readPost(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @PathVariable postId: Long,
@@ -38,10 +38,10 @@ class PostView(
         val post = postReader.readPostById(currentUserId, postId)
         model.addAttribute("post", post)
         model.addAttribute("currentUserId", currentUserId)
-        return POST_DETAIL_VIEW_NAME
+        return PostViews.DETAIL
     }
 
-    @GetMapping("/posts/{postId}/edit")
+    @GetMapping(PostUrls.UPDATE)
     fun editPost(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @PathVariable postId: Long,
@@ -49,20 +49,20 @@ class PostView(
     ): String {
         val post = postReader.readPostByAuthorAndId(memberPrincipal.memberId, postId)
         model.addAttribute("postEditForm", PostEditForm.fromPost(post))
-        return "post/edit"
+        return PostViews.EDIT
     }
 
-    @PostMapping("/posts/{postId}/edit")
+    @PostMapping(PostUrls.UPDATE)
     fun updatePost(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @PathVariable postId: Long,
         @Valid @ModelAttribute postEditForm: PostEditForm,
     ): String {
         postUpdater.updatePost(postId, memberPrincipal.memberId, postEditForm.toPostEditRequest())
-        return "redirect:/posts/$postId"
+        return PostUrls.REDIRECT_READ_DETAIL.format(postId)
     }
 
-    @GetMapping("/posts/{postId}/modal")
+    @GetMapping(PostUrls.READ_DETAIL_MODAL)
     fun readPostDetailModal(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @PathVariable postId: Long,
@@ -72,10 +72,6 @@ class PostView(
         val post = postReader.readPostById(currentUserId, postId)
         model.addAttribute("post", post)
 
-        return "post/modal-detail :: post-detail-modal"
-    }
-
-    companion object {
-        const val POST_DETAIL_VIEW_NAME = "post/detail"
+        return PostViews.DETAIL_MODAL
     }
 }

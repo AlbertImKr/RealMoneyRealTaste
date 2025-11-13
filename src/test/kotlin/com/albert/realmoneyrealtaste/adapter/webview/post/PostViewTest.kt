@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.model
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
 import kotlin.test.Test
@@ -43,7 +44,7 @@ class PostViewTest : IntegrationTestBase() {
                 .param("imagesUrls", "https://example.com/image1.jpg", "https://example.com/image2.jpg")
         )
             .andExpect(status().is3xxRedirection)
-            .andExpect(redirectedUrl("/"))
+            .andExpect(redirectedUrlPattern("/posts/**"))
     }
 
     @Test
@@ -91,6 +92,23 @@ class PostViewTest : IntegrationTestBase() {
     }
 
     @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME, active = false)
+    fun `createPost - failure - returns forbidden when member is not activated`() {
+        mockMvc.perform(
+            post("/posts/new")
+                .with(csrf())
+                .param("restaurantName", "테스트 맛집")
+                .param("restaurantAddress", "서울시 강남구")
+                .param("restaurantLatitude", "37.5665")
+                .param("restaurantLongitude", "126.9780")
+                .param("contentText", "정말 맛있는 맛집입니다!")
+                .param("contentRating", "5")
+                .param("imagesUrls", "https://example.com/image1.jpg", "https://example.com/image2.jpg")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readPost - success - returns post detail view with post information`() {
         val member = testMemberHelper.getDefaultMember()
@@ -106,7 +124,7 @@ class PostViewTest : IntegrationTestBase() {
             get("/posts/{postId}", post.requireId())
         )
             .andExpect(status().isOk)
-            .andExpect(view().name(PostView.POST_DETAIL_VIEW_NAME))
+            .andExpect(view().name(PostViews.DETAIL))
             .andExpect(model().attributeExists("post"))
             .andExpect(model().attributeExists("currentUserId"))
     }
@@ -154,7 +172,7 @@ class PostViewTest : IntegrationTestBase() {
             get("/posts/{postId}", post.requireId())
         )
             .andExpect(status().isOk)
-            .andExpect(view().name(PostView.POST_DETAIL_VIEW_NAME))
+            .andExpect(view().name(PostViews.DETAIL))
     }
 
     @Test
@@ -368,6 +386,35 @@ class PostViewTest : IntegrationTestBase() {
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updatePost POST - failure - member is not author`() {
+        val author = testMemberHelper.createActivatedMember(
+            email = "author@email.com",
+        )
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = author.requireId(),
+                authorNickname = author.nickname.value
+            )
+        )
+        flushAndClear()
+
+        mockMvc.perform(
+            post("/posts/{postId}/edit", post.requireId())
+                .with(csrf())
+                .param("restaurantName", "테스트 맛집")
+                .param("restaurantAddress", "서울시 강남구")
+                .param("restaurantLatitude", "37.5665")
+                .param("restaurantLongitude", "126.9780")
+                .param("contentText", "이미지 URL이 빈 값임")
+                .param("contentRating", "4")
+                .param("imagesUrls", "https://example.com/1.jpg")
+        )
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/posts/${post.requireId()}/edit"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `createPost - failure - validation error when images is empty URLs`() {
         mockMvc.perform(
             post("/posts/new")
@@ -439,7 +486,7 @@ class PostViewTest : IntegrationTestBase() {
             get("/posts/{postId}", post.requireId())
         )
             .andExpect(status().isOk)
-            .andExpect(view().name(PostView.POST_DETAIL_VIEW_NAME))
+            .andExpect(view().name(PostViews.DETAIL))
             .andExpect(model().attributeExists("post"))
             .andExpect(model().attributeExists("currentUserId"))
     }
