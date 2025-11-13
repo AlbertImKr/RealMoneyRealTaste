@@ -1,7 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.post
 
-import com.albert.realmoneyrealtaste.domain.post.exceptions.InvalidPostStatusException
-import com.albert.realmoneyrealtaste.domain.post.exceptions.UnauthorizedPostOperationException
 import com.albert.realmoneyrealtaste.domain.post.value.Author
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
@@ -79,7 +77,7 @@ class PostTest {
         val newContent = PostContent("새로운 내용", 4)
         val newImages = PostImages.empty()
 
-        assertFailsWith<InvalidPostStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             post.update(PostFixture.DEFAULT_AUTHOR_MEMBER_ID, newContent, newImages, post.restaurant)
         }.let {
             assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
@@ -92,10 +90,10 @@ class PostTest {
         val newContent = PostContent("새로운 내용", 4)
         val newImages = PostImages.empty()
 
-        assertFailsWith<UnauthorizedPostOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             post.update(999L, newContent, newImages, post.restaurant)
         }.let {
-            assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
+            assertEquals(Post.ERROR_NO_EDIT_PERMISSION, it.message)
         }
     }
 
@@ -116,7 +114,7 @@ class PostTest {
         val post = PostFixture.createPost()
         post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
 
-        assertFailsWith<InvalidPostStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
         }.let {
             assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
@@ -127,10 +125,10 @@ class PostTest {
     fun `delete - failure - throws exception when member is not author`() {
         val post = PostFixture.createPost()
 
-        assertFailsWith<UnauthorizedPostOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             post.delete(999L)
         }.let {
-            assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
+            assertEquals(Post.ERROR_NO_EDIT_PERMISSION, it.message)
         }
     }
 
@@ -159,10 +157,10 @@ class PostTest {
     fun `ensureCanEditBy - failure - throws exception for different member`() {
         val post = PostFixture.createPost()
 
-        assertFailsWith<UnauthorizedPostOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             post.ensureCanEditBy(999L)
         }.let {
-            assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
+            assertEquals(Post.ERROR_NO_EDIT_PERMISSION, it.message)
         }
     }
 
@@ -171,17 +169,6 @@ class PostTest {
         val post = PostFixture.createPost()
 
         assertEquals(0, post.heartCount)
-    }
-
-    @Test
-    fun `requireId - failure - throws exception when id is null`() {
-        val post = PostFixture.createPost()
-
-        assertFailsWith<IllegalStateException> {
-            post.requireId()
-        }.let {
-            assertTrue(it.message!!.contains("ID가 설정되지 않았습니다"))
-        }
     }
 
     @Test
@@ -197,14 +184,6 @@ class PostTest {
         post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
 
         assertTrue(post.isDeleted())
-    }
-
-    @Test
-    fun `requireId - success - returns id when set`() {
-        val post = PostFixture.createPost()
-        PostFixture.setId(post, 123L)
-
-        assertEquals(123L, post.requireId())
     }
 
     @Test

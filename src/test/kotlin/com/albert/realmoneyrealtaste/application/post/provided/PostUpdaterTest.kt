@@ -6,8 +6,6 @@ import com.albert.realmoneyrealtaste.application.post.exception.PostNotFoundExce
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.post.PostStatus
 import com.albert.realmoneyrealtaste.domain.post.event.PostDeletedEvent
-import com.albert.realmoneyrealtaste.domain.post.exceptions.InvalidPostStatusException
-import com.albert.realmoneyrealtaste.domain.post.exceptions.UnauthorizedPostOperationException
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
 import com.albert.realmoneyrealtaste.domain.post.value.Restaurant
@@ -120,7 +118,7 @@ class PostUpdaterTest(
             restaurant = post.restaurant
         )
 
-        assertFailsWith<UnauthorizedPostOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             postUpdater.updatePost(post.requireId(), other.requireId(), request)
         }.let {
             assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
@@ -144,7 +142,7 @@ class PostUpdaterTest(
             restaurant = post.restaurant
         )
 
-        assertFailsWith<InvalidPostStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             postUpdater.updatePost(post.requireId(), member.requireId(), request)
         }.let {
             assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
@@ -213,7 +211,7 @@ class PostUpdaterTest(
             )
         )
 
-        assertFailsWith<UnauthorizedPostOperationException> {
+        assertFailsWith<IllegalArgumentException> {
             postUpdater.deletePost(post.requireId(), other.requireId())
         }.let {
             assertEquals("게시글을 수정할 권한이 없습니다.", it.message)
@@ -231,7 +229,7 @@ class PostUpdaterTest(
         )
         post.delete(member.requireId())
 
-        assertFailsWith<InvalidPostStatusException> {
+        assertFailsWith<IllegalArgumentException> {
             postUpdater.deletePost(post.requireId(), member.requireId())
         }.let {
             assertTrue(it.message!!.contains("게시글이 공개 상태가 아닙니다"))
