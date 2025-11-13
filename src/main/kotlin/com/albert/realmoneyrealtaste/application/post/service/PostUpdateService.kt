@@ -1,7 +1,9 @@
 package com.albert.realmoneyrealtaste.application.post.service
 
 import com.albert.realmoneyrealtaste.application.post.dto.PostUpdateRequest
-import com.albert.realmoneyrealtaste.application.post.exception.PostNotFoundException
+import com.albert.realmoneyrealtaste.application.post.exception.PostDeleteException
+import com.albert.realmoneyrealtaste.application.post.exception.PostUpdateException
+import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostUpdater
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.post.Post
@@ -15,22 +17,36 @@ import org.springframework.transaction.annotation.Transactional
 class PostUpdateService(
     private val postRepository: PostRepository,
     private val eventPublisher: ApplicationEventPublisher,
+    private val postReader: PostReader,
 ) : PostUpdater {
 
+    companion object {
+        const val ERROR_POST_UPDATE = "포스트 수정에 실패했습니다. postId: %d, memberId: %d"
+        const val ERROR_POST_DELETE = "포스트 삭제에 실패했습니다. postId: %d, memberId: %d"
+    }
+
     override fun updatePost(postId: Long, memberId: Long, request: PostUpdateRequest): Post {
-        val post = findPostByIdOrThrow(postId)
+        try {
+            val post = postReader.readPostById(memberId, postId)
 
-        post.update(memberId, request.content, request.images, request.restaurant)
+            post.update(memberId, request.content, request.images, request.restaurant)
 
-        return post
+            return post
+        } catch (e: IllegalArgumentException) {
+            throw PostUpdateException(ERROR_POST_UPDATE.format(postId, memberId), e)
+        }
     }
 
     override fun deletePost(postId: Long, memberId: Long) {
-        val post = findPostByIdOrThrow(postId)
+        try {
+            val post = postReader.readPostById(memberId, postId)
 
-        post.delete(memberId)
+            post.delete(memberId)
 
-        publishPostDeletedEvent(postId, memberId)
+            publishPostDeletedEvent(postId, memberId)
+        } catch (e: IllegalArgumentException) {
+            throw PostDeleteException(ERROR_POST_DELETE.format(postId, memberId), e)
+        }
     }
 
     override fun incrementHeartCount(postId: Long) {
@@ -43,18 +59,6 @@ class PostUpdateService(
 
     override fun incrementViewCount(postId: Long) {
         postRepository.incrementViewCount(postId)
-    }
-
-    /**
-     * 게시글을 조회하거나 예외를 던집니다.
-     *
-     * @param postId 게시글 ID
-     * @return 조회된 게시글
-     * @throws PostNotFoundException 게시글을 찾을 수 없는 경우
-     */
-    private fun findPostByIdOrThrow(postId: Long): Post {
-        return postRepository.findById(postId)
-            ?: throw PostNotFoundException("게시글을 찾을 수 없습니다: $postId")
     }
 
     /**

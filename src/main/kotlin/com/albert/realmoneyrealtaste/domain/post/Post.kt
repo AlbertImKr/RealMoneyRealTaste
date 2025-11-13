@@ -161,5 +161,7 @@ class Post protected constructor(
         require(status == PostStatus.PUBLISHED) { ERROR_NOT_PUBLISHED }
     }
 
+    fun isAuthor(memberId: Long): Boolean = author.memberId == memberId
+
     fun isDeleted(): Boolean = status == PostStatus.DELETED
 }

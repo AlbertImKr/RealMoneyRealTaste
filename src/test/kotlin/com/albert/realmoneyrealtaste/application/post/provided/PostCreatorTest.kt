@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.application.post.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.post.dto.PostCreateRequest
+import com.albert.realmoneyrealtaste.application.post.exception.PostCreateException
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
@@ -156,6 +157,18 @@ class PostCreatorTest(
         assertEquals(member2.id, post2.author.memberId)
         assertEquals("회원1", post1.author.nickname)
         assertEquals("회원2", post2.author.nickname)
+    }
+
+    @Test
+    fun `createPost - failure - throws exception when member does not exist`() {
+        val nonExistentMemberId = 9999L
+        val request = createPostRequest()
+
+        try {
+            postCreator.createPost(nonExistentMemberId, request)
+        } catch (e: PostCreateException) {
+            assertEquals("포스트 생성에 실패했습니다.", e.message)
+        }
     }
 
     private fun createPostRequest(

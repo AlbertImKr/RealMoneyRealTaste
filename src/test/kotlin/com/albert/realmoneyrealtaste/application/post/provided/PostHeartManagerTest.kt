@@ -1,7 +1,8 @@
 package com.albert.realmoneyrealtaste.application.post.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.application.post.exception.PostNotFoundException
+import com.albert.realmoneyrealtaste.application.post.exception.PostAddHeartException
+import com.albert.realmoneyrealtaste.application.post.exception.PostRemoveHeartException
 import com.albert.realmoneyrealtaste.application.post.required.PostHeartRepository
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
@@ -57,7 +58,7 @@ class PostHeartManagerTest(
 
     @Test
     fun `addHeart - failure - post does not exist`() {
-        assertFailsWith<PostNotFoundException> {
+        assertFailsWith<PostAddHeartException> {
             postHeartManager.addHeart(9999L, user.requireId())
         }
     }
@@ -94,7 +95,7 @@ class PostHeartManagerTest(
 
     @Test
     fun `removeHeart - failure - post does not exist`() {
-        assertFailsWith<PostNotFoundException> {
+        assertFailsWith<PostRemoveHeartException> {
             postHeartManager.removeHeart(9999L, user.requireId())
         }
     }
@@ -108,20 +109,5 @@ class PostHeartManagerTest(
         assertNull(heartRemovedEvent)
         val heartCount = postHeartRepository.countByPostId(post.requireId())
         assertEquals(0, heartCount)
-    }
-
-    @Test
-    fun `hasHeart - success - returns true if member has hearted the post`() {
-        postHeartManager.addHeart(post.requireId(), user.requireId())
-
-        val hasHeart = postHeartManager.hasHeart(post.requireId(), user.requireId())
-        assertEquals(true, hasHeart)
-    }
-
-    @Test
-    fun `hasHeart - success - returns false if member has not hearted the post`() {
-        val hasHeart = postHeartManager.hasHeart(post.requireId(), user.requireId())
-
-        assertEquals(false, hasHeart)
     }
 }

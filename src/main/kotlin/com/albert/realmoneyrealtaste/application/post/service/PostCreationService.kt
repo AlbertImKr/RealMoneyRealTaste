@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.application.post.service
 
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.dto.PostCreateRequest
+import com.albert.realmoneyrealtaste.application.post.exception.PostCreateException
 import com.albert.realmoneyrealtaste.application.post.provided.PostCreator
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.post.Post
@@ -18,16 +19,25 @@ class PostCreationService(
     private val eventPublisher: ApplicationEventPublisher,
 ) : PostCreator {
 
+    companion object {
+        const val ERROR_POST_CREATE = "포스트 생성에 실패했습니다."
+    }
+
     override fun createPost(memberId: Long, request: PostCreateRequest): Post {
-        val member = memberReader.readActiveMemberById(memberId)
+        try {
 
-        val post = Post.create(memberId, member.nickname.value, request.restaurant, request.content, request.images)
+            val member = memberReader.readActiveMemberById(memberId)
 
-        val savedPost = postRepository.save(post)
+            val post = Post.create(memberId, member.nickname.value, request.restaurant, request.content, request.images)
 
-        publishPostCreatedEvent(savedPost)
+            val savedPost = postRepository.save(post)
 
-        return savedPost
+            publishPostCreatedEvent(savedPost)
+
+            return savedPost
+        } catch (e: IllegalArgumentException) {
+            throw PostCreateException(ERROR_POST_CREATE, e)
+        }
     }
 
     /**

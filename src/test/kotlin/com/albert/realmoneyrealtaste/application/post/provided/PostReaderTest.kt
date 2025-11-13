@@ -120,7 +120,67 @@ class PostReaderTest(
         assertFailsWith<PostNotFoundException> {
             postReader.readPostById(member.requireId(), post.requireId())
         }.let {
-            assertTrue(it.message!!.contains("삭제된 게시글입니다"))
+            assertEquals("게시글을 찾을 수 없습니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `readPostByAuthorAndId - success - reads post by author and id`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = authorMemberId,
+                authorNickname = member.nickname.value,
+            )
+        )
+        flushAndClear()
+
+        val result = postReader.readPostByAuthorAndId(authorMemberId, post.requireId())
+
+        assertEquals(post.requireId(), result.requireId())
+        assertEquals(post.author.memberId, result.author.memberId)
+        assertEquals(post.author.nickname, result.author.nickname)
+        assertEquals(post.restaurant.name, result.restaurant.name)
+        assertEquals(post.content.text, result.content.text)
+        assertEquals(post.content.rating, result.content.rating)
+        assertEquals(post.images.urls, result.images.urls)
+        assertEquals(post.status, result.status)
+        assertEquals(post.heartCount, result.heartCount)
+        assertEquals(post.viewCount, result.viewCount)
+    }
+
+    @Test
+    fun `readPostByAuthorAndId - failure - post not found`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+
+        assertFailsWith<PostNotFoundException> {
+            postReader.readPostByAuthorAndId(authorMemberId, 999L)
+        }.let {
+            assertEquals("게시글을 찾을 수 없습니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `readPostByAuthorAndId - failure - not the author`() {
+        val author = testMemberHelper.createActivatedMember()
+        val nonAuthor = testMemberHelper.createActivatedMember(
+            email = MemberFixture.OTHER_EMAIL,
+            nickname = MemberFixture.OTHER_NICKNAME
+        )
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = author.requireId(),
+                authorNickname = author.nickname.value,
+            )
+        )
+        flushAndClear()
+
+        assertFailsWith<PostNotFoundException> {
+            postReader.readPostByAuthorAndId(nonAuthor.requireId(), post.requireId())
+        }.let {
+            assertEquals("게시글을 찾을 수 없습니다.", it.message)
         }
     }
 

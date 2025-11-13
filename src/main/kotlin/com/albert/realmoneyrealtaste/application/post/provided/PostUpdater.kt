@@ -1,7 +1,8 @@
 package com.albert.realmoneyrealtaste.application.post.provided
 
 import com.albert.realmoneyrealtaste.application.post.dto.PostUpdateRequest
-import com.albert.realmoneyrealtaste.application.post.exception.PostNotFoundException
+import com.albert.realmoneyrealtaste.application.post.exception.PostDeleteException
+import com.albert.realmoneyrealtaste.application.post.exception.PostUpdateException
 import com.albert.realmoneyrealtaste.domain.post.Post
 
 /**
@@ -16,7 +17,7 @@ interface PostUpdater {
      * @param memberId 요청한 회원 ID
      * @param request 수정 요청 데이터
      * @return 수정된 게시글
-     * @throws PostNotFoundException 게시글을 찾을 수 없는 경우
+     * @throws PostUpdateException 수정에 실패한 경우
      */
     fun updatePost(postId: Long, memberId: Long, request: PostUpdateRequest): Post
 
@@ -25,7 +26,7 @@ interface PostUpdater {
      *
      * @param postId 삭제할 게시글 ID
      * @param memberId 요청한 회원 ID
-     * @throws PostNotFoundException 게시글을 찾을 수 없는 경우
+     * @throws PostDeleteException 삭제에 실패한 경우
      */
     fun deletePost(postId: Long, memberId: Long)
 

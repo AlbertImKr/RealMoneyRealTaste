@@ -22,30 +22,42 @@ class PostReadService(
     private val eventPublisher: ApplicationEventPublisher,
 ) : PostReader {
 
+    companion object {
+        const val ERROR_POST_NOT_FOUND = "게시글을 찾을 수 없습니다."
+        const val ERROR_POST_ACCESS_DENIED = "작성자만 게시글을 조회할 수 있습니다."
+        const val ERROR_POST_ALREADY_DELETED = "삭제된 게시글입니다."
+    }
+
     override fun readPostById(memberId: Long, postId: Long): Post {
-        memberReader.readMemberById(memberId)
+        try {
+            memberReader.readMemberById(memberId)
 
-        val post = findPostByIdOrThrow(postId)
+            val post = findPostByIdOrThrow(postId)
 
-        validatePostIsNotDeleted(post)
+            validatePostIsNotDeleted(post)
 
-        publishViewEventIfNeeded(memberId, post)
+            publishViewEventIfNeeded(memberId, post)
 
-        return post
+            return post
+        } catch (e: IllegalArgumentException) {
+            throw PostNotFoundException(ERROR_POST_NOT_FOUND, e)
+        }
     }
 
     override fun readPostByAuthorAndId(authorId: Long, postId: Long): Post {
-        memberReader.readMemberById(authorId)
+        try {
+            memberReader.readMemberById(authorId)
 
-        val post = findPostByIdOrThrow(postId)
+            val post = findPostByIdOrThrow(postId)
 
-        validatePostIsNotDeleted(post)
+            validatePostIsNotDeleted(post)
 
-        if (post.author.memberId != authorId) {
-            throw PostNotFoundException("작성자가 아닌 사용자는 해당 게시글을 조회할 수 없습니다: $postId")
+            require(post.isAuthor(authorId)) { "$ERROR_POST_ACCESS_DENIED : $postId" }
+
+            return post
+        } catch (e: IllegalArgumentException) {
+            throw PostNotFoundException(ERROR_POST_NOT_FOUND, e)
         }
-
-        return post
     }
 
     override fun readPostsByMember(memberId: Long, pageable: Pageable): Page<Post> {
@@ -83,7 +95,7 @@ class PostReadService(
      */
     private fun findPostByIdOrThrow(postId: Long): Post {
         return postRepository.findById(postId)
-            ?: throw PostNotFoundException("게시글을 찾을 수 없습니다: $postId")
+            ?: throw IllegalArgumentException("$ERROR_POST_NOT_FOUND: $postId")
     }
 
     /**
@@ -93,9 +105,7 @@ class PostReadService(
      * @throws PostNotFoundException 게시글이 삭제된 경우
      */
     private fun validatePostIsNotDeleted(post: Post) {
-        if (post.status == PostStatus.DELETED) {
-            throw PostNotFoundException("삭제된 게시글입니다: ${post.requireId()}")
-        }
+        require(!post.isDeleted()) { "$ERROR_POST_ALREADY_DELETED: ${post.requireId()}" }
     }
 
     /**
@@ -105,7 +115,7 @@ class PostReadService(
      * @param post 조회된 게시글
      */
     private fun publishViewEventIfNeeded(memberId: Long, post: Post) {
-        if (isNotAuthor(memberId, post)) {
+        if (post.isAuthor(memberId).not()) {
             eventPublisher.publishEvent(
                 PostViewedEvent(
                     postId = post.requireId(),
@@ -114,16 +124,5 @@ class PostReadService(
                 ),
             )
         }
-    }
-
-    /**
-     * 조회자가 게시글 작성자가 아닌지 확인합니다.
-     *
-     * @param memberId 조회자 회원 ID
-     * @param post 게시글
-     * @return 작성자가 아니면 true, 작성자면 false
-     */
-    private fun isNotAuthor(memberId: Long, post: Post): Boolean {
-        return post.author.memberId != memberId
     }
 }
