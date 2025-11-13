@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment.value
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.CommentMentionException
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
@@ -18,10 +17,24 @@ data class CommentMention(
     @Column(name = END_POSITION_COLUMN, nullable = false)
     val endPosition: Int,
 ) {
+    companion object {
+        const val MEMBER_ID_COLUMN = "mentioned_member_id"
+        const val NICKNAME_COLUMN = "mentioned_nickname"
+        const val START_POSITION_COLUMN = "start_position"
+        const val END_POSITION_COLUMN = "end_position"
+
+        const val NICKNAME_MAX_LENGTH = 20
+        const val START_POSITION_MIN = 0
+
+        const val INVALID_MEMBER_ID_MESSAGE = "유효하지 않은 멤버 ID입니다.: %d"
+        const val EMPTY_NICKNAME_MESSAGE = "닉네임은 비어 있을 수 없습니다."
+        const val OVERSIZED_NICKNAME_MESSAGE = "닉네임은 $NICKNAME_MAX_LENGTH 자를 초과할 수 없습니다.: %d"
+        const val INVALID_START_POSITION_MESSAGE = "시작 위치는 $START_POSITION_MIN 이상이어야 합니다.: %d"
+        const val INVALID_END_POSITION_MESSAGE = "끝 위치는 시작 위치보다 커야 합니다."
+    }
+
     init {
-        validateMemberId(memberId)
-        validateNickname(nickname)
-        validatePositions(startPosition, endPosition)
+        validate()
     }
 
     /**
@@ -56,48 +69,14 @@ data class CommentMention(
         )
     }
 
-    private fun validateMemberId(memberId: Long) {
-        if (memberId <= 0) {
-            throw CommentMentionException.InvalidMemberIdException(INVALID_MEMBER_ID_MESSAGE.format(memberId))
-        }
-    }
+    private fun validate() {
+        require(memberId > 0) { INVALID_MEMBER_ID_MESSAGE.format(memberId) }
 
-    private fun validateNickname(nickname: String) {
-        if (nickname.isBlank()) {
-            throw CommentMentionException.EmptyNicknameException(EMPTY_NICKNAME_MESSAGE)
-        }
-        if (nickname.length > NICKNAME_MAX_LENGTH) {
-            throw CommentMentionException.OversizedNicknameException(OVERSIZED_NICKNAME_MESSAGE.format(nickname.length))
-        }
-    }
+        require(nickname.isNotBlank()) { EMPTY_NICKNAME_MESSAGE }
+        require(nickname.length <= NICKNAME_MAX_LENGTH) { OVERSIZED_NICKNAME_MESSAGE.format(nickname.length) }
 
-    private fun validatePositions(startPosition: Int, endPosition: Int) {
-        if (startPosition < START_POSITION_MIN) {
-            throw CommentMentionException.InvalidStartPositionException(
-                INVALID_START_POSITION_MESSAGE.format(
-                    startPosition
-                )
-            )
-        }
+        require(startPosition >= START_POSITION_MIN) { INVALID_START_POSITION_MESSAGE.format(startPosition) }
 
-        if (endPosition <= startPosition) {
-            throw CommentMentionException.InvalidEndPositionException(INVALID_END_POSITION_MESSAGE)
-        }
-    }
-
-    companion object {
-        const val MEMBER_ID_COLUMN = "mentioned_member_id"
-        const val NICKNAME_COLUMN = "mentioned_nickname"
-        const val START_POSITION_COLUMN = "start_position"
-        const val END_POSITION_COLUMN = "end_position"
-
-        const val NICKNAME_MAX_LENGTH = 20
-        const val START_POSITION_MIN = 0
-
-        const val INVALID_MEMBER_ID_MESSAGE = "유효하지 않은 멤버 ID입니다.: %d"
-        const val EMPTY_NICKNAME_MESSAGE = "닉네임은 비어 있을 수 없습니다."
-        const val OVERSIZED_NICKNAME_MESSAGE = "닉네임은 $NICKNAME_MAX_LENGTH 자를 초과할 수 없습니다.: %d"
-        const val INVALID_START_POSITION_MESSAGE = "시작 위치는 $START_POSITION_MIN 이상이어야 합니다.: %d"
-        const val INVALID_END_POSITION_MESSAGE = "끝 위치는 시작 위치보다 커야 합니다."
+        require(endPosition > startPosition) { INVALID_END_POSITION_MESSAGE }
     }
 }

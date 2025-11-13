@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment.value
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.InvalidCommentAuthorException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -54,7 +53,7 @@ class CommentAuthorTest {
 
     @Test
     fun `create - failure - throws exception when memberId is zero`() {
-        assertFailsWith<InvalidCommentAuthorException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentAuthor(0L, "닉네임")
         }.let {
             assertEquals("회원 ID는 정수여야 합니다.", it.message)
@@ -63,7 +62,7 @@ class CommentAuthorTest {
 
     @Test
     fun `create - failure - throws exception when memberId is negative`() {
-        assertFailsWith<InvalidCommentAuthorException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentAuthor(-1L, "닉네임")
         }.let {
             assertEquals("회원 ID는 정수여야 합니다.", it.message)
@@ -72,7 +71,7 @@ class CommentAuthorTest {
 
     @Test
     fun `create - failure - throws exception when nickname is empty`() {
-        assertFailsWith<InvalidCommentAuthorException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentAuthor(1L, "")
         }.let {
             assertEquals("닉네임은 필수입니다.", it.message)
@@ -81,7 +80,7 @@ class CommentAuthorTest {
 
     @Test
     fun `create - failure - throws exception when nickname is blank`() {
-        assertFailsWith<InvalidCommentAuthorException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentAuthor(1L, "   ")
         }.let {
             assertEquals("닉네임은 필수입니다.", it.message)
@@ -90,7 +89,7 @@ class CommentAuthorTest {
 
     @Test
     fun `create - failure - throws exception when nickname contains only whitespace`() {
-        assertFailsWith<InvalidCommentAuthorException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentAuthor(1L, "\t\n\r")
         }.let {
             assertEquals("닉네임은 필수입니다.", it.message)
@@ -101,7 +100,7 @@ class CommentAuthorTest {
     fun `create - failure - throws exception when nickname exceeds 20 characters`() {
         val longNickname = "123456789012345678901" // 21자
 
-        assertFailsWith<InvalidCommentAuthorException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentAuthor(1L, longNickname)
         }.let {
             assertEquals("닉네임은 20자를 초과할 수 없습니다.", it.message)

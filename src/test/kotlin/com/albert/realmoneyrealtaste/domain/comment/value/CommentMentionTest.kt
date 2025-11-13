@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.domain.comment.value
 
-import com.albert.realmoneyrealtaste.domain.comment.exceptions.CommentMentionException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -29,7 +28,7 @@ class CommentMentionTest {
 
     @Test
     fun `create - failure - throws exception when memberId is zero`() {
-        assertFailsWith<CommentMentionException.InvalidMemberIdException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(0L, "닉네임", 0, 3)
         }.let {
             assertEquals("유효하지 않은 멤버 ID입니다.: 0", it.message)
@@ -38,7 +37,7 @@ class CommentMentionTest {
 
     @Test
     fun `create - failure - throws exception when memberId is negative`() {
-        assertFailsWith<CommentMentionException.InvalidMemberIdException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(-1L, "닉네임", 0, 3)
         }.let {
             assertEquals("유효하지 않은 멤버 ID입니다.: -1", it.message)
@@ -47,7 +46,7 @@ class CommentMentionTest {
 
     @Test
     fun `create - failure - throws exception when nickname is empty`() {
-        assertFailsWith<CommentMentionException.EmptyNicknameException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(1L, "", 0, 1)
         }.let {
             assertEquals("닉네임은 비어 있을 수 없습니다.", it.message)
@@ -56,7 +55,7 @@ class CommentMentionTest {
 
     @Test
     fun `create - failure - throws exception when nickname is blank`() {
-        assertFailsWith<CommentMentionException.EmptyNicknameException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(1L, "   ", 0, 4)
         }.let {
             assertEquals("닉네임은 비어 있을 수 없습니다.", it.message)
@@ -67,7 +66,7 @@ class CommentMentionTest {
     fun `create - failure - throws exception when nickname exceeds max length`() {
         val longNickname = "a".repeat(21) // 21자
 
-        assertFailsWith<CommentMentionException.OversizedNicknameException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(1L, longNickname, 0, 22)
         }.let {
             assertEquals("닉네임은 20 자를 초과할 수 없습니다.: 21", it.message)
@@ -76,7 +75,7 @@ class CommentMentionTest {
 
     @Test
     fun `create - failure - throws exception when startPosition is negative`() {
-        assertFailsWith<CommentMentionException.InvalidStartPositionException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(1L, "닉네임", -1, 3)
         }.let {
             assertEquals("시작 위치는 0 이상이어야 합니다.: -1", it.message)
@@ -85,7 +84,7 @@ class CommentMentionTest {
 
     @Test
     fun `create - failure - throws exception when endPosition equals startPosition`() {
-        assertFailsWith<CommentMentionException.InvalidEndPositionException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(1L, "닉네임", 5, 5)
         }.let {
             assertEquals("끝 위치는 시작 위치보다 커야 합니다.", it.message)
@@ -94,7 +93,7 @@ class CommentMentionTest {
 
     @Test
     fun `create - failure - throws exception when endPosition is less than startPosition`() {
-        assertFailsWith<CommentMentionException.InvalidEndPositionException> {
+        assertFailsWith<IllegalArgumentException> {
             CommentMention(1L, "닉네임", 10, 5)
         }.let {
             assertEquals("끝 위치는 시작 위치보다 커야 합니다.", it.message)
