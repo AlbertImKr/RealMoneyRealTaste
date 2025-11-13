@@ -16,6 +16,10 @@ class CollectionCreationService(
     private val memberReader: MemberReader,
 ) : CollectionCreator {
 
+    companion object {
+        const val ERROR_CREATING_COLLECTION = "컬렉션 생성 중 오류가 발생했습니다."
+    }
+
     override fun createCollection(createCommand: CollectionCreateCommand): PostCollection {
         try {
             memberReader.readActiveMemberById(createCommand.ownerMemberId)
@@ -24,7 +28,7 @@ class CollectionCreationService(
 
             return collectionRepository.save(collection)
         } catch (e: IllegalArgumentException) {
-            throw CollectionCreateException("컬렉션 생성 중 오류가 발생했습니다: ${e.message}", e)
+            throw CollectionCreateException(ERROR_CREATING_COLLECTION, e)
         }
     }
 }

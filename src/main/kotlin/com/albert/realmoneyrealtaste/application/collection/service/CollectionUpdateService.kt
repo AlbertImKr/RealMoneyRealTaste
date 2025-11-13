@@ -14,6 +14,11 @@ class CollectionUpdateService(
     private val collectionRepository: CollectionRepository,
 ) : CollectionUpdater {
 
+    companion object {
+        const val ERROR_READING_COLLECTION = "해당 컬렉션을 찾을 수 없거나 권한이 없습니다."
+        const val ERROR_UPDATING_COLLECTION = "컬렉션 정보 업데이트 중 오류가 발생했습니다."
+    }
+
     override fun updateInfo(
         request: CollectionUpdateRequest,
     ): PostCollection {
@@ -21,7 +26,7 @@ class CollectionUpdateService(
             val collection = collectionRepository.findByIdAndOwnerMemberId(
                 collectionId = request.collectionId,
                 ownerMemberId = request.ownerMemberId,
-            ) ?: throw IllegalArgumentException("해당 컬렉션을 찾을 수 없거나 권한이 없습니다.")
+            ) ?: throw IllegalArgumentException(ERROR_READING_COLLECTION)
 
             collection.updateInfo(
                 memberId = request.ownerMemberId,
@@ -29,7 +34,7 @@ class CollectionUpdateService(
             )
             return collection
         } catch (e: IllegalArgumentException) {
-            throw CollectionUpdateException("컬렉션 정보 업데이트 중 오류가 발생했습니다: ${e.message}", e)
+            throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
         }
     }
 }

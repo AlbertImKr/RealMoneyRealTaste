@@ -19,10 +19,10 @@ data class CollectionPosts(
     val postIds: List<Long>,
 ) {
     init {
-        validatePostIds(postIds)
+        validate()
     }
 
-    private fun validatePostIds(postIds: List<Long>) {
+    private fun validate() {
         require(postIds.size <= MAX_POST_COUNT) { "컬렉션에는 최대 ${MAX_POST_COUNT}개의 게시글까지 추가할 수 있습니다. 현재: ${postIds.size}개" }
 
         val duplicateIds = postIds.groupBy { it }.filter { it.value.size > 1 }.keys
