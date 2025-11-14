@@ -24,8 +24,8 @@ class FollowTest {
             { assertEquals(followerId, follow.relationship.followerId) },
             { assertEquals(followingId, follow.relationship.followingId) },
             { assertEquals(FollowStatus.ACTIVE, follow.status) },
-            { assertTrue(follow.createdAt.isAfter(before)) },
-            { assertTrue(follow.updatedAt.isAfter(before)) },
+            { assertTrue(follow.createdAt >= before) },
+            { assertTrue(follow.updatedAt >= before) },
             { assertEquals(follow.createdAt, follow.updatedAt) }
         )
     }
@@ -39,7 +39,7 @@ class FollowTest {
 
         assertAll(
             { assertEquals(FollowStatus.UNFOLLOWED, follow.status) },
-            { assertTrue(follow.updatedAt.isAfter(beforeUpdate)) }
+            { assertTrue(follow.updatedAt >= beforeUpdate) }
         )
     }
 

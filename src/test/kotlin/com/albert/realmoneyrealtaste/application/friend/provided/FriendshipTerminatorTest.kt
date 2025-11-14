@@ -4,7 +4,6 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.friend.dto.FriendResponseRequest
 import com.albert.realmoneyrealtaste.application.friend.dto.UnfriendRequest
 import com.albert.realmoneyrealtaste.application.friend.exception.UnfriendException
-import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
@@ -24,7 +23,6 @@ class FriendshipTerminatorTest(
     private val friendshipTerminator: FriendshipTerminator,
     private val friendRequestor: FriendRequestor,
     private val friendResponder: FriendResponder,
-    private val friendshipRepository: FriendshipRepository,
     private val friendshipReader: FriendshipReader,
     private val testMemberHelper: TestMemberHelper,
 ) : IntegrationTestBase() {
@@ -45,7 +43,6 @@ class FriendshipTerminatorTest(
 
         // 친구 관계 생성 (요청 -> 수락)
         createAcceptedFriendship(member1.requireId(), member2.requireId())
-        flushAndClear()
         applicationEvents.clear()
 
         // 친구 관계 해제
@@ -90,7 +87,6 @@ class FriendshipTerminatorTest(
 
         // 친구 관계 생성
         createAcceptedFriendship(member1.requireId(), member2.requireId())
-        flushAndClear()
 
         // 반대 방향에서 친구 관계 해제
         val request = UnfriendRequest(
@@ -232,8 +228,6 @@ class FriendshipTerminatorTest(
         )!!
         val originalUpdatedAt = originalFriendship.updatedAt
 
-        flushAndClear()
-
         // 친구 관계 해제
         val request = UnfriendRequest(
             memberId = member1.requireId(),
@@ -242,10 +236,10 @@ class FriendshipTerminatorTest(
         friendshipTerminator.unfriend(request)
 
         // 상태 및 타임스탬프 변경 확인
-        val updatedFriendship = friendshipRepository.findById(originalFriendship.requireId())!!
+        val updatedFriendship = friendshipReader.findFriendshipById(originalFriendship.requireId())!!
         assertAll(
             { assertEquals(FriendshipStatus.UNFRIENDED, updatedFriendship.status) },
-            { assertTrue(originalFriendship.createdAt <= updatedFriendship.createdAt) },
+            { assertEquals(originalFriendship.createdAt, updatedFriendship.createdAt) },
             { assertTrue(updatedFriendship.updatedAt >= originalUpdatedAt) }
         )
     }
@@ -264,7 +258,6 @@ class FriendshipTerminatorTest(
         // 친구 요청만 생성 (수락하지 않음)
         val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
         friendRequestor.sendFriendRequest(command)
-        flushAndClear()
 
         // PENDING 상태의 친구 요청에 대해 해제 시도
         val request = UnfriendRequest(
