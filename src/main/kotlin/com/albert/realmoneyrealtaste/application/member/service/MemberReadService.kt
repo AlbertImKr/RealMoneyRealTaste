@@ -50,4 +50,9 @@ class MemberReadService(
     override fun existByEmail(email: Email): Boolean {
         return memberRepository.existsByEmail(email)
     }
+
+    override fun readAllActiveMembersByIds(memberIds: List<Long>): List<Member> {
+        val findAllByIdInAndStatus = memberRepository.findAllByIdInAndStatus(memberIds, MemberStatus.ACTIVE)
+        return findAllByIdInAndStatus
+    }
 }

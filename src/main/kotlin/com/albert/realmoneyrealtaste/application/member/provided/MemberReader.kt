@@ -69,4 +69,12 @@ interface MemberReader {
      * @return 해당 이메일을 가진 회원이 존재하면 true, 그렇지 않으면 false
      */
     fun existByEmail(email: Email): Boolean
+
+    /**
+     * 주어진 회원 ID 목록으로 활성화된 모든 회원을 조회합니다.
+     *
+     * @param memberIds 조회할 회원 ID 목록
+     * @return 조회된 활성화된 회원 객체 목록
+     */
+    fun readAllActiveMembersByIds(memberIds: List<Long>): List<Member>
 }

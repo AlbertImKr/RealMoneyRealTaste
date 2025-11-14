@@ -68,4 +68,13 @@ interface MemberRepository : Repository<Member, Long> {
      * @return 존재 여부
      */
     fun existsByEmail(email: Email): Boolean
+
+    /**
+     * 여러 ID와 상태로 회원 목록 조회
+     *
+     * @param memberIds 조회할 회원 ID 목록
+     * @param status 제외할 회원 상태
+     * @return 조회된 회원 엔티티 목록
+     */
+    fun findAllByIdInAndStatus(memberIds: List<Long>, status: MemberStatus): List<Member>
 }
