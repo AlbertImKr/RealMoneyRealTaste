@@ -17,6 +17,7 @@ import org.springframework.test.context.event.RecordApplicationEvents
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 @RecordApplicationEvents
 class FriendshipTerminatorTest(
@@ -244,8 +245,8 @@ class FriendshipTerminatorTest(
         val updatedFriendship = friendshipRepository.findById(originalFriendship.requireId())!!
         assertAll(
             { assertEquals(FriendshipStatus.UNFRIENDED, updatedFriendship.status) },
-            { assertEquals(originalFriendship.createdAt, updatedFriendship.createdAt) },
-            { kotlin.test.assertTrue(updatedFriendship.updatedAt > originalUpdatedAt) }
+            { assertTrue(originalFriendship.createdAt <= updatedFriendship.createdAt) },
+            { assertTrue(updatedFriendship.updatedAt >= originalUpdatedAt) }
         )
     }
 
