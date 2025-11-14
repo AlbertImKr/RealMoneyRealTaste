@@ -38,12 +38,12 @@ class TestMemberHelper(
 
     @Transactional
     fun createMember(
-        email: Email = MemberFixture.DEFAULT_EMAIL,
-        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+        email: String = MemberFixture.DEFAULT_EMAIL.address,
+        nickname: String = MemberFixture.DEFAULT_NICKNAME.value,
         password: RawPassword = MemberFixture.DEFAULT_RAW_PASSWORD,
     ): Member {
         val passwordHash = PasswordHash.of(password, passwordEncoder)
-        val member = Member.register(email, nickname, passwordHash)
+        val member = Member.register(Email(email), Nickname(nickname), passwordHash)
         return memberRepository.save(member)
     }
 

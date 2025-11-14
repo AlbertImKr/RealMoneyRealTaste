@@ -1,8 +1,6 @@
 package com.albert.realmoneyrealtaste.util
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.domain.member.value.Email
-import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContext
@@ -18,8 +16,8 @@ class WithMockMemberSecurityContextFactory : WithSecurityContextFactory<WithMock
 
     override fun createSecurityContext(annotation: WithMockMember): SecurityContext {
         val member = testMemberHelper.createMember(
-            email = Email(annotation.email),
-            nickname = Nickname(annotation.nickname),
+            email = annotation.email,
+            nickname = annotation.nickname,
         )
         if (annotation.active) member.activate()
 
