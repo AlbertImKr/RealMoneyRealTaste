@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.comment.event
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class CommentDeletedEventTest {
 
@@ -18,10 +19,9 @@ class CommentDeletedEventTest {
             deletedAt = deletedAt
         )
 
-        kotlin.test.assertEquals(commentId, event.commentId)
-        kotlin.test.assertEquals(postId, event.postId)
-        kotlin.test.assertEquals(authorMemberId, event.authorMemberId)
-        kotlin.test.assertEquals(deletedAt, event.deletedAt)
+        assertEquals(commentId, event.commentId)
+        assertEquals(postId, event.postId)
+        assertEquals(authorMemberId, event.authorMemberId)
+        assertEquals(deletedAt, event.deletedAt)
     }
-
 }
