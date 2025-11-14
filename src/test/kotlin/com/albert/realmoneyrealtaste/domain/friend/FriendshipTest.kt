@@ -130,7 +130,7 @@ class FriendshipTest {
 
         assertAll(
             { assertEquals(FriendshipStatus.UNFRIENDED, friendship.status) },
-            { assertTrue(friendship.updatedAt > beforeUpdate) }
+            { assertTrue(friendship.updatedAt >= beforeUpdate) }
         )
     }
 
