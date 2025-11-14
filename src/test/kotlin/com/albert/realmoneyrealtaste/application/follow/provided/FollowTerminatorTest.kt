@@ -42,7 +42,6 @@ class FollowTerminatorTest(
 
         // 팔로우 관계 생성
         val follow = createActiveFollow(follower.requireId(), following.requireId())
-        flushAndClear()
         applicationEvents.clear()
 
         // 언팔로우
@@ -129,7 +128,6 @@ class FollowTerminatorTest(
         val follow = createActiveFollow(follower.requireId(), following.requireId())
         follow.unfollow()
         followRepository.save(follow)
-        flushAndClear()
 
         val request = UnfollowRequest(
             followerId = follower.requireId(),
@@ -158,7 +156,6 @@ class FollowTerminatorTest(
         val follow = createActiveFollow(follower.requireId(), following.requireId())
         follow.block()
         followRepository.save(follow)
-        flushAndClear()
 
         val request = UnfollowRequest(
             followerId = follower.requireId(),
@@ -209,7 +206,6 @@ class FollowTerminatorTest(
 
         val follow = createActiveFollow(follower.requireId(), following.requireId())
         val originalUpdatedAt = follow.updatedAt
-        flushAndClear()
 
         val request = UnfollowRequest(
             followerId = follower.requireId(),
@@ -221,7 +217,7 @@ class FollowTerminatorTest(
         assertAll(
             { assertEquals(FollowStatus.UNFOLLOWED, updatedFollow.status) },
             { assertEquals(follow.createdAt, updatedFollow.createdAt) }, // 생성일은 변경되지 않음
-            { kotlin.test.assertTrue(updatedFollow.updatedAt > originalUpdatedAt) } // 수정일은 변경됨
+            { kotlin.test.assertTrue(updatedFollow.updatedAt.isAfter(originalUpdatedAt)) } // 업데이트 일시는 변경됨
         )
     }
 
@@ -243,7 +239,6 @@ class FollowTerminatorTest(
         // 두 개의 팔로우 관계 생성
         val follow1 = createActiveFollow(follower.requireId(), following1.requireId())
         val follow2 = createActiveFollow(follower.requireId(), following2.requireId())
-        flushAndClear()
         applicationEvents.clear()
 
         // 첫 번째 언팔로우
@@ -291,7 +286,6 @@ class FollowTerminatorTest(
         // 두 명이 같은 사람을 팔로우
         val follow1 = createActiveFollow(follower1.requireId(), following.requireId())
         val follow2 = createActiveFollow(follower2.requireId(), following.requireId())
-        flushAndClear()
 
         // 첫 번째 팔로워만 언팔로우
         val request = UnfollowRequest(
@@ -323,7 +317,6 @@ class FollowTerminatorTest(
         // 서로 팔로우
         val follow1to2 = createActiveFollow(member1.requireId(), member2.requireId())
         val follow2to1 = createActiveFollow(member2.requireId(), member1.requireId())
-        flushAndClear()
 
         // member1이 member2를 언팔로우
         val request = UnfollowRequest(

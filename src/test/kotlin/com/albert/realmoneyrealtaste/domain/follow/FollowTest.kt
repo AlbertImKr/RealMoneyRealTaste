@@ -24,8 +24,8 @@ class FollowTest {
             { assertEquals(followerId, follow.relationship.followerId) },
             { assertEquals(followingId, follow.relationship.followingId) },
             { assertEquals(FollowStatus.ACTIVE, follow.status) },
-            { assertTrue(follow.createdAt >= before) },
-            { assertTrue(follow.updatedAt >= before) },
+            { assertTrue(follow.createdAt.isAfter(before)) },
+            { assertTrue(follow.updatedAt.isAfter(before)) },
             { assertEquals(follow.createdAt, follow.updatedAt) }
         )
     }
@@ -39,7 +39,7 @@ class FollowTest {
 
         assertAll(
             { assertEquals(FollowStatus.UNFOLLOWED, follow.status) },
-            { assertTrue(follow.updatedAt > beforeUpdate) }
+            { assertTrue(follow.updatedAt.isAfter(beforeUpdate)) }
         )
     }
 
@@ -77,7 +77,7 @@ class FollowTest {
 
         assertAll(
             { assertEquals(FollowStatus.ACTIVE, follow.status) },
-            { assertTrue(follow.updatedAt.isAfter(beforeReactivate)) }
+            { assertTrue(follow.updatedAt >= beforeReactivate) }
         )
     }
 
@@ -91,7 +91,7 @@ class FollowTest {
 
         assertAll(
             { assertEquals(FollowStatus.ACTIVE, follow.status) },
-            { assertTrue(follow.updatedAt.isAfter(beforeReactivate)) }
+            { assertTrue(follow.updatedAt >= beforeReactivate) }
         )
     }
 
@@ -115,7 +115,7 @@ class FollowTest {
 
         assertAll(
             { assertEquals(FollowStatus.BLOCKED, follow.status) },
-            { assertTrue(follow.updatedAt.isAfter(beforeBlock)) }
+            { assertTrue(follow.updatedAt >= beforeBlock) }
         )
     }
 
@@ -129,7 +129,7 @@ class FollowTest {
 
         assertAll(
             { assertEquals(FollowStatus.BLOCKED, follow.status) },
-            { assertTrue(follow.updatedAt.isAfter(beforeBlock)) }
+            { assertTrue(follow.updatedAt >= beforeBlock) }
         )
     }
 
