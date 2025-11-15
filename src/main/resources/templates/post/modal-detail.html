@@ -198,27 +198,6 @@
         </ul>
         <!-- Feed react END -->
 
-        <!-- Comment wrap START -->
-        <div id="comments">
-            <!-- HTMX로 댓글 목록 로드 -->
-            <div hx-swap="innerHTML"
-                 hx-trigger="load"
-                 th:attr="hx-get='/posts/' + ${post.id} + '/comments/fragments/list'"
-                 th:id="'comments-container-' + ${post.id}">
-                <!-- 로딩 상태 -->
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary mb-3"></div>
-                    <div class="text-muted">댓글을 불러오는 중...</div>
-                </div>
-            </div>
-
-            <!-- Empty state (댓글이 없을 때) -->
-            <div class="text-center py-5" th:if="${commentCount == 0}">
-                <i class="bi bi-chat-dots display-4 text-muted"></i>
-                <p class="text-muted mt-3">첫 댓글을 남겨보세요!</p>
-            </div>
-        </div>
-        <!-- Comment wrap END -->
 
         <!-- Add comment form START -->
         <div class="mt-4" th:if="${currentUserId != null}">
@@ -270,6 +249,28 @@
                 <i class="bi bi-box-arrow-in-right me-1"></i>로그인
             </a>
         </div>
+
+        <!-- Comment wrap START -->
+        <div id="comments">
+            <!-- HTMX로 댓글 목록 로드 -->
+            <div hx-swap="innerHTML"
+                 hx-trigger="load, reload-comments from:body"
+                 th:attr="hx-get='/posts/' + ${post.id} + '/comments/fragments/list'"
+                 th:id="'comments-container-' + ${post.id}">
+                <!-- 로딩 상태 -->
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <div class="text-muted">댓글을 불러오는 중...</div>
+                </div>
+            </div>
+
+            <!-- Empty state (댓글이 없을 때) -->
+            <div class="text-center py-5" th:if="${commentCount == 0}">
+                <i class="bi bi-chat-dots display-4 text-muted"></i>
+                <p class="text-muted mt-3">첫 댓글을 남겨보세요!</p>
+            </div>
+        </div>
+        <!-- Comment wrap END -->
     </div>
     <!-- Modal-specific JavaScript -->
     <script th:inline="javascript">
@@ -304,23 +305,12 @@
             }
         });
 
-        // 에러 처리
-        document.body.addEventListener('htmx:responseError', function (event) {
-            console.error('HTMX Error:', event.detail);
-            if (event.detail.xhr.status === 403) {
-                alert('로그인이 필요합니다.');
-                window.location.href = '/signin';
-            } else if (event.detail.xhr.status >= 400) {
-                alert('요청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-            }
-        });
-
         // 댓글 목록 다시 로드하는 함수
         function reloadComments() {
             const commentsContainer = document.querySelector(`#comments-container-${postId}`);
             if (commentsContainer) {
                 // HTMX로 댓글 목록 다시 로드
-                htmx.trigger(commentsContainer, 'load');
+                htmx.trigger(commentsContainer, 'reload-comments');
 
                 // 댓글 수 업데이트
                 updateCommentCount();

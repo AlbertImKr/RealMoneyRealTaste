@@ -231,28 +231,6 @@
                     </ul>
                     <!-- Feed react END -->
 
-                    <!-- Comment wrap START -->
-                    <div id="comments">
-                        <!-- HTMX로 댓글 목록 로드 -->
-                        <div hx-swap="innerHTML"
-                             hx-trigger="load"
-                             th:attr="hx-get='/posts/' + ${post.id} + '/comments/fragments/list'"
-                             th:id="'comments-container-' + ${post.id}">
-                            <!-- 로딩 상태 -->
-                            <div class="text-center py-4">
-                                <div class="spinner-border text-primary mb-3"></div>
-                                <div class="text-muted">댓글을 불러오는 중...</div>
-                            </div>
-                        </div>
-
-                        <!-- Empty state (댓글이 없을 때) -->
-                        <div class="text-center py-5" th:if="${commentCount == 0}">
-                            <i class="bi bi-chat-dots display-4 text-muted"></i>
-                            <p class="text-muted mt-3">첫 댓글을 남겨보세요!</p>
-                        </div>
-                    </div>
-                    <!-- Comment wrap END -->
-
                     <!-- Add comment form START -->
                     <div class="mt-4" th:if="${currentUserId != null}">
                         <form hx-swap="innerHTML"
@@ -303,6 +281,29 @@
                             <i class="bi bi-box-arrow-in-right me-1"></i>로그인
                         </a>
                     </div>
+                    <!-- 로그인하지 않은 경우 END -->
+
+                    <!-- Comment wrap START -->
+                    <div id="comments">
+                        <!-- HTMX로 댓글 목록 로드 -->
+                        <div hx-swap="innerHTML"
+                             hx-trigger="load, reload-comments from:body"
+                             th:attr="hx-get='/posts/' + ${post.id} + '/comments/fragments/list'"
+                             th:id="'comments-container-' + ${post.id}">
+                            <!-- 로딩 상태 -->
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary mb-3"></div>
+                                <div class="text-muted">댓글을 불러오는 중...</div>
+                            </div>
+                        </div>
+
+                        <!-- Empty state (댓글이 없을 때) -->
+                        <div class="text-center py-5" th:if="${commentCount == 0}">
+                            <i class="bi bi-chat-dots display-4 text-muted"></i>
+                            <p class="text-muted mt-3">첫 댓글을 남겨보세요!</p>
+                        </div>
+                    </div>
+                    <!-- Comment wrap END -->
                 </div>
             </div>
         </div>
@@ -324,6 +325,7 @@ JS libraries, plugins and custom scripts -->
 
 <!-- Theme Functions -->
 <script src="/assets/js/functions.js"></script>
+
 
 <!-- Minimal JavaScript for essential functions -->
 <script th:inline="javascript">
@@ -375,7 +377,7 @@ JS libraries, plugins and custom scripts -->
         const commentsContainer = document.querySelector(`#comments-container-${postId}`);
         if (commentsContainer) {
             // HTMX로 댓글 목록 다시 로드
-            htmx.trigger(commentsContainer, 'load');
+            htmx.trigger(commentsContainer, 'reload-comments');
 
             // 댓글 수 업데이트
             updateCommentCount();
