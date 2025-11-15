@@ -8,17 +8,20 @@
 <div th:fragment="comments-list">
     <!-- 댓글 수 업데이트 스크립트 -->
     <script th:inline="javascript">
-        // 댓글 수 업데이트
-        const commentCount = /*[[${comments.totalElements}]]*/ 0;
-        const postId = /*[[${postId}]]*/ 0;
-        const countElement = document.getElementById('comment-count-' + postId);
-        if (countElement) {
-            countElement.textContent = commentCount;
-        }
+        // 직접 업데이트
+        (function () {
+            var commentCount = /*[[${comments.totalElements}]]*/ 0;
+            var postId = /*[[${postId}]]*/ 0;
+            var countElement = document.getElementById('comment-count-' + postId);
+
+            if (countElement) {
+                countElement.textContent = commentCount;
+            }
+        })();
     </script>
 
     <!-- 댓글 섹션 헤더 -->
-    <div class="border-bottom mb-3 pb-2">
+    <div class="border-bottom mb-3 pb-2" th:if="${comments != null and comments.isFirst()}">
         <h6 class="mb-0">
             <i class="bi bi-chat-left-text text-primary me-2"></i>댓글
             <span class="badge bg-primary ms-2" th:text="${comments?.totalElements ?: 0}">0</span>
@@ -58,10 +61,10 @@
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center">
                             <h6 class="mb-0 me-2 fw-bold" th:text="${comment.author.nickname}">작성자</h6>
-                            <span class="badge bg-light text-dark me-2" style="font-size: 0.7rem;">댓글</span>
                             <small class="text-muted">
                                 <i class="bi bi-clock me-1"></i>
-                                <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 12:00</span>
+                                <span th:attr="data-created-at=${comment.createdAt}"
+                                      th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 12:00</span>
                             </small>
                         </div>
 
@@ -92,7 +95,7 @@
 
                     <!-- 댓글 텍스트 -->
                     <div class="comment-content mb-3">
-                        <p class="mb-0 lh-base" th:text="${comment.content.text}">댓글 내용입니다.</p>
+                        <p class="mb-0 lh-base text-start" th:text="${comment.content.text}">댓글 내용입니다.</p>
                     </div>
 
                     <!-- 댓글 액션 버튼 섹션 -->
@@ -100,11 +103,11 @@
                         <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center">
                             <i class="bi bi-hand-thumbs-up me-1"></i>
                             <span>좋아요</span>
-                            <span class="badge bg-light text-dark ms-1">0</span>
+                            <span class="badge bg-light text-primary ms-1">0</span>
                         </button>
 
                         <!-- 답글 보기/작성 버튼 -->
-                        <div th:id="'reply-load-section-' + ${comment.id}">
+                        <div class="d-flex align-items-center" th:id="'reply-load-section-' + ${comment.id}">
                             <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center"
                                     th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
                                              hx-target='#replies-' + ${comment.id},
@@ -139,10 +142,10 @@
     </div>
 
     <!-- 댓글 더보기 섹션 -->
-    <div class="text-center mt-4" th:if="${comments?.hasNext()}">
+    <div class="text-center" th:if="${comments?.hasNext()}">
         <div class="border-top pt-3">
             <button class="btn btn-outline-primary btn-sm px-4"
-                    th:attr="hx-get='/comments/fragments/list?postId=' + ${postId} + '&page=' + ${comments.number + 1},
+                    th:attr="hx-get='/posts/' + ${postId} + '/comments/fragments/list?' + 'page=' + ${comments.number + 1},
                              hx-target='this',
                              hx-swap='outerHTML',
                              hx-indicator='#more-comments-loading'">
@@ -171,7 +174,7 @@
     <script th:inline="javascript">
         // 새 댓글이 추가되었으므로 댓글 수 +1
         const postId = /*[[${comment.postId}]]*/ 0;
-        const countElement = document.getElementById('comment-count-' + postId);
+        let countElement = document.getElementById('comment-count-' + postId);
         if (countElement) {
             const currentCount = parseInt(countElement.textContent) || 0;
             countElement.textContent = currentCount + 1;

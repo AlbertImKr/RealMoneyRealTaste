@@ -23,6 +23,8 @@
     <!-- Theme CSS -->
     <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
 
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.8"></script>
 </head>
 
 <body>
@@ -66,12 +68,14 @@
                                 </div>
                             </div>
                             <!-- Carousel controls -->
-                            <button class="carousel-control-prev" data-bs-slide="prev" data-bs-target="#postImageCarousel"
+                            <button class="carousel-control-prev" data-bs-slide="prev"
+                                    data-bs-target="#postImageCarousel"
                                     type="button">
                                 <span aria-hidden="true" class="carousel-control-prev-icon"></span>
                                 <span class="visually-hidden">이전</span>
                             </button>
-                            <button class="carousel-control-next" data-bs-slide="next" data-bs-target="#postImageCarousel"
+                            <button class="carousel-control-next" data-bs-slide="next"
+                                    data-bs-target="#postImageCarousel"
                                     type="button">
                                 <span aria-hidden="true" class="carousel-control-next-icon"></span>
                                 <span class="visually-hidden">다음</span>
@@ -83,6 +87,15 @@
                     <!-- Feed meta START -->
                     <div class="d-flex align-items-center justify-content-between my-3">
                         <div class="d-flex align-items-center">
+                            <!-- Avatar -->
+                            <div class="avatar avatar-xs me-2">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                     style="width: 32px; height: 32px;">
+                                    <span class="text-white fw-bold small"
+                                          th:text="${post.author.nickname.substring(0, 1).toUpperCase()}">U</span>
+                                </div>
+                            </div>
+
                             <div>
                                 <div class="nav nav-divider">
                                     <h6 class="nav-item card-title mb-0">
@@ -114,7 +127,10 @@
                                     </a>
                                 </li>
                                 <li th:if="${currentUserId == post.author.memberId}">
-                                    <button class="dropdown-item" href="#" onclick="deletePost()">
+                                    <button class="dropdown-item"
+                                            hx-confirm="정말 삭제하시겠습니까?"
+                                            hx-on::afterRequest="if(event.detail.xhr.status === 200) window.location.href='/'"
+                                            th:attr="hx-delete='/api/posts/' + ${post.id}">
                                         <i class="bi bi-trash fa-fw pe-2"></i>삭제하기
                                     </button>
                                 </li>
@@ -162,22 +178,28 @@
                     <!-- Feed react START -->
                     <ul class="nav nav-stack flex-wrap small mb-3">
                         <li class="nav-item">
-                            <button class="nav-link" href="#" onclick="toggleHeart()">
-                                <i class="bi bi-hand-thumbs-up-fill pe-1"></i>
-                                <span id="heartCount" th:text="'(' + ${post.heartCount} + ')'">0</span>
+                            <!-- HTMX Heart Toggle -->
+                            <button class="nav-link btn p-0 border-0 bg-transparent"
+                                    hx-swap="outerHTML"
+                                    hx-target="#heart-section"
+                                    th:attr="hx-post='/api/posts/' + ${post.id} + '/hearts'"
+                                    th:if="${currentUserId != null}">
+                                <div id="heart-section">
+                                    <i class="bi bi-hand-thumbs-up-fill pe-1"></i>
+                                    <span th:text="'(' + ${post.heartCount} + ')'">0</span>
+                                </div>
                             </button>
+                            <!-- Non-interactive heart for non-logged users -->
+                            <span class="nav-link text-muted" th:if="${currentUserId == null}">
+                                <i class="bi bi-hand-thumbs-up pe-1"></i>
+                                <span th:text="'(' + ${post.heartCount} + ')'">0</span>
+                            </span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#comments">
-                                <i class="bi bi-chat-fill pe-1"></i>
-                                <span th:text="'(' + ${commentCount} + ')'">0</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-muted">
+                            <span class="nav-link text-muted">
                                 <i class="bi bi-eye-fill pe-1"></i>
                                 <span th:text="'조회 ' + ${post.viewCount}">조회 0</span>
-                            </a>
+                            </span>
                         </li>
                         <!-- Card share action START -->
                         <li class="nav-item dropdown ms-sm-auto">
@@ -188,18 +210,19 @@
                             <!-- Card share action dropdown menu -->
                             <ul aria-labelledby="cardShareAction" class="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <button class="dropdown-item" href="#" onclick="shareViaDM()"><i
-                                            class="bi bi-envelope fa-fw pe-2"></i>DM으로 공유
+                                    <button class="dropdown-item"
+                                            onclick="navigator.clipboard.writeText(window.location.href).then(() => alert('링크가 복사되었습니다.'))">
+                                        <i class="bi bi-link fa-fw pe-2"></i>링크 복사
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="dropdown-item" href="#" onclick="copyLink()"><i
-                                            class="bi bi-link fa-fw pe-2"></i>링크 복사
+                                    <button class="dropdown-item" href="#">
+                                        <i class="bi bi-envelope fa-fw pe-2"></i>DM으로 공유
                                     </button>
                                 </li>
                                 <li>
-                                    <button class="dropdown-item" href="#" onclick="shareToFeed()"><i
-                                            class="bi bi-share fa-fw pe-2"></i>피드에 공유
+                                    <button class="dropdown-item" href="#">
+                                        <i class="bi bi-share fa-fw pe-2"></i>피드에 공유
                                     </button>
                                 </li>
                             </ul>
@@ -210,91 +233,76 @@
 
                     <!-- Comment wrap START -->
                     <div id="comments">
-                        <h5 class="mb-3" th:if="${comments != null && !comments.isEmpty()}">
-                            댓글 <span th:text="${commentCount}">0</span>
-                        </h5>
-                        <ul class="comment-wrap list-unstyled" th:if="${comments != null && !comments.isEmpty()}">
-                            <!-- Comment item START -->
-                            <li class="comment-item" th:each="comment : ${comments}">
-                                <div class="d-flex position-relative">
-                                    <!-- Avatar -->
-                                    <div class="avatar avatar-xs">
-                                        <a th:href="@{/profile/{id}(id=${comment.authorId})}">
-                                            <img alt="프로필"
-                                                 class="avatar-img rounded-circle avatar-fallback"
-                                                 th:src="@{/api/members/{id}/avatar(id=${comment.authorId})}">
-                                        </a>
-                                    </div>
-                                    <div class="ms-2 w-100">
-                                        <!-- Comment by -->
-                                        <div class="bg-light rounded-start-top-0 p-3 rounded">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">
-                                                    <a th:href="@{/profile/{id}(id=${comment.authorId})}"
-                                                       th:text="${comment.authorName}">사용자</a>
-                                                </h6>
-                                                <small class="ms-2"
-                                                       th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">5시간
-                                                    전</small>
-                                            </div>
-                                            <p class="small mb-0" th:text="${comment.content}">정말 맛있었어요!</p>
-                                        </div>
-                                        <!-- Comment react -->
-                                        <ul class="nav nav-divider py-2 small">
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="#">
-                                                    좋아요 (<span th:text="${comment.likeCount}">3</span>)
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="#"> 답글</a>
-                                            </li>
-                                            <li class="nav-item" th:if="${comment.replyCount > 0}">
-                                                <a class="nav-link" href="#">
-                                                    답글 <span th:text="${comment.replyCount}">5</span>개 보기
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </li>
-                            <!-- Comment item END -->
-                        </ul>
-
-                        <!-- Empty state -->
-                        <div class="text-center py-5" th:if="${comments == null || comments.isEmpty()}">
-                            <i class="bi bi-chat-dots display-4 text-muted"></i>
-                            <p class="text-muted mt-3">첫 댓글을 남겨보세요!</p>
+                        <!-- HTMX로 댓글 목록 로드 -->
+                        <div hx-swap="innerHTML"
+                             hx-trigger="load"
+                             th:attr="hx-get='/posts/' + ${post.id} + '/comments/fragments/list'"
+                             th:id="'comments-container-' + ${post.id}">
+                            <!-- 로딩 상태 -->
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary mb-3"></div>
+                                <div class="text-muted">댓글을 불러오는 중...</div>
+                            </div>
                         </div>
 
-                        <!-- Load more comments button -->
-                        <div class="text-center mt-3" th:if="${hasMoreComments}">
-                            <button class="btn btn-link btn-link-loader btn-sm text-secondary d-flex align-items-center justify-content-center"
-                                    href="#"
-                                    onclick="loadMoreComments()">
-                                <div class="spinner-dots me-2">
-                                    <span class="spinner-dot"></span>
-                                    <span class="spinner-dot"></span>
-                                    <span class="spinner-dot"></span>
-                                </div>
-                                댓글 더보기
-                            </button>
+                        <!-- Empty state (댓글이 없을 때) -->
+                        <div class="text-center py-5" th:if="${commentCount == 0}">
+                            <i class="bi bi-chat-dots display-4 text-muted"></i>
+                            <p class="text-muted mt-3">첫 댓글을 남겨보세요!</p>
                         </div>
                     </div>
                     <!-- Comment wrap END -->
 
                     <!-- Add comment form START -->
                     <div class="mt-4" th:if="${currentUserId != null}">
-                        <form id="commentForm" onsubmit="submitComment(event)">
+                        <form hx-swap="innerHTML"
+                              hx-target="#comment-form-result"
+                              th:attr="hx-post='/posts/' + ${post.id} + '/comments'"
+                              th:id="'comment-form-' + ${post.id}">
+
+                            <!-- CSRF 토큰을 hidden input으로 처리 -->
+                            <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
+
                             <div class="d-flex mb-3">
-                                <label class="form-label visually-hidden" for="commentText">댓글 입력</label>
-                                <textarea class="form-control" id="commentText" placeholder="댓글을 입력하세요..." required
-                                          rows="2"></textarea>
+                                <!-- 현재 사용자 아바타 -->
+                                <div class="avatar avatar-xs me-2">
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 32px; height: 32px;">
+                                        <span class="text-white fw-bold small"
+                                              th:text="${currentUserNickname.substring(0, 1)?.toUpperCase() ?: 'U'}">U</span>
+                                    </div>
+                                </div>
+
+                                <!-- 댓글 입력 영역 -->
+                                <div class="flex-grow-1">
+                                    <textarea aria-label="댓글 입력"
+                                              class="form-control"
+                                              name="content"
+                                              placeholder="댓글을 입력하세요..."
+                                              required
+                                              rows="2"></textarea>
+                                </div>
                             </div>
-                            <button class="btn btn-primary btn-sm" type="submit">댓글 작성</button>
+                            <div class="text-end">
+                                <button class="btn btn-primary btn-sm" type="submit">
+                                    <i class="bi bi-send me-1"></i>댓글 작성
+                                </button>
+                            </div>
                         </form>
+
+                        <!-- 댓글 작성 결과 처리용 숨겨진 영역 -->
+                        <div id="comment-form-result" style="display: none;"></div>
                     </div>
                     <!-- Add comment form END -->
+
+                    <!-- 로그인하지 않은 경우 -->
+                    <div class="mt-4 text-center py-4 bg-light rounded" th:if="${currentUserId == null}">
+                        <i class="bi bi-chat-dots text-muted mb-2" style="font-size: 2rem;"></i>
+                        <p class="text-muted mb-2">댓글을 작성하려면 로그인이 필요합니다</p>
+                        <a class="btn btn-primary btn-sm" th:href="@{/signin}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>로그인
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -317,141 +325,94 @@ JS libraries, plugins and custom scripts -->
 <!-- Theme Functions -->
 <script src="/assets/js/functions.js"></script>
 
-<!-- Post Detail Functions -->
+<!-- Minimal JavaScript for essential functions -->
 <script th:inline="javascript">
     const postId = /*[[${post.id}]]*/ 0;
-    const currentUserId = /*[[${currentUserId}]]*/ null;
 
-    // Handle avatar image loading errors
     document.addEventListener('DOMContentLoaded', function () {
-        const avatarImages = document.querySelectorAll('.avatar-fallback');
-        avatarImages.forEach(img => {
-            img.addEventListener('error', function () {
-                this.src = '/assets/images/avatar/default.jpg';
-            });
-        });
-    });
+        // HTMX 설정
+        document.body.addEventListener('htmx:configRequest', function (event) {
+            // CSRF 토큰 추가
+            const csrfToken = document.querySelector('meta[name="_csrf"]');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
 
-    // Toggle heart
-    function toggleHeart() {
-        if (!currentUserId) {
-            alert('로그인이 필요합니다.');
-            window.location.href = '/signin';
-            return;
-        }
-
-        fetch(`/api/posts/${postId}/hearts`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+            if (csrfToken && csrfHeader) {
+                event.detail.headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
             }
-        })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('heartCount').textContent = `(${data.heartCount})`;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('오류가 발생했습니다.');
-            });
-    }
-
-    // Delete post
-    function deletePost() {
-        if (confirm('정말 삭제하시겠습니까?')) {
-            fetch(`/api/posts/${postId}`, {
-                method: 'DELETE',
-            })
-                .then(response => {
-                    if (response.ok) {
-                        alert('삭제되었습니다.');
-                        window.location.href = '/';
-                    } else {
-                        alert('삭제에 실패했습니다.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('오류가 발생했습니다.');
-                });
-        }
-    }
-
-    // Submit comment
-    function submitComment(event) {
-        event.preventDefault();
-
-        const commentText = document.getElementById('commentText').value;
-
-        fetch(`/api/posts/${postId}/comments`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({content: commentText})
-        })
-            .then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    alert('댓글 작성에 실패했습니다.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('오류가 발생했습니다.');
-            });
-    }
-
-    // Copy link
-    function copyLink() {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-            alert('링크가 복사되었습니다.');
         });
-    }
 
-    // Load more comments
-    function loadMoreComments() {
-        // Implement pagination logic
-        console.log('Load more comments');
-    }
+        // 댓글 작성 성공 처리
+        document.body.addEventListener('htmx:afterRequest', function (event) {
+            // 댓글 작성 폼인지 확인
+            if (event.target.id === `comment-form-${postId}` && event.detail.xhr.status === 200) {
+                // 1. 폼 초기화
+                event.target.reset();
 
-    /*]]>*/
+                // 2. 성공 메시지 표시
+                showSuccessMessage(event.target);
 
-    document.addEventListener('DOMContentLoaded', function () {
-        function updateRelativeTime() {
-            document.querySelectorAll('[data-created-at]').forEach(function (element) {
-                const createdAt = new Date(element.getAttribute('data-created-at'));
-                const now = new Date();
-                const diffMs = now - createdAt;
-                const diffMinutes = Math.floor(diffMs / 60000);
-                const diffHours = Math.floor(diffMs / 3600000);
-                const diffDays = Math.floor(diffMs / 86400000);
-                const diffYears = Math.floor(diffDays / 365);
+                // 3. 댓글 목록 다시 로드
+                setTimeout(() => {
+                    reloadComments();
+                }, 100);
+            }
+        });
 
-                let relativeTime;
-
-                if (diffMinutes < 1) {
-                    relativeTime = '방금 전';
-                } else if (diffMinutes < 60) {
-                    relativeTime = diffMinutes + '분 전';
-                } else if (diffHours < 24) {
-                    relativeTime = diffHours + '시간 전';
-                } else if (diffDays < 365) {
-                    relativeTime = diffDays + '일 전';
-                } else {
-                    relativeTime = diffYears + '년 전';
-                }
-
-                element.textContent = relativeTime;
-            });
-        }
-
-        updateRelativeTime();
-        // 1분마다 업데이트
-        setInterval(updateRelativeTime, 60000);
+        // 에러 처리
+        document.body.addEventListener('htmx:responseError', function (event) {
+            console.error('HTMX Error:', event.detail);
+            if (event.detail.xhr.status === 403) {
+                alert('로그인이 필요합니다.');
+                window.location.href = '/signin';
+            } else if (event.detail.xhr.status >= 400) {
+                alert('요청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+            }
+        });
     });
+
+    // 댓글 목록 다시 로드하는 함수
+    function reloadComments() {
+        const commentsContainer = document.querySelector(`#comments-container-${postId}`);
+        if (commentsContainer) {
+            // HTMX로 댓글 목록 다시 로드
+            htmx.trigger(commentsContainer, 'load');
+
+            // 댓글 수 업데이트
+            updateCommentCount();
+        }
+    }
+
+    function updateCommentCount() {
+        // 잠시 후 DOM이 업데이트된 후 댓글 수를 계산
+        setTimeout(() => {
+            const commentsContainer = document.querySelector(`#comments-container-${postId}`);
+            if (commentsContainer) {
+                const commentItems = commentsContainer.querySelectorAll('.comment-item');
+                const totalCountDisplay = document.getElementById('comment-count-display');
+
+                if (totalCountDisplay) {
+                    totalCountDisplay.textContent = commentItems.length;
+                }
+            }
+        }, 500);
+    }
+
+    function showSuccessMessage(form) {
+        const textarea = form.querySelector('textarea[name="content"]');
+        if (textarea) {
+            const originalPlaceholder = textarea.placeholder;
+            textarea.placeholder = '댓글이 작성되었습니다!';
+            textarea.style.borderColor = '#28a745';
+            setTimeout(() => {
+                textarea.placeholder = originalPlaceholder;
+                textarea.style.borderColor = '';
+            }, 2000);
+        }
+    }
 </script>
+
+<!-- Time Script -->
+<div th:replace="~{fragments/time-script :: timeScript}"></div>
+
 </body>
 </html>

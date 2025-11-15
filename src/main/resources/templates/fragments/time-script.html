@@ -38,7 +38,9 @@
         // 페이지 로드 시 실행
         document.addEventListener('DOMContentLoaded', updateRelativeTime);
 
-        // 1분마다 업데이트 (선택사항)
+        updateRelativeTime();
+
+        // 1분마다 업데이트
         setInterval(updateRelativeTime, 60000);
     </script>
 </th:block>
