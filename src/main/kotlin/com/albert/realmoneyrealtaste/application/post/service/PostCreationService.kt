@@ -27,7 +27,14 @@ class PostCreationService(
         try {
             val member = memberReader.readActiveMemberById(memberId)
 
-            val post = Post.create(memberId, member.nickname.value, request.restaurant, request.content, request.images)
+            val post = Post.create(
+                memberId,
+                member.nickname.value,
+                request.restaurant,
+                request.content,
+                request.images,
+                member.detail.introduction?.value ?: "",
+            )
 
             val savedPost = postRepository.save(post)
 

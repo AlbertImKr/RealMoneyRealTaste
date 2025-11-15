@@ -54,9 +54,10 @@ class Post protected constructor(
             restaurant: Restaurant,
             content: PostContent,
             images: PostImages,
+            authorIntroduction: String = "",
         ): Post {
             return Post(
-                author = Author(authorMemberId, authorNickname),
+                author = Author(authorMemberId, authorNickname, authorIntroduction),
                 restaurant = restaurant,
                 content = content,
                 images = images,
