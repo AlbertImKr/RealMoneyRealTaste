@@ -329,8 +329,6 @@ JS libraries, plugins and custom scripts -->
 
 <!-- Minimal JavaScript for essential functions -->
 <script th:inline="javascript">
-    const postId = /*[[${post.id}]]*/ 0;
-
     document.addEventListener('DOMContentLoaded', function () {
         // HTMX 설정
         document.body.addEventListener('htmx:configRequest', function (event) {
@@ -345,6 +343,8 @@ JS libraries, plugins and custom scripts -->
 
         // 댓글 작성 성공 처리
         document.body.addEventListener('htmx:afterRequest', function (event) {
+            const postId = /*[[${post.id}]]*/ 0;
+
             // 댓글 작성 폼인지 확인
             if (event.target.id === `comment-form-${postId}` && event.detail.xhr.status === 200) {
                 // 1. 폼 초기화
@@ -355,7 +355,7 @@ JS libraries, plugins and custom scripts -->
 
                 // 3. 댓글 목록 다시 로드
                 setTimeout(() => {
-                    reloadComments();
+                    reloadComments(postId);
                 }, 100);
             }
         });
@@ -373,18 +373,18 @@ JS libraries, plugins and custom scripts -->
     });
 
     // 댓글 목록 다시 로드하는 함수
-    function reloadComments() {
+    function reloadComments(postId) {
         const commentsContainer = document.querySelector(`#comments-container-${postId}`);
         if (commentsContainer) {
             // HTMX로 댓글 목록 다시 로드
             htmx.trigger(commentsContainer, 'reload-comments');
 
             // 댓글 수 업데이트
-            updateCommentCount();
+            updateCommentCount(postId);
         }
     }
 
-    function updateCommentCount() {
+    function updateCommentCount(postId) {
         // 잠시 후 DOM이 업데이트된 후 댓글 수를 계산
         setTimeout(() => {
             const commentsContainer = document.querySelector(`#comments-container-${postId}`);

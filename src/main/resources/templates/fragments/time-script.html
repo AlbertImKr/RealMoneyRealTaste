@@ -6,42 +6,95 @@
 <body>
 <th:block th:fragment="timeScript">
     <script>
-        // 상대 시간 업데이트 함수
+        // 상대 시간 업데이트 함수 (최적화)
         function updateRelativeTime() {
-            document.querySelectorAll('[data-created-at]').forEach(function (element) {
-                const createdAt = new Date(element.getAttribute('data-created-at'));
-                const now = new Date();
+            const elements = document.querySelectorAll('[data-created-at]');
+            const now = Date.now(); // new Date()보다 빠름
+
+            elements.forEach(function (element) {
+                const createdAtStr = element.getAttribute('data-created-at');
+                if (!createdAtStr) return;
+
+                const createdAt = new Date(createdAtStr).getTime();
                 const diffMs = now - createdAt;
-                const diffMinutes = Math.floor(diffMs / 60000);
-                const diffHours = Math.floor(diffMs / 3600000);
-                const diffDays = Math.floor(diffMs / 86400000);
-                const diffYears = Math.floor(diffDays / 365);
 
                 let relativeTime;
 
-                if (diffMinutes < 1) {
+                if (diffMs < 60000) { // 1분 미만
                     relativeTime = '방금 전';
-                } else if (diffMinutes < 60) {
-                    relativeTime = diffMinutes + '분 전';
-                } else if (diffHours < 24) {
-                    relativeTime = diffHours + '시간 전';
-                } else if (diffDays < 365) {
-                    relativeTime = diffDays + '일 전';
+                } else if (diffMs < 3600000) { // 1시간 미만
+                    relativeTime = Math.floor(diffMs / 60000) + '분 전';
+                } else if (diffMs < 86400000) { // 24시간 미만
+                    relativeTime = Math.floor(diffMs / 3600000) + '시간 전';
+                } else if (diffMs < 31536000000) { // 1년 미만
+                    relativeTime = Math.floor(diffMs / 86400000) + '일 전';
                 } else {
-                    relativeTime = diffYears + '년 전';
+                    relativeTime = Math.floor(diffMs / 31536000000) + '년 전';
+                }
+
+                // 텍스트가 변경될 때만 업데이트 (성능 최적화)
+                if (element.textContent !== relativeTime) {
+                    element.textContent = relativeTime;
+                }
+            });
+        }
+
+        // 즉시 실행 (DOM 로드 기다리지 않음)
+        (function initializeTimeUpdates() {
+            // 첫 실행
+            updateRelativeTime();
+
+            // DOM이 완전히 로드되면 다시 실행
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updateRelativeTime);
+            }
+
+            // 1분마다 업데이트 (기존 interval 중복 방지)
+            if (!window.timeUpdateInterval) {
+                window.timeUpdateInterval = setInterval(updateRelativeTime, 60000);
+            }
+        })();
+
+        // 동적 콘텐츠 로드 시 시간 업데이트 (HTMX, AJAX 등)
+        function updateTimeForNewContent(container = document) {
+            const elements = container.querySelectorAll('[data-created-at]');
+            const now = Date.now();
+
+            elements.forEach(function (element) {
+                const createdAtStr = element.getAttribute('data-created-at');
+                if (!createdAtStr || element.textContent.includes('전') || element.textContent === '방금 전') {
+                    return; // 이미 처리된 요소는 스킵
+                }
+
+                const createdAt = new Date(createdAtStr).getTime();
+                const diffMs = now - createdAt;
+
+                let relativeTime;
+
+                if (diffMs < 60000) {
+                    relativeTime = '방금 전';
+                } else if (diffMs < 3600000) {
+                    relativeTime = Math.floor(diffMs / 60000) + '분 전';
+                } else if (diffMs < 86400000) {
+                    relativeTime = Math.floor(diffMs / 3600000) + '시간 전';
+                } else if (diffMs < 31536000000) {
+                    relativeTime = Math.floor(diffMs / 86400000) + '일 전';
+                } else {
+                    relativeTime = Math.floor(diffMs / 31536000000) + '년 전';
                 }
 
                 element.textContent = relativeTime;
             });
         }
 
-        // 페이지 로드 시 실행
-        document.addEventListener('DOMContentLoaded', updateRelativeTime);
+        // HTMX 이벤트와 연동
+        document.addEventListener('htmx:afterSettle', function (event) {
+            updateTimeForNewContent(event.detail.target);
+        });
 
-        updateRelativeTime();
-
-        // 1분마다 업데이트
-        setInterval(updateRelativeTime, 60000);
+        // 전역으로 노출 (필요시 수동 호출 가능)
+        window.updateRelativeTime = updateRelativeTime;
+        window.updateTimeForNewContent = updateTimeForNewContent;
     </script>
 </th:block>
 </body>

@@ -274,8 +274,6 @@
     </div>
     <!-- Modal-specific JavaScript -->
     <script th:inline="javascript">
-        let postId = /*[[${post.id}]]*/ 0;
-        console.log("here");
         // HTMX 설정
         document.body.addEventListener('htmx:configRequest', function (event) {
             // CSRF 토큰 추가
@@ -289,7 +287,7 @@
 
         // 댓글 작성 성공 처리
         document.body.addEventListener('htmx:afterRequest', function (event) {
-            console.log("here");
+            const postId = /*[[${post.id}]]*/ 0
             // 댓글 작성 폼인지 확인
             if (event.target.id === `comment-form-${postId}` && event.detail.xhr.status === 200) {
                 // 1. 폼 초기화
@@ -300,24 +298,24 @@
 
                 // 3. 댓글 목록 다시 로드
                 setTimeout(() => {
-                    reloadComments();
+                    reloadComments(postId);
                 }, 100);
             }
         });
 
         // 댓글 목록 다시 로드하는 함수
-        function reloadComments() {
+        function reloadComments(postId) {
             const commentsContainer = document.querySelector(`#comments-container-${postId}`);
             if (commentsContainer) {
                 // HTMX로 댓글 목록 다시 로드
                 htmx.trigger(commentsContainer, 'reload-comments');
 
                 // 댓글 수 업데이트
-                updateCommentCount();
+                updateCommentCount(postId);
             }
         }
 
-        function updateCommentCount() {
+        function updateCommentCount(postId) {
             // 잠시 후 DOM이 업데이트된 후 댓글 수를 계산
             setTimeout(() => {
                 const commentsContainer = document.querySelector(`#comments-container-${postId}`);
