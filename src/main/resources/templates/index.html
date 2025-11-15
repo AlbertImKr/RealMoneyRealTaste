@@ -84,6 +84,10 @@
                                     <!-- 로그인된 경우: 프로필 정보 표시 -->
                                     <div th:if="${member != null}">
                                         <div class="text-center">
+                                            <div class="avatar avatar-xs me-2">
+                                                <a href="#!"> <img alt=""
+                                                                   class="avatar-img rounded-circle" src="assets/images/avatar/12.jpg"> </a>
+                                            </div>
                                             <!-- Info -->
                                             <h5 class="mb-0">
                                                 <a href="#" th:text="${member.nickname.value}">회원 닉네임</a>
@@ -236,6 +240,11 @@
                     <div class="card-header border-0 pb-0">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
+                                <!-- Avatar -->
+                                <div class="avatar avatar-story me-2">
+                                    <a href="#!"> <img alt=""
+                                                       class="avatar-img rounded-circle" src="assets/images/avatar/04.jpg"> </a>
+                                </div>
                                 <!-- Info -->
                                 <div>
                                     <div class="nav nav-divider">
@@ -626,14 +635,14 @@ JS libraries, plugins and custom scripts -->
                         <!-- CSRF 토큰을 hidden input으로 처리 -->
                         <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
 
+                        <label class="visually-hidden" for="comment-input">댓글 입력</label>
                         <div class="input-group">
-                            <label>
-                                <input class="form-control"
-                                       name="content"
-                                       placeholder="댓글을 입력하세요..."
-                                       required
-                                       type="text">
-                            </label>
+                            <input class="form-control"
+                                   id="comment-input"
+                                   name="content"
+                                   placeholder="댓글을 입력하세요..."
+                                   required
+                                   type="text">
                             <button class="btn btn-primary" type="submit">
                                 <i class="bi bi-send"></i>
                             </button>

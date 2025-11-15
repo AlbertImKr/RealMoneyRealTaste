@@ -76,7 +76,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
                                 <h6 class="mb-0 me-2 text-primary fw-bold" th:text="${comment.author.nickname}">작성자</h6>
-                                <span class="badge bg-light text-dark small me-2">댓글</span>
+                                <span class="badge bg-light text-primary small me-2">댓글</span>
                                 <small class="text-muted">
                                     <i class="bi bi-clock me-1"></i>
                                     <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 12:00</span>
@@ -124,11 +124,11 @@
                                     좋아요
                                     <span aria-hidden="true" class="badge bg-primary ms-1">0</span>
                                 </button>
-                                <button aria-label="답글 작성" class="btn btn-outline-secondary"
+                                <button aria-label="답글 작성" class="btn btn-outline-primary"
                                         th:attr="hx-get='/comments/modal-replies-fragment?commentId=' + ${comment.id},
-hx-target='#modal-replies-' + ${comment.id},
-hx-swap='innerHTML',
-hx-indicator='#modal-reply-loading-' + ${comment.id}" type="button">
+                                            hx-target='#modal-replies-' + ${comment.id},
+                                            hx-swap='innerHTML',
+                                            hx-indicator='#modal-reply-loading-' + ${comment.id}" type="button">
                                     <i aria-hidden="true" class="bi bi-reply me-1"></i>답글 작성
                                 </button>
                             </fieldset>
