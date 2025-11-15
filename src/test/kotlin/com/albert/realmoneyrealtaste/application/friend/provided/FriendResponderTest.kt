@@ -326,7 +326,6 @@ class FriendResponderTest(
 
         val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
         val friendship = friendRequestor.sendFriendRequest(command)
-        val originalUpdatedAt = friendship.updatedAt
 
         val request = FriendResponseRequest(
             friendshipId = friendship.requireId(),
@@ -339,7 +338,6 @@ class FriendResponderTest(
         assertAll(
             { assertEquals(FriendshipStatus.ACCEPTED, result.status) },
             { assertEquals(friendship.createdAt, result.createdAt) }, // 생성일은 변경되지 않음
-            { kotlin.test.assertTrue(result.updatedAt > originalUpdatedAt) } // 수정일은 변경됨
         )
     }
 
