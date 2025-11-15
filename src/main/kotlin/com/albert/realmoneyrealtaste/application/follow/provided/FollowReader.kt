@@ -28,4 +28,6 @@ interface FollowReader {
     fun getFollowStats(memberId: Long): FollowStatsResponse
 
     fun existsActiveFollow(followerId: Long, followingId: Long): Boolean
+
+    fun findSuggestedUsers(memberId: Long, limit: Int): List<FollowResponse>
 }

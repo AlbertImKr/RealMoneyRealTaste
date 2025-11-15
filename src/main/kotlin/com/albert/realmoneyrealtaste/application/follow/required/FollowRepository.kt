@@ -56,4 +56,18 @@ interface FollowRepository : Repository<Follow, Long> {
     fun existsByRelationshipAndStatus(relationship: FollowRelationship, status: FollowStatus): Boolean
 
     fun findByRelationship(relationship: FollowRelationship): Follow?
+
+    @Query(
+        """
+        SELECT f FROM Follow f
+        WHERE f.relationship.followerId = :memberId
+          AND f.status = :status
+        ORDER BY FUNCTION('RAND')
+    """
+    )
+    fun findSuggestedUsersByMemberIdAndStatus(
+        memberId: Long,
+        status: FollowStatus,
+        pageable: Pageable,
+    ): Page<Follow>
 }

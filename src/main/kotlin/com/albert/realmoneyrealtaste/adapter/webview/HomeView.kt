@@ -2,11 +2,16 @@ package com.albert.realmoneyrealtaste.adapter.webview
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.adapter.webview.post.PostCreateForm
+import com.albert.realmoneyrealtaste.application.follow.dto.FollowStatsResponse
+import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostHeartReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
+import com.albert.realmoneyrealtaste.domain.post.Post
 import com.albert.realmoneyrealtaste.domain.post.PostHeart
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
@@ -18,31 +23,90 @@ class HomeView(
     private val postReader: PostReader,
     private val memberReader: MemberReader,
     private val postHeartReader: PostHeartReader,
+    private val followReader: FollowReader,
 ) {
 
     @GetMapping("/")
     fun home(
         model: Model,
-        @PageableDefault(size = 10) pageable: Pageable,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
     ): String {
         model.addAttribute("postCreateForm", PostCreateForm())
 
-        val posts = postReader.readAllPosts(pageable)
-        model.addAttribute("posts", posts)
+        val posts = addPosts(pageable, model)
 
         val postIds = posts.content.map { it.requireId() }
 
         if (memberPrincipal != null) {
             val memberId = memberPrincipal.memberId
-            val member = memberReader.readMemberById(memberId)
-            model.addAttribute("member", member)
+            // 사용자 정보 추가
+            addMemberInfo(memberId, model)
 
-            val hearts = postHeartReader.findByMemberIdAndPostIds(memberId, postIds)
-                .map(PostHeart::postId)
-            model.addAttribute("hearts", hearts)
+            // 사용자 통계 정보 추가
+            addMemberStats(model, memberId)
+
+            // 좋아요 정보 추가
+            addHeartsStats(memberId, postIds, model)
+
+            // 추천 사용자 목록 추가 (옵션)
+            addSuggestedUsers(model, memberId)
         }
 
         return "index"
+    }
+
+    private fun addPosts(
+        pageable: Pageable,
+        model: Model,
+    ): Page<Post> {
+        val posts = postReader.readAllPosts(pageable)
+        model.addAttribute("posts", posts)
+        return posts
+    }
+
+    private fun addMemberInfo(memberId: Long, model: Model) {
+        val member = memberReader.readMemberById(memberId)
+        model.addAttribute("member", member)
+    }
+
+    private fun addHeartsStats(
+        memberId: Long,
+        postIds: List<Long>,
+        model: Model,
+    ) {
+        val hearts = postHeartReader.findByMemberIdAndPostIds(memberId, postIds)
+            .map(PostHeart::postId)
+        model.addAttribute("hearts", hearts)
+    }
+
+    private fun addMemberStats(model: Model, memberId: Long) {
+        try {
+            val followStats = followReader.getFollowStats(memberId)
+            model.addAttribute("followStats", followStats)
+
+            val postCount = postReader.countPostsByMemberId(memberId)
+            model.addAttribute("postCount", postCount)
+        } catch (e: IllegalArgumentException) {
+            model.addAttribute("followStats", createDefaultFollowStats(memberId))
+            model.addAttribute("postCount", 0L)
+        }
+    }
+
+    private fun addSuggestedUsers(model: Model, memberId: Long) {
+        try {
+            val suggestedUsers = followReader.findSuggestedUsers(memberId, 5)
+            model.addAttribute("suggestedUsers", suggestedUsers)
+        } catch (e: IllegalArgumentException) {
+            model.addAttribute("suggestedUsers", emptyList<Any>())
+        }
+    }
+
+    private fun createDefaultFollowStats(memberId: Long): FollowStatsResponse {
+        return FollowStatsResponse(
+            memberId = memberId,
+            followersCount = 0L,
+            followingCount = 0L
+        )
     }
 }

@@ -86,6 +86,10 @@ class PostReadService(
         return postRepository.existsByIdAndStatus(postId, PostStatus.PUBLISHED)
     }
 
+    override fun countPostsByMemberId(memberId: Long): Long {
+        return postRepository.countByAuthorMemberIdAndStatusNot(memberId, PostStatus.DELETED)
+    }
+
     /**
      * 게시글을 조회하고 존재하지 않으면 예외를 발생시킵니다.
      *

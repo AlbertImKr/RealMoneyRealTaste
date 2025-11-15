@@ -34,7 +34,9 @@ class MemberUpdateService(
         try {
             val member = memberReader.readMemberById(memberId)
 
-            validateProfileAddressNotDuplicated(request.profileAddress)
+            if (member.detail.profileAddress != request.profileAddress) {
+                validateProfileAddressNotDuplicated(request.profileAddress)
+            }
 
             member.updateInfo(
                 nickname = request.nickname,

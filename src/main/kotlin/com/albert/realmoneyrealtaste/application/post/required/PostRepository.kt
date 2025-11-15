@@ -130,4 +130,13 @@ interface PostRepository : Repository<Post, Long> {
      * @return 게시글 존재 여부
      */
     fun existsByIdAndStatus(id: Long, status: PostStatus): Boolean
+
+    /**
+     * 특정 회원이 작성한 게시글 수를 계산합니다.
+     *
+     * @param memberId 작성자 회원 ID
+     * @param status 제외할 게시글 상태 (기본값: DELETED)
+     * @return 게시글 수
+     */
+    fun countByAuthorMemberIdAndStatusNot(memberId: Long, status: PostStatus = PostStatus.DELETED): Long
 }

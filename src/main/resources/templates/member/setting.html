@@ -229,6 +229,15 @@
                             </div>
                             <div class="card-body">
                                 <form class="row g-3" method="post" th:action="@{/members/setting/password}">
+                                    <label>
+                                        <input autocomplete="username"
+                                               class="visually-hidden"
+                                               name="username"
+                                               readonly
+                                               tabindex="-1"
+                                               th:value="${member.email.address}"
+                                               type="text">
+                                    </label>
                                     <!-- Current password -->
                                     <div class="col-12">
                                         <label class="form-label" for="currentPassword">현재 비밀번호</label>

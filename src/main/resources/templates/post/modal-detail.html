@@ -283,7 +283,7 @@
         });
 
         // 상대 시간 업데이트
-        updateRelativeTimeModal();
+        updateRelativeTime();
     });
 
     // Toggle heart (모달용)
@@ -395,7 +395,7 @@
     }
 
     // 상대 시간 업데이트 (모달용)
-    function updateRelativeTimeModal() {
+    function updateRelativeTime() {
         document.querySelectorAll('#post-detail-modal-content [data-created-at]').forEach(function (element) {
             const createdAt = new Date(element.getAttribute('data-created-at'));
             const now = new Date();
@@ -422,6 +422,8 @@
             element.textContent = relativeTime;
         });
     }
+
+    setInterval(updateRelativeTime, 60000);
 </script>
 
 </body>

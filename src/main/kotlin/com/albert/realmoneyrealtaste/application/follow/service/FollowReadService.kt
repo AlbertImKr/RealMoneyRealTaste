@@ -92,6 +92,18 @@ class FollowReadService(
         )
     }
 
+    override fun findSuggestedUsers(
+        memberId: Long,
+        limit: Int,
+    ): List<FollowResponse> {
+        val follows = followRepository.findSuggestedUsersByMemberIdAndStatus(
+            memberId,
+            FollowStatus.ACTIVE,
+            Pageable.ofSize(limit)
+        )
+        return mapToFollowResponses(follows).content
+    }
+
     private fun mapToFollowResponses(follows: Page<Follow>): Page<FollowResponse> {
         return follows.map { follow ->
             val memberIds = listOf(

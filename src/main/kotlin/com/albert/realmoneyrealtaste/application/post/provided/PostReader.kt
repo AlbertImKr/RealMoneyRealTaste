@@ -81,4 +81,12 @@ interface PostReader {
      * @return 공개된 게시글 존재 여부
      */
     fun existsPublishedPostById(postId: Long): Boolean
+
+    /**
+     * 특정 회원이 작성한 게시글 수를 계산합니다.
+     *
+     * @param memberId 작성자 회원 ID
+     * @return 게시글 수
+     */
+    fun countPostsByMemberId(memberId: Long): Long
 }
