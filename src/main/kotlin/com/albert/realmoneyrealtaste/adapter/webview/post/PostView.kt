@@ -34,11 +34,7 @@ class PostView(
         @PathVariable postId: Long,
         model: Model,
     ): String {
-        val currentUserId = memberPrincipal.memberId
-        val post = postReader.readPostById(currentUserId, postId)
-        model.addAttribute("post", post)
-        model.addAttribute("currentUserId", currentUserId)
-        model.addAttribute("currentUserNickname", memberPrincipal.nickname.value)
+        postDetailModelSetup(memberPrincipal, postId, model)
         return PostViews.DETAIL
     }
 
@@ -69,10 +65,20 @@ class PostView(
         @PathVariable postId: Long,
         model: Model,
     ): String {
+        postDetailModelSetup(memberPrincipal, postId, model)
+
+        return PostViews.DETAIL_MODAL
+    }
+
+    private fun postDetailModelSetup(
+        memberPrincipal: MemberPrincipal,
+        postId: Long,
+        model: Model,
+    ) {
         val currentUserId = memberPrincipal.memberId
         val post = postReader.readPostById(currentUserId, postId)
         model.addAttribute("post", post)
-
-        return PostViews.DETAIL_MODAL
+        model.addAttribute("currentUserId", currentUserId)
+        model.addAttribute("currentUserNickname", memberPrincipal.nickname.value)
     }
 }

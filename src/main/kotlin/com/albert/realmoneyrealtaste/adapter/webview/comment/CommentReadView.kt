@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.application.comment.provided.CommentReader
 import com.albert.realmoneyrealtaste.domain.comment.Comment
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -18,7 +19,7 @@ class CommentReadView(
     @GetMapping(CommentUrls.COMMENTS_FRAGMENTS_LIST)
     fun getCommentsFragment(
         @PathVariable postId: Long,
-        @PageableDefault pageable: Pageable,
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
         val comments: Page<Comment> = commentReader.getComments(postId, pageable)
