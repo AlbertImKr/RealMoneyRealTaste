@@ -62,7 +62,7 @@
                         </li>
                         <li class="nav-item">
                             <button class="nav-link btn p-0 border-0 bg-transparent"
-                                    th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
+                                    th:attr="hx-get='/comments/'+${comment.id}+'/replies/fragments/list',
                                              hx-target='#replies-' + ${comment.id},
                                              hx-swap='innerHTML',
                                              hx-indicator='#reply-loading-' + ${comment.id}">
@@ -113,10 +113,65 @@
                 </div>
             </div>
 
+            <!-- 답글 작성 폼 (처음에는 숨김) -->
+            <div class="d-flex mb-3 ms-5" style="display: none;" th:id="'reply-form-' + ${comment.id}">
+                <!-- Avatar -->
+                <div class="avatar avatar-xs me-2">
+                    <a href="#!">
+                        <img alt=""
+                             class="avatar-img rounded-circle"
+                             th:src="@{/images/avatar/current-user.jpg}">
+                    </a>
+                </div>
+                <!-- Comment box -->
+                <form class="position-relative w-100"
+                      hx-on::afterRequest='hideReplyForm(this)'
+                      th:attr="hx-post='/posts/' + ${postId} + '/comments',
+                               hx-target='#replies-' + ${comment.id},
+                               hx-swap='beforeend'
+                               ">
+                    <input name="parentCommentId" th:value="${comment.id}" type="hidden">
+                    <div class="input-group">
+                        <label class="visually-hidden" for="reply-content" th:for="'reply-content-' + ${comment.id}">
+                        <textarea class="form-control pe-4 bg-light"
+                                  id="reply-content"
+                                  name="content"
+                                  placeholder="답글을 입력하세요..."
+                                  required
+                                  rows="1"
+                                  th:id="'reply-content-' + ${comment.id}"></textarea>
+                            <button class="btn btn-primary btn-sm" type="submit">답글</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="hideReplyForm(this)"
+                                    type="button">
+                                취소
+                            </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Comment item nested START (답글 목록) -->
             <ul class="comment-item-nested list-unstyled" th:id="'replies-' + ${comment.id}">
                 <!-- 답글들이 HTMX로 동적으로 로드됩니다 -->
             </ul>
+
+            <!-- Load more replies (답글이 있을 때만 표시) -->
+            <div style="display: none;" th:id="'load-more-replies-' + ${comment.id}"
+                 th:if="${comment.repliesCount > 5}">
+                <button aria-pressed="true"
+                        class="btn btn-link btn-link-loader btn-sm text-secondary d-flex align-items-center mb-3 ms-5"
+                        data-bs-toggle="button"
+                        href="#!"
+                        th:attr="hx-get='/comments/' + ${comment.id} + '/replies/fragments/list?page=1&size=5',
+                            hx-target='#replies-' + ${comment.id},
+                            hx-swap='beforeend'">
+                    <div class="spinner-dots me-2">
+                        <span class="spinner-dot"></span>
+                        <span class="spinner-dot"></span>
+                        <span class="spinner-dot"></span>
+                    </div>
+                    Load more replies
+                </button>
+            </div>
             <!-- Comment item nested END -->
         </li>
         <!-- Comment item END -->

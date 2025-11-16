@@ -169,7 +169,7 @@ class Comment protected constructor(
     /**
      * 대댓글인지 확인합니다.
      */
-    fun isReply(): Boolean = parentCommentId != null
+    fun isReply(): Boolean = parentCommentId == null
 
     /**
      * 삭제된 댓글인지 확인합니다.
