@@ -56,26 +56,26 @@
                     <ul class="nav nav-divider py-2 small">
                         <li class="nav-item">
                             <button class="nav-link btn p-0 border-0 bg-transparent">
-                                <i class="bi bi-hand-thumbs-up me-1"></i>Like <span
-                                    class="badge bg-light text-primary ms-1">0</span>
+                                <i class="bi bi-hand-thumbs-up me-1"></i>Like
+                                <span class="badge bg-light text-primary ms-1">0</span>
                             </button>
                         </li>
                         <li class="nav-item">
                             <button class="nav-link btn p-0 border-0 bg-transparent"
                                     th:attr="hx-get='/comments/'+${comment.id}+'/replies/fragments/list',
-                                             hx-target='#replies-' + ${comment.id},
-                                             hx-swap='innerHTML',
-                                             hx-indicator='#reply-loading-' + ${comment.id}">
-                                Reply
+                                     hx-target='#replies-' + ${comment.id},
+                                     hx-swap='innerHTML',
+                                     hx-indicator='#reply-loading-' + ${comment.id}">
+                                <i class="bi bi-chat-left-dots me-1"></i>답글 보기 <span
+                                    class="badge bg-light text-primary ms-1"
+                                    th:text="${comment.repliesCount}">5</span>
                             </button>
                         </li>
-                        <li class="nav-item" th:if="${comment.repliesCount > 0}">
+                        <li class="nav-item">
                             <button class="nav-link btn p-0 border-0 bg-transparent"
-                                    th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
-                                             hx-target='#replies-' + ${comment.id},
-                                             hx-swap='innerHTML',
-                                             hx-indicator='#reply-loading-' + ${comment.id}">
-                                View <span th:text="${comment.repliesCount}">5</span> replies
+                                    onclick="showReplyForm(this)"
+                                    th:attr="data-comment-id=${comment.id}">
+                                <i class="bi bi-reply me-1"></i>Reply
                             </button>
                         </li>
                     </ul>
@@ -101,10 +101,10 @@
                                 <i class="bi bi-flag me-2"></i>신고
                             </a>
                         </li>
-                        <li th:if="${comment.author.memberId == member?.id}">
+                        <li th:if="${comment.author.memberId == member?.memberId}">
                             <hr class="dropdown-divider">
                         </li>
-                        <li th:if="${comment.author.memberId == member?.id}">
+                        <li th:if="${comment.author.memberId == member?.memberId}">
                             <a class="dropdown-item text-danger" href="#">
                                 <i class="bi bi-trash me-2"></i>삭제
                             </a>
@@ -114,25 +114,25 @@
             </div>
 
             <!-- 답글 작성 폼 (처음에는 숨김) -->
-            <div class="d-flex mb-3 ms-5" style="display: none;" th:id="'reply-form-' + ${comment.id}">
+            <div class="d-flex mb-3 ms-5 d-none" th:id="'reply-form-' + ${comment.id}">
                 <!-- Avatar -->
                 <div class="avatar avatar-xs me-2">
-                    <a href="#!">
+                    <a href="#">
                         <img alt=""
                              class="avatar-img rounded-circle"
-                             th:src="@{/images/avatar/current-user.jpg}">
+                             src="#">
                     </a>
                 </div>
                 <!-- Comment box -->
                 <form class="position-relative w-100"
-                      hx-on::afterRequest='hideReplyForm(this)'
-                      th:attr="hx-post='/posts/' + ${postId} + '/comments',
-                               hx-target='#replies-' + ${comment.id},
-                               hx-swap='beforeend'
-                               ">
+                      hx-on::after-request="handleReplySubmit(this, event)"
+                      th:attr="hx-post='/posts/' + ${postId} + '/comments?parentCommentId=' + ${comment.id},
+               hx-target='#replies-' + ${comment.id},
+               hx-swap='innerHTML'">
                     <input name="parentCommentId" th:value="${comment.id}" type="hidden">
                     <div class="input-group">
-                        <label class="visually-hidden" for="reply-content" th:for="'reply-content-' + ${comment.id}">
+                        <label class="visually-hidden" for="reply-content" th:for="'reply-content-' + ${comment.id}">답글
+                            입력</label>
                         <textarea class="form-control pe-4 bg-light"
                                   id="reply-content"
                                   name="content"
@@ -140,11 +140,11 @@
                                   required
                                   rows="1"
                                   th:id="'reply-content-' + ${comment.id}"></textarea>
-                            <button class="btn btn-primary btn-sm" type="submit">답글</button>
-                            <button class="btn btn-outline-secondary btn-sm" onclick="hideReplyForm(this)"
-                                    type="button">
-                                취소
-                            </button>
+                        <button class="btn btn-outline-primary btn-sm" type="submit">답글</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="hideReplyForm(this)"
+                                type="button">
+                            취소
+                        </button>
                     </div>
                 </form>
             </div>
@@ -155,7 +155,7 @@
             </ul>
 
             <!-- Load more replies (답글이 있을 때만 표시) -->
-            <div style="display: none;" th:id="'load-more-replies-' + ${comment.id}"
+            <div class="d-none" th:id="'load-more-replies-' + ${comment.id}"
                  th:if="${comment.repliesCount > 5}">
                 <button aria-pressed="true"
                         class="btn btn-link btn-link-loader btn-sm text-secondary d-flex align-items-center mb-3 ms-5"
@@ -204,6 +204,9 @@
         </div>
     </div>
     <!-- 댓글 더보기 섹션 END -->
+
+    <!-- Comment Reply Form Script -->
+    <div th:replace="~{comment/comments-fragment :: reply-form-scripts}"></div>
 </div>
 
 <!-- 단일 댓글 프래그먼트 (새로 작성된 댓글용) -->
@@ -437,6 +440,106 @@
         </div>
     </div>
 </div>
+
+<script th:fragment="reply-form-scripts">
+    function showReplyForm(button) {
+        const commentId = button.getAttribute('data-comment-id');
+        const replyForm = document.getElementById('reply-form-' + commentId);
+
+        if (replyForm) {
+            // 폼이 이미 보이는 상태라면 숨기기
+            if (replyForm.classList.contains('d-none')) {
+                // 다른 모든 답글 폼 숨기기
+                document.querySelectorAll('[id^="reply-form-"]').forEach(form => {
+                    if (form.id !== 'reply-form-' + commentId) {
+                        form.classList.add('d-none');
+                        // 텍스트 영역 초기화
+                        const textarea = form.querySelector('textarea');
+                        if (textarea) {
+                            textarea.value = '';
+                        }
+                    }
+                });
+
+                // 현재 폼 보이기
+                replyForm.classList.remove('d-none');
+
+                // 텍스트 영역에 포커스
+                const textarea = replyForm.querySelector('textarea');
+                if (textarea) {
+                    textarea.focus();
+                }
+            } else {
+                hideReplyForm(replyForm.querySelector('form'));
+            }
+        }
+    }
+
+    function hideReplyForm(form) {
+        console.log(form)
+        const replyForm = form.closest('[id^="reply-form-"]');
+        if (replyForm) {
+            replyForm.classList.add('d-none');
+
+            // 텍스트 영역 초기화
+            const textarea = replyForm.querySelector('textarea');
+            if (textarea) {
+                textarea.value = '';
+            }
+        }
+    }
+
+    function handleReplySubmit(form, event) {
+        // 요청이 성공했을 때만 실행
+        if (event.detail.xhr.status === 200) {
+            // 1. 폼 숨기기
+            hideReplyForm(form);
+
+            // 2. 답글 목록 다시 로딩
+            const commentId = form.querySelector('input[name="parentCommentId"]').value;
+            const repliesContainer = document.getElementById('replies-' + commentId);
+            if (repliesContainer) {
+                // HTMX를 사용하여 답글 목록 다시 로드
+                htmx.ajax('GET', '/comments/' + commentId + '/replies/fragments/list', {
+                    target: '#replies-' + commentId,
+                    swap: 'innerHTML'
+                });
+
+                // 답글 수 업데이트
+                updateRepliesCount(commentId);
+            }
+
+            // 3. 성공 메시지 표시 (선택적)
+            showToast('답글이 작성되었습니다.');
+        }
+    }
+
+    function updateRepliesCount(commentId) {
+        const replyButton = document.querySelector(`[hx-target="#replies-${commentId}"]`);
+        if (replyButton) {
+            const countBadge = replyButton.querySelector('.badge');
+            if (countBadge) {
+                const currentCount = parseInt(countBadge.textContent) || 0;
+                countBadge.textContent = currentCount + 1;
+            }
+        }
+    }
+
+    function showToast(message) {
+        // Bootstrap Toast 사용
+        const toastHtml = `
+        <div class="toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+        document.body.insertAdjacentHTML('beforeend', toastHtml);
+        const toast = new bootstrap.Toast(document.querySelector('.toast:last-child'));
+        toast.show();
+    }
+</script>
 
 </body>
 </html>

@@ -29,7 +29,7 @@ class Comment protected constructor(
     content: CommentContent,
     parentCommentId: Long?,
     status: CommentStatus,
-    replyCount: Int = 0,
+    repliesCount: Int = 0,
     createdAt: LocalDateTime,
     updatedAt: LocalDateTime,
 ) : BaseEntity() {
@@ -99,7 +99,7 @@ class Comment protected constructor(
         protected set
 
     @Column(name = "reply_count", nullable = false)
-    var repliesCount: Int = replyCount
+    var repliesCount: Int = repliesCount
         protected set
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -169,7 +169,7 @@ class Comment protected constructor(
     /**
      * 대댓글인지 확인합니다.
      */
-    fun isReply(): Boolean = parentCommentId == null
+    fun isReply(): Boolean = parentCommentId != null
 
     /**
      * 삭제된 댓글인지 확인합니다.
