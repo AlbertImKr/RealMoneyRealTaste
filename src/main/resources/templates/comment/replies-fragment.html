@@ -41,7 +41,7 @@
                 </div>
 
                 <!-- 답글 텍스트 -->
-                <p class="mb-2 small" th:text="${reply.content.text}">답글 내용입니다.</p>
+                <p class="mb-2 small text-start" th:text="${reply.content.text}">답글 내용입니다.</p>
 
                 <!-- 답글 액션 버튼 -->
                 <div class="d-flex align-items-center gap-2">
@@ -78,12 +78,12 @@
     <!-- 답글 더보기 (Click to Load 패턴) -->
     <div class="text-center mt-3" th:if="${replies.hasNext()}">
         <button class="btn btn-link btn-sm text-muted p-0"
-                th:attr="hx-get='/comments/replies-fragment?commentId=' + ${commentId} + '&page=' + ${replies.number + 1},
+                th:attr="hx-get='/comments/' + ${commentId} + '/replies/fragments/list?page=' + ${replies.number + 1},
                          hx-target='this',
                          hx-swap='outerHTML',
                          hx-indicator='#more-replies-loading-' + ${commentId}">
             <i class="bi bi-arrow-down me-1"></i>답글 더보기
-            (<span th:text="${replies.totalElements - replies.numberOfElements}"></span>개 남음)
+            (<span th:text="${replies.totalElements - ((replies.number + 1) * replies.size)}">0</span>개 남음)
         </button>
 
         <!-- 답글 더보기 로딩 인디케이터 -->
@@ -96,43 +96,6 @@
     </div>
 </div>
 
-<!-- 단일 답글 프래그먼트 (새로 작성된 답글용) -->
-<div class="reply-item border-start border-2 border-primary ps-3 mb-3" th:fragment="single-reply">
-    <div class="d-flex">
-        <!-- 답글 작성자 프로필 이미지 -->
-        <div class="flex-shrink-0 me-2">
-            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center"
-                 style="width: 32px; height: 32px;">
-                <span class="text-white small fw-bold"
-                      th:text="${comment.author.nickname.substring(0, 1).toUpperCase()}">A</span>
-            </div>
-        </div>
-
-        <!-- 답글 내용 -->
-        <div class="flex-grow-1">
-            <!-- 답글 작성자 정보 -->
-            <div class="d-flex align-items-center mb-1">
-                <h6 class="mb-0 me-2 small fw-bold" th:text="${comment.author.nickname}">답글 작성자</h6>
-                <small class="text-muted">방금 전</small>
-                <!-- 새 답글 표시 배지 -->
-                <span class="badge bg-success text-white ms-2" style="font-size: 0.7rem;">새 답글</span>
-            </div>
-
-            <!-- 답글 텍스트 -->
-            <p class="mb-2 small" th:text="${comment.content.text}">답글 내용입니다.</p>
-
-            <!-- 답글 액션 버튼 -->
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-link p-0 text-muted small">
-                    <i class="bi bi-hand-thumbs-up me-1"></i>좋아요
-                </button>
-                <button class="btn btn-sm btn-link p-0 text-muted small">
-                    <i class="bi bi-reply me-1"></i>답글
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- 답글 로딩 상태 프래그먼트 -->
 <div th:fragment="replies-loading">

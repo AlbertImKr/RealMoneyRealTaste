@@ -36,7 +36,7 @@ class CommentReadView(
     fun getRepliesFragment(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
         @PathVariable commentId: Long,
-        @PageableDefault pageable: Pageable,
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
         val replies: Page<Comment> = commentReader.getReplies(commentId, pageable)
@@ -51,7 +51,7 @@ class CommentReadView(
     @GetMapping(CommentUrls.MODAL_COMMENTS_FRAGMENTS_LIST)
     fun getModalCommentsFragment(
         @PathVariable postId: Long,
-        @PageableDefault pageable: Pageable,
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
         val comments: Page<Comment> = commentReader.getComments(postId, pageable)
@@ -65,7 +65,7 @@ class CommentReadView(
     @GetMapping(CommentUrls.MODAL_REPLIES_FRAGMENT)
     fun getModalRepliesFragment(
         @PathVariable commentId: Long,
-        @PageableDefault pageable: Pageable,
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
         val replies: Page<Comment> = commentReader.getReplies(commentId, pageable)

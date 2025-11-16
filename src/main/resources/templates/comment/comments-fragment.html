@@ -61,14 +61,13 @@
                             </button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link btn p-0 border-0 bg-transparent"
-                                    th:attr="hx-get='/comments/'+${comment.id}+'/replies/fragments/list',
-                                     hx-target='#replies-' + ${comment.id},
-                                     hx-swap='innerHTML',
-                                     hx-indicator='#reply-loading-' + ${comment.id}">
-                                <i class="bi bi-chat-left-dots me-1"></i>답글 보기 <span
-                                    class="badge bg-light text-primary ms-1"
-                                    th:text="${comment.repliesCount}">5</span>
+                            <button class="nav-link btn p-0 border-0 bg-transparent reply-toggle-btn"
+                                    onclick="toggleReplies(this)"
+                                    th:attr="data-comment-id=${comment.id}">
+                                <i class="bi bi-chat-left-dots me-1"></i>
+                                <span class="reply-toggle-text">답글 보기</span>
+                                <span class="badge bg-light text-primary ms-1"
+                                      th:text="${comment.repliesCount}">5</span>
                             </button>
                         </li>
                         <li class="nav-item">
@@ -153,26 +152,6 @@
             <ul class="comment-item-nested list-unstyled" th:id="'replies-' + ${comment.id}">
                 <!-- 답글들이 HTMX로 동적으로 로드됩니다 -->
             </ul>
-
-            <!-- Load more replies (답글이 있을 때만 표시) -->
-            <div class="d-none" th:id="'load-more-replies-' + ${comment.id}"
-                 th:if="${comment.repliesCount > 5}">
-                <button aria-pressed="true"
-                        class="btn btn-link btn-link-loader btn-sm text-secondary d-flex align-items-center mb-3 ms-5"
-                        data-bs-toggle="button"
-                        href="#!"
-                        th:attr="hx-get='/comments/' + ${comment.id} + '/replies/fragments/list?page=1&size=5',
-                            hx-target='#replies-' + ${comment.id},
-                            hx-swap='beforeend'">
-                    <div class="spinner-dots me-2">
-                        <span class="spinner-dot"></span>
-                        <span class="spinner-dot"></span>
-                        <span class="spinner-dot"></span>
-                    </div>
-                    Load more replies
-                </button>
-            </div>
-            <!-- Comment item nested END -->
         </li>
         <!-- Comment item END -->
     </ul>
@@ -442,6 +421,9 @@
 </div>
 
 <script th:fragment="reply-form-scripts">
+    const repliesToggleState = {};
+
+
     function showReplyForm(button) {
         const commentId = button.getAttribute('data-comment-id');
         const replyForm = document.getElementById('reply-form-' + commentId);
@@ -498,6 +480,8 @@
             // 2. 답글 목록 다시 로딩
             const commentId = form.querySelector('input[name="parentCommentId"]').value;
             const repliesContainer = document.getElementById('replies-' + commentId);
+            const toggleButton = document.querySelector(`[data-comment-id="${commentId}"]`);
+
             if (repliesContainer) {
                 // HTMX를 사용하여 답글 목록 다시 로드
                 htmx.ajax('GET', '/comments/' + commentId + '/replies/fragments/list', {
@@ -505,8 +489,26 @@
                     swap: 'innerHTML'
                 });
 
+                // 토글 상태를 "보기" 상태로 설정 (답글이 추가되었으므로 보이는 상태로)
+                if (toggleButton) {
+                    toggleButton.setAttribute('data-replies-visible', 'true');
+                    const toggleText = toggleButton.querySelector('.reply-toggle-text');
+                    const icon = toggleButton.querySelector('i');
+
+                    if (toggleText) {
+                        toggleText.textContent = '답글 숨기기';
+                    }
+                    if (icon) {
+                        icon.className = 'bi bi-chevron-up me-1 transition-transform';
+                    }
+                }
+                repliesToggleState[commentId] = true;
+
                 // 답글 수 업데이트
                 updateRepliesCount(commentId);
+
+                // 답글 컨테이너 보이기 (혹시 숨겨져 있다면)
+                repliesContainer.style.display = 'block';
             }
 
             // 3. 성공 메시지 표시 (선택적)
@@ -538,6 +540,56 @@
         document.body.insertAdjacentHTML('beforeend', toastHtml);
         const toast = new bootstrap.Toast(document.querySelector('.toast:last-child'));
         toast.show();
+    }
+
+    // 답글 토글 상태를 추적하는 객체
+
+    function toggleReplies(button) {
+        console.log("토글 답글 실행");
+        const commentId = button.getAttribute('data-comment-id');
+        const repliesContainer = document.getElementById('replies-' + commentId);
+        const toggleText = button.querySelector('.reply-toggle-text');
+        const loadingIndicator = document.getElementById('reply-loading-' + commentId);
+
+        // 현재 상태 확인
+        const isVisible = repliesToggleState[commentId] || false;
+
+        if (!isVisible) {
+            // 답글 보기
+            toggleText.textContent = '답글 숨기기';
+            button.querySelector('i').className = 'bi bi-chevron-up me-1';
+
+            // 로딩 인디케이터 표시
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('htmx-indicator');
+            }
+
+            // HTMX로 답글 로드
+            htmx.ajax('GET', '/comments/' + commentId + '/replies/fragments/list', {
+                target: '#replies-' + commentId,
+                swap: 'innerHTML',
+                indicator: '#reply-loading-' + commentId
+            }).then(() => {
+                // 로딩 완료 후 상태 업데이트
+                repliesToggleState[commentId] = true;
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('htmx-indicator');
+                }
+            });
+
+        } else {
+            // 답글 숨기기
+            toggleText.textContent = '답글 보기';
+            button.querySelector('i').className = 'bi bi-chat-left-dots me-1';
+
+            // 답글 컨테이너 비우기
+            if (repliesContainer) {
+                repliesContainer.innerHTML = '';
+            }
+
+            // 상태 업데이트
+            repliesToggleState[commentId] = false;
+        }
     }
 </script>
 
