@@ -35,6 +35,8 @@ class Post protected constructor(
 
     status: PostStatus,
 
+    commentCount: Int = 0,
+
     heartCount: Int,
 
     viewCount: Int,
@@ -89,6 +91,10 @@ class Post protected constructor(
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     var status: PostStatus = status
+        protected set
+
+    @Column(name = "comment_count", nullable = false)
+    var commentCount: Int = commentCount
         protected set
 
     @Column(name = "heart_count", nullable = false)

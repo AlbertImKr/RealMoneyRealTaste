@@ -5,6 +5,9 @@ import com.albert.realmoneyrealtaste.application.post.provided.PostCreator
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostUpdater
 import jakarta.validation.Valid
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -26,6 +29,22 @@ class PostView(
     ): String {
         val post = postCreator.createPost(memberPrincipal.memberId, form.toPostCreateRequest())
         return PostUrls.REDIRECT_READ_DETAIL.format(post.requireId())
+    }
+
+    @GetMapping(PostUrls.READ_MY_LIST)
+    fun readMyPosts(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+        model: Model,
+    ): String {
+        val postsPage = postReader.readPostsByAuthor(
+            authorId = memberPrincipal.memberId,
+            pageable = pageable,
+        )
+        model.addAttribute("postCreateForm", PostCreateForm())
+        model.addAttribute("posts", postsPage)
+        model.addAttribute("member", memberPrincipal)
+        return PostViews.MY_LIST
     }
 
     @GetMapping(PostUrls.READ_DETAIL)
