@@ -6,7 +6,11 @@
 <body>
 
 <!-- Modal create post fragment -->
-<div aria-hidden="true" aria-labelledby="modalLabelCreateFeed" class="modal fade" id="modalCreateFeed"
+<div aria-hidden="true"
+     aria-labelledby="modalLabelCreateFeed"
+     aria-modal="true"
+     class="modal fade"
+     id="modalCreateFeed"
      tabindex="-1" th:fragment="modal-create-post">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content">
@@ -161,11 +165,28 @@
         // 모달이 열릴 때마다 초기화
         const modalElement = document.getElementById('modalCreateFeed');
         if (modalElement) {
+            // 모달이 열린 후
             modalElement.addEventListener('shown.bs.modal', function () {
                 initModalRatingStars();
                 initModalImageUpload();
             });
         }
+
+        // 모달이 닫히기 시작할 때 (중요!)
+        modalElement.addEventListener('hide.bs.modal', function () {
+            // 포커스된 요소가 있다면 포커스 해제
+            const focusedElement = this.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+
+            // 또는 모달 트리거 요소로 포커스 복원
+            const triggerElement = document.activeElement;
+            if (triggerElement && triggerElement.closest('.modal')) {
+                // 모달 밖의 요소로 포커스 이동
+                document.body.focus();
+            }
+        });
 
         // 평점 선택 기능
         function initModalRatingStars() {
