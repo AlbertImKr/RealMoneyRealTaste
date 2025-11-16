@@ -29,6 +29,7 @@ class Comment protected constructor(
     content: CommentContent,
     parentCommentId: Long?,
     status: CommentStatus,
+    replyCount: Int = 0,
     createdAt: LocalDateTime,
     updatedAt: LocalDateTime,
 ) : BaseEntity() {
@@ -95,6 +96,10 @@ class Comment protected constructor(
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     var status: CommentStatus = status
+        protected set
+
+    @Column(name = "reply_count", nullable = false)
+    var repliesCount: Int = replyCount
         protected set
 
     @Column(name = "created_at", nullable = false, updatable = false)
