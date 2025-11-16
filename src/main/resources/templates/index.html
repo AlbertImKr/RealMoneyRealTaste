@@ -133,7 +133,7 @@
                                         <!-- Side Nav START -->
                                         <ul class="nav nav-link-secondary flex-column fw-bold gap-2">
                                             <li class="nav-item">
-                                                <a class="nav-link" th:href="@{/posts/mime}">
+                                                <a class="nav-link" th:href="@{/posts/mine}">
                                                     <img alt=""
                                                          class="me-2 h-20px fa-fw"
                                                          src="/assets/images/icon/home-outline-filled.svg">
@@ -677,17 +677,8 @@ JS libraries, plugins and custom scripts -->
         if (modalElement) {
             // 모달이 닫히기 시작할 때 (중요!)
             modalElement.addEventListener('hide.bs.modal', function () {
-                // 포커스된 요소가 있다면 포커스 해제
-                const focusedElement = this.querySelector(':focus');
-                if (focusedElement) {
-                    focusedElement.blur();
-                }
-
-                // 또는 모달 트리거 요소로 포커스 복원
-                const triggerElement = document.activeElement;
-                if (triggerElement && triggerElement.closest('.modal')) {
-                    // 모달 밖의 요소로 포커스 이동
-                    document.body.focus();
+                if (document.activeElement) {
+                    document.activeElement.blur();
                 }
             });
         }
