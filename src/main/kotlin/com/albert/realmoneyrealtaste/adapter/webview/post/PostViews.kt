@@ -6,4 +6,5 @@ object PostViews {
     const val MY_LIST = "post/my-list"
 
     const val DETAIL_MODAL = "post/modal-detail :: post-detail-modal"
+    const val POSTS_CONTENT = "post/fragments :: posts-content"
 }

@@ -47,6 +47,21 @@ class PostView(
         return PostViews.MY_LIST
     }
 
+    @GetMapping(PostUrls.READ_MY_LIST_FRAGMENT)
+    fun readMyPostsFragment(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+        model: Model,
+    ): String {
+        val postsPage = postReader.readPostsByAuthor(
+            authorId = memberPrincipal.memberId,
+            pageable = pageable,
+        )
+        model.addAttribute("posts", postsPage)
+        model.addAttribute("member", memberPrincipal)
+        return PostViews.POSTS_CONTENT
+    }
+
     @GetMapping(PostUrls.READ_DETAIL)
     fun readPost(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
