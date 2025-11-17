@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 @Entity
 class MemberDetail protected constructor(
     profileAddress: ProfileAddress?,
+    address: String?,
     introduction: Introduction?,
     val registeredAt: LocalDateTime,
     activatedAt: LocalDateTime?,
@@ -22,6 +23,10 @@ class MemberDetail protected constructor(
 
     @Embedded
     var introduction: Introduction? = introduction
+        protected set
+
+    @Column
+    var address: String? = address
         protected set
 
     @Column(name = "activated_at")
@@ -53,6 +58,7 @@ class MemberDetail protected constructor(
                 activatedAt = null,
                 deactivatedAt = null,
                 registeredAt = LocalDateTime.now(),
+                address = null
             )
 
         fun register(): MemberDetail = MemberDetail(
@@ -60,7 +66,8 @@ class MemberDetail protected constructor(
             introduction = null,
             activatedAt = null,
             deactivatedAt = null,
-            registeredAt = LocalDateTime.now()
+            registeredAt = LocalDateTime.now(),
+            address = null
         )
     }
 }

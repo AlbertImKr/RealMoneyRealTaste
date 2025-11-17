@@ -7,6 +7,7 @@ import com.albert.realmoneyrealtaste.domain.member.value.Role
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.io.Serializable
+import java.time.LocalDateTime
 
 data class MemberPrincipal(
     val memberId: Long,
@@ -14,7 +15,11 @@ data class MemberPrincipal(
     val nickname: Nickname,
     val active: Boolean,
     val introduction: String,
+    val address: String,
+    val createdAt: LocalDateTime,
     private val roles: Set<Role>,
+    val followersCount: Long = 0L,
+    val followingsCount: Long = 0L,
 ) : Serializable {
 
     fun getAuthorities(): Collection<GrantedAuthority> {
@@ -31,6 +36,8 @@ data class MemberPrincipal(
                 roles = member.roles.getRoles(),
                 active = member.isActive(),
                 introduction = introValue ?: "아직 자기소개가 없어요!",
+                address = member.detail.address ?: "아직 주소가 없어요!",
+                createdAt = member.detail.registeredAt,
             )
         }
     }

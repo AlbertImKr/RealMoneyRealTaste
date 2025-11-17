@@ -54,4 +54,25 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     fun existsByRelationShip(relationShip: FriendRelationship): Boolean
 
     fun findByRelationShip(relationShip: FriendRelationship): Friendship?
+
+    @Query(
+        """
+        SELECT f1 FROM Friendship f1
+        WHERE f1.relationShip.memberId = :memberId 
+        AND f1.status = :status
+        AND EXISTS (
+            SELECT 1 FROM Friendship f2 
+            WHERE f2.relationShip.friendMemberId = :memberId 
+            AND f2.relationShip.memberId = f1.relationShip.friendMemberId 
+            AND f2.status = :status
+        )
+    """
+    )
+    fun findMutualFriendships(
+        memberId: Long,
+        status: FriendshipStatus,
+        pageable: Pageable,
+    ): Page<Friendship>
+
+    fun countFriendshipsByRelationShipMemberIdAndStatus(memberId: Long, status: FriendshipStatus): Long
 }

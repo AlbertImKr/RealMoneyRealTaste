@@ -47,6 +47,10 @@ class Member protected constructor(
     roles: Roles,
 
     updatedAt: LocalDateTime,
+
+    followersCount: Long = 0L,
+
+    followingsCount: Long = 0L,
 ) : BaseEntity() {
 
     @Embedded
@@ -81,6 +85,14 @@ class Member protected constructor(
 
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime = updatedAt
+        protected set
+
+    @Column(name = "follower_count", nullable = false)
+    var followersCount: Long = followersCount
+        protected set
+
+    @Column(name = "following_count", nullable = false)
+    var followingsCount: Long = followingsCount
         protected set
 
     fun activate() {

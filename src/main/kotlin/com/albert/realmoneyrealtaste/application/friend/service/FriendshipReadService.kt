@@ -53,9 +53,10 @@ class FriendshipReadService(
     }
 
     override fun findFriendsByMemberId(memberId: Long, pageable: Pageable): Page<FriendshipResponse> {
-        val friendships = friendshipRepository.findReceivedFriendships(
+        val friendships = friendshipRepository.findMutualFriendships(
             memberId, FriendshipStatus.ACCEPTED, pageable
         )
+
         return mapToFriendshipResponses(friendships)
     }
 
@@ -96,5 +97,9 @@ class FriendshipReadService(
 
     override fun existsByMemberIds(memberId: Long, friendMemberId: Long): Boolean {
         return friendshipRepository.existsByRelationShip(FriendRelationship(memberId, friendMemberId))
+    }
+
+    override fun countFriendsByMemberId(memberId: Long): Long {
+        return friendshipRepository.countFriendshipsByRelationShipMemberIdAndStatus(memberId, FriendshipStatus.ACCEPTED)
     }
 }

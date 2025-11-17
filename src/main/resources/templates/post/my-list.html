@@ -74,17 +74,28 @@
                                     <span th:text="${member?.nickname?.value ?: '사용자'}">Sam Lanson</span>
                                     <i class="bi bi-patch-check-fill text-success small"></i>
                                 </h1>
-                                <p th:text="${followStats?.followersCount ?: 0} + ' connections'">250 connections</p>
+
+                                <!-- 팔로우 통계 -->
+                                <div class="d-flex gap-3 text-muted small">
+                                    <span th:id="followers-stat"
+                                          th:text="${member?.followersCount ?: 0} + ' followers'">0
+                                        followers</span>
+                                    <span th:id="following-stat"
+                                          th:text="${member?.followingsCount ?: 0} + ' following'">0
+                                        following</span>
+                                </div>
                             </div>
                             <!-- Button -->
                             <div class="d-flex mt-3 justify-content-center ms-sm-auto">
-                                <button class="btn btn-danger-soft me-2" th:onclick="|location.href='@{/members/setting}'|"
+                                <button class="btn btn-danger-soft me-2"
+                                        th:onclick="|location.href='@{/members/setting}'|"
                                         type="button">
                                     <i class="bi bi-pencil-fill pe-1"></i> Edit profile
                                 </button>
                                 <div class="dropdown">
                                     <!-- Card share action menu -->
-                                    <button aria-expanded="false" class="icon-md btn btn-light" data-bs-toggle="dropdown"
+                                    <button aria-expanded="false" class="icon-md btn btn-light"
+                                            data-bs-toggle="dropdown"
                                             id="profileAction2" type="button">
                                         <i class="bi bi-three-dots"></i>
                                     </button>
@@ -109,16 +120,17 @@
 
                         <!-- List profile -->
                         <ul class="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
-                            <li class="list-inline-item"><i class="bi bi-briefcase me-1"></i>
+                            <li class="list-inline-item"><i class="bi bi-person-circle me-1"></i>
                                 <span th:text="${member?.introduction ?: '진짜 내돈내산 푸드 리뷰어'}">Food Reviewer at RMRT</span>
                             </li>
                             <li class="list-inline-item">
                                 <i class="bi bi-geo-alt me-1"></i>
-                                <span>Seoul, Korea</span>
+                                <span th:text="${member?.address ?: 'Seoul, South Korea'}">Seoul, South Korea</span>
                             </li>
                             <li class="list-inline-item">
                                 <i class="bi bi-calendar2-plus me-1"></i>
-                                Joined on <span>Nov 26, 2019</span>
+                                Joined on <span th:text="${#temporals.format(member?.createdAt, 'MMMM yyyy')}">Jan
+                                    2020</span>
                             </li>
                         </ul>
                     </div>
@@ -131,26 +143,19 @@
                                 <a class="nav-link active" th:href="@{/posts/mime}"> Posts </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" th:href="@{/members/about}"> About </a>
+                                <a class="nav-link" th:href="@{/members/{id}/collections(id=${member.memberId})}">
+                                    Collections </a>
+                            <li class="nav-item">
+                                <a class="nav-link" th:href="@{/members/{id}/about(id=${member.memberId})}">
+                                    Following </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" th:href="@{/members/connections}">
-                                    Connections
-                                    <span class="badge bg-success bg-opacity-10 text-success small"
-                                          th:text="${followStats?.followersCount ?: 0}">230</span>
-                                </a>
+                                <a class="nav-link" th:href="@{/members/{id}/about(id=${member.memberId})}">
+                                    Followers </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" th:href="@{/posts/media}"> Media</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/posts/videos}"> Videos</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/events}"> Events</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" th:href="@{/members/activity}"> Activity</a>
+                                <a class="nav-link" th:href="@{/members/{id}/events(id=${member.memberId})}">
+                                    Events</a>
                             </li>
                         </ul>
                     </div>
@@ -171,7 +176,8 @@
                         <!-- Post input -->
                         <form class="w-100">
                             <label class="visually-hidden" for="postInput">Create post</label>
-                            <input class="form-control pe-4 border-0" data-bs-target="#modalCreateFeed" data-bs-toggle="modal"
+                            <input class="form-control pe-4 border-0" data-bs-target="#modalCreateFeed"
+                                   data-bs-toggle="modal"
                                    id="postInput"
                                    th:placeholder="${member?.nickname?.value ?: '사용자'} + '님, 어떤 맛집을 다녀오셨나요?'"
                                    type="text">
@@ -181,25 +187,29 @@
                     <!-- Share feed toolbar START -->
                     <ul class="nav nav-pills nav-stack small fw-normal">
                         <li class="nav-item">
-                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed" data-bs-toggle="modal"
+                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                               data-bs-toggle="modal"
                                href="#">
                                 <i class="bi bi-image-fill text-success pe-2"></i>Photo
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed" data-bs-toggle="modal"
+                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                               data-bs-toggle="modal"
                                href="#">
                                 <i class="bi bi-geo-alt-fill text-danger pe-2"></i>Location
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed" data-bs-toggle="modal"
+                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                               data-bs-toggle="modal"
                                href="#">
                                 <i class="bi bi-star-fill text-warning pe-2"></i>Rating
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed" data-bs-toggle="modal"
+                            <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                               data-bs-toggle="modal"
                                href="#">
                                 <i class="bi bi-emoji-smile-fill text-warning pe-2"></i>Feeling /Activity
                             </a>
@@ -457,41 +467,6 @@
             <!-- Right sidebar START -->
             <div class="col-lg-4">
                 <div class="row g-4">
-                    <!-- Card START -->
-                    <div class="col-md-6 col-lg-12">
-                        <div class="card">
-                            <div class="card-header border-0 pb-0">
-                                <h5 class="card-title">About</h5>
-                            </div>
-                            <!-- Card body START -->
-                            <div class="card-body position-relative pt-0">
-                                <p th:text="${member?.introduction ?: '진짜 내돈내산으로 맛집을 찾아 다니며 솔직한 리뷰를 작성합니다. 광고나 협찬 없는 진짜 후기만 공유해요!'}">
-                                    He moonlights difficult engrossed it, sportsmen. Interested has all Devonshire
-                                    difficulty gay assistance joy.
-                                </p>
-                                <!-- Date time -->
-                                <ul class="list-unstyled mt-3 mb-0">
-                                    <li class="mb-2">
-                                        <i class="bi bi-calendar-date fa-fw pe-1"></i>
-                                        Born: <strong
-                                    >October
-                                        20, 1990</strong>
-                                    </li>
-                                    <li class="mb-2">
-                                        <i class="bi bi-heart fa-fw pe-1"></i>
-                                        Status: <strong>Single</strong>
-                                    </li>
-                                    <li>
-                                        <i class="bi bi-envelope fa-fw pe-1"></i>
-                                        Email: <strong>webestica@gmail.com</strong>
-                                    </li>
-                                </ul>
-                            </div>
-                            <!-- Card body END -->
-                        </div>
-                    </div>
-                    <!-- Card END -->
-
                     <!-- Card follow START -->
                     <div class="col-md-6 col-lg-12">
                         <div class="card">
@@ -500,7 +475,7 @@
                                 <h5 class="card-title">
                                     Friends
                                     <span class="badge bg-danger bg-opacity-10 text-danger"
-                                          th:text="${followStats?.followersCount ?: 0}">230</span>
+                                          th:text="${member?.followersCount ?: 0}">230</span>
                                 </h5>
                                 <a class="btn btn-primary-soft btn-sm" th:href="@{/members/connections}"> See all
                                     friends</a>

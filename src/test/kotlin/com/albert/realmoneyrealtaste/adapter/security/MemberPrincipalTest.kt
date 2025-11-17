@@ -10,6 +10,7 @@ import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import com.albert.realmoneyrealtaste.domain.member.value.Role
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -26,7 +27,9 @@ class MemberPrincipalTest {
             nickname = Nickname("testUser"),
             active = true,
             introduction = "안녕하세요",
-            roles = roles
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
+            roles = roles,
         )
 
         val authorities = principal.getAuthorities()
@@ -44,6 +47,8 @@ class MemberPrincipalTest {
             nickname = Nickname("testUser"),
             active = true,
             introduction = "",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
             roles = emptySet()
         )
 
@@ -60,6 +65,8 @@ class MemberPrincipalTest {
             nickname = Nickname("testUser"),
             active = true,
             introduction = "",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
             roles = setOf(Role.MANAGER)
         )
 
@@ -167,6 +174,8 @@ class MemberPrincipalTest {
             nickname = nickname,
             active = true,
             introduction = "자기소개",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
             roles = roles
         )
 
@@ -186,6 +195,8 @@ class MemberPrincipalTest {
             nickname = Nickname("testUser"),
             active = true,
             introduction = "",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
             roles = allRoles
         )
 

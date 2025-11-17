@@ -80,4 +80,12 @@ interface FriendshipReader {
      * @return 친구 관계가 존재하면 true, 그렇지 않으면 false
      */
     fun existsByMemberIds(memberId: Long, friendMemberId: Long): Boolean
+
+    /**
+     * 특정 회원의 친구 수를 계산합니다.
+     *
+     * @param memberId 회원 ID
+     * @return 친구 수
+     */
+    fun countFriendsByMemberId(memberId: Long): Long
 }
