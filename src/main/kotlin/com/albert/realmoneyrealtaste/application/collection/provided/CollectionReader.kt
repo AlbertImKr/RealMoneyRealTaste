@@ -9,4 +9,6 @@ interface CollectionReader {
     fun readMyCollections(ownerMemberId: Long, pageRequest: Pageable): Page<PostCollection>
 
     fun readMyPublicCollections(ownerMemberId: Long, pageRequest: Pageable): Page<PostCollection>
+
+    fun readById(collectionId: Long): PostCollection
 }

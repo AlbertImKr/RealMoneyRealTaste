@@ -37,4 +37,28 @@ class CollectionUpdateService(
             throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
         }
     }
+
+    override fun addPost(collectionId: Long, postId: Long, ownerMemberId: Long) {
+        val collection = collectionRepository.findByIdAndOwnerMemberId(
+            collectionId = collectionId,
+            ownerMemberId = ownerMemberId,
+        ) ?: throw IllegalArgumentException(ERROR_READING_COLLECTION)
+
+        collection.addPost(
+            memberId = ownerMemberId,
+            postId = postId,
+        )
+    }
+
+    override fun removePost(collectionId: Long, postId: Long, ownerMemberId: Long) {
+        val collection = collectionRepository.findByIdAndOwnerMemberId(
+            collectionId = collectionId,
+            ownerMemberId = ownerMemberId,
+        ) ?: throw IllegalArgumentException(ERROR_READING_COLLECTION)
+
+        collection.removePost(
+            memberId = ownerMemberId,
+            postId = postId,
+        )
+    }
 }

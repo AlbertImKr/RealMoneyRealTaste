@@ -98,4 +98,12 @@ interface PostReader {
      * @return 작성자에 해당하는 게시글 목록 (페이징)
      */
     fun readPostsByAuthor(authorId: Long, pageable: Pageable): Page<Post>
+
+    /**
+     * 게시글 ID 목록으로 게시글들을 조회합니다.
+     *
+     * @param postIds 조회할 게시글 ID 목록
+     * @return 조회된 게시글 목록
+     */
+    fun readPostsByIds(postIds: List<Long>): List<Post>
 }
