@@ -116,7 +116,7 @@
                             <div class="d-flex gap-1" th:if="${collection.owner.memberId == member.memberId}">
                                 <a class="btn btn-outline-info btn-sm"
                                    hx-target="#modal-container"
-                                   th:attr="hx-get=@{/collections/{id}/fragment(id=${collection.id})}">
+                                   th:attr="hx-get=@{/collections/{id}/edit/fragment(id=${collection.id})}">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
