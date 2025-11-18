@@ -33,7 +33,8 @@
     <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
 
     <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.8"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.8/dist/ext/json-enc.js"></script>
 
 </head>
 <body>
@@ -139,7 +140,7 @@
                     <div class="card-footer mt-3 pt-2 pb-0">
                         <!-- Nav profile pages -->
                         <ul class="nav nav-bottom-line align-items-center justify-content-center justify-content-md-start mb-0 border-0">
-                            <li class="nav-item">
+                            <li class="nav-item active">
                                 <button class="nav-link"
                                         hx-get="/posts/mine/fragment"
                                         hx-indicator="#loading-indicator"
@@ -150,8 +151,8 @@
                                 </button>
                             </li>
                             <li class="nav-item">
-                                <button class="nav-link active"
-                                        hx-get="/collections/fragment"
+                                <button class="nav-link"
+                                        hx-get="/collections/my-list/fragment"
                                         hx-indicator="#loading-indicator"
                                         hx-swap="innerHTML"
                                         hx-target="#content-area"
@@ -326,6 +327,10 @@
     </div>
 </div>
 <!-- Post Detail Modal END -->
+
+<!-- Modal container for dynamic modals START -->
+<div id="modal-container"></div>
+<!-- Modal container for dynamic modals END -->
 
 <!-- =======================
 JS libraries, plugins and custom scripts -->

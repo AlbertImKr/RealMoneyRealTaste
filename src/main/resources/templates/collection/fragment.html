@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Collections Fragment</title>
+</head>
+<body>
+<div th:fragment="collections-content">
+    <!-- Collections 헤더 -->
+    <div class="card-header d-flex justify-content-between align-items-center border-0 pb-0">
+        <div class="d-flex align-items-center">
+            <h5 class="card-title mb-0 me-3">My Collections</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary"
+                  th:text="${totalCollections ?: 0}">0</span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <!-- 필터 드롭다운 -->
+            <div class="dropdown">
+                <button class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-funnel"></i> 필터
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <button class="dropdown-item"
+                                hx-get="/collections/my-list/fragment"
+                                hx-target="#content-area"
+                                hx-vals='{"filter": "all"}'>
+                            <i class="bi bi-collection"></i> 전체
+                        </button>
+                    </li>
+                    <li>
+                        <button class="dropdown-item"
+                                hx-get="/collections/my-list/fragment"
+                                hx-target="#content-area"
+                                hx-vals='{"filter": "public"}'>
+                            <i class="bi bi-globe"></i> 공개
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <button class="btn btn-primary btn-sm"
+                    hx-get="/collections/write/fragment"
+                    hx-target="#modal-container">
+                <i class="bi bi-plus-lg"></i> 컬렉션 만들기
+            </button>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <!-- 컬렉션이 없을 때 -->
+        <div class="text-center py-5" th:if="${collections == null or collections.content.isEmpty()}">
+            <i class="bi bi-collection display-1 text-muted"></i>
+            <h5 class="mt-3">아직 컬렉션이 없습니다</h5>
+            <p class="text-muted">즐겨찾는 맛집들을 모아서 첫 번째 컬렉션을 만들어보세요!</p>
+            <button class="btn btn-primary"
+                    hx-get="/collections/write/fragment"
+                    hx-target="#modal-container">
+                <i class="bi bi-plus-circle me-2"></i>컬렉션 만들기
+            </button>
+        </div>
+
+        <!-- 컬렉션 그리드 -->
+        <div class="row g-3" th:if="${collections != null and !collections.content.isEmpty()}">
+            <!-- Collection cards -->
+            <div class="col-sm-6 col-md-4 col-lg-4" th:each="collection : ${collections.content}">
+                <div class="card h-100">
+                    <!-- 커버 이미지 영역 (coverImageUrl 활용) -->
+                    <div class="position-relative">
+                        <img class="card-img-top"
+                             style="height: 200px; object-fit: cover;"
+                             th:alt="${collection.info.name}"
+                             th:if="${collection.info.coverImageUrl}"
+                             th:src="${collection.info.coverImageUrl}">
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                             style="height: 200px;"
+                             th:unless="${collection.info.coverImageUrl}">
+                            <i class="fas fa-images text-muted fa-3x"></i>
+                        </div>
+
+                        <!-- 공개/비공개 상태 표시 -->
+                        <span class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-secondary"
+                          th:if="${collection.privacy.name() == 'PRIVATE'}">
+                        <i class="fas fa-lock me-1"></i>비공개
+                    </span>
+                    <span class="badge bg-success"
+                          th:if="${collection.privacy.name() == 'PUBLIC'}">
+                        <i class="fas fa-globe me-1"></i>공개
+                    </span>
+                </span>
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title" th:text="${collection.info.name}">컬렉션 이름</h5>
+                        <p class="card-text text-muted mb-3" th:text="${collection.info.description}">컬렉션 설명</p>
+
+                        <!-- 컬렉션 메타 정보 -->
+                        <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
+                    <span>
+                        <i class="fas fa-bookmark me-1"></i>
+                        <span th:text="${collection.postCount}">0</span>개 게시글
+                    </span>
+                            <span th:text="${#temporals.format(collection.createdAt, 'yyyy.MM.dd')}">2024.01.01</span>
+                        </div>
+
+                        <!-- 액션 버튼들 -->
+                        <div class="mt-auto d-flex gap-2">
+                            <a class="btn btn-outline-primary flex-fill"
+                               th:href="@{/collections/{id}(id=${collection.id})}">
+                                <i class="fas fa-eye me-1"></i>보기
+                            </a>
+
+                            <!-- 소유자인 경우에만 수정/삭제 버튼 표시 -->
+                            <div class="d-flex gap-1" th:if="${collection.owner.memberId == currentMemberId}">
+                                <a class="btn btn-outline-secondary btn-sm"
+                                   th:href="@{/collections/{id}/edit(id=${collection.id})}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm"
+                                        th:onclick="'deleteCollection(' + ${collection.id} + ')'"
+                                        type="button">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Load more collections -->
+        <div class="text-center mt-4" th:if="${collections.hasNext()}">
+            <button class="btn btn-outline-primary"
+                    hx-get="/collections/fragment"
+                    hx-swap="innerHTML"
+                    hx-target="#content-area"
+                    th:attr="hx-vals='{page:' + ${collections.number + 1} + '}'">
+                더 많은 컬렉션 보기
+            </button>
+        </div>
+    </div>
+</div>
+<!-- 컬렉션 생성 폼 프래그먼트 -->
+<div th:fragment="write-collection">
+    <div aria-modal="true"
+         class="modal fade show"
+         id="collectionCreateModal"
+         style="display: block;"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>새 컬렉션 만들기
+                        </h5>
+                        <button aria-label="Close"
+                                class="btn-close"
+                                onclick="this.closest('#modal-container').innerHTML=''"
+                                type="button"></button>
+                    </div>
+
+                    <div class="card-body">
+                        <form hx-ext="json-enc"
+                              hx-headers='{"Content-Type": "application/json"}'
+                              hx-indicator="#create-loading"
+                              hx-post="/api/collections"
+                              hx-swap="innerHTML"
+                              hx-target="#content-area">
+
+                            <!-- 컬렉션 이름 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="collectionName">컬렉션 이름 *</label>
+                                <input class="form-control"
+                                       id="collectionName"
+                                       maxlength="50"
+                                       name="name"
+                                       placeholder="예: 강남 맛집 모음"
+                                       required
+                                       type="text">
+                                <div class="form-text">최대 50자까지 입력 가능합니다.</div>
+                            </div>
+
+                            <!-- 컬렉션 설명 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="collectionDescription">컬렉션 설명</label>
+                                <textarea class="form-control"
+                                          id="collectionDescription"
+                                          maxlength="200"
+                                          name="description"
+                                          placeholder="이 컬렉션에 대한 설명을 작성해주세요"
+                                          rows="3"></textarea>
+                                <div class="form-text">최대 200자까지 입력 가능합니다.</div>
+                            </div>
+
+                            <!-- 커버 이미지 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="coverImageUrl">커버 이미지 URL</label>
+                                <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-image"></i>
+                        </span>
+                                    <input class="form-control"
+                                           id="coverImageUrl"
+                                           name="coverImageUrl"
+                                           placeholder="https://example.com/image.jpg"
+                                           type="url">
+                                </div>
+                                <div class="form-text">선택사항: 컬렉션을 대표할 이미지 URL을 입력해주세요.</div>
+                            </div>
+
+                            <!-- 공개 설정 -->
+                            <div class="mb-4">
+                                <span class="form-label">공개 설정</span>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input checked
+                                                   class="form-check-input"
+                                                   id="privacyPublic"
+                                                   name="visibility"
+                                                   type="radio"
+                                                   value="PUBLIC">
+                                            <label class="form-check-label" for="privacyPublic">
+                                                <i class="bi bi-globe text-success me-1"></i>
+                                                <strong>공개</strong>
+                                                <div class="small text-muted">모든 사용자가 볼 수 있습니다</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   id="privacyPrivate"
+                                                   name="visibility"
+                                                   type="radio"
+                                                   value="PRIVATE">
+                                            <label class="form-check-label" for="privacyPrivate">
+                                                <i class="bi bi-lock text-secondary me-1"></i>
+                                                <strong>비공개</strong>
+                                                <div class="small text-muted">나만 볼 수 있습니다</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 버튼 영역 -->
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-secondary"
+                                        onclick="this.closest('#modal-container').innerHTML=''"
+                                        type="button">
+                                    <i class="bi bi-x-lg me-1"></i>취소
+                                </button>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-plus-circle me-1"></i>컬렉션 만들기
+                                    <!-- 로딩 스피너 -->
+                                    <span class="spinner-border spinner-border-sm ms-2 d-none"
+                                          id="create-loading"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+</div>
+</body>
+</html>
