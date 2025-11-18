@@ -7,7 +7,7 @@
 <div th:fragment="posts-content">
     <!-- Posts 헤더 -->
     <!-- Share feed START -->
-    <div class="card card-body">
+    <div class="card card-body m-3">
         <div class="d-flex mb-3">
             <!-- Avatar -->
             <div class="avatar avatar-xs me-2">
@@ -81,7 +81,7 @@
     </div>
     <!-- Share feed END -->
 
-    <div class="card-body">
+    <div class="card-body d-grid gap-3">
         <!-- 포스트가 없을 때 -->
         <div class="card text-center py-5" th:if="${posts == null or posts.isEmpty()}">
             <div class="card-body">
@@ -95,7 +95,7 @@
         </div>
 
         <!-- 포스트 리스트 -->
-        <div class="card card-body d-grid gap-3" th:each="post : ${posts.content}">
+        <div class="card card-body" th:each="post : ${posts.content}">
             <!-- Card header START -->
             <div class="card-header border-0 pb-0">
                 <div class="d-flex align-items-center justify-content-between">

@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.collection.required
 
 import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
+import com.albert.realmoneyrealtaste.domain.collection.CollectionStatus
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -38,9 +39,22 @@ interface CollectionRepository : Repository<PostCollection, Long> {
      */
     fun findByOwnerMemberId(ownerMemberId: Long, pageRequest: Pageable): Page<PostCollection>
 
+    fun findByOwnerMemberIdAndStatus(
+        ownerMemberId: Long,
+        status: CollectionStatus,
+        pageRequest: Pageable,
+    ): Page<PostCollection>
+
     fun findByOwnerMemberIdAndPrivacy(
         ownerMemberId: Long,
         privacy: CollectionPrivacy,
+        pageRequest: Pageable,
+    ): Page<PostCollection>
+
+    fun findByOwnerMemberIdAndPrivacyAndStatus(
+        ownerMemberId: Long,
+        privacy: CollectionPrivacy,
+        status: CollectionStatus,
         pageRequest: Pageable,
     ): Page<PostCollection>
 }

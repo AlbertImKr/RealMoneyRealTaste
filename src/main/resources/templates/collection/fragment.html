@@ -128,7 +128,8 @@
                                 </a>
 
                                 <button class="btn btn-outline-danger btn-sm"
-                                        th:onclick="'deleteCollection(' + ${collection.id} + ')'"
+                                        hx-on::after-request="initCollection(event)"
+                                        th:attr="hx-delete=@{/api/collections/{id}(id=${collection.id})}"
                                         type="button">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -150,6 +151,18 @@
             </button>
         </div>
     </div>
+    <script>
+        function initCollection(event) {
+            if (event.detail.successful) {
+                htmx.ajax('GET', '/collections/my-list/fragment', {
+                    target: '#content-area',
+                    swap: 'innerHTML'
+                });
+
+                document.getElementById('modal-container').innerHTML = '';
+            }
+        }
+    </script>
 </div>
 
 <!-- 컬렉션 생성 폼 프래그먼트 -->
@@ -177,7 +190,7 @@
                               hx-headers='{"Content-Type": "application/json"}'
                               hx-indicator="#create-loading"
                               hx-post="/api/collections"
-                              hx-swap="innerHTML"
+                              hx-on::after-request="initCollection(event)"
                               hx-target="#content-area">
 
                             <!-- 컬렉션 이름 -->
@@ -323,7 +336,7 @@
                                                 </div>
                                                 <button class="btn btn-outline-danger btn-sm"
                                                         th:attr="hx-delete=@{/api/collections/{collectionId}/posts/{postId}(collectionId=${collection.id}, postId=${post.id})}"
-                                                        th:hx-on::after-request="|handleEventSuccess(event, ${collection.id})|"
+                                                        th:hx-on::after-request="|initCollectionManagePosts(event, ${collection.id})|"
                                                         type="button"
                                                 >
                                                     <i class="bi bi-x"></i> 제거
@@ -372,7 +385,7 @@
                                                 <!-- 추가 가능한 경우 -->
                                                 <button class="btn btn-outline-primary btn-sm"
                                                         th:attr="hx-post=@{/api/collections/{collectionId}/posts/{postId}(collectionId=${collection.id}, postId=${post.id})}"
-                                                        th:hx-on::after-request="|handleEventSuccess(event, ${collection.id})|"
+                                                        th:hx-on::after-request="|initCollectionManagePosts(event, ${collection.id})|"
                                                         th:unless="${collection.posts.contains(post.id)}"
                                                         type="button"
                                                 >
@@ -406,17 +419,17 @@
                                             <i class="bi bi-chevron-left"></i>
                                         </button>
                                         <span class="page-link text-muted" th:unless="${myPosts.hasPrevious()}">
-                        <i class="bi bi-chevron-left"></i>
-                    </span>
+                                            <i class="bi bi-chevron-left"></i>
+                                        </span>
                                     </li>
 
                                     <!-- 페이지 번호들 (현재 페이지 ±2 범위) -->
                                     <li class="page-item"
                                         th:classappend="${page == myPosts.number ? 'active' : ''}"
                                         th:each="page : ${#numbers.sequence(
-                        T(java.lang.Math).max(0, myPosts.number - 2),
-                        T(java.lang.Math).min(myPosts.totalPages - 1, myPosts.number + 2)
-                    )}">
+                                            T(java.lang.Math).max(0, myPosts.number - 2),
+                                            T(java.lang.Math).min(myPosts.totalPages - 1, myPosts.number + 2)
+                                        )}">
                                         <button class="page-link"
                                                 hx-get="/collections/{collectionId}/posts/fragment"
                                                 hx-swap="innerHTML"
@@ -472,7 +485,7 @@
     </div>
     <div class="modal-backdrop fade show"></div>
     <script>
-        function handleEventSuccess(event, collectionId) {
+        function initCollectionManagePosts(event, collectionId) {
             if (event.detail.successful) {
                 htmx.ajax('GET', '/collections/' + collectionId + '/posts/fragment', {
                     target: '#modal-container',

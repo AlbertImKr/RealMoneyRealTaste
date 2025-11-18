@@ -2,8 +2,8 @@ package com.albert.realmoneyrealtaste.application.collection.service
 
 import com.albert.realmoneyrealtaste.application.collection.dto.CollectionUpdateRequest
 import com.albert.realmoneyrealtaste.application.collection.exception.CollectionUpdateException
+import com.albert.realmoneyrealtaste.application.collection.provided.CollectionReader
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionUpdater
-import com.albert.realmoneyrealtaste.application.collection.required.CollectionRepository
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 @Transactional
 @Service
 class CollectionUpdateService(
-    private val collectionRepository: CollectionRepository,
+    private val collectionReader: CollectionReader,
 ) : CollectionUpdater {
 
     companion object {
@@ -23,10 +23,7 @@ class CollectionUpdateService(
         request: CollectionUpdateRequest,
     ): PostCollection {
         try {
-            val collection = collectionRepository.findByIdAndOwnerMemberId(
-                collectionId = request.collectionId,
-                ownerMemberId = request.ownerMemberId,
-            ) ?: throw IllegalArgumentException(ERROR_READING_COLLECTION)
+            val collection = collectionReader.readById(request.collectionId)
 
             collection.updateInfo(
                 memberId = request.ownerMemberId,
@@ -39,10 +36,7 @@ class CollectionUpdateService(
     }
 
     override fun addPost(collectionId: Long, postId: Long, ownerMemberId: Long) {
-        val collection = collectionRepository.findByIdAndOwnerMemberId(
-            collectionId = collectionId,
-            ownerMemberId = ownerMemberId,
-        ) ?: throw IllegalArgumentException(ERROR_READING_COLLECTION)
+        val collection = collectionReader.readById(collectionId)
 
         collection.addPost(
             memberId = ownerMemberId,
@@ -51,10 +45,7 @@ class CollectionUpdateService(
     }
 
     override fun removePost(collectionId: Long, postId: Long, ownerMemberId: Long) {
-        val collection = collectionRepository.findByIdAndOwnerMemberId(
-            collectionId = collectionId,
-            ownerMemberId = ownerMemberId,
-        ) ?: throw IllegalArgumentException(ERROR_READING_COLLECTION)
+        val collection = collectionReader.readById(collectionId)
 
         collection.removePost(
             memberId = ownerMemberId,

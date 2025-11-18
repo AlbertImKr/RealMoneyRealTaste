@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.application.collection.exception.Collection
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionReader
 import com.albert.realmoneyrealtaste.application.collection.required.CollectionRepository
 import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy.PUBLIC
+import com.albert.realmoneyrealtaste.domain.collection.CollectionStatus.ACTIVE
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -17,8 +18,9 @@ class CollectionReadService(
         ownerMemberId: Long,
         pageRequest: Pageable,
     ): Page<PostCollection> {
-        return collectionRepository.findByOwnerMemberId(
+        return collectionRepository.findByOwnerMemberIdAndStatus(
             ownerMemberId = ownerMemberId,
+            status = ACTIVE,
             pageRequest = pageRequest,
         )
     }
@@ -27,9 +29,10 @@ class CollectionReadService(
         ownerMemberId: Long,
         pageRequest: Pageable,
     ): Page<PostCollection> {
-        return collectionRepository.findByOwnerMemberIdAndPrivacy(
+        return collectionRepository.findByOwnerMemberIdAndPrivacyAndStatus(
             ownerMemberId = ownerMemberId,
             privacy = PUBLIC,
+            status = ACTIVE,
             pageRequest = pageRequest,
         )
     }
