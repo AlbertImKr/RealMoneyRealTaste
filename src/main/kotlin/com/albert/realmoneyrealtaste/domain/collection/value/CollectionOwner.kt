@@ -7,6 +7,9 @@ import jakarta.persistence.Embeddable
 data class CollectionOwner(
     @Column(name = "owner_member_id", nullable = false)
     val memberId: Long,
+
+    @Column(name = "owner_nickname", nullable = false)
+    val nickname: String = "",
 ) {
     init {
         require(memberId > 0) { "소유자 회원 ID는 양수여야 합니다." }

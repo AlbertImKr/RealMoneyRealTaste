@@ -52,4 +52,6 @@ data class PostImages(
     fun isNotEmpty(): Boolean = urls.isNotEmpty()
 
     fun size(): Int = urls.size
+
+    fun getFirst(): String? = urls.firstOrNull()
 }

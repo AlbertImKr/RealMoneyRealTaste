@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.application.collection.exception.Collection
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionReader
 import com.albert.realmoneyrealtaste.application.collection.required.CollectionRepository
 import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy.PUBLIC
+import com.albert.realmoneyrealtaste.domain.collection.CollectionStatus
 import com.albert.realmoneyrealtaste.domain.collection.CollectionStatus.ACTIVE
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import org.springframework.data.domain.Page
@@ -38,7 +39,7 @@ class CollectionReadService(
     }
 
     override fun readById(collectionId: Long): PostCollection {
-        return collectionRepository.findById(collectionId)
+        return collectionRepository.findByIdAndStatusNot(collectionId, CollectionStatus.DELETED)
             ?: throw CollectionNotFoundException("컬렉션을 찾을 수 없습니다.")
     }
 }

@@ -5,4 +5,5 @@ object CollectionViews {
     const val WRITE_FRAGMENT = "collection/fragment :: write-collection"
     const val COLLECTION_POSTS_FRAGMENT = "collection/fragment :: manage-collection-posts"
     const val DETAIL_EDIT_FRAGMENT = "collection/fragment :: edit-collection"
+    const val DETAIL_FRAGMENT = "collection/fragment :: collection-detail"
 }

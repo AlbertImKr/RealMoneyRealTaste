@@ -42,8 +42,8 @@ class CollectionView(
         return CollectionViews.MY_LIST
     }
 
-    @GetMapping(CollectionUrls.DETAIL_FRAGMENT)
-    fun readCollectionDetailFragment(
+    @GetMapping(CollectionUrls.DETAIL_EDIT_FRAGMENT)
+    fun readCollectionDetailEditFragment(
         @PathVariable collectionId: Long,
         @AuthenticationPrincipal principal: MemberPrincipal,
         model: Model,
@@ -52,6 +52,23 @@ class CollectionView(
         model.addAttribute("collection", collection)
         model.addAttribute("member", principal)
         return CollectionViews.DETAIL_EDIT_FRAGMENT
+    }
+
+    @GetMapping(CollectionUrls.DETAIL_FRAGMENT)
+    fun readCollectionDetailFragment(
+        @PathVariable collectionId: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal,
+        model: Model,
+    ): String {
+        val collection = collectionReader.readById(collectionId)
+        val posts = postReader.readPostsByIds(
+            postIds = collection.posts.postIds
+        )
+
+        model.addAttribute("posts", posts)
+        model.addAttribute("collection", collection)
+        model.addAttribute("member", principal)
+        return CollectionViews.DETAIL_FRAGMENT
     }
 
     @GetMapping(CollectionUrls.WRITE_FRAGMENT)

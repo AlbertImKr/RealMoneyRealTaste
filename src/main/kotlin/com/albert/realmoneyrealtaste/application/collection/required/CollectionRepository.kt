@@ -19,6 +19,11 @@ interface CollectionRepository : Repository<PostCollection, Long> {
      */
     fun findById(collectionId: Long): PostCollection?
 
+    fun findByIdAndStatusNot(
+        collectionId: Long,
+        status: CollectionStatus,
+    ): PostCollection?
+
     /**
      * 소유자 멤버 아이디로 컬렉션 개수 조회
      */
