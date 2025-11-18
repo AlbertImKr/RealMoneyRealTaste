@@ -4,13 +4,14 @@
     <title>Collections Fragment</title>
 </head>
 <body>
+<!-- 컬렉션 리스트 프래그먼트 START -->
 <div th:fragment="collections-content">
     <!-- Collections 헤더 -->
     <div class="card-header d-flex justify-content-between align-items-center border-0 pb-0">
         <div class="d-flex align-items-center">
             <h5 class="card-title mb-0 me-3">My Collections</h5>
             <span class="badge bg-primary bg-opacity-10 text-primary"
-                  th:text="${totalCollections ?: 0}">0</span>
+                  th:text="${collections.totalElements ?: 0}">0</span>
         </div>
 
         <div class="d-flex gap-2">
@@ -113,9 +114,9 @@
 
                             <!-- 소유자인 경우에만 수정/삭제 버튼 표시 -->
                             <div class="d-flex gap-1" th:if="${collection.owner.memberId == member.memberId}">
-                                <a class="btn btn-outline-secondary btn-sm"
+                                <a class="btn btn-outline-info btn-sm"
                                    hx-target="#modal-container"
-                                   th:attr="hx-get=@{/collections/{id}/edit/fragment(id=${collection.id})}">
+                                   th:attr="hx-get=@{/collections/{id}/fragment(id=${collection.id})}">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
@@ -164,8 +165,9 @@
         }
     </script>
 </div>
+<!-- 컬렉션 리스트 프래그먼트 END -->
 
-<!-- 컬렉션 생성 폼 프래그먼트 -->
+<!-- 컬렉션 생성 폼 프래그먼트 START -->
 <div th:fragment="write-collection">
     <div aria-modal="true"
          class="modal fade show"
@@ -292,8 +294,9 @@
     </div>
     <div class="modal-backdrop fade show"></div>
 </div>
+<!-- 컬렉션 생성 폼 프래그먼트 END -->
 
-<!-- 컬렉션 게시글 관리 프래그먼트 -->
+<!-- 컬렉션 게시글 관리 프래그먼트 START -->
 <div th:fragment="manage-collection-posts">
     <div aria-modal="true"
          class="modal fade show"
@@ -495,5 +498,152 @@
         }
     </script>
 </div>
+<!-- 컬렉션 게시글 관리 프래그먼트 END -->
+
+<!-- 컬렉션 수정 폼 프래그먼트 START -->
+<div th:fragment="edit-collection">
+    <div aria-modal="true"
+         class="modal fade show"
+         id="collectionEditModal"
+         style="display: block;"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-pencil me-2"></i>컬렉션 수정
+                        </h5>
+                        <button aria-label="Close"
+                                class="btn-close"
+                                onclick="this.closest('#modal-container').innerHTML=''"
+                                type="button"></button>
+                    </div>
+
+                    <div class="card-body">
+                        <form hx-ext="json-enc"
+                              hx-headers='{"Content-Type": "application/json"}'
+                              hx-indicator="#edit-loading"
+                              hx-on::after-request="initCollectionEdit(event)"
+                              hx-target="#content-area"
+                              th:attr="hx-put=@{/api/collections/{id}(id=${collection.id})}">
+
+                            <!-- 컬렉션 이름 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="editCollectionName">컬렉션 이름 *</label>
+                                <input class="form-control"
+                                       id="editCollectionName"
+                                       maxlength="50"
+                                       name="name"
+                                       placeholder="예: 강남 맛집 모음"
+                                       required
+                                       th:value="${collection.info.name}"
+                                       type="text">
+                                <div class="form-text">최대 50자까지 입력 가능합니다.</div>
+                            </div>
+
+                            <!-- 컬렉션 설명 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="editCollectionDescription">컬렉션 설명</label>
+                                <textarea class="form-control"
+                                          id="editCollectionDescription"
+                                          maxlength="200"
+                                          name="description"
+                                          placeholder="이 컬렉션에 대한 설명을 작성해주세요"
+                                          rows="3"
+                                          th:text="${collection.info.description}"></textarea>
+                                <div class="form-text">최대 200자까지 입력 가능합니다.</div>
+                            </div>
+
+                            <!-- 커버 이미지 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="editCoverImageUrl">커버 이미지 URL</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-image"></i>
+                                    </span>
+                                    <input class="form-control"
+                                           id="editCoverImageUrl"
+                                           name="coverImageUrl"
+                                           placeholder="https://example.com/image.jpg"
+                                           th:value="${collection.info.coverImageUrl}"
+                                           type="url">
+                                </div>
+                                <div class="form-text">선택사항: 컬렉션을 대표할 이미지 URL을 입력해주세요.</div>
+                            </div>
+
+                            <!-- 공개 설정 -->
+                            <div class="mb-4">
+                                <span class="form-label">공개 설정</span>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   id="editPrivacyPublic"
+                                                   name="visibility"
+                                                   th:checked="${collection.privacy.name() == 'PUBLIC'}"
+                                                   type="radio"
+                                                   value="PUBLIC">
+                                            <label class="form-check-label" for="editPrivacyPublic">
+                                                <i class="bi bi-globe text-success me-1"></i>
+                                                <strong>공개</strong>
+                                                <div class="small text-muted">모든 사용자가 볼 수 있습니다</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   id="editPrivacyPrivate"
+                                                   name="visibility"
+                                                   th:checked="${collection.privacy.name() == 'PRIVATE'}"
+                                                   type="radio"
+                                                   value="PRIVATE">
+                                            <label class="form-check-label" for="editPrivacyPrivate">
+                                                <i class="bi bi-lock text-secondary me-1"></i>
+                                                <strong>비공개</strong>
+                                                <div class="small text-muted">나만 볼 수 있습니다</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 버튼 영역 -->
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-secondary"
+                                        onclick="this.closest('#modal-container').innerHTML=''"
+                                        type="button">
+                                    <i class="bi bi-x-lg me-1"></i>취소
+                                </button>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-check-lg me-1"></i>수정하기
+                                    <!-- 로딩 스피너 -->
+                                    <span class="spinner-border spinner-border-sm ms-2 d-none"
+                                          id="edit-loading"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+    <script>
+        function initCollectionEdit(event) {
+            if (event.detail.successful) {
+                htmx.ajax('GET', '/collections/my-list/fragment', {
+                    target: '#content-area',
+                    swap: 'innerHTML'
+                });
+
+                document.getElementById('modal-container').innerHTML = '';
+            }
+        }
+    </script>
+</div>
+<!-- 컬렉션 수정 폼 프래그먼트 END -->
+
 </body>
 </html>

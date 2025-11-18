@@ -42,6 +42,18 @@ class CollectionView(
         return CollectionViews.MY_LIST
     }
 
+    @GetMapping(CollectionUrls.DETAIL_FRAGMENT)
+    fun readCollectionDetailFragment(
+        @PathVariable collectionId: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal,
+        model: Model,
+    ): String {
+        val collection = collectionReader.readById(collectionId)
+        model.addAttribute("collection", collection)
+        model.addAttribute("member", principal)
+        return CollectionViews.DETAIL_EDIT_FRAGMENT
+    }
+
     @GetMapping(CollectionUrls.WRITE_FRAGMENT)
     fun writeCollection(): String {
         return CollectionViews.WRITE_FRAGMENT
