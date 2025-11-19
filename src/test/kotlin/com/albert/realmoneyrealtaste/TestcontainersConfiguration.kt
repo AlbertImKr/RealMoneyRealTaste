@@ -18,6 +18,11 @@ class TestcontainersConfiguration {
                 withUsername("testuser")
                 withPassword("testpass")
                 withReuse(true)
+                withFileSystemBind(
+                    "/tmp/mysql-data",
+                    "/var/lib/mysql",
+                    org.testcontainers.containers.BindMode.READ_WRITE
+                )
             }
     }
 }

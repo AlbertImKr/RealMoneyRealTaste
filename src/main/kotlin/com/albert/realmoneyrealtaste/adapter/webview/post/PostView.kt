@@ -43,6 +43,9 @@ class PostView(
         )
         model.addAttribute("postCreateForm", PostCreateForm())
         model.addAttribute("posts", postsPage)
+        // author: 프로필 페이지의 주인 (게시물 작성자)
+        model.addAttribute("author", memberPrincipal)
+        // member: 현재 로그인한 사용자 (뷰에서 권한 확인용)
         model.addAttribute("member", memberPrincipal)
         return PostViews.MY_LIST
     }
