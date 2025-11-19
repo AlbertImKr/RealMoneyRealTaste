@@ -1,19 +1,20 @@
-package com.albert.realmoneyrealtaste.adapter.webapi.follow
+package com.albert.realmoneyrealtaste.adapter.webview.follow
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowCreator
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.ResponseBody
 
 /**
  * 팔로우 생성 API
  */
-@RestController
-class FollowCreateApi(
+@Controller
+class FollowCreateController(
     private val followCreator: FollowCreator,
 ) {
 
@@ -21,10 +22,11 @@ class FollowCreateApi(
      * 사용자 팔로우
      */
     @PostMapping("/api/members/{targetId}/follow")
+    @ResponseBody
     fun follow(
         @AuthenticationPrincipal principal: MemberPrincipal,
         @PathVariable targetId: Long,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<String> {
         followCreator.follow(
             FollowCreateRequest(
                 followerId = principal.memberId,
@@ -32,11 +34,16 @@ class FollowCreateApi(
             )
         )
 
-        return ResponseEntity.ok(
-            mapOf(
-                "success" to true,
-                "message" to "팔로우가 성공적으로 완료되었습니다."
-            )
-        )
+        // 언팔로우 버튼 HTML 조각 반환
+        val followButtonHtml = """
+            <button class="btn btn-primary rounded-circle icon-md ms-auto"
+                    hx-delete="/api/members/$targetId/follow"
+                    hx-target="#follow-button-$targetId"
+                    hx-swap="innerHTML">
+                <i class="bi bi-person-check-fill"></i>
+            </button>
+        """.trimIndent()
+
+        return ResponseEntity.ok(followButtonHtml)
     }
 }

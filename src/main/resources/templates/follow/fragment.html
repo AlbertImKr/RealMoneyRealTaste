@@ -47,41 +47,50 @@
 
         <!-- 팔로잉 그리드 -->
         <div class="row g-3" id="following-list">
-            <th:block th:each="member : ${followings.content}" th:if="${followings != null and !followings.isEmpty}">
+            <th:block th:each="followResponse : ${followings.content}"
+                      th:if="${followings != null and !followings.isEmpty}">
                 <div class="col-sm-6 col-md-4 col-lg-3">
                     <div class="card h-100">
                         <!-- 프로필 이미지 영역 -->
                         <div class="text-center mt-3">
-                            <a th:href="@{/members/{memberId}(memberId=${member.id})}">
+                            <a th:href="@{/members/{memberId}(memberId=${followResponse.followingId})}">
                                 <img class="rounded-circle"
                                      style="width: 100px; height: 100px; object-fit: cover;"
-                                     th:alt="${member.nickname}의 프로필"
-                                     th:src="${member.profileImageUrl} ?: '#'">
+                                     th:alt="|${followResponse.followingNickname}의 프로필|"
+                                     th:src="'#'">
                             </a>
                         </div>
 
                         <div class="card-body text-center">
                             <h5 class="card-title mb-1">
-                                <a th:href="@{/members/{memberId}(memberId=${member.id})}"
-                                   th:text="${member.nickname}">사용자명</a>
+                                <a th:href="@{/members/{memberId}(memberId=${followResponse.followingId})}"
+                                   th:text="${followResponse.followingNickname}">사용자명</a>
                                 <i class="bi bi-patch-check-fill text-primary small"></i>
                             </h5>
 
-                            <p class="card-text text-muted small mb-2" th:if="${member.introduction}">
-                                <span th:text="${#strings.abbreviate(member.introduction, 30)}">소개글</span>
+                            <p class="card-text text-muted small mb-2">
+                                <span>소개글</span>
                             </p>
 
                             <!-- 팔로우/언팔로우 버튼 -->
                             <div sec:authorize="isAuthenticated()">
-                                <th:block th:if="${#authentication.principal.id != member.id}">
-                                    <button class="btn btn-sm"
-                                            onclick="toggleFollow(this)"
-                                            th:classappend="${member.following} ? 'btn-outline-primary' : 'btn-primary'"
-                                            th:data-following="${member.following}"
-                                            th:data-member-id="${member.id}">
-                                        <span th:if="${member.following}">팔로잉</span>
-                                        <span th:if="!${member.following}">팔로우</span>
-                                    </button>
+                                <th:block th:if="${#authentication.principal.memberId != followResponse.followingId}">
+                                    <div th:id="'follow-button-' + ${followResponse.followingId}">
+                                        <button class="btn btn-sm"
+                                                th:attr="hx-delete='/api/members/' + ${followResponse.followingId} + '/follow',
+                                                        hx-target='#follow-button-' + ${followResponse.followingId},
+                                                        hx-swap='innerHTML'"
+                                                th:if="${followingIds.contains(followResponse.followingId)}">
+                                            <span>팔로잉</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary"
+                                                th:attr="hx-post='/api/members/' + ${followResponse.followingId} + '/follow',
+                                                        hx-target='#follow-button-' + ${followResponse.followingId},
+                                                        hx-swap='innerHTML'"
+                                                th:unless="${followingIds.contains(followResponse.followingId)}">
+                                            <span>팔로우</span>
+                                        </button>
+                                    </div>
                                 </th:block>
                             </div>
                         </div>
@@ -96,11 +105,11 @@
                                     <div>팔로워</div>
                                 </div>
                                 <div>
-                                    <div class="fw-bold" th:text="${member.postsCount}">0</div>
+                                    <div class="fw-bold">0</div>
                                     <div>게시물</div>
                                 </div>
                                 <div>
-                                    <div class="fw-bold" th:text="${member.followingCount}">0</div>
+                                    <div class="fw-bold" th:text="${member.followingsCount}">0</div>
                                     <div>팔로잉</div>
                                 </div>
                             </div>
@@ -218,6 +227,28 @@
                         <div class="text-center">
                             <div class="fw-bold followers-count" th:text="${follow.followerFollowersCount}">0</div>
                             <div>팔로워</div>
+                        </div>
+
+                        <!-- 팔로우/언팔로우 버튼 -->
+                        <div sec:authorize="isAuthenticated()">
+                            <th:block th:if="${#authentication.principal.id != follow.followerId}">
+                                <div th:id="'follow-button-' + ${follow.followerId}">
+                                    <button class="btn btn-sm"
+                                            th:attr="hx-delete='/api/members/' + ${follow.followerId} + '/follow',
+                                                    hx-target='#follow-button-' + ${follow.followerId},
+                                                    hx-swap='innerHTML'"
+                                            th:if="${currentUserFollowingIds.contains(follow.followerId)}">
+                                        <span>팔로잉</span>
+                                    </button>
+                                    <button class="btn btn-sm btn-primary"
+                                            th:attr="hx-post='/api/members/' + ${follow.followerId} + '/follow',
+                                                    hx-target='#follow-button-' + ${follow.followerId},
+                                                    hx-swap='innerHTML'"
+                                            th:unless="${currentUserFollowingIds.contains(follow.followerId)}">
+                                        <span>팔로우</span>
+                                    </button>
+                                </div>
+                            </th:block>
                         </div>
                     </div>
                 </div>

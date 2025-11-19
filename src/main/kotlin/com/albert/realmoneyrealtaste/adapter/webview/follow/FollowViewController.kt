@@ -47,6 +47,10 @@ class FollowViewController(
                 pageable = pageRequest
             )
         }
+
+        // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
+        val followingIds = followings.content.map { it.followingId }
+        model.addAttribute("followingIds", followingIds)
         model.addAttribute("followings", followings)
         model.addAttribute("member", principal)
         return FollowViews.FOLLOWING_FRAGMENT
@@ -79,7 +83,12 @@ class FollowViewController(
             )
         }
 
+        // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
+        val followerIds = followers.content.map { it.followerId }
+        val currentUserFollowingIds = followReader.findFollowers(principal.memberId, followerIds)
+        
         model.addAttribute("followers", followers)
+        model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
         model.addAttribute("member", principal)
         return FollowViews.FOLLOWERS_FRAGMENT
     }

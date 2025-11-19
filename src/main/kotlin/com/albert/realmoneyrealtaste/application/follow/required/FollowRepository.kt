@@ -91,6 +91,17 @@ interface FollowRepository : Repository<Follow, Long> {
     )
     fun findFollowingByIds(followerId: Long, followingIds: List<Long>, status: FollowStatus): List<Long>
 
+    @Query(
+        """
+            SELECT f.relationship.followerId
+            FROM Follow f
+            WHERE f.relationship.followingId = :followingId
+              AND f.relationship.followerId IN :followerIds
+              AND f.status = :status
+        """
+    )
+    fun findFollowerByIds(followerId: Long, followerIds: List<Long>, status: FollowStatus): List<Long>
+
     /**
      * 팔로워 ID와 팔로잉 ID로 팔로우 관계 조회 (상태 무관)
      */

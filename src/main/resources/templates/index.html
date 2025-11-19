@@ -474,20 +474,24 @@
                                                 User
                                                 description</p>
                                         </div>
-                                        <!-- Button -->
-                                        <a class="btn btn-primary-soft rounded-circle icon-md ms-auto"
-                                           href="#"
-                                           th:href="@{/follow/{id}(id=${user.id})}"
-                                           th:if="${!followings.contains(user.id)}">
-                                            <i class="fa-solid fa-plus"></i>
-                                        </a>
-                                        <!-- Following button (if already following) -->
-                                        <a class="btn btn-primary rounded-circle icon-md ms-auto"
-                                           href="#"
-                                           th:href="@{/unfollow/{id}(id=${user.id})}"
-                                           th:if="${followings.contains(user.id)}">
-                                            <i class="bi bi-person-check-fill"></i>
-                                        </a>
+                                        <!-- Following button -->
+                                        <div class="ms-auto" th:id="'follow-button-' + ${user.id}">
+                                            <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
+                                                    th:attr="hx-post='/api/members/' + ${user.id} + '/follow',
+                                                            hx-target='#follow-button-' + ${user.id},
+                                                            hx-swap='innerHTML'"
+                                                    th:if="${!followings.contains(user.id)}">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                            <!-- Unfollowing button (if already following) -->
+                                            <button class="btn btn-primary rounded-circle icon-md ms-auto"
+                                                    th:attr="hx-delete='/api/members/' + ${user.id} + '/follow',
+                                                            hx-target='#follow-button-' + ${user.id},
+                                                            hx-swap='innerHTML'"
+                                                    th:if="${followings.contains(user.id)}">
+                                                <i class="bi bi-person-check-fill"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </th:block>
                                 <!-- Connection items END -->
