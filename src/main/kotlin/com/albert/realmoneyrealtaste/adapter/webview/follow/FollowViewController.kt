@@ -61,14 +61,12 @@ class FollowViewController(
      */
     @GetMapping(FollowUrls.FOLLOWERS_FRAGMENT)
     fun readFollowerList(
-        @RequestParam(required = false) memberId: Long?,
         @AuthenticationPrincipal principal: MemberPrincipal,
         @RequestParam(required = false) keyword: String?,
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageRequest: Pageable,
         model: Model,
     ): String {
-        // memberId가 없으면 현재 사용자의 ID를 사용
-        val targetMemberId = memberId ?: principal.memberId
+        val targetMemberId = principal.memberId
 
         val followers = if (keyword.isNullOrBlank()) {
             followReader.findFollowersByMemberId(
@@ -85,8 +83,8 @@ class FollowViewController(
 
         // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
         val followerIds = followers.content.map { it.followerId }
-        val currentUserFollowingIds = followReader.findFollowers(principal.memberId, followerIds)
-        
+        val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followerIds)
+
         model.addAttribute("followers", followers)
         model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
         model.addAttribute("member", principal)

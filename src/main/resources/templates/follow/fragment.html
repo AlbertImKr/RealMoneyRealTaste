@@ -176,74 +176,68 @@
     </div>
 
     <!-- 팔로워 리스트 -->
-    <div class="card-body p-0" id="followers-list">
-        <th:block th:if="${followers != null and !followers.isEmpty()}">
-            <div class="border-bottom hover-bg-gray-50 transition-colors" th:each="follow : ${followers}">
-                <div class="p-3 d-flex align-items-center">
-                    <!-- 프로필 이미지 -->
-                    <div class="me-3">
-                        <img alt="프로필 이미지"
-                             class="rounded-circle"
-                             style="width: 48px; height: 48px; object-fit: cover;"
-                             th:src="${follow.followerProfileImage != null ? follow.followerProfileImage : '/assets/images/default-avatar.png'}">
-                    </div>
-
-                    <!-- 사용자 정보 -->
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center mb-1">
-                            <h6 class="mb-0 me-2" th:text="${follow.followerNickname}">사용자 닉네임</h6>
-                            <small class="text-muted" th:text="${'@' + follow.followerEmail}">@username</small>
+    <div class="card-body">
+        <!-- Card body START -->
+        <div class="card-body">
+            <div id="followers-list">
+                <th:block th:if="${followers != null and !followers.isEmpty()}">
+                    <div class="d-md-flex align-items-center mb-4" th:each="follow : ${followers.content}">
+                        <!-- Avatar -->
+                        <div class="avatar me-3 mb-3 mb-md-0">
+                            <a th:href="@{/members/{memberId}(memberId=${follow.followerId})}">
+                                <img alt=""
+                                     class="avatar-img rounded-circle"
+                                     style="width: 48px; height: 48px; object-fit: cover;"
+                                     th:alt="|${follow.followerNickname}의 프로필|" th:src="'#'">
+                            </a>
                         </div>
-                        <div class="text-muted small">
-                            <span th:text="${#temporals.format(follow.createdAt, 'yyyy.MM.dd')}">2024.01.01</span>에 팔로우
-                            시작
+                        <!-- Info -->
+                        <div class="w-100">
+                            <div class="d-sm-flex align-items-start">
+                                <h6 class="mb-0">
+                                    <a th:href="@{/members/{memberId}(memberId=${follow.followerId})}"
+                                       th:text="${follow.followerNickname}">사용자명</a>
+                                </h6>
+                                <p class="small ms-sm-2 mb-0">맛집 리뷰어</p>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- 팔로우 상태 및 버튼 -->
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="text-center">
-                            <div class="fw-bold" th:text="${follow.followerFollowingCount}">0</div>
-                            <div>팔로잉</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="fw-bold followers-count" th:text="${follow.followerFollowersCount}">0</div>
-                            <div>팔로워</div>
-                        </div>
-
-                        <!-- 팔로우/언팔로우 버튼 -->
-                        <div sec:authorize="isAuthenticated()">
-                            <th:block th:if="${#authentication.principal.id != follow.followerId}">
-                                <div th:id="'follow-button-' + ${follow.followerId}">
-                                    <button class="btn btn-sm"
-                                            th:attr="hx-delete='/api/members/' + ${follow.followerId} + '/follow',
-                                                    hx-target='#follow-button-' + ${follow.followerId},
-                                                    hx-swap='innerHTML'"
-                                            th:if="${currentUserFollowingIds.contains(follow.followerId)}">
-                                        <span>팔로잉</span>
-                                    </button>
-                                    <button class="btn btn-sm btn-primary"
-                                            th:attr="hx-post='/api/members/' + ${follow.followerId} + '/follow',
-                                                    hx-target='#follow-button-' + ${follow.followerId},
-                                                    hx-swap='innerHTML'"
-                                            th:unless="${currentUserFollowingIds.contains(follow.followerId)}">
-                                        <span>팔로우</span>
-                                    </button>
-                                </div>
-                            </th:block>
+                        <!-- Button -->
+                        <div class="ms-md-auto d-flex">
+                            <!-- 팔로우/언팔로우 버튼 -->
+                            <div sec:authorize="isAuthenticated()">
+                                <th:block th:if="${#authentication.principal.memberId != follow.followerId}">
+                                    <div th:id="'follow-button-' + ${follow.followerId}">
+                                        <button class="btn btn-primary rounded-circle icon-md ms-auto"
+                                                th:attr="hx-delete='/api/members/' + ${follow.followerId} + '/follow',
+                                                        hx-target='#follow-button-' + ${follow.followerId},
+                                                        hx-swap='innerHTML'"
+                                                th:if="${currentUserFollowingIds.contains(follow.followerId)}">
+                                            <i class="bi bi-person-check-fill"></i>
+                                        </button>
+                                        <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
+                                                th:attr="hx-post='/api/members/' + ${follow.followerId} + '/follow',
+                                                        hx-target='#follow-button-' + ${follow.followerId},
+                                                        hx-swap='innerHTML'"
+                                                th:unless="${currentUserFollowingIds.contains(follow.followerId)}">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </th:block>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </th:block>
+
+                <!-- 팔로워가 없는 경우 -->
+                <th:block th:if="${followers == null or followers.isEmpty()}">
+                    <div class="text-center py-5">
+                        <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">팔로워가 없습니다</p>
+                    </div>
+                </th:block>
             </div>
-        </th:block>
-
-        <!-- 팔로워가 없는 경우 -->
-        <th:block th:if="${followers == null or followers.isEmpty()}">
-            <div class="text-center py-5">
-                <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-3">팔로워가 없습니다</p>
-            </div>
-        </th:block>
+        </div>
+        <!-- Card body END -->
     </div>
 
     <!-- 페이지네이션 -->

@@ -87,11 +87,11 @@ class FollowReadService(
     }
 
     override fun findFollowers(
-        followerId: Long,
+        followingId: Long,
         targetIds: List<Long>,
     ): List<Long> {
         return followRepository.findFollowerByIds(
-            followerId,
+            followingId,
             targetIds,
             FollowStatus.ACTIVE
         )

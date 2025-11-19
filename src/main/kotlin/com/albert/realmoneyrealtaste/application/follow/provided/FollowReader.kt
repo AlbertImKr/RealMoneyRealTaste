@@ -35,7 +35,7 @@ interface FollowReader {
 
     fun findFollowings(followerId: Long, targetIds: List<Long>): List<Long>
 
-    fun findFollowers(followerId: Long, targetIds: List<Long>): List<Long>
+    fun findFollowers(followingId: Long, targetIds: List<Long>): List<Long>
 
     fun checkIsMutualFollow(member1Id: Long, member2Id: Long): Boolean
 

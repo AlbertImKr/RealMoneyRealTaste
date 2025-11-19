@@ -100,7 +100,7 @@ interface FollowRepository : Repository<Follow, Long> {
               AND f.status = :status
         """
     )
-    fun findFollowerByIds(followerId: Long, followerIds: List<Long>, status: FollowStatus): List<Long>
+    fun findFollowerByIds(followingId: Long, followerIds: List<Long>, status: FollowStatus): List<Long>
 
     /**
      * 팔로워 ID와 팔로잉 ID로 팔로우 관계 조회 (상태 무관)
