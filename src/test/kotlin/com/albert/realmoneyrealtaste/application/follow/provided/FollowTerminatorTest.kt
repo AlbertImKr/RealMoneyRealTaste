@@ -1,13 +1,13 @@
 package com.albert.realmoneyrealtaste.application.follow.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
 import com.albert.realmoneyrealtaste.application.follow.dto.UnfollowRequest
 import com.albert.realmoneyrealtaste.application.follow.event.UnfollowedEvent
 import com.albert.realmoneyrealtaste.application.follow.exception.UnfollowException
 import com.albert.realmoneyrealtaste.application.follow.required.FollowRepository
 import com.albert.realmoneyrealtaste.domain.follow.Follow
 import com.albert.realmoneyrealtaste.domain.follow.FollowStatus
-import com.albert.realmoneyrealtaste.domain.follow.command.FollowCreateCommand
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -335,7 +335,18 @@ class FollowTerminatorTest(
     }
 
     private fun createActiveFollow(followerId: Long, followingId: Long): Follow {
-        val command = FollowCreateCommand(followerId, followingId)
-        return followCreator.follow(command)
+        val follower = testMemberHelper.createActivatedMember(
+            email = "follower${followerId}@test.com",
+            nickname = "follower${followerId}"
+        )
+        val following = testMemberHelper.createActivatedMember(
+            email = "following${followingId}@test.com",
+            nickname = "following${followingId}"
+        )
+        val request = FollowCreateRequest(
+            followerId = follower.requireId(),
+            followingId = following.requireId()
+        )
+        return followCreator.follow(request)
     }
 }

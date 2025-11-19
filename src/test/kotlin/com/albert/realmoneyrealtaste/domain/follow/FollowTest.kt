@@ -14,15 +14,19 @@ class FollowTest {
     @Test
     fun `create - success - creates active follow with valid command`() {
         val followerId = 1L
+        val followerNickname = "follower"
         val followingId = 2L
-        val command = FollowCreateCommand(followerId, followingId)
+        val followingNickname = "following"
+        val command = FollowCreateCommand(followerId, followerNickname, followingId, followingNickname)
         val before = LocalDateTime.now()
 
         val follow = Follow.create(command)
 
         assertAll(
             { assertEquals(followerId, follow.relationship.followerId) },
+            { assertEquals(followerNickname, follow.relationship.followerNickname) },
             { assertEquals(followingId, follow.relationship.followingId) },
+            { assertEquals(followingNickname, follow.relationship.followingNickname) },
             { assertEquals(FollowStatus.ACTIVE, follow.status) },
             { assertTrue(follow.createdAt >= before) },
             { assertTrue(follow.updatedAt >= before) },
@@ -251,12 +255,12 @@ class FollowTest {
     }
 
     private fun createActiveFollow(): Follow {
-        val command = FollowCreateCommand(1L, 2L)
+        val command = FollowCreateCommand(1L, "follower", 2L, "following")
         return Follow.create(command)
     }
 
     private fun createFollow(followerId: Long, followingId: Long): Follow {
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(followerId, "follower", followingId, "following")
         return Follow.create(command)
     }
 }

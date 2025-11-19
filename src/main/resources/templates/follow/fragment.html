@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Follow Fragment</title>
+</head>
+<body>
+<!-- 팔로잉 리스트 프래그먼트 START -->
+<div class="mb-4" th:fragment="following">
+    <!-- 헤더 영역 -->
+    <div class="card-header d-flex justify-content-between align-items-center border-0 pb-0">
+        <div class="d-flex align-items-center">
+            <h5 class="card-title mb-0 me-3">팔로잉</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary"
+                  th:text="${followings.totalElements ?: 0}">0</span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <!-- 검색 기능 -->
+            <div class="input-group input-group-sm" style="max-width: 250px;">
+                <label class="visually-hidden" for="keyword1">검색</label>
+                <input class="form-control" hx-get="/following/fragment" hx-swap="innerHTML"
+                       hx-target="#content-area"
+                       hx-trigger="keyup changed delay:500ms"
+                       id="keyword1"
+                       name="keyword"
+                       placeholder="팔로잉 검색"
+                       th:value="${param.keyword}"
+                       type="text">
+                <button class="btn btn-light" type="button">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <!-- 팔로잉이 없을 때 -->
+        <div class="text-center py-5" th:if="${followings == null or followings.isEmpty()}">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <h5 class="mt-3">아직 팔로우 중인 사용자가 없습니다</h5>
+            <p class="text-muted">맛집 리뷰어들을 팔로우하고 소식을 받아보세요!</p>
+            <a class="btn btn-primary" th:href="@{/members/explore}">
+                <i class="bi bi-compass me-2"></i>사용자 탐색하기
+            </a>
+        </div>
+
+        <!-- 팔로잉 그리드 -->
+        <div class="row g-3" id="following-list">
+            <th:block th:each="member : ${followings.content}" th:if="${followings != null and !followings.isEmpty}">
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="card h-100">
+                        <!-- 프로필 이미지 영역 -->
+                        <div class="text-center mt-3">
+                            <a th:href="@{/members/{memberId}(memberId=${member.id})}">
+                                <img class="rounded-circle"
+                                     style="width: 100px; height: 100px; object-fit: cover;"
+                                     th:alt="${member.nickname}의 프로필"
+                                     th:src="${member.profileImageUrl} ?: '#'">
+                            </a>
+                        </div>
+
+                        <div class="card-body text-center">
+                            <h5 class="card-title mb-1">
+                                <a th:href="@{/members/{memberId}(memberId=${member.id})}"
+                                   th:text="${member.nickname}">사용자명</a>
+                                <i class="bi bi-patch-check-fill text-primary small"></i>
+                            </h5>
+
+                            <p class="card-text text-muted small mb-2" th:if="${member.introduction}">
+                                <span th:text="${#strings.abbreviate(member.introduction, 30)}">소개글</span>
+                            </p>
+
+                            <!-- 팔로우/언팔로우 버튼 -->
+                            <div sec:authorize="isAuthenticated()">
+                                <th:block th:if="${#authentication.principal.id != member.id}">
+                                    <button class="btn btn-sm"
+                                            onclick="toggleFollow(this)"
+                                            th:classappend="${member.following} ? 'btn-outline-primary' : 'btn-primary'"
+                                            th:data-following="${member.following}"
+                                            th:data-member-id="${member.id}">
+                                        <span th:if="${member.following}">팔로잉</span>
+                                        <span th:if="!${member.following}">팔로우</span>
+                                    </button>
+                                </th:block>
+                            </div>
+                        </div>
+
+                        <!-- 통계 정보 -->
+                        <div class="card-footer bg-transparent border-0 pt-0">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <div>
+                                    <div class="fw-bold followers-count"
+                                         th:text="${member.followersCount}">0
+                                    </div>
+                                    <div>팔로워</div>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" th:text="${member.postsCount}">0</div>
+                                    <div>게시물</div>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" th:text="${member.followingCount}">0</div>
+                                    <div>팔로잉</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="text-center mt-4" th:if="${followings != null and followings.totalPages > 1}">
+            <nav aria-label="Following pagination">
+                <ul class="pagination justify-content-center mb-0">
+                    <!-- 이전 페이지 -->
+                    <li class="page-item" th:classappend="${followings.hasPrevious() ? 'disabled' : ''}">
+                        <button class="page-link"
+                                hx-get="/following/fragment"
+                                hx-swap="innerHTML"
+                                hx-target="#content-area"
+                                th:attr="hx-get=@{/followings(page=${followings.number - 1})}"
+                        >
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </li>
+
+                    <!-- 페이지 번호 -->
+                    <li class="page-item"
+                        th:classappend="${page.number + 1 == pageNum} ? 'active' : ''"
+                        th:each="pageNum : ${#numbers.sequence(1, page.totalPages)}">
+                        <a class="page-link" href="#"
+                           hx-get="@{/following/fragment(page=${pageNum - 1}, size=${page.size})}"
+                           hx-swap="innerHTML"
+                           hx-target="#content-area"
+                           th:attr="data-page=${pageNum - 1}"
+                           th:text="${pageNum}">1</a>
+                    </li>
+
+                    <!-- 다음 페이지 -->
+                    <li class="page-item" th:classappend="${page.last} ? 'disabled' : ''">
+                        <a class="page-link" href="#"
+                           hx-get="@{/following/fragment(page=${page.number + 1}, size=${page.size})}"
+                           hx-swap="innerHTML"
+                           hx-target="#content-area"
+                           th:attr="data-page=${page.number + 1}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+<!-- 팔로잉 리스트 프래그먼트 END -->
+
+<!-- 팔로워 리스트 프래그먼트 START -->
+<div class="mb-4" th:fragment="followers">
+    <!-- 헤더 영역 -->
+    <div class="card-header d-flex justify-content-between align-items-center border-0 pb-0">
+        <div class="d-flex align-items-center">
+            <h5 class="card-title mb-0 me-3">팔로워</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary"
+                  th:text="${followers.totalElements ?: 0}">0</span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <!-- 검색 기능 -->
+            <div class="input-group input-group-sm" style="max-width: 250px;">
+                <label class="visually-hidden" for="keyword"></label>
+                <input class="form-control" hx-get="/followers/fragment" hx-swap="innerHTML"
+                       hx-target="#content-area"
+                       hx-trigger="keyup changed delay:500ms"
+                       id="keyword"
+                       name="keyword"
+                       placeholder="팔로워 검색"
+                       th:value="${param.keyword}"
+                       type="text">
+                <button class="btn btn-light" type="button">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 팔로워 리스트 -->
+    <div class="card-body p-0" id="followers-list">
+        <th:block th:if="${followers != null and !followers.isEmpty()}">
+            <div class="border-bottom hover-bg-gray-50 transition-colors" th:each="follow : ${followers}">
+                <div class="p-3 d-flex align-items-center">
+                    <!-- 프로필 이미지 -->
+                    <div class="me-3">
+                        <img alt="프로필 이미지"
+                             class="rounded-circle"
+                             style="width: 48px; height: 48px; object-fit: cover;"
+                             th:src="${follow.followerProfileImage != null ? follow.followerProfileImage : '/assets/images/default-avatar.png'}">
+                    </div>
+
+                    <!-- 사용자 정보 -->
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-1">
+                            <h6 class="mb-0 me-2" th:text="${follow.followerNickname}">사용자 닉네임</h6>
+                            <small class="text-muted" th:text="${'@' + follow.followerEmail}">@username</small>
+                        </div>
+                        <div class="text-muted small">
+                            <span th:text="${#temporals.format(follow.createdAt, 'yyyy.MM.dd')}">2024.01.01</span>에 팔로우
+                            시작
+                        </div>
+                    </div>
+
+                    <!-- 팔로우 상태 및 버튼 -->
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-center">
+                            <div class="fw-bold" th:text="${follow.followerFollowingCount}">0</div>
+                            <div>팔로잉</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="fw-bold followers-count" th:text="${follow.followerFollowersCount}">0</div>
+                            <div>팔로워</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+        <!-- 팔로워가 없는 경우 -->
+        <th:block th:if="${followers == null or followers.isEmpty()}">
+            <div class="text-center py-5">
+                <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">팔로워가 없습니다</p>
+            </div>
+        </th:block>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="text-center mt-4" th:if="${page != null and page.totalPages > 1}">
+        <nav aria-label="Followers pagination">
+            <ul class="pagination justify-content-center mb-0">
+                <!-- 이전 페이지 -->
+                <li class="page-item" th:classappend="${page.first} ? 'disabled' : ''">
+                    <a aria-disabled="true" class="page-link"
+                       href="#"
+                       hx-get="@{/followers/fragment(page=${page.number - 1}, size=${page.size}}"
+                       hx-swap="innerHTML"
+                       hx-target="#content-area"
+                       tabindex="-1" th:attr="data-page=${page.number - 1}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                <!-- 페이지 번호 -->
+                <li class="page-item"
+                    th:classappend="${page.number + 1 == pageNum} ? 'active' : ''"
+                    th:each="pageNum : ${#numbers.sequence(1, page.totalPages)}">
+                    <a class="page-link" href="#"
+                       hx-get="@{/followers/fragment(page=${pageNum - 1}, size=${page.size})}"
+                       hx-swap="innerHTML"
+                       hx-target="#content-area"
+                       th:attr="data-page=${pageNum - 1}"
+                       th:text="${pageNum}">1</a>
+                </li>
+
+                <!-- 다음 페이지 -->
+                <li class="page-item" th:classappend="${page.last} ? 'disabled' : ''">
+                    <a class="page-link" href="#"
+                       hx-get="@{/followers/fragment(page=${page.number + 1}, size=${page.size})}"
+                       hx-swap="innerHTML"
+                       hx-target="#content-area"
+                       th:attr="data-page=${page.number + 1}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<!-- 팔로워 리스트 프래그먼트 END -->
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+
+    // CSRF 토큰 설정
+    const csrfToken = /*[[${_csrf.token}]]*/ '';
+    const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+    // 팔로우/언팔로우 토글 함수
+    function toggleFollow(button) {
+        const memberId = button.dataset.memberId;
+        const isFollowing = button.dataset.following === 'true';
+        const url = `/api/v1/follow/${isFollowing ? 'unfollow' : 'follow'}/${memberId}`;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            credentials: 'same-origin'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 버튼 상태 업데이트
+                const newFollowingState = !isFollowing;
+                button.dataset.following = newFollowingState;
+                button.textContent = newFollowingState ? '팔로잉' : '팔로우';
+                button.classList.toggle('btn-outline-primary', newFollowingState);
+                button.classList.toggle('btn-primary', !newFollowingState);
+
+                // 팔로워 수 업데이트
+                const followersCountEl = button.closest('.card').querySelector('.followers-count');
+                if (followersCountEl) {
+                    const currentCount = parseInt(followersCountEl.textContent);
+                    followersCountEl.textContent = newFollowingState ? currentCount + 1 : currentCount - 1;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('요청을 처리하는 중 오류가 발생했습니다.');
+            });
+    }
+
+    // HTMX 요청 후 실행될 콜백
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        if (evt.detail.target.id === 'following-list' || evt.detail.target.id === 'followers-list') {
+            // HTMX로 로드된 내용에 대해 필요한 초기화 작업 수행
+            initializeFollowButtons();
+        }
+    });
+
+    // 초기화 함수
+    function initializeFollowButtons() {
+        // 팔로우 버튼에 이벤트 리스너 추가
+        document.querySelectorAll('.follow-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                toggleFollow(this);
+            });
+        });
+    }
+
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', function () {
+        initializeFollowButtons();
+    });
+
+    /*]]>*/
+</script>
+</body>
+</html>

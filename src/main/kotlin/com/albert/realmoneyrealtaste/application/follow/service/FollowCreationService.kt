@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.application.follow.service
 
+import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
 import com.albert.realmoneyrealtaste.application.follow.event.FollowStartedEvent
 import com.albert.realmoneyrealtaste.application.follow.exception.FollowCreateException
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowCreator
@@ -23,17 +24,16 @@ class FollowCreationService(
 
     companion object {
         const val ERROR_FOLLOW_FAILED = "팔로우에 실패했습니다."
-        const val ERROR_DUPLICATE_FOLLOW = "이미 팔로우 중입니다."
     }
 
-    override fun follow(command: FollowCreateCommand): Follow {
+    override fun follow(request: FollowCreateRequest): Follow {
         try {
             // 팔로워와 팔로잉 대상이 모두 활성 회원인지 확인
-            memberReader.readActiveMemberById(command.followerId)
-            memberReader.readActiveMemberById(command.followingId)
+            val follower = memberReader.readActiveMemberById(request.followerId)
+            val following = memberReader.readActiveMemberById(request.followingId)
 
             // 기존 팔로우 관계 확인
-            val existingFollow = followReader.findFollowByRelationship(command.followerId, command.followingId)
+            val existingFollow = followReader.findFollowByRelationship(request.followerId, request.followingId)
 
             if (existingFollow != null) {
                 existingFollow.reactivate()
@@ -41,6 +41,12 @@ class FollowCreationService(
             }
 
             // 팔로우 관계 생성
+            val command = FollowCreateCommand(
+                followerId = follower.requireId(),
+                followerNickname = follower.nickname.value,
+                followingId = following.requireId(),
+                followingNickname = following.nickname.value,
+            )
             val follow = Follow.create(command)
             val savedFollow = followRepository.save(follow)
 

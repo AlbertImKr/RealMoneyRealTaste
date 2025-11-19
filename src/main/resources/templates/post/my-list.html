@@ -160,12 +160,24 @@
                                     Collections
                                 </button>
                             <li class="nav-item">
-                                <a class="nav-link" th:href="@{/members/{id}/about(id=${member.memberId})}">
-                                    Following </a>
+                            <button class="nav-link"
+                                    hx-get="/following/fragment"
+                                    hx-indicator="#loading-indicator"
+                                    hx-swap="innerHTML"
+                                    hx-target="#content-area"
+                                    id="following-tab">
+                                Following
+                            </button>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" th:href="@{/members/{id}/about(id=${member.memberId})}">
-                                    Followers </a>
+                                <button class="nav-link"
+                                        hx-get="/followers/fragment"
+                                        hx-indicator="#loading-indicator"
+                                        hx-swap="innerHTML"
+                                        hx-target="#content-area"
+                                        id="followers-tab">
+                                    Followers
+                                </button>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" th:href="@{/members/{id}/events(id=${member.memberId})}">

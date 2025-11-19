@@ -16,13 +16,18 @@ class FollowResponseTest {
         val followingId = 2L
         val followerNickname = "follower"
         val followingNickname = "following"
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = followerNickname,
+            followingId = followingId,
+            followingNickname = followingNickname
+        )
         val follow = Follow.create(command)
 
         // ID 설정 (실제로는 JPA가 수행)
         setFollowId(follow, 100L)
 
-        val result = FollowResponse.from(follow, followerNickname, followingNickname)
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(100L, result.followId) },
@@ -42,12 +47,17 @@ class FollowResponseTest {
         val followingId = 20L
         val followerNickname = "unfollower"
         val followingNickname = "unfollowed"
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = followerNickname,
+            followingId = followingId,
+            followingNickname = followingNickname
+        )
         val follow = Follow.create(command)
         follow.unfollow()
         setFollowId(follow, 200L)
 
-        val result = FollowResponse.from(follow, followerNickname, followingNickname)
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(200L, result.followId) },
@@ -67,12 +77,17 @@ class FollowResponseTest {
         val followingId = 40L
         val followerNickname = "blocker"
         val followingNickname = "blocked"
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = followerNickname,
+            followingId = followingId,
+            followingNickname = followingNickname
+        )
         val follow = Follow.create(command)
         follow.block()
         setFollowId(follow, 300L)
 
-        val result = FollowResponse.from(follow, followerNickname, followingNickname)
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(300L, result.followId) },
@@ -86,14 +101,19 @@ class FollowResponseTest {
     fun `from - success - preserves exact timestamp values`() {
         val followerId = 70L
         val followingId = 80L
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = "nick1",
+            followingId = followingId,
+            followingNickname = "nick2"
+        )
         val follow = Follow.create(command)
         setFollowId(follow, 500L)
 
         val originalCreatedAt = follow.createdAt
         val originalUpdatedAt = follow.updatedAt
 
-        val result = FollowResponse.from(follow, "nick1", "nick2")
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(originalCreatedAt, result.createdAt) },
@@ -106,11 +126,16 @@ class FollowResponseTest {
         val followerId = 90L
         val followingId = 100L
         val emptyNickname = ""
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = emptyNickname,
+            followingId = followingId,
+            followingNickname = emptyNickname
+        )
         val follow = Follow.create(command)
         setFollowId(follow, 600L)
 
-        val result = FollowResponse.from(follow, emptyNickname, emptyNickname)
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(emptyNickname, result.followerNickname) },
@@ -124,11 +149,16 @@ class FollowResponseTest {
         val followingId = 120L
         val specialNickname1 = "팔로워🎉"
         val specialNickname2 = "following@#$%"
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = specialNickname1,
+            followingId = followingId,
+            followingNickname = specialNickname2
+        )
         val follow = Follow.create(command)
         setFollowId(follow, 700L)
 
-        val result = FollowResponse.from(follow, specialNickname1, specialNickname2)
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(specialNickname1, result.followerNickname) },
@@ -140,11 +170,16 @@ class FollowResponseTest {
     fun `from - success - handles large member IDs`() {
         val largeFollowerId = Long.MAX_VALUE - 1
         val largeFollowingId = Long.MAX_VALUE
-        val command = FollowCreateCommand(largeFollowerId, largeFollowingId)
+        val command = FollowCreateCommand(
+            followerId = largeFollowerId,
+            followerNickname = "large1",
+            followingId = largeFollowingId,
+            followingNickname = "large2"
+        )
         val follow = Follow.create(command)
         setFollowId(follow, Long.MAX_VALUE)
 
-        val result = FollowResponse.from(follow, "large1", "large2")
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(Long.MAX_VALUE, result.followId) },
@@ -159,11 +194,16 @@ class FollowResponseTest {
         val followingId = 140L
         val longNickname1 = "a".repeat(100)
         val longNickname2 = "b".repeat(100)
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = longNickname1,
+            followingId = followingId,
+            followingNickname = longNickname2
+        )
         val follow = Follow.create(command)
         setFollowId(follow, 800L)
 
-        val result = FollowResponse.from(follow, longNickname1, longNickname2)
+        val result = FollowResponse.from(follow)
 
         assertAll(
             { assertEquals(longNickname1, result.followerNickname) },
@@ -177,27 +217,32 @@ class FollowResponseTest {
     fun `from - success - handles status transitions correctly`() {
         val followerId = 150L
         val followingId = 160L
-        val command = FollowCreateCommand(followerId, followingId)
+        val command = FollowCreateCommand(
+            followerId = followerId,
+            followerNickname = "follower",
+            followingId = followingId,
+            followingNickname = "following"
+        )
         val follow = Follow.create(command)
         setFollowId(follow, 900L)
 
         // 초기 ACTIVE 상태
-        val activeResponse = FollowResponse.from(follow, "follower", "following")
+        val activeResponse = FollowResponse.from(follow)
         assertEquals(FollowStatus.ACTIVE, activeResponse.status)
 
         // UNFOLLOWED 상태로 변경
         follow.unfollow()
-        val unfollowedResponse = FollowResponse.from(follow, "follower", "following")
+        val unfollowedResponse = FollowResponse.from(follow)
         assertEquals(FollowStatus.UNFOLLOWED, unfollowedResponse.status)
 
         // ACTIVE 상태로 재활성화
         follow.reactivate()
-        val reactivatedResponse = FollowResponse.from(follow, "follower", "following")
+        val reactivatedResponse = FollowResponse.from(follow)
         assertEquals(FollowStatus.ACTIVE, reactivatedResponse.status)
 
         // BLOCKED 상태로 변경
         follow.block()
-        val blockedResponse = FollowResponse.from(follow, "follower", "following")
+        val blockedResponse = FollowResponse.from(follow)
         assertEquals(FollowStatus.BLOCKED, blockedResponse.status)
     }
 

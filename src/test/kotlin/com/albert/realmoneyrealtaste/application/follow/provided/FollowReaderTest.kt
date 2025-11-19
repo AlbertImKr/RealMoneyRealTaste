@@ -1,11 +1,11 @@
 package com.albert.realmoneyrealtaste.application.follow.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
 import com.albert.realmoneyrealtaste.application.follow.exception.FollowNotFoundException
 import com.albert.realmoneyrealtaste.application.follow.required.FollowRepository
 import com.albert.realmoneyrealtaste.domain.follow.Follow
 import com.albert.realmoneyrealtaste.domain.follow.FollowStatus
-import com.albert.realmoneyrealtaste.domain.follow.command.FollowCreateCommand
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import org.junit.jupiter.api.assertAll
 import org.springframework.data.domain.PageRequest
@@ -460,7 +460,7 @@ class FollowReaderTest(
     }
 
     @Test
-    fun `mapToFollowResponses - success - handles unknown member gracefully`() {
+    fun `mapToFollowResponses - success - preserves nicknames from relationship`() {
         val follower = testMemberHelper.createActivatedMember(
             email = "known-follower@test.com",
             nickname = "known"
@@ -472,7 +472,7 @@ class FollowReaderTest(
 
         createActiveFollow(follower.requireId(), following.requireId())
 
-        // 팔로워를 비활성화
+        // 팔로워를 비활성화해도 FollowRelationship에 저장된 닉네임은 유지됨
         follower.deactivate()
         following.deactivate()
 
@@ -481,8 +481,8 @@ class FollowReaderTest(
 
         assertAll(
             { assertEquals(1, result.totalElements) },
-            { assertEquals("Unknown", result.content.first().followerNickname) },
-            { assertEquals("Unknown", result.content.first().followingNickname) }
+            { assertEquals("known", result.content.first().followerNickname) },
+            { assertEquals("following", result.content.first().followingNickname) }
         )
     }
 
@@ -558,7 +558,18 @@ class FollowReaderTest(
     }
 
     private fun createActiveFollow(followerId: Long, followingId: Long): Follow {
-        val command = FollowCreateCommand(followerId, followingId)
-        return followCreator.follow(command)
+        val follower = testMemberHelper.createActivatedMember(
+            email = "follower${followerId}@test.com",
+            nickname = "follower${followerId}"
+        )
+        val following = testMemberHelper.createActivatedMember(
+            email = "following${followingId}@test.com",
+            nickname = "following${followingId}"
+        )
+        val request = FollowCreateRequest(
+            followerId = follower.requireId(),
+            followingId = following.requireId()
+        )
+        return followCreator.follow(request)
     }
 }

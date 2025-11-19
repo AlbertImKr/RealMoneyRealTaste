@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.application.follow.required
 
 import com.albert.realmoneyrealtaste.domain.follow.Follow
 import com.albert.realmoneyrealtaste.domain.follow.FollowStatus
-import com.albert.realmoneyrealtaste.domain.follow.value.FollowRelationship
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Query
@@ -17,7 +16,22 @@ interface FollowRepository : Repository<Follow, Long> {
 
     fun findById(id: Long): Follow?
 
-    fun findFollowerByRelationshipAndStatus(relationship: FollowRelationship, status: FollowStatus): Follow?
+    /**
+     * 팔로워 ID와 팔로잉 ID로 팔로우 관계 조회
+     */
+    @Query(
+        """
+        SELECT f FROM Follow f
+        WHERE f.relationship.followerId = :followerId
+          AND f.relationship.followingId = :followingId
+          AND f.status = :status
+    """
+    )
+    fun findFollowerByRelationshipAndStatus(
+        followerId: Long,
+        followingId: Long,
+        status: FollowStatus,
+    ): Follow?
 
     @Query(
         """
@@ -53,9 +67,30 @@ interface FollowRepository : Repository<Follow, Long> {
     )
     fun countByFollowerIdAndStatus(followerId: Long, status: FollowStatus): Long
 
-    fun existsByRelationshipAndStatus(relationship: FollowRelationship, status: FollowStatus): Boolean
+    /**
+     * 팔로워 ID와 팔로잉 ID로 팔로우 관계 존재 여부 확인
+     */
+    @Query(
+        """
+        SELECT COUNT(f) > 0 FROM Follow f
+        WHERE f.relationship.followerId = :followerId
+          AND f.relationship.followingId = :followingId
+          AND f.status = :status
+    """
+    )
+    fun existsByRelationshipAndStatus(followerId: Long, followingId: Long, status: FollowStatus): Boolean
 
-    fun findByRelationship(relationship: FollowRelationship): Follow?
+    /**
+     * 팔로워 ID와 팔로잉 ID로 팔로우 관계 조회 (상태 무관)
+     */
+    @Query(
+        """
+        SELECT f FROM Follow f
+        WHERE f.relationship.followerId = :followerId
+          AND f.relationship.followingId = :followingId
+    """
+    )
+    fun findByRelationship(followerId: Long, followingId: Long): Follow?
 
     @Query(
         """
@@ -67,6 +102,44 @@ interface FollowRepository : Repository<Follow, Long> {
     )
     fun findSuggestedUsersByMemberIdAndStatus(
         memberId: Long,
+        status: FollowStatus,
+        pageable: Pageable,
+    ): Page<Follow>
+
+    /**
+     * 팔로워 검색 (팔로워의 닉네임으로 검색)
+     * 내가 팔로우 받는 사람들 중에서 검색
+     */
+    @Query(
+        """
+        SELECT f FROM Follow f
+        WHERE f.relationship.followingId = :memberId
+          AND f.status = :status
+          AND f.relationship.followerNickname LIKE %:keyword%
+    """
+    )
+    fun searchFollowersByFollowingIdAndStatus(
+        memberId: Long,
+        keyword: String,
+        status: FollowStatus,
+        pageable: Pageable,
+    ): Page<Follow>
+
+    /**
+     * 팔로잉 검색 (팔로잉 대상의 닉네임으로 검색)
+     * 내가 팔로우하는 사람들 중에서 검색
+     */
+    @Query(
+        """
+        SELECT f FROM Follow f
+        WHERE f.relationship.followerId = :memberId
+          AND f.status = :status
+          AND f.relationship.followingNickname LIKE %:keyword%
+    """
+    )
+    fun searchFollowingsByFollowerIdAndStatus(
+        memberId: Long,
+        keyword: String,
         status: FollowStatus,
         pageable: Pageable,
     ): Page<Follow>

@@ -21,6 +21,16 @@ interface FollowReader {
 
     fun findFollowingsByMemberId(memberId: Long, pageable: Pageable): Page<FollowResponse>
 
+    /**
+     * 팔로워 검색
+     */
+    fun searchFollowers(memberId: Long, keyword: String, pageable: Pageable): Page<FollowResponse>
+
+    /**
+     * 팔로잉 검색
+     */
+    fun searchFollowings(memberId: Long, keyword: String, pageable: Pageable): Page<FollowResponse>
+
     fun checkIsFollowing(followerId: Long, followingId: Long): Boolean
 
     fun checkIsMutualFollow(member1Id: Long, member2Id: Long): Boolean
