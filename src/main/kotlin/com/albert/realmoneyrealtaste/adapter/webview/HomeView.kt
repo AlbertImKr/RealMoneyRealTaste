@@ -7,6 +7,7 @@ import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostHeartReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
+import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.post.Post
 import com.albert.realmoneyrealtaste.domain.post.PostHeart
 import org.springframework.data.domain.Page
@@ -50,7 +51,11 @@ class HomeView(
             addHeartsStats(memberId, postIds, model)
 
             // 추천 사용자 목록 추가 (옵션)
-            addSuggestedUsers(model, memberId)
+            val addSuggestedMembers = addSuggestedMembers(model, memberId)
+            val suggestedMemberIds = addSuggestedMembers.map { it.requireId() }
+
+            // following
+            addFollowingStatus(model, memberPrincipal.memberId, suggestedMemberIds)
         }
 
         return "index"
@@ -93,13 +98,20 @@ class HomeView(
         }
     }
 
-    private fun addSuggestedUsers(model: Model, memberId: Long) {
+    private fun addSuggestedMembers(model: Model, memberId: Long): List<Member> {
         try {
-            val suggestedUsers = followReader.findSuggestedUsers(memberId, 5)
+            val suggestedUsers = memberReader.findSuggestedMembers(memberId, 5)
             model.addAttribute("suggestedUsers", suggestedUsers)
+            return suggestedUsers
         } catch (e: IllegalArgumentException) {
-            model.addAttribute("suggestedUsers", emptyList<Any>())
+            model.addAttribute("suggestedUsers", emptyList<Member>())
+            return emptyList()
         }
+    }
+
+    private fun addFollowingStatus(model: Model, followerId: Long, suggestedIds: List<Long>) {
+        val followings = followReader.findFollowings(followerId, suggestedIds)
+        model.addAttribute("followings", followings)
     }
 
     private fun createDefaultFollowStats(memberId: Long): FollowStatsResponse {

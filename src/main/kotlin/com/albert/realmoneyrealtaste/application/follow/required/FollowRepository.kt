@@ -80,6 +80,17 @@ interface FollowRepository : Repository<Follow, Long> {
     )
     fun existsByRelationshipAndStatus(followerId: Long, followingId: Long, status: FollowStatus): Boolean
 
+    @Query(
+        """
+            SELECT f.relationship.followingId
+            FROM Follow f
+            WHERE f.relationship.followerId = :followerId
+              AND f.relationship.followingId IN :followingIds
+              AND f.status = :status
+        """
+    )
+    fun findFollowingByIds(followerId: Long, followingIds: List<Long>, status: FollowStatus): List<Long>
+
     /**
      * 팔로워 ID와 팔로잉 ID로 팔로우 관계 조회 (상태 무관)
      */
@@ -91,20 +102,6 @@ interface FollowRepository : Repository<Follow, Long> {
     """
     )
     fun findByRelationship(followerId: Long, followingId: Long): Follow?
-
-    @Query(
-        """
-        SELECT f FROM Follow f
-        WHERE f.relationship.followerId = :memberId
-          AND f.status = :status
-        ORDER BY FUNCTION('RAND')
-    """
-    )
-    fun findSuggestedUsersByMemberIdAndStatus(
-        memberId: Long,
-        status: FollowStatus,
-        pageable: Pageable,
-    ): Page<Follow>
 
     /**
      * 팔로워 검색 (팔로워의 닉네임으로 검색)

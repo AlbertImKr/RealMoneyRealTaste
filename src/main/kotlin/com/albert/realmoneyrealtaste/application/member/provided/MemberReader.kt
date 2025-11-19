@@ -77,4 +77,13 @@ interface MemberReader {
      * @return 조회된 활성화된 회원 객체 목록
      */
     fun readAllActiveMembersByIds(memberIds: List<Long>): List<Member>
+
+    /**
+     * 주어진 회원 ID에 대한 추천 회원 목록을 조회합니다.
+     *
+     * @param memberId 추천 회원 목록을 조회할 회원 ID
+     * @param limit 추천 회원 목록의 개수
+     * @return 추천 회원 목록
+     */
+    fun findSuggestedMembers(memberId: Long, limit: Long): List<Member>
 }

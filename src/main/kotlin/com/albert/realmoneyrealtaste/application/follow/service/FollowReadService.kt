@@ -75,6 +75,17 @@ class FollowReadService(
         )
     }
 
+    override fun findFollowings(
+        followerId: Long,
+        targetIds: List<Long>,
+    ): List<Long> {
+        return followRepository.findFollowingByIds(
+            followerId,
+            targetIds,
+            FollowStatus.ACTIVE
+        )
+    }
+
     override fun checkIsMutualFollow(member1Id: Long, member2Id: Long): Boolean {
         val member1FollowsMember2 = checkIsFollowing(member1Id, member2Id)
         val member2FollowsMember1 = checkIsFollowing(member2Id, member1Id)
@@ -102,18 +113,6 @@ class FollowReadService(
             followersCount = followersCount,
             followingCount = followingCount
         )
-    }
-
-    override fun findSuggestedUsers(
-        memberId: Long,
-        limit: Int,
-    ): List<FollowResponse> {
-        val follows = followRepository.findSuggestedUsersByMemberIdAndStatus(
-            memberId,
-            FollowStatus.ACTIVE,
-            Pageable.ofSize(limit)
-        )
-        return mapToFollowResponses(follows).content
     }
 
     /**

@@ -459,8 +459,8 @@
                                             <a href="#" th:href="@{/profile/{id}(id=${user.id})}">
                                                 <img alt=""
                                                      class="avatar-img rounded-circle"
-                                                     th:alt="${user.nickname}"
-                                                     th:src="${user.profileImageUrl != null ? user.profileImageUrl : '/assets/images/avatar/placeholder.jpg'}">
+                                                     th:alt="${user.nickname.value}"
+                                                     th:src="'#'">
                                             </a>
                                         </div>
                                         <!-- Title -->
@@ -468,23 +468,24 @@
                                             <a class="h6 mb-0"
                                                href="#"
                                                th:href="@{/profile/{id}(id=${user.id})}"
-                                               th:text="${user.nickname}">User Name</a>
+                                               th:text="${user.nickname.value}">User Name</a>
                                             <p class="mb-0 small text-truncate"
-                                               th:text="${user.introduction != null ? user.introduction : ''}">User
+                                               th:text="${user.detail.introduction != null ? user.detail.introduction : ''}">
+                                                User
                                                 description</p>
                                         </div>
                                         <!-- Button -->
                                         <a class="btn btn-primary-soft rounded-circle icon-md ms-auto"
                                            href="#"
                                            th:href="@{/follow/{id}(id=${user.id})}"
-                                           th:if="${!user.isFollowing}">
+                                           th:if="${!followings.contains(user.id)}">
                                             <i class="fa-solid fa-plus"></i>
                                         </a>
                                         <!-- Following button (if already following) -->
                                         <a class="btn btn-primary rounded-circle icon-md ms-auto"
                                            href="#"
                                            th:href="@{/unfollow/{id}(id=${user.id})}"
-                                           th:if="${user.isFollowing}">
+                                           th:if="${followings.contains(user.id)}">
                                             <i class="bi bi-person-check-fill"></i>
                                         </a>
                                     </div>
