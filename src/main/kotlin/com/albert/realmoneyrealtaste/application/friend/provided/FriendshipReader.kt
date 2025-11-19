@@ -88,4 +88,23 @@ interface FriendshipReader {
      * @return 친구 수
      */
     fun countFriendsByMemberId(memberId: Long): Long
+
+    /**
+     * 특정 회원의 친구를 키워드로 검색합니다.
+     *
+     * @param memberId 회원 ID
+     * @param keyword 검색 키워드 (닉네임, 이메일 등)
+     * @param pageable 페이징 정보
+     * @return 검색된 친구 목록 페이지
+     */
+    fun searchFriends(memberId: Long, keyword: String, pageable: Pageable): Page<FriendshipResponse>
+
+    /**
+     * 특정 회원의 최근 친구 목록을 조회합니다.
+     *
+     * @param memberId 회원 ID
+     * @param limit 조회할 최대 개수
+     * @return 최근 친구 목록
+     */
+    fun findRecentFriends(memberId: Long, limit: Int): List<FriendshipResponse>
 }

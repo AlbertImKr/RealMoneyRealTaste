@@ -75,4 +75,52 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     ): Page<Friendship>
 
     fun countFriendshipsByRelationShipMemberIdAndStatus(memberId: Long, status: FriendshipStatus): Long
+
+    /**
+     * 특정 회원의 친구를 키워드로 검색합니다.
+     */
+    @Query(
+        """
+        SELECT f1 FROM Friendship f1
+        WHERE f1.relationShip.memberId = :memberId 
+        AND f1.status = :status
+        AND EXISTS (
+            SELECT 1 FROM Friendship f2 
+            WHERE f2.relationShip.friendMemberId = :memberId 
+            AND f2.relationShip.memberId = f1.relationShip.friendMemberId 
+            AND f2.status = :status
+        )
+        AND f1.relationShip.friendNickname LIKE %:keyword%
+        ORDER BY f1.createdAt DESC
+        """
+    )
+    fun searchFriendsByKeyword(
+        memberId: Long,
+        keyword: String,
+        status: FriendshipStatus,
+        pageable: Pageable,
+    ): Page<Friendship>
+
+    /**
+     * 특정 회원의 최근 친구 목록을 조회합니다.
+     */
+    @Query(
+        """
+        SELECT f1 FROM Friendship f1
+        WHERE f1.relationShip.memberId = :memberId 
+        AND f1.status = :status
+        AND EXISTS (
+            SELECT 1 FROM Friendship f2 
+            WHERE f2.relationShip.friendMemberId = :memberId 
+            AND f2.relationShip.memberId = f1.relationShip.friendMemberId 
+            AND f2.status = :status
+        )
+        ORDER BY f1.createdAt DESC
+        """
+    )
+    fun findRecentFriends(
+        memberId: Long,
+        status: FriendshipStatus,
+        limit: Int,
+    ): List<Friendship>
 }

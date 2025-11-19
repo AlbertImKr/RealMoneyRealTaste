@@ -75,22 +75,12 @@ class FriendshipReadService(
     }
 
     private fun mapToFriendshipResponses(friendships: Page<Friendship>): Page<FriendshipResponse> {
-        val memberIds = friendships.content.flatMap { friendship ->
-            listOf(
-                friendship.relationShip.memberId,
-                friendship.relationShip.friendMemberId
-            )
-        }.toSet()
-
-        val memberMap = memberReader.readAllActiveMembersByIds(memberIds.toList())
-            .associate { it.id to it.nickname.value }
-
         return friendships
             .map { friendship ->
                 FriendshipResponse.from(
                     friendship,
-                    memberMap[friendship.relationShip.friendMemberId] ?: UNKNOWN_NICKNAME,
-                    memberMap[friendship.relationShip.memberId] ?: UNKNOWN_NICKNAME,
+                    friendship.relationShip.friendNickname ?: UNKNOWN_NICKNAME,
+                    UNKNOWN_NICKNAME, // memberNickname은 필요시 별도 조회
                 )
             }
     }
@@ -101,5 +91,27 @@ class FriendshipReadService(
 
     override fun countFriendsByMemberId(memberId: Long): Long {
         return friendshipRepository.countFriendshipsByRelationShipMemberIdAndStatus(memberId, FriendshipStatus.ACCEPTED)
+    }
+
+    override fun searchFriends(memberId: Long, keyword: String, pageable: Pageable): Page<FriendshipResponse> {
+        val friendships = friendshipRepository.searchFriendsByKeyword(
+            memberId, keyword, FriendshipStatus.ACCEPTED, pageable
+        )
+
+        return mapToFriendshipResponses(friendships)
+    }
+
+    override fun findRecentFriends(memberId: Long, limit: Int): List<FriendshipResponse> {
+        val friendships = friendshipRepository.findRecentFriends(
+            memberId, FriendshipStatus.ACCEPTED, limit
+        )
+
+        return friendships.map { friendship ->
+            FriendshipResponse.from(
+                friendship,
+                friendship.relationShip.friendNickname ?: UNKNOWN_NICKNAME,
+                UNKNOWN_NICKNAME, // memberNickname은 필요시 별도 조회
+            )
+        }
     }
 }

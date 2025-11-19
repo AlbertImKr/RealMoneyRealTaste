@@ -180,6 +180,16 @@
                                 </button>
                             </li>
                             <li class="nav-item">
+                                <button class="nav-link"
+                                        hx-get="/friends/fragment"
+                                        hx-indicator="#loading-indicator"
+                                        hx-swap="innerHTML"
+                                        hx-target="#content-area"
+                                        id="friends-tab">
+                                    Friends
+                                </button>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" th:href="@{/members/{id}/events(id=${member.memberId})}">
                                     Events</a>
                             </li>
@@ -214,11 +224,33 @@
                             <div class="card-header d-sm-flex justify-content-between border-0">
                                 <h5 class="card-title">
                                     Friends
-                                    <span class="badge bg-danger bg-opacity-10 text-danger"
-                                          th:text="${member?.followersCount ?: 0}">230</span>
                                 </h5>
-                                <a class="btn btn-primary-soft btn-sm" th:href="@{/members/connections}"> See all
-                                    friends</a>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="#"
+                                               hx-get="/friends/fragment"
+                                               hx-target="#content-area">
+                                                <i class="bi bi-people me-2"></i>모든 친구 보기
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" data-bs-target="#addFriendModal"
+                                               data-bs-toggle="modal"
+                                               href="#">
+                                                <i class="bi bi-person-plus me-2"></i>친구 추가
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="bi bi-person-check me-2"></i>친구 요청
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                             <!-- Card header END -->
                             <!-- Card body START -->
@@ -235,7 +267,7 @@
                                                     <a th:href="@{/members/{id}(id=${friend.id})}">
                                                         <img alt=""
                                                              class="avatar-img rounded-circle"
-                                                             src="#">
+                                                             th:src="${friend.profileImageUrl ?: '/assets/images/default-avatar.png'}">
                                                     </a>
                                                 </div>
                                                 <h6 class="card-title mb-1 mt-3">
@@ -248,14 +280,25 @@
                                             </div>
                                             <!-- Card footer -->
                                             <div class="card-footer p-2 border-0">
-                                                <button class="btn btn-sm btn-primary" data-bs-placement="top"
-                                                        data-bs-toggle="tooltip" title="Send message">
-                                                    <i class="bi bi-chat-left-text"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-danger" data-bs-placement="top"
-                                                        data-bs-toggle="tooltip" title="Remove friend">
-                                                    <i class="bi bi-person-x"></i>
-                                                </button>
+                                                <details class="btn-group w-100">
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                            data-bs-placement="top"
+                                                            data-bs-toggle="tooltip"
+                                                            th:attr="onclick=|location.href='@{/messages/{id}(id=${friend.id})}'|"
+                                                            title="메시지">
+                                                        <i class="bi bi-chat-left-text"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                            data-bs-placement="top"
+                                                            data-bs-toggle="tooltip"
+                                                            th:attr="hx-delete='/api/friends/' + ${friend.id},
+                                                                    hx-target='#friend-widget-' + ${friend.id},
+                                                                    hx-swap='outerHTML'"
+                                                            th:id="'friend-widget-' + ${friend.id}"
+                                                            title="친구 삭제">
+                                                        <i class="bi bi-person-x"></i>
+                                                    </button>
+                                                </details>
                                             </div>
                                         </div>
                                         <!-- Friends item END -->
