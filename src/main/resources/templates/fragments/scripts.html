@@ -257,8 +257,245 @@
     </script>
 
     <!-- Modal Create Post Script -->
-    <th:block th:insert="~{post/modal-create-post :: modal-create-post-script}"></th:block>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 모달이 열릴 때마다 초기화
+            const modalElement = document.getElementById('modalCreateFeed');
+            if (modalElement) {
+                // 모달이 열린 후
+                modalElement.addEventListener('shown.bs.modal', function () {
+                    initModalRatingStars();
+                    initModalImageUpload();
+                });
+            }
+
+            // 모달이 닫히기 시작할 때 (중요!)
+            modalElement.addEventListener('hide.bs.modal', function () {
+                // 포커스된 요소가 있다면 포커스 해제
+                if (document.activeElement) {
+                    document.activeElement.blur();
+                }
+            });
+
+            // 평점 선택 기능
+            function initModalRatingStars() {
+                const stars = document.querySelectorAll('#modal-rating-stars i');
+                const ratingInput = document.getElementById('modal-contentRating');
+                const ratingText = document.getElementById('modal-rating-text');
+
+                if (!stars.length) return;
+
+                stars.forEach(star => {
+                    star.addEventListener('click', function () {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        ratingInput.value = rating;
+
+                        // 별 채우기
+                        stars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.classList.remove('bi-star');
+                                s.classList.add('bi-star-fill');
+                            } else {
+                                s.classList.remove('bi-star-fill');
+                                s.classList.add('bi-star');
+                            }
+                        });
+
+                        // 텍스트 업데이트
+                        ratingText.textContent = rating + '점';
+                    });
+
+                    // 호버 효과
+                    star.addEventListener('mouseenter', function () {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        stars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.style.opacity = '1';
+                            } else {
+                                s.style.opacity = '0.5';
+                            }
+                        });
+                    });
+                });
+
+                const ratingContainer = document.getElementById('modal-rating-stars');
+                if (ratingContainer) {
+                    ratingContainer.addEventListener('mouseleave', function () {
+                        stars.forEach(s => {
+                            s.style.opacity = '1';
+                        });
+                    });
+                }
+            }
+
+            // 이미지 URL 관리
+            function initModalImageUpload() {
+                let imageCount = 1;
+                const maxImages = 5;
+                const addImageBtn = document.getElementById('modal-add-image-btn');
+                const imageUrlContainer = document.getElementById('modal-image-url-container');
+
+                if (!addImageBtn || !imageUrlContainer) return;
+
+                function updateImageIndices() {
+                    const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
+                    inputGroups.forEach((group, index) => {
+                        const input = group.querySelector('.image-url-input');
+                        input.setAttribute('data-index', index);
+                        input.setAttribute('name', `imagesUrls[${index}]`);
+                        group.setAttribute('data-image-index', index);
+                    });
+                    imageCount = inputGroups.length;
+
+                    // 최대 개수 도달 시 추가 버튼 숨김
+                    addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'inline-block';
+
+                    // 삭제 버튼 표시/숨김
+                    inputGroups.forEach((group, index) => {
+                        const removeBtn = group.querySelector('.remove-image-btn');
+                        if (removeBtn) {
+                            removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
+                        }
+                    });
+                }
+
+                addImageBtn.addEventListener('click', function () {
+                    if (imageCount >= maxImages) return;
+
+                    const newIndex = imageCount;
+                    const newInputGroup = document.createElement('div');
+                    newInputGroup.className = 'input-group mb-2';
+                    newInputGroup.setAttribute('data-image-index', newIndex);
+                    newInputGroup.innerHTML = `
+                <input type="text"
+                       class="form-control image-url-input"
+                       name="imagesUrls[${newIndex}]"
+                       placeholder="이미지 URL을 입력하세요"
+                       data-index="${newIndex}">
+                <button class="btn btn-outline-danger remove-image-btn" type="button">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+
+                    imageUrlContainer.appendChild(newInputGroup);
+
+                    // 삭제 버튼 이벤트
+                    const removeBtn = newInputGroup.querySelector('.remove-image-btn');
+                    removeBtn.addEventListener('click', function () {
+                        newInputGroup.remove();
+                        updateImageIndices();
+                    });
+
+                    updateImageIndices();
+                });
+
+                // 삭제 버튼 이벤트
+                imageUrlContainer.addEventListener('click', function (e) {
+                    if (e.target.closest('.remove-image-btn')) {
+                        const inputGroup = e.target.closest('.input-group');
+                        if (imageCount > 1) {
+                            inputGroup.remove();
+                            updateImageIndices();
+                        }
+                    }
+                });
+
+                // 초기 상태 설정
+                updateImageIndices();
+            }
+        });
+    </script>
 
     <!-- Time Script -->
-    <div th:replace="~{fragments/time-script :: timeScript}"></div>
+    <script>
+        // 상대 시간 업데이트 함수 (최적화)
+        function updateRelativeTime() {
+            const elements = document.querySelectorAll('[data-created-at]');
+            const now = Date.now(); // new Date()보다 빠름
+
+            elements.forEach(function (element) {
+                const createdAtStr = element.getAttribute('data-created-at');
+                if (!createdAtStr) return;
+
+                const createdAt = new Date(createdAtStr).getTime();
+                const diffMs = now - createdAt;
+
+                let relativeTime;
+
+                if (diffMs < 60000) { // 1분 미만
+                    relativeTime = '방금 전';
+                } else if (diffMs < 3600000) { // 1시간 미만
+                    relativeTime = Math.floor(diffMs / 60000) + '분 전';
+                } else if (diffMs < 86400000) { // 24시간 미만
+                    relativeTime = Math.floor(diffMs / 3600000) + '시간 전';
+                } else if (diffMs < 31536000000) { // 1년 미만
+                    relativeTime = Math.floor(diffMs / 86400000) + '일 전';
+                } else {
+                    relativeTime = Math.floor(diffMs / 31536000000) + '년 전';
+                }
+
+                // 텍스트가 변경될 때만 업데이트 (성능 최적화)
+                if (element.textContent !== relativeTime) {
+                    element.textContent = relativeTime;
+                }
+            });
+        }
+
+        // 즉시 실행 (DOM 로드 기다리지 않음)
+        (function initializeTimeUpdates() {
+            // 첫 실행
+            updateRelativeTime();
+
+            // DOM이 완전히 로드되면 다시 실행
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updateRelativeTime);
+            }
+
+            // 1분마다 업데이트 (기존 interval 중복 방지)
+            if (!window.timeUpdateInterval) {
+                window.timeUpdateInterval = setInterval(updateRelativeTime, 60000);
+            }
+        })();
+
+        // 동적 콘텐츠 로드 시 시간 업데이트 (HTMX, AJAX 등)
+        function updateTimeForNewContent(container = document) {
+            const elements = container.querySelectorAll('[data-created-at]');
+            const now = Date.now();
+
+            elements.forEach(function (element) {
+                const createdAtStr = element.getAttribute('data-created-at');
+                if (!createdAtStr || element.textContent.includes('전') || element.textContent === '방금 전') {
+                    return; // 이미 처리된 요소는 스킵
+                }
+
+                const createdAt = new Date(createdAtStr).getTime();
+                const diffMs = now - createdAt;
+
+                let relativeTime;
+
+                if (diffMs < 60000) {
+                    relativeTime = '방금 전';
+                } else if (diffMs < 3600000) {
+                    relativeTime = Math.floor(diffMs / 60000) + '분 전';
+                } else if (diffMs < 86400000) {
+                    relativeTime = Math.floor(diffMs / 3600000) + '시간 전';
+                } else if (diffMs < 31536000000) {
+                    relativeTime = Math.floor(diffMs / 86400000) + '일 전';
+                } else {
+                    relativeTime = Math.floor(diffMs / 31536000000) + '년 전';
+                }
+
+                element.textContent = relativeTime;
+            });
+        }
+
+        // HTMX 이벤트와 연동
+        document.addEventListener('htmx:afterSettle', function (event) {
+            updateTimeForNewContent(event.detail.target);
+        });
+
+        // 전역으로 노출 (필요시 수동 호출 가능)
+        window.updateRelativeTime = updateRelativeTime;
+        window.updateTimeForNewContent = updateTimeForNewContent;
+    </script>
 </th:block>

@@ -133,7 +133,10 @@
                                     <i class="fas fa-list"></i>
                                 </a>
 
+                                <!-- 게시글 삭제 버튼 -->
                                 <button class="btn btn-outline-danger btn-sm"
+                                        hx-confirm="정말로 이 컬렉션을 삭제하시겠습니까?"
+                                        hx-delete="/api/collections/137"
                                         hx-on::after-request="initCollection(event)"
                                         th:attr="hx-delete=@{/api/collections/{id}(id=${collection.id})}"
                                         type="button">
@@ -708,7 +711,7 @@
                                     <li>
                                         <button class="dropdown-item text-danger"
                                                 hx-on::after-request="initCollectionDetail(event)"
-                                                onclick="return confirm('정말 삭제하시겠습니까?')"
+                                                hx-confirm="정말 삭제하시겠습니까?"
                                                 th:attr="hx-delete=@{/api/collections/{id}(id=${collection.id})}">
                                             <i class="bi bi-trash me-2"></i>컬렉션 삭제
                                         </button>
