@@ -306,6 +306,38 @@
             </button>
         </div>
     </div>
+
+
+    <!-- Post Detail Modal START -->
+    <div aria-hidden="true" aria-labelledby="postDetailModalLabel" class="modal fade" id="postDetailModal"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl d-flex align-items-center justify-content-center min-vh-100">
+            <div class="modal-content mx-auto" style="max-height: 90vh; overflow-y: auto;">
+                <!-- Modal header START -->
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="postDetailModalLabel">
+                        <i class="bi bi-card-image text-primary me-2"></i>게시글 상세보기
+                    </h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <!-- Modal header END -->
+                <!-- Modal body START -->
+                <div class="modal-body">
+                    <div class="text-center py-3" id="post-detail-loading">
+                        <output class="spinner-border text-primary">
+                            <span class="visually-hidden">Loading...</span>
+                        </output>
+                    </div>
+                    <div id="post-detail-modal-content">
+                        <!-- Post detail content will be loaded here -->
+                    </div>
+                </div>
+                <!-- Modal body END -->
+            </div>
+        </div>
+    </div>
+    <!-- Post Detail Modal END -->
+
 </div>
 </body>
 </html>

@@ -254,11 +254,12 @@
         <div id="comments">
             <!-- HTMX로 댓글 목록 로드 -->
             <div hx-swap="innerHTML"
+                 hx-target="#comments-container-1"
                  hx-trigger="load, reload-comments from:body"
-                 th:attr="hx-get='/posts/' + ${post.id} + '/comments/fragments/list'"
+                 th:attr="hx-get='/posts/' + ${post.id} + '/comments/fragments/list',hx-target='#comments-container-' + ${post.id},hx-indicator='#comments-container-' + ${post.id}+' .htmx-indicator'"
                  th:id="'comments-container-' + ${post.id}">
                 <!-- 로딩 상태 -->
-                <div class="text-center py-4">
+                <div class="text-center py-4 htmx-indicator">
                     <div class="spinner-border text-primary mb-3"></div>
                     <div class="text-muted">댓글을 불러오는 중...</div>
                 </div>
