@@ -6,37 +6,12 @@
 
     <!-- Meta Tags -->
     <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
-    <!-- End Meta Tags -->
 
-    <!-- Dark mode -->
-    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
-    <!-- End Dark mode -->
+    <!-- Styles -->
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
 
-    <!-- Favicon -->
-    <link href="/assets/images/favicon.ico" rel="shortcut icon">
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Plugins CSS -->
-    <link href="/assets/vendor/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/OverlayScrollbars-master/css/OverlayScrollbars.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/tiny-slider/dist/tiny-slider.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/choices.js/public/assets/styles/choices.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/glightbox-master/dist/css/glightbox.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/dropzone/dist/dropzone.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/flatpickr/dist/flatpickr.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/plyr/plyr.css" rel="stylesheet" type="text/css">
-
-    <!-- Theme CSS -->
-    <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
-
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    <script src="https://unpkg.com/htmx.org@2.0.8/dist/ext/json-enc.js"></script>
-
+    <!-- Core Scripts -->
+    <th:block th:replace="~{fragments/head :: core-scripts}"></th:block>
 </head>
 <body>
 

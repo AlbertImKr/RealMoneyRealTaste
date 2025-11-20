@@ -5,24 +5,12 @@
 
     <!-- Meta Tags -->
     <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
-    <!-- End Meta Tags -->
 
-    <!-- Dark mode -->
-    <script th:replace="~{fragments/darkmode :: darkmode-script}"></script>
+    <!-- Styles -->
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
 
-    <!-- Favicon -->
-    <link rel="shortcut icon" th:href="@{/assets/images/favicon.ico}">
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Plugins CSS -->
-    <link rel="stylesheet" th:href="@{/assets/vendor/font-awesome/css/all.min.css}" type="text/css">
-    <link rel="stylesheet" th:href="@{/assets/vendor/bootstrap-icons/bootstrap-icons.css}" type="text/css">
-
-    <!-- Theme CSS -->
-    <link rel="stylesheet" th:href="@{/assets/css/style.css}" type="text/css">
+    <!-- Core Scripts -->
+    <th:block th:replace="~{fragments/head :: core-scripts}"></th:block>
 </head>
 
 <body>
