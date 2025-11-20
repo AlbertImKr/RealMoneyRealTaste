@@ -138,12 +138,9 @@
                         <!-- Card feed action dropdown menu -->
                         <ul class="dropdown-menu dropdown-menu-end"
                             th:attr="aria-labelledby='cardFeedAction' + ${post.id}">
-                            <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-bookmark fa-fw pe-2"></i>Save post</a>
-                            </li>
                             <li th:if="${member != null and member.memberId == post.author.memberId}">
                                 <a class="dropdown-item" th:href="@{/posts/{id}/edit(id=${post.id})}">
-                                    <i class="bi bi-pencil-square fa-fw pe-2"></i>Edit post
+                                    <i class="bi bi-pencil-square fa-fw pe-2"></i>게시글 수정
                                 </a>
                             </li>
                             <li th:if="${member != null and member.memberId == post.author.memberId}">
@@ -151,26 +148,14 @@
                                    hx-confirm='정말 삭제하시겠습니까?'
                                    hx-on::afterRequest='if(event.detail.xhr.status === 200) location.reload()'
                                    th:attr="hx-delete='/api/posts/' + ${post.id}">
-                                    <i class="bi bi-trash fa-fw pe-2"></i>Delete post
+                                    <i class="bi bi-trash fa-fw pe-2"></i>게시글 삭제
                                 </a>
-                            </li>
-                            <li th:if="${member != null and member.memberId != post.author.memberId}">
-                                <a class="dropdown-item" href="#">
-                                    <i class="bi bi-person-x fa-fw pe-2"></i>Unfollow
-                                    <span th:text="${post.author.nickname}"></span>
-                                </a>
-                            </li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-x-circle fa-fw pe-2"></i>Hide post</a>
-                            </li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-slash-circle fa-fw pe-2"></i>Block</a>
                             </li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-flag fa-fw pe-2"></i>Report post</a>
+                                <i class="bi bi-flag fa-fw pe-2"></i>게시글 신고</a>
                             </li>
                         </ul>
                     </div>
