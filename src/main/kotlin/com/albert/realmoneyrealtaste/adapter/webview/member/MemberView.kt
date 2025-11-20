@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
@@ -27,6 +28,7 @@ class MemberView(
     private val memberUpdater: MemberUpdater,
     private val validator: PasswordUpdateFormValidator,
     private val passwordResetter: PasswordResetter,
+    private val followReader: FollowReader,
 ) {
 
     @GetMapping(MemberUrls.ACTIVATION)
@@ -207,5 +209,23 @@ class MemberView(
         redirectAttributes.addFlashAttribute("success", true)
         redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
         return "redirect:/"
+    }
+
+    @GetMapping(MemberUrls.FRAGMENT_SUGGEST_USERS_SIDEBAR)
+    fun readSidebarFragment(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
+        model: Model,
+    ): String {
+        if (memberPrincipal != null) {
+            // 추천 사용자 목록 조회
+            val suggestedUsers = memberReader.findSuggestedMembers(memberPrincipal.memberId, 5)
+            val targetIds = suggestedUsers.map { it.requireId() }
+            val followingIds = followReader.findFollowings(memberPrincipal.memberId, targetIds)
+
+            model.addAttribute("suggestedUsers", suggestedUsers)
+            model.addAttribute("followings", followingIds)
+            model.addAttribute("member", memberPrincipal)
+        }
+        return MemberViews.SUGGEST_USERS_SIDEBAR_CONTENT
     }
 }

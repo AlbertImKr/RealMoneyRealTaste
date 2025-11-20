@@ -9,4 +9,6 @@ object MemberUrls {
     const val SETTING_DELETE = "/members/setting/delete"
     const val PASSWORD_FORGOT = "/members/password-forgot"
     const val PASSWORD_RESET = "/members/password-reset"
+
+    const val FRAGMENT_SUGGEST_USERS_SIDEBAR = "/fragments/members/suggest-users-sidebar"
 }

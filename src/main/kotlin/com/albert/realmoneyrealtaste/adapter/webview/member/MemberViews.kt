@@ -8,4 +8,5 @@ object MemberViews {
     const val PASSWORD_FORGOT = "member/password-forgot"
     const val PASSWORD_RESET = "member/password-reset"
     const val PASSWORD_RESET_EMAIL = "member/password-reset-email"
+    const val SUGGEST_USERS_SIDEBAR_CONTENT = "fragments/sidebar :: right-sidebar"
 }

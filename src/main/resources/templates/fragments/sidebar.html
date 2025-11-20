@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sidebar Fragment</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!-- Right sidebar START -->
+<div th:fragment="right-sidebar">
+    <div class="row g-4">
+        <!-- Card follow START -->
+        <div class="col-sm-6 col-lg-12">
+            <div class="card">
+                <!-- Card header START -->
+                <div class="card-header pb-0 border-0">
+                    <h5 class="card-title mb-0">추천 푸디</h5>
+                </div>
+                <!-- Card header END -->
+                <!-- Card body START -->
+                <div class="card-body">
+                    <!-- Connection items START -->
+                    <th:block th:each="user : ${suggestedUsers}">
+                        <div class="hstack gap-2 mb-3">
+                            <!-- Avatar -->
+                            <div class="avatar">
+                                <a href="#" th:href="@{/profile/{id}(id=${user.id})}">
+                                    <img alt=""
+                                         class="avatar-img rounded-circle"
+                                         th:alt="${user.nickname.value}"
+                                         th:src="'#'">
+                                </a>
+                            </div>
+                            <!-- Title -->
+                            <div class="overflow-hidden">
+                                <a class="h6 mb-0"
+                                   href="#"
+                                   th:href="@{/profile/{id}(id=${user.id})}"
+                                   th:text="${user.nickname.value}">User Name</a>
+                                <p class="mb-0 small text-truncate"
+                                   th:text="${user.detail.introduction != null ? user.detail.introduction : ''}">
+                                    User
+                                    description</p>
+                            </div>
+                            <!-- Following button -->
+                            <div class="ms-auto" th:id="'follow-button-' + ${user.id}">
+                                <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
+                                        th:attr="hx-post='/api/members/' + ${user.id} + '/follow',
+                                                hx-target='#follow-button-' + ${user.id},
+                                                hx-swap='innerHTML'"
+                                        th:if="${!followings.contains(user.id)}">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                                <!-- Unfollowing button (if already following) -->
+                                <button class="btn btn-primary rounded-circle icon-md ms-auto"
+                                        th:attr="hx-delete='/api/members/' + ${user.id} + '/follow',
+                                                hx-target='#follow-button-' + ${user.id},
+                                                hx-swap='innerHTML'"
+                                        th:if="${followings.contains(user.id)}">
+                                    <i class="bi bi-person-check-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </th:block>
+                    <!-- Connection items END -->
+                </div>
+                <!-- Card body END -->
+            </div>
+        </div>
+        <!-- Card follow END -->
+    </div>
+</div>
+<!-- Right sidebar END -->
+
+</body>
+</html>
