@@ -35,7 +35,7 @@
                             <div class="overflow-hidden">
                                 <a class="h6 mb-0"
                                    href="#"
-                                   th:href="@{/profile/{id}(id=${user.id})}"
+                                   th:href="@{/members/{id}(id=${user.id})}"
                                    th:text="${user.nickname.value}">User Name</a>
                                 <p class="mb-0 small text-truncate"
                                    th:text="${user.detail.introduction != null ? user.detail.introduction : ''}">

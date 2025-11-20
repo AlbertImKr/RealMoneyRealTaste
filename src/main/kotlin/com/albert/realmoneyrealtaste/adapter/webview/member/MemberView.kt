@@ -40,6 +40,10 @@ class MemberView(
         model: Model,
     ): String {
         val profileMember = memberReader.readActiveMemberById(id)
+        if (memberPrincipal != null) {
+            val isFollowing = followReader.checkIsFollowing(memberPrincipal.memberId, id)
+            model.addAttribute("isFollowing", isFollowing)
+        }
 
         model.addAttribute("author", profileMember) // 프로필 주인
         model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자

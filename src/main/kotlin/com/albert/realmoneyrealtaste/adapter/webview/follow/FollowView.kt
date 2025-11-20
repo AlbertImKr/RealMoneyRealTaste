@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam
  * 팔로잉/팔로워 목록을 조회하는 웹 페이지를 제공합니다.
  */
 @Controller
-class FollowViewController(
+class FollowView(
     private val followReader: FollowReader,
-    private val memberReader: MemberReader,
+    private val memberReader: MemberReader, val id: Long? = null,
 ) {
     /**
      * 내 팔로잉 목록 조회
@@ -119,6 +119,7 @@ class FollowViewController(
     fun readUserFollowerList(
         @PathVariable memberId: Long,
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageRequest: Pageable,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
         model: Model,
     ): String {
         val followers = followReader.findFollowersByMemberId(
@@ -126,10 +127,16 @@ class FollowViewController(
             pageable = pageRequest
         )
 
-        val member = memberReader.readMemberById(memberId)
+        val author = memberReader.readMemberById(memberId)
+        val followerIds = followers.content.map { it.followerId }
+        if (principal != null) {
+            val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followerIds)
+            model.addAttribute("member", principal)
+            model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
+        }
 
         model.addAttribute("followers", followers)
-        model.addAttribute("targetMember", member)
+        model.addAttribute("author", author)
         return FollowViews.FOLLOWERS_FRAGMENT
     }
 }

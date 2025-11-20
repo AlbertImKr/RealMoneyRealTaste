@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview.post
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostCreator
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostUpdater
@@ -21,6 +22,7 @@ class PostView(
     private val postCreator: PostCreator,
     private val postReader: PostReader,
     private val postUpdater: PostUpdater,
+    private val memberReader: MemberReader,
 ) {
     @PostMapping(PostUrls.CREATE)
     fun createPost(
@@ -58,7 +60,9 @@ class PostView(
         model: Model,
     ): String {
         val postsPage = postReader.readPostsByAuthor(id, pageable)
+        val author = memberReader.readMemberById(id)
 
+        model.addAttribute("author", author)
         model.addAttribute("posts", postsPage)
         model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자
 
@@ -86,15 +90,11 @@ class PostView(
         @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
+        val postsPage = postReader.readPosts(pageable)
         if (memberPrincipal == null) {
-            val postsPage = postReader.readPosts(pageable)
             model.addAttribute("posts", postsPage)
             return PostViews.POSTS_CONTENT
         }
-        val postsPage = postReader.readPostsByAuthor(
-            authorId = memberPrincipal.memberId,
-            pageable = pageable,
-        )
         model.addAttribute("posts", postsPage)
         model.addAttribute("member", memberPrincipal)
         return PostViews.POSTS_CONTENT
