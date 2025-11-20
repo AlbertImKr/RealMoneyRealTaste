@@ -47,12 +47,14 @@ class FollowView(
                 pageable = pageRequest
             )
         }
-
+        val author = memberReader.readMemberById(targetMemberId)
         // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
         val followingIds = followings.content.map { it.followingId }
-        model.addAttribute("followingIds", followingIds)
+        val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followingIds)
+        model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
         model.addAttribute("followings", followings)
         model.addAttribute("member", principal)
+        model.addAttribute("author", author)
         return FollowViews.FOLLOWING_FRAGMENT
     }
 
@@ -98,6 +100,7 @@ class FollowView(
     fun readUserFollowingList(
         @PathVariable memberId: Long,
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageRequest: Pageable,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
         model: Model,
     ): String {
         val followings = followReader.findFollowingsByMemberId(
@@ -105,10 +108,16 @@ class FollowView(
             pageable = pageRequest
         )
 
-        val member = memberReader.readMemberById(memberId)
+        val author = memberReader.readMemberById(memberId)
+        val followingIds = followings.content.map { it.followingId }
+        if (principal != null) {
+            val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followingIds)
+            model.addAttribute("member", principal)
+            model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
+        }
 
         model.addAttribute("followings", followings)
-        model.addAttribute("targetMember", member)
+        model.addAttribute("author", author)
         return FollowViews.FOLLOWING_FRAGMENT
     }
 

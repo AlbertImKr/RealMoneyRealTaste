@@ -45,7 +45,7 @@
                             <!-- Following button -->
                             <div class="ms-auto" th:id="'follow-button-' + ${user.id}">
                                 <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
-                                        th:attr="hx-post='/api/members/' + ${user.id} + '/follow',
+                                        th:attr="hx-post='/members/' + ${user.id} + '/follow',
                                                 hx-target='#follow-button-' + ${user.id},
                                                 hx-swap='innerHTML'"
                                         th:if="${!followings.contains(user.id)}">
@@ -53,7 +53,7 @@
                                 </button>
                                 <!-- Unfollowing button (if already following) -->
                                 <button class="btn btn-primary rounded-circle icon-md ms-auto"
-                                        th:attr="hx-delete='/api/members/' + ${user.id} + '/follow',
+                                        th:attr="hx-delete='/members/' + ${user.id} + '/follow',
                                                 hx-target='#follow-button-' + ${user.id},
                                                 hx-swap='innerHTML'"
                                         th:if="${followings.contains(user.id)}">

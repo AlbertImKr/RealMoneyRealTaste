@@ -80,34 +80,30 @@
                                 </div>
 
                                 <!-- 다른 사용자인 경우 -->
-                                <div sec:authorize="isAuthenticated()"
+                                <div class="d-flex ms-auto" sec:authorize="isAuthenticated()"
                                      th:if="${member?.email?.address != author?.email?.address}">
-                                    <div id="follow-button">
-                                        <button class="btn btn-primary-soft me-2"
+                                    <div th:id="'follow-button-'+${author.id}">
+                                        <button class="btn btn-primary rounded-circle icon-md ms-auto"
                                                 hx-swap="innerHTML"
-                                                hx-target="#follow-button"
-                                                th:attr="hx-delete='/api/members/' + ${author.id} + '/follow'"
+                                                th:attr="hx-delete='/members/' + ${author.id} + '/follow',
+                                                hx-target='#follow-button-'+${author.id}"
                                                 th:if="${isFollowing}"
                                         >
-                                            <i class="bi bi-person-check-fill"></i> Following
+                                            <i class="bi bi-person-check-fill"></i>
                                         </button>
-                                        <button class="btn btn-primary-soft me-2"
+                                        <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
                                                 hx-swap="innerHTML"
-                                                hx-target="#follow-button"
-                                                th:attr="hx-post='/api/members/' + ${author.id} + '/follow'"
+                                                th:attr="hx-post='/members/' + ${author.id} + '/follow',
+                                                hx-target='#follow-button-'+${author.id}"
                                                 th:if="${!isFollowing}"
                                         >
-                                            <i class="bi bi-person-plus-fill"></i> Follow
+                                            <i class="bi bi-person-plus-fill"></i>
                                         </button>
                                     </div>
-                                    <button class="btn btn-success-soft me-2" id="message-btn"
-                                            th:attr="onclick=|location.href='@{/messages/{id}(id=${author.id})}'|">
-                                        <i class="bi bi-chat-left-text pe-1"></i> Message
-                                    </button>
                                 </div>
 
                                 <!-- 비인증 사용자인 경우 -->
-                                <div sec:authorize="!isAuthenticated()">
+                                <div class="ms-auto" sec:authorize="!isAuthenticated()">
                                     <button class="btn btn-primary-soft me-2" onclick="location.href='/signin'">
                                         <i class="bi bi-box-arrow-in-right pe-1"></i> Login to Follow
                                     </button>

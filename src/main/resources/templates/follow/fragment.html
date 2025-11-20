@@ -75,11 +75,18 @@
                                 th:if="${#authentication.principal.memberId != followResponse.followingId}">
                             <div th:id="'follow-button-' + ${followResponse.followingId}">
                                 <button class="btn btn-primary rounded-circle icon-md ms-auto"
-                                        th:attr="hx-delete='/api/members/' + ${followResponse.followingId} + '/follow',
-                                                            hx-target='#follow-button-' + ${followResponse.followingId},
-                                                            hx-swap='innerHTML'"
-                                >
+                                        th:attr="hx-delete='/members/' + ${followResponse.followingId} + '/follow',
+                                                        hx-target='#follow-button-' + ${followResponse.followingId},
+                                                        hx-swap='innerHTML'"
+                                        th:if="${currentUserFollowingIds.contains(followResponse.followingId)}">
                                     <i class="bi bi-person-check-fill"></i>
+                                </button>
+                                <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
+                                        th:attr="hx-post='/members/' + ${followResponse.followingId} + '/follow',
+                                                        hx-target='#follow-button-' + ${followResponse.followingId},
+                                                        hx-swap='innerHTML'"
+                                        th:unless="${currentUserFollowingIds.contains(followResponse.followingId)}">
+                                    <i class="fa-solid fa-plus"></i>
                                 </button>
                             </div>
                         </th:block>
@@ -192,14 +199,14 @@
                         <th:block th:if="${#authentication.principal.memberId != follow.followerId}">
                             <div th:id="'follow-button-' + ${follow.followerId}">
                                 <button class="btn btn-primary rounded-circle icon-md ms-auto"
-                                        th:attr="hx-delete='/api/members/' + ${follow.followerId} + '/follow',
+                                        th:attr="hx-delete='/members/' + ${follow.followerId} + '/follow',
                                                         hx-target='#follow-button-' + ${follow.followerId},
                                                         hx-swap='innerHTML'"
                                         th:if="${currentUserFollowingIds.contains(follow.followerId)}">
                                     <i class="bi bi-person-check-fill"></i>
                                 </button>
                                 <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
-                                        th:attr="hx-post='/api/members/' + ${follow.followerId} + '/follow',
+                                        th:attr="hx-post='/members/' + ${follow.followerId} + '/follow',
                                                         hx-target='#follow-button-' + ${follow.followerId},
                                                         hx-swap='innerHTML'"
                                         th:unless="${currentUserFollowingIds.contains(follow.followerId)}">
@@ -264,79 +271,5 @@
     </div>
 </div>
 <!-- 팔로워 리스트 프래그먼트 END -->
-
-<script th:inline="javascript">
-    /*<![CDATA[*/
-
-    // CSRF 토큰 설정
-    const csrfToken = /*[[${_csrf.token}]]*/ '';
-    const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
-
-    // 팔로우/언팔로우 토글 함수
-    function toggleFollow(button) {
-        const memberId = button.dataset.memberId;
-        const isFollowing = button.dataset.following === 'true';
-        const url = `/api/v1/follow/${isFollowing ? 'unfollow' : 'follow'}/${memberId}`;
-
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
-            },
-            credentials: 'same-origin'
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // 버튼 상태 업데이트
-                const newFollowingState = !isFollowing;
-                button.dataset.following = newFollowingState;
-                button.textContent = newFollowingState ? '팔로잉' : '팔로우';
-                button.classList.toggle('btn-outline-primary', newFollowingState);
-                button.classList.toggle('btn-primary', !newFollowingState);
-
-                // 팔로워 수 업데이트
-                const followersCountEl = button.closest('.card').querySelector('.followers-count');
-                if (followersCountEl) {
-                    const currentCount = parseInt(followersCountEl.textContent);
-                    followersCountEl.textContent = newFollowingState ? currentCount + 1 : currentCount - 1;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('요청을 처리하는 중 오류가 발생했습니다.');
-            });
-    }
-
-    // HTMX 요청 후 실행될 콜백
-    document.body.addEventListener('htmx:afterSwap', function (evt) {
-        if (evt.detail.target.id === 'following-list' || evt.detail.target.id === 'followers-list') {
-            // HTMX로 로드된 내용에 대해 필요한 초기화 작업 수행
-            initializeFollowButtons();
-        }
-    });
-
-    // 초기화 함수
-    function initializeFollowButtons() {
-        // 팔로우 버튼에 이벤트 리스너 추가
-        document.querySelectorAll('.follow-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                toggleFollow(this);
-            });
-        });
-    }
-
-    // 페이지 로드 시 초기화
-    document.addEventListener('DOMContentLoaded', function () {
-        initializeFollowButtons();
-    });
-
-    /*]]>*/
-</script>
 </body>
 </html>

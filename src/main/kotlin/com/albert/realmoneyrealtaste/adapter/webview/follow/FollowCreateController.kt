@@ -21,7 +21,7 @@ class FollowCreateController(
     /**
      * 사용자 팔로우
      */
-    @PostMapping("/api/members/{targetId}/follow")
+    @PostMapping("/members/{targetId}/follow")
     @ResponseBody
     fun follow(
         @AuthenticationPrincipal principal: MemberPrincipal,
@@ -37,7 +37,7 @@ class FollowCreateController(
         // 언팔로우 버튼 HTML 조각 반환
         val followButtonHtml = """
             <button class="btn btn-primary rounded-circle icon-md ms-auto"
-                    hx-delete="/api/members/$targetId/follow"
+                    hx-delete="/members/$targetId/follow"
                     hx-target="#follow-button-$targetId"
                     hx-swap="innerHTML">
                 <i class="bi bi-person-check-fill"></i>

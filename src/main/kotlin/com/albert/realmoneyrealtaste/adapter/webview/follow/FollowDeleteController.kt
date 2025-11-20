@@ -21,7 +21,7 @@ class FollowDeleteController(
     /**
      * 사용자 언팔로우
      */
-    @DeleteMapping("/api/members/{targetId}/follow")
+    @DeleteMapping("/members/{targetId}/follow")
     @ResponseBody
     fun unfollow(
         @AuthenticationPrincipal principal: MemberPrincipal,
@@ -37,7 +37,7 @@ class FollowDeleteController(
         // 팔로우 버튼 HTML 조각 반환
         val followButtonHtml = """
             <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
-                    hx-post="/api/members/$targetId/follow"
+                    hx-post="/members/$targetId/follow"
                     hx-target="#follow-button-$targetId"
                     hx-swap="innerHTML">
                 <i class="fa-solid fa-plus"></i>
