@@ -220,14 +220,14 @@
             <div class="col-lg-3">
                 <!-- HTMX로 동적 로딩될 사이드바 (로그인 상태) -->
                 <div hx-get="/fragments/members/suggest-users-sidebar"
-                     hx-indicator="#sidebar-loading"
+                     hx-indicator="#sidebar-content .htmx-indicator"
                      hx-swap="innerHTML"
                      hx-target="#sidebar-content"
                      hx-trigger="load"
                      id="sidebar-content"
                      th:if="${member != null}">
                     <!-- 로딩 인디케이터 -->
-                    <div class="text-center py-5" id="sidebar-loading">
+                    <div class="text-center py-5 htmx-indicator">
                         <div class="spinner-border text-primary mb-3"></div>
                         <div class="text-muted">추천 푸디를 불러오는 중...</div>
                     </div>

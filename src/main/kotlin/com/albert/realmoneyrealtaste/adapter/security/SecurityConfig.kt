@@ -17,6 +17,7 @@ class SecurityConfig {
         httpSecurity
             .authorizeHttpRequests {
                 it.requestMatchers("/").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/posts/mine", "posts/mine/**").authenticated()
                     .requestMatchers("/signup", "/members/activate", "/signin").permitAll()
                     .requestMatchers("/members/password-forgot", "/members/password-reset").permitAll()
                     .requestMatchers(HttpMethod.GET, "/posts/*/comments/**").permitAll()

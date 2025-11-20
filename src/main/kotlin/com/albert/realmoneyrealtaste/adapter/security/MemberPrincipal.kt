@@ -17,6 +17,7 @@ data class MemberPrincipal(
     val introduction: String,
     val address: String,
     val createdAt: LocalDateTime,
+    val profileImageUrl: String = "#",
     private val roles: Set<Role>,
     val followersCount: Long = 0L,
     val followingsCount: Long = 0L,
