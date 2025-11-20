@@ -3,17 +3,115 @@
     <!-- Bootstrap JS -->
     <script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Vendors -->
-    <script src="/assets/vendor/tiny-slider/dist/tiny-slider.js"></script>
-    <script src="/assets/vendor/OverlayScrollbars-master/js/OverlayScrollbars.min.js"></script>
-    <script src="/assets/vendor/choices.js/public/assets/scripts/choices.min.js"></script>
-    <script src="/assets/vendor/glightbox-master/dist/js/glightbox.min.js"></script>
-    <script src="/assets/vendor/flatpickr/dist/flatpickr.min.js"></script>
-    <script src="/assets/vendor/plyr/plyr.js"></script>
-    <script src="/assets/vendor/dropzone/dist/min/dropzone.min.js"></script>
-
     <!-- Theme Functions -->
-    <script src="/assets/js/functions.js"></script>
+    <script>
+        "use strict";
+
+        const e = {
+            init: function () {
+                e.toolTipFunc();
+                e.popOverFunc();
+                e.autoResize();
+                e.toasts();
+                e.fakePwd();
+            },
+            isVariableDefined: function (el) {
+                return el != null;
+            },
+            on: function (selectors, type, listener) {
+                document.addEventListener("DOMContentLoaded", () => {
+                    if (!(selectors instanceof HTMLElement) && selectors !== null) {
+                        selectors = document.querySelector(selectors);
+                    }
+                    selectors.addEventListener(type, listener);
+                });
+            },
+            onAll: function (selectors, type, listener) {
+                document.addEventListener("DOMContentLoaded", () => {
+                    document.querySelectorAll(selectors).forEach((element) => {
+                        if (type.indexOf(',') > -1) {
+                            let types = type.split(',');
+                            types.forEach((type) => {
+                                element.addEventListener(type, listener);
+                            });
+                        } else {
+                            element.addEventListener(type, listener);
+                        }
+                    });
+                });
+            },
+            select: function (selectors) {
+                return document.querySelector(selectors);
+            },
+            selectAll: function (selectors) {
+                return document.querySelectorAll(selectors);
+            },
+
+            // Tooltip
+            toolTipFunc: function () {
+                let tooltipTriggerList = [].slice.call(e.selectAll('[data-bs-toggle="tooltip"]'))
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl)
+                });
+            },
+
+            // Popover
+            popOverFunc: function () {
+                let popoverTriggerList = [].slice.call(e.selectAll('[data-bs-toggle="popover"]'))
+                popoverTriggerList.map(function (popoverTriggerEl) {
+                    return new bootstrap.Popover(popoverTriggerEl)
+                });
+            },
+
+            // Auto resize textarea
+            autoResize: function () {
+                e.selectAll('[data-autoresize]').forEach(function (element) {
+                    let offset = element.offsetHeight - element.clientHeight;
+                    element.addEventListener('input', function (event) {
+                        event.target.style.height = 'auto';
+                        event.target.style.height = event.target.scrollHeight + offset + 'px';
+                    });
+                });
+            },
+
+            // Toasts
+            toasts: function () {
+                if (e.isVariableDefined(e.select('.toast-btn'))) {
+                    window.addEventListener('DOMContentLoaded', () => {
+                        e.selectAll(".toast-btn").forEach((t) => {
+                            t.addEventListener("click", function () {
+                                let toastTarget = document.getElementById(t.dataset.target);
+                                let toast = new bootstrap.Toast(toastTarget);
+                                toast.show();
+                            });
+                        });
+                    });
+                }
+            },
+
+            // Fake Password
+            fakePwd: function () {
+                if (e.isVariableDefined(e.select('.fakepassword'))) {
+                    const password = e.select('.fakepassword');
+                    const toggler = e.select('.fakepasswordicon');
+
+                    const showHidePassword = () => {
+                        if (password.type === 'password') {
+                            password.setAttribute('type', 'text');
+                            toggler.classList.add('fa-eye');
+                        } else {
+                            toggler.classList.remove('fa-eye');
+                            password.setAttribute('type', 'password');
+                        }
+                    };
+
+                    toggler.addEventListener('click', showHidePassword);
+                }
+            }
+        };
+
+        e.init();
+    </script>
 
     <!-- HTMX Indicator 커스텀 스타일 -->
     <style>
