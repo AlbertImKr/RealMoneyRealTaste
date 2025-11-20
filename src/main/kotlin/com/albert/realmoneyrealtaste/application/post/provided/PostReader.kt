@@ -22,6 +22,15 @@ interface PostReader {
     fun readPostById(memberId: Long, postId: Long): Post
 
     /**
+     * Retrieves a post by the given post ID.
+     *
+     * @param postId post ID of the post to retrieve
+     * @return the retrieved post
+     * @throws PostNotFoundException if the post does not exist
+     */
+    fun readPostById(postId: Long): Post
+
+    /**
      * 작성자 ID와 게시글 ID로 게시글을 조회합니다.
      *
      * @param authorId 작성자 회원 ID
@@ -106,4 +115,12 @@ interface PostReader {
      * @return 조회된 게시글 목록
      */
     fun readPostsByIds(postIds: List<Long>): List<Post>
+
+    /**
+     * 모든 게시글을 조회합니다.
+     *
+     * @param pageable 페이징 정보
+     * @return 모든 게시글 목록 (페이징)
+     */
+    fun readPosts(pageable: Pageable): Page<Post>
 }

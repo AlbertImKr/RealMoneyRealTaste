@@ -7,7 +7,7 @@
 <div th:fragment="posts-content">
     <!-- Posts 헤더 -->
     <!-- Share feed START -->
-    <div class="card card-body m-3">
+    <div class="card card-body m-3" th:if="${member != null}">
         <div class="d-flex mb-3">
             <!-- Avatar -->
             <div class="avatar avatar-xs me-2">

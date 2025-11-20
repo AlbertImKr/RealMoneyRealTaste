@@ -215,7 +215,7 @@
                         <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
                              style="width: 32px; height: 32px;">
                                         <span class="text-white fw-bold small"
-                                              th:text="${currentUserNickname.substring(0, 1)?.toUpperCase() ?: 'U'}">U</span>
+                                              th:text="${currentUserNickname != null ? currentUserNickname.substring(0, 1)?.toUpperCase() : 'U'}">U</span>
                         </div>
                     </div>
 

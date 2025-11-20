@@ -65,12 +65,17 @@ class PostView(
         return PostViews.POSTS_CONTENT
     }
 
-    @GetMapping("/posts")
+    @GetMapping(PostUrls.READ_LIST_FRAGMENT)
     fun readPosts(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
         @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
+        if (memberPrincipal == null) {
+            val postsPage = postReader.readPosts(pageable)
+            model.addAttribute("posts", postsPage)
+            return PostViews.POSTS_CONTENT
+        }
         val postsPage = postReader.readPostsByAuthor(
             authorId = memberPrincipal.memberId,
             pageable = pageable,
@@ -82,10 +87,15 @@ class PostView(
 
     @GetMapping(PostUrls.READ_DETAIL)
     fun readPost(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
         @PathVariable postId: Long,
         model: Model,
     ): String {
+        if (memberPrincipal == null) {
+            val post = postReader.readPostById(postId)
+            model.addAttribute("post", post)
+            return PostViews.DETAIL
+        }
         postDetailModelSetup(memberPrincipal, postId, model)
         return PostViews.DETAIL
     }
@@ -113,10 +123,15 @@ class PostView(
 
     @GetMapping(PostUrls.READ_DETAIL_MODAL)
     fun readPostDetailModal(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
         @PathVariable postId: Long,
         model: Model,
     ): String {
+        if (memberPrincipal == null) {
+            val post = postReader.readPostById(postId)
+            model.addAttribute("post", post)
+            return PostViews.DETAIL_MODAL
+        }
         postDetailModelSetup(memberPrincipal, postId, model)
 
         return PostViews.DETAIL_MODAL

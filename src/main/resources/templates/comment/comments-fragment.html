@@ -545,7 +545,6 @@
     // 답글 토글 상태를 추적하는 객체
 
     function toggleReplies(button) {
-        console.log("토글 답글 실행");
         const commentId = button.getAttribute('data-comment-id');
         const repliesContainer = document.getElementById('replies-' + commentId);
         const toggleText = button.querySelector('.reply-toggle-text');

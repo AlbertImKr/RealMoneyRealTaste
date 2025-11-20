@@ -6,6 +6,7 @@ object PostUrls {
     const val UPDATE = "/posts/{postId}/edit"
     const val READ_DETAIL_MODAL = "/posts/{postId}/modal"
     const val READ_MY_LIST = "/posts/mine"
+    const val READ_LIST_FRAGMENT = "/posts/fragment"
 
     const val REDIRECT_READ_DETAIL = "redirect:/posts/%d"
 
