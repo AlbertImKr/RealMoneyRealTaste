@@ -7,7 +7,7 @@
 
 <div th:fragment="comments-list">
     <!-- 댓글 섹션 헤더 -->
-    <div class="border-bottom mb-3 pb-2" th:if="${comments != null and comments.isFirst()}">
+    <div class="border-bottom mb-3 pb-2 pt-3" th:if="${comments != null and comments.isFirst()}">
         <h6 class="mb-0">
             <i class="bi bi-chat-left-text text-primary me-2"></i>댓글
             <span class="badge bg-primary ms-2" th:text="${comments?.totalElements ?: 0}">0</span>

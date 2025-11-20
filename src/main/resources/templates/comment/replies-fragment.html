@@ -8,7 +8,7 @@
 <!-- 답글 목록 프래그먼트 -->
 <div th:fragment="replies-list">
     <!-- 답글이 없는 경우 -->
-    <div class="text-center py-2" th:if="${replies == null or replies.isEmpty()}">
+    <div class="text-start py-2 pb-4" th:if="${replies == null or replies.isEmpty()}">
         <p class="text-muted small mb-0">
             <i class="bi bi-chat-dots me-1"></i>아직 답글이 없습니다
         </p>
