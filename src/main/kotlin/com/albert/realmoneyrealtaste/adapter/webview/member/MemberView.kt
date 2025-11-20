@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.webview.post.PostCreateForm
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
@@ -17,6 +18,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
@@ -30,6 +32,27 @@ class MemberView(
     private val passwordResetter: PasswordResetter,
     private val followReader: FollowReader,
 ) {
+
+    @GetMapping(MemberUrls.PROFILE)
+    fun readProfile(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
+        model: Model,
+    ): String {
+        val profileMember = memberReader.readActiveMemberById(id)
+
+        model.addAttribute("author", profileMember) // 프로필 주인
+        model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자
+        model.addAttribute("postCreateForm", PostCreateForm())
+
+        // 팔로우 상태 확인
+        if (memberPrincipal != null && memberPrincipal.memberId != id) {
+            val followingIds = followReader.findFollowings(memberPrincipal.memberId, listOf(id))
+            model.addAttribute("isFollowing", followingIds.contains(id))
+        }
+
+        return MemberViews.PROFILE
+    }
 
     @GetMapping(MemberUrls.ACTIVATION)
     fun activate(

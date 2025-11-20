@@ -50,6 +50,21 @@ class PostView(
         return PostViews.MY_LIST
     }
 
+    @GetMapping("/members/{id}/posts/fragment")
+    fun readMemberPostsFragment(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+        model: Model,
+    ): String {
+        val postsPage = postReader.readPostsByAuthor(id, pageable)
+
+        model.addAttribute("posts", postsPage)
+        model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자
+
+        return PostViews.POSTS_CONTENT
+    }
+
     @GetMapping(PostUrls.READ_MY_LIST_FRAGMENT)
     fun readMyPostsFragment(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,

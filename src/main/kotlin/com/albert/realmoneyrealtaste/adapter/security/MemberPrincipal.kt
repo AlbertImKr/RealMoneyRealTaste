@@ -27,6 +27,10 @@ data class MemberPrincipal(
         return roles.map { SimpleGrantedAuthority("ROLE_${it.name}") }
     }
 
+    fun hasRole(role: Role): Boolean {
+        return roles.contains(role)
+    }
+
     companion object {
         fun from(member: Member): MemberPrincipal {
             val introValue = member.detail.introduction?.value

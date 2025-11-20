@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 object MemberUrls {
+    const val PROFILE = "/members/{id}"
     const val ACTIVATION = "/members/activate"
     const val RESEND_ACTIVATION = "/members/resend-activation"
     const val SETTING = "/members/setting"

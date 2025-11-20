@@ -224,27 +224,12 @@
                         <!-- Card share action dropdown menu -->
                         <ul class="dropdown-menu dropdown-menu-end"
                             th:attr="aria-labelledby='cardShareAction' + ${post.id}">
-                            <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-envelope fa-fw pe-2"></i>Send via Direct Message</a>
-                            </li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-bookmark-check fa-fw pe-2"></i>Bookmark </a>
-                            </li>
                             <li>
                                 <button class="dropdown-item" href="#"
                                         onclick="navigator.clipboard.writeText(window.location.origin + '/posts/' + this.getAttribute('data-post-id')).then(() => alert('링크가 복사되었습니다.'))"
                                         th:attr="data-post-id=${post.id}">
-                                    <i class="bi bi-link fa-fw pe-2"></i>Copy link to post
+                                    <i class="bi bi-link fa-fw pe-2"></i>링크 복사
                                 </button>
-                            </li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-share fa-fw pe-2"></i>Share post via …</a>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#">
-                                <i class="bi bi-pencil-square fa-fw pe-2"></i>Share to News Feed</a>
                             </li>
                         </ul>
                     </li>

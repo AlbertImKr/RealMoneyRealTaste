@@ -267,15 +267,17 @@
                     initModalRatingStars();
                     initModalImageUpload();
                 });
+
+                // 모달이 닫히기 시작할 때 (중요!)
+                modalElement.addEventListener('hide.bs.modal', function () {
+                    // 포커스된 요소가 있다면 포커스 해제
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                });
             }
 
-            // 모달이 닫히기 시작할 때 (중요!)
-            modalElement.addEventListener('hide.bs.modal', function () {
-                // 포커스된 요소가 있다면 포커스 해제
-                if (document.activeElement) {
-                    document.activeElement.blur();
-                }
-            });
+
 
             // 평점 선택 기능
             function initModalRatingStars() {
