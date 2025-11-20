@@ -1,0 +1,139 @@
+<!-- Scripts fragment -->
+<th:block th:fragment="scripts">
+    <!-- Bootstrap JS -->
+    <script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Vendors -->
+    <script src="/assets/vendor/tiny-slider/dist/tiny-slider.js"></script>
+    <script src="/assets/vendor/OverlayScrollbars-master/js/OverlayScrollbars.min.js"></script>
+    <script src="/assets/vendor/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="/assets/vendor/glightbox-master/dist/js/glightbox.min.js"></script>
+    <script src="/assets/vendor/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="/assets/vendor/plyr/plyr.js"></script>
+    <script src="/assets/vendor/dropzone/dist/min/dropzone.min.js"></script>
+
+    <!-- Theme Functions -->
+    <script src="/assets/js/functions.js"></script>
+
+    <!-- HTMX Indicator 커스텀 스타일 -->
+    <style>
+        .htmx-indicator {
+            display: none;
+        }
+
+        .htmx-request .htmx-indicator {
+            display: inline;
+        }
+
+        .htmx-request.htmx-indicator {
+            display: inline;
+        }
+    </style>
+
+    <!-- HTMX 설정 스크립트 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // HTMX 이벤트 리스너
+            document.body.addEventListener('htmx:configRequest', function (event) {
+                // CSRF 토큰이 필요한 경우 추가
+                const csrfToken = document.querySelector('meta[name="_csrf"]');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+
+                if (csrfToken && csrfHeader) {
+                    event.detail.headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
+                }
+            });
+
+            // HTMX 이벤트 처리 (Post Detail 모달용)
+            document.body.addEventListener('htmx:beforeRequest', function (event) {
+                if (event.detail.target?.id === 'post-detail-modal-content') {
+                    // 요청 시작 시 로딩 표시
+                    const loadingElement = document.getElementById('post-detail-loading');
+                    if (loadingElement) {
+                        loadingElement.style.display = 'block';
+                    }
+                }
+            });
+
+            document.body.addEventListener('htmx:afterRequest', function (event) {
+                if (event.detail.target?.id === 'post-detail-modal-content') {
+                    // 요청 완료 시 로딩 숨김
+                    const loadingElement = document.getElementById('post-detail-loading');
+                    if (loadingElement) {
+                        loadingElement.style.display = 'none';
+                    }
+
+                    // 성공적으로 로드되었으면 스크롤을 최상단으로
+                    if (event.detail.xhr.status === 200) {
+                        const modalBody = document.querySelector('#postDetailModal .modal-body');
+                        if (modalBody) {
+                            modalBody.scrollTop = 0;
+                        }
+
+                        // 모달 내용이 로드된 후 스크립트 실행
+                        setTimeout(() => {
+                            // 모달 전용 스크립트들이 실행되도록 이벤트 발생
+                            const modalLoadedEvent = new CustomEvent('modalContentLoaded');
+                            document.dispatchEvent(modalLoadedEvent);
+                        }, 100);
+                    }
+                }
+            });
+
+            // 간단한 에러 처리만 남김
+            document.body.addEventListener('htmx:responseError', function (event) {
+                const contentElement = document.getElementById('post-detail-modal-content');
+                if (event.detail.xhr.status === 403) {
+                    contentElement.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-lock text-danger" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="text-muted mb-2">로그인이 필요합니다</h5>
+                            <p class="text-muted mb-3">게시글을 보려면 로그인해주세요.</p>
+                            <a class="btn btn-primary" href="/signin">
+                                <i class="bi bi-box-arrow-in-right me-1"></i>로그인
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+                contentElement.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="text-muted mb-2">게시글을 불러올 수 없습니다</h5>
+                            <p class="text-muted mb-3">네트워크 연결을 확인하고 다시 시도해주세요.</p>
+                            <button class="btn btn-primary" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>새로고침
+                            </button>
+                        </div>
+                    `;
+            });
+        });
+    </script>
+
+    <!-- Post Detail Modal Script -->
+    <script>
+        function removeFocusFromModal() {
+            const modalElement = document.getElementById('postDetailModal');
+            if (modalElement) {
+                // 모달이 닫히기 시작할 때 (중요!)
+                modalElement.addEventListener('hide.bs.modal', function () {
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', removeFocusFromModal);
+    </script>
+
+    <!-- Modal Create Post Script -->
+    <th:block th:insert="~{post/modal-create-post :: modal-create-post-script}"></th:block>
+
+    <!-- Time Script -->
+    <div th:replace="~{fragments/time-script :: timeScript}"></div>
+</th:block>
