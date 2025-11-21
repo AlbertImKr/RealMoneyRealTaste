@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RMRT - 친구 버튼</title>
+</head>
+<!-- 친구 버튼 Fragment -->
+<div class="d-flex ms-auto gap-2 justify-content-center" th:fragment="friend-button"
+     th:id="'friend-button-'+${author.id}">
+    <!-- 친구 관계가 있는 경우 (친구 해제) -->
+    <form class="d-flex flex-column align-items-center"
+          hx-delete="/api/v1/friendships"
+          hx-swap="innerHTML" th:attr="hx-target='#friend-button-'+${author.id}"
+          th:if="${isFriend}"
+    >
+        <input name="friendshipId" th:value="${author.id}" type="hidden">
+        <button class="btn btn-success rounded-circle icon-md" title="친구 해제"
+                type="submit"
+        >
+            <i class="bi bi-person-fill"></i>
+        </button>
+        <small class="text-success d-block mt-1">친구</small>
+    </form>
+
+    <!-- 친구 요청을 보낸 경우 (대기 중) -->
+    <div class="d-flex flex-column align-items-center" th:if="${!isFriend and hasSentFriendRequest}">
+        <button class="btn btn-warning-soft rounded-circle icon-md" disabled
+                title="친구 요청 대기 중"
+                type="button"
+        >
+            <i class="bi bi-clock"></i>
+        </button>
+        <small class="text-warning d-block mt-1">친구 요청완료</small>
+    </div>
+
+    <!-- 친구 요청을 보낼 수 있는 경우 -->
+    <form class="d-flex flex-column align-items-center" hx-ext="json-enc"
+          hx-post="/api/v1/friendships"
+          hx-swap="innerHTML"
+          method="post" th:attr="hx-target='#friend-button-'+${author.id}"
+          th:if="${!isFriend and !hasSentFriendRequest}"
+    >
+        <input name="toMemberId" th:value="${author.id}" type="hidden">
+        <button class="btn btn-success-soft rounded-circle icon-md" title="친구 요청"
+                type="submit"
+        >
+            <i class="bi bi-person-plus-fill"></i>
+        </button>
+        <small class="text-muted d-block mt-1">친구 요청</small>
+    </form>
+</div>
+</html>

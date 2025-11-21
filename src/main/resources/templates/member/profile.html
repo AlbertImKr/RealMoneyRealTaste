@@ -80,10 +80,14 @@
                                 </div>
 
                                 <!-- 다른 사용자인 경우 -->
-                                <div class="d-flex ms-auto" sec:authorize="isAuthenticated()"
+                                <div class="d-flex ms-auto gap-2" sec:authorize="isAuthenticated()"
                                      th:if="${member?.email?.address != author?.email?.address}">
+                                    <!-- 친구 버튼 -->
+                                    <div th:replace="~{friend/fragments/friend-button :: friend-button}"></div>
+
+                                    <!-- 팔로우 버튼 -->
                                     <div th:id="'follow-button-'+${author.id}">
-                                        <button class="btn btn-primary rounded-circle icon-md ms-auto"
+                                        <button class="btn btn-primary rounded-circle icon-md"
                                                 hx-swap="innerHTML"
                                                 th:attr="hx-delete='/members/' + ${author.id} + '/follow',
                                                 hx-target='#follow-button-'+${author.id}"
@@ -91,7 +95,7 @@
                                         >
                                             <i class="bi bi-person-check-fill"></i>
                                         </button>
-                                        <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
+                                        <button class="btn btn-primary-soft rounded-circle icon-md"
                                                 hx-swap="innerHTML"
                                                 th:attr="hx-post='/members/' + ${author.id} + '/follow',
                                                 hx-target='#follow-button-'+${author.id}"

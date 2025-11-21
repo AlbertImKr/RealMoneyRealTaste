@@ -53,7 +53,7 @@ interface FriendshipRepository : Repository<Friendship, Long> {
 
     fun existsByRelationShip(relationShip: FriendRelationship): Boolean
 
-    fun findByRelationShip(relationShip: FriendRelationship): Friendship?
+    fun findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId: Long, friendMemberId: Long): Friendship?
 
     @Query(
         """

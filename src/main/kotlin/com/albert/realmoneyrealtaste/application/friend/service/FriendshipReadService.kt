@@ -37,7 +37,7 @@ class FriendshipReadService(
         memberId: Long,
         friendMemberId: Long,
     ): Friendship? {
-        return friendshipRepository.findByRelationShip(FriendRelationship(memberId, friendMemberId))
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId, friendMemberId)
     }
 
     override fun findPendingFriendshipReceived(memberId: Long, fromMemberId: Long): Friendship? {

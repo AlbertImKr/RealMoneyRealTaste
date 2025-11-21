@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @Controller
 @RequestMapping
-class FriendReadController(
+class FriendReadView(
     private val friendshipReader: FriendshipReader,
 ) {
 

@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.adapter.webview.member
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.adapter.webview.post.PostCreateForm
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
+import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
@@ -31,6 +32,7 @@ class MemberView(
     private val validator: PasswordUpdateFormValidator,
     private val passwordResetter: PasswordResetter,
     private val followReader: FollowReader,
+    private val friendshipReader: FriendshipReader,
 ) {
 
     @GetMapping(MemberUrls.PROFILE)
@@ -40,19 +42,24 @@ class MemberView(
         model: Model,
     ): String {
         val profileMember = memberReader.readActiveMemberById(id)
-        if (memberPrincipal != null) {
-            val isFollowing = followReader.checkIsFollowing(memberPrincipal.memberId, id)
-            model.addAttribute("isFollowing", isFollowing)
-        }
 
         model.addAttribute("author", profileMember) // 프로필 주인
         model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자
         model.addAttribute("postCreateForm", PostCreateForm())
 
-        // 팔로우 상태 확인
+        // 팔로우 및 친구 관계 상태 확인
         if (memberPrincipal != null && memberPrincipal.memberId != id) {
             val followingIds = followReader.findFollowings(memberPrincipal.memberId, listOf(id))
             model.addAttribute("isFollowing", followingIds.contains(id))
+
+            // 친구 관계 상태 확인
+            val isFriend = friendshipReader.existsByMemberIds(memberPrincipal.memberId, id)
+            model.addAttribute("isFriend", isFriend)
+
+            // 친구 요청을 보냈는지 확인 (내가 보낸 요청이 대기 중인지)
+            val friendship = friendshipReader.findFriendshipBetweenMembers(memberPrincipal.memberId, id)
+            val hasSentFriendRequest = friendship != null
+            model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
         }
 
         return MemberViews.PROFILE
