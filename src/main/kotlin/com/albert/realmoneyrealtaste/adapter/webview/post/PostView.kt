@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class PostView(
@@ -162,5 +163,26 @@ class PostView(
         model.addAttribute("post", post)
         model.addAttribute("currentUserId", currentUserId)
         model.addAttribute("currentUserNickname", memberPrincipal.nickname.value)
+    }
+
+    /**
+     * 컬렉션 게시글 목록 프래그먼트 조회
+     */
+    @GetMapping("members/{authorId}/collections/{collectionId}/posts/fragment")
+    fun readPostListFragment(
+        @RequestParam postIds: List<Long>,
+        @PathVariable collectionId: Long,
+        @PathVariable authorId: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
+        model: Model,
+    ): String {
+        val posts = postIds.map { postReader.readPostById(principal?.id ?: 0, it) }
+
+        model.addAttribute("posts", posts)
+        model.addAttribute("authorId", authorId)
+        model.addAttribute("collectionId", collectionId)
+        model.addAttribute("member", principal)
+
+        return PostViews.POST_LIST_FRAGMENT
     }
 }

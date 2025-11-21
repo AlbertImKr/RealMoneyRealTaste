@@ -3,7 +3,6 @@ package com.albert.realmoneyrealtaste.adapter.webview.collection
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
-import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionFilter
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam
 @Controller
 class CollectionReadView(
     private val collectionReader: CollectionReader,
-    private val postReader: PostReader,
     private val memberReader: MemberReader,
 ) {
 
@@ -65,11 +63,7 @@ class CollectionReadView(
         model: Model,
     ): String {
         val collection = collectionReader.readById(collectionId)
-        val posts = postReader.readPostsByIds(
-            postIds = collection.posts.postIds
-        )
 
-        model.addAttribute("posts", posts)
         model.addAttribute("collection", collection)
         setCommonModelAttributes(model, principal)
         return CollectionViews.DETAIL_FRAGMENT
@@ -88,17 +82,9 @@ class CollectionReadView(
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC, size = 5) pageRequest: Pageable,
     ): String {
         val collection = collectionReader.readById(collectionId)
-        val posts = postReader.readPostsByIds(
-            postIds = collection.posts.postIds
-        )
-        val myPosts = postReader.readPostsByAuthor(
-            authorId = principal.id,
-            pageable = pageRequest,
-        )
 
         model.addAttribute("collection", collection)
-        model.addAttribute("posts", posts)
-        model.addAttribute("myPosts", myPosts)
+
         setCommonModelAttributes(model, principal)
 
         return CollectionViews.COLLECTION_POSTS_FRAGMENT
@@ -135,12 +121,8 @@ class CollectionReadView(
         model: Model,
     ): String {
         val collection = collectionReader.readById(collectionId)
-        val posts = postReader.readPostsByIds(
-            postIds = collection.posts.postIds
-        )
 
         model.addAttribute("collection", collection)
-        model.addAttribute("posts", posts)
         setCommonModelAttributes(model, principal, memberId)
         return CollectionViews.DETAIL_FRAGMENT
     }
