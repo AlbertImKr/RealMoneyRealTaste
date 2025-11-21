@@ -61,7 +61,7 @@ class FriendReadView(
         // 최근 친구 목록 (사이드바용)
         val recentFriends = friendshipReader.findRecentFriends(
             memberId = targetMemberId,
-            limit = 6
+            pageable = pageable
         )
 
         model.addAttribute("friends", friends)
@@ -87,7 +87,7 @@ class FriendReadView(
         // 최근 친구 목록 (사이드바용)
         val recentFriends = friendshipReader.findRecentFriends(
             memberId = memberId,
-            limit = 6
+            pageable,
         )
 
         model.addAttribute("friends", friends)
@@ -106,11 +106,12 @@ class FriendReadView(
         @PathVariable memberId: Long,
         @AuthenticationPrincipal principal: MemberPrincipal?,
         model: Model,
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
     ): String {
         // 최근 친구 목록 (사이드바용)
         val recentFriends = friendshipReader.findRecentFriends(
             memberId = memberId,
-            limit = 6
+            pageable,
         )
 
         // 대기 중인 친구 요청 개수

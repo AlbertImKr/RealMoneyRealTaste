@@ -25,17 +25,21 @@ class FriendshipReadService(
     }
 
     override fun findActiveFriendship(memberId: Long, friendMemberId: Long): Friendship? {
-        return friendshipRepository.findByRelationShipAndStatus(
-            FriendRelationship(memberId, friendMemberId),
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+            memberId,
+            friendMemberId,
             FriendshipStatus.ACCEPTED
         )
     }
 
-    override fun findFriendshipBetweenMembers(
+    override fun sentedFriendRequest(
         memberId: Long,
         friendMemberId: Long,
     ): Friendship? {
-        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId, friendMemberId)
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+            memberId, friendMemberId,
+            FriendshipStatus.ACCEPTED
+        )
     }
 
     override fun findPendingFriendshipReceived(memberId: Long, fromMemberId: Long): Friendship? {
@@ -72,19 +76,17 @@ class FriendshipReadService(
         return mapToFriendshipResponses(requests)
     }
 
-    private fun mapToFriendshipResponses(friendships: Page<Friendship>): Page<FriendshipResponse> {
-        return friendships
-            .map { friendship ->
-                FriendshipResponse.from(
-                    friendship,
-                    friendship.relationShip.friendNickname ?: UNKNOWN_NICKNAME,
-                    UNKNOWN_NICKNAME, // memberNickname은 필요시 별도 조회
-                )
-            }
-    }
-
     override fun existsByMemberIds(memberId: Long, friendMemberId: Long): Boolean {
         return friendshipRepository.existsByRelationShip(FriendRelationship(memberId, friendMemberId))
+    }
+
+    override fun findByMembersId(
+        memberId: Long,
+        friendMemberId: Long,
+    ): Friendship? {
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            memberId, friendMemberId
+        )
     }
 
     override fun countFriendsByMemberId(memberId: Long): Long {
@@ -99,18 +101,12 @@ class FriendshipReadService(
         return mapToFriendshipResponses(friendships)
     }
 
-    override fun findRecentFriends(memberId: Long, limit: Int): List<FriendshipResponse> {
+    override fun findRecentFriends(memberId: Long, pageable: Pageable): Page<FriendshipResponse> {
         val friendships = friendshipRepository.findRecentFriends(
-            memberId, FriendshipStatus.ACCEPTED, limit
+            memberId, FriendshipStatus.ACCEPTED, pageable
         )
 
-        return friendships.map { friendship ->
-            FriendshipResponse.from(
-                friendship,
-                friendship.relationShip.friendNickname ?: UNKNOWN_NICKNAME,
-                UNKNOWN_NICKNAME, // memberNickname은 필요시 별도 조회
-            )
-        }
+        return mapToFriendshipResponses(friendships)
     }
 
     override fun countPendingRequests(memberId: Long): Long {
@@ -122,5 +118,15 @@ class FriendshipReadService(
 
     override fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship> {
         return friendshipRepository.findReceivedFriendships(memberId, FriendshipStatus.PENDING, pageable)
+    }
+
+    private fun mapToFriendshipResponses(friendships: Page<Friendship>): Page<FriendshipResponse> {
+        return friendships
+            .map { friendship ->
+                FriendshipResponse.from(
+                    friendship,
+                    friendship.relationShip.friendNickname ?: UNKNOWN_NICKNAME,
+                )
+            }
     }
 }

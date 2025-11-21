@@ -103,7 +103,7 @@ class FriendWriteView(
         model.addAttribute("isFriend", isFriend)
 
         // 친구 요청을 보냈는지 확인
-        val friendship = friendshipReader.findFriendshipBetweenMembers(principal.memberId, targetMemberId)
+        val friendship = friendshipReader.sentedFriendRequest(principal.memberId, targetMemberId)
         val hasSentFriendRequest = friendship != null && friendship.isSentBy(principal.memberId)
         model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
 

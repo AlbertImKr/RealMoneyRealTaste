@@ -53,10 +53,10 @@ class FriendshipTerminatorTest(
         friendshipTerminator.unfriend(request)
 
         // 양방향 친구 관계 모두 해제되었는지 확인
-        val savedFriendShip = friendshipReader.findFriendshipBetweenMembers(
+        val savedFriendShip = friendshipReader.sentedFriendRequest(
             member1.requireId(), member2.requireId()
         )
-        val savedReverseFriendShip = friendshipReader.findFriendshipBetweenMembers(
+        val savedReverseFriendShip = friendshipReader.sentedFriendRequest(
             member2.requireId(), member1.requireId()
         )
         val allFriendships = listOfNotNull(savedFriendShip, savedReverseFriendShip)
@@ -96,10 +96,10 @@ class FriendshipTerminatorTest(
         friendshipTerminator.unfriend(request)
 
         // 양방향 친구 관계 모두 해제되었는지 확인
-        val savedFriendship = friendshipReader.findFriendshipBetweenMembers(
+        val savedFriendship = friendshipReader.sentedFriendRequest(
             member1.requireId(), member2.requireId()
         )
-        val savedReverseFriendship = friendshipReader.findFriendshipBetweenMembers(
+        val savedReverseFriendship = friendshipReader.sentedFriendRequest(
             member2.requireId(), member1.requireId()
         )
         val allFriendships = listOfNotNull(savedFriendship, savedReverseFriendship)

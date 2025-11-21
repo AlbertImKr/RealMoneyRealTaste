@@ -100,7 +100,7 @@ class FriendshipReaderTest(
         val command = FriendRequestCommand(member1.requireId(), member2.requireId())
         val friendship = friendRequestor.sendFriendRequest(command)
 
-        val result = friendshipReader.findFriendshipBetweenMembers(member1.requireId(), member2.requireId())
+        val result = friendshipReader.sentedFriendRequest(member1.requireId(), member2.requireId())
 
         assertNotNull(result)
         assertAll(
@@ -291,8 +291,6 @@ class FriendshipReaderTest(
         assertAll(
             { assertEquals(2, result.totalElements) },
             { assertFalse(result.isEmpty) },
-            { assertTrue(result.content.any { it.memberNickname == "receiver1" }) },
-            { assertTrue(result.content.any { it.memberNickname == "receiver2" }) },
             { assertTrue(result.content.all { it.status == FriendshipStatus.PENDING }) }
         )
     }
@@ -394,8 +392,6 @@ class FriendshipReaderTest(
 
         assertAll(
             { assertEquals(1, result.totalElements) },
-            { assertEquals("member", result.content.first().memberNickname) },
-            { assertEquals("accepted", result.content.first().friendNickname) },
             { assertEquals(FriendshipStatus.ACCEPTED, result.content.first().status) }
         )
     }
@@ -471,7 +467,6 @@ class FriendshipReaderTest(
         assertAll(
             { assertEquals(3, result.totalElements) },
             { assertEquals(3, result.content.size) },
-            { assertEquals("Unknown", result.content[0].memberNickname) },
             { assertTrue(result.content.any { it.friendNickname == "activeFriend" }) },
             {
                 assertTrue(result.content.filter { it.friendNickname != "activeFriend" }

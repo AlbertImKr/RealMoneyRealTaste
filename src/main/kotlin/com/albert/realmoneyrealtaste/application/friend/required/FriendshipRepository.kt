@@ -53,6 +53,8 @@ interface FriendshipRepository : Repository<Friendship, Long> {
 
     fun existsByRelationShip(relationShip: FriendRelationship): Boolean
 
+    fun findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId: Long, friendMemberId: Long): Friendship?
+
     /**
      * 특정 회원의 양방향 친구 관계가 활성화된 친구 수를 계산합니다.
      */
@@ -71,7 +73,11 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     )
     fun countFriends(memberId: Long, status: FriendshipStatus): Long
 
-    fun findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId: Long, friendMemberId: Long): Friendship?
+    fun findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+        memberId: Long,
+        friendMemberId: Long,
+        status: FriendshipStatus,
+    ): Friendship?
 
     @Query(
         """
@@ -139,6 +145,6 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     fun findRecentFriends(
         memberId: Long,
         status: FriendshipStatus,
-        limit: Int,
-    ): List<Friendship>
+        pageable: Pageable,
+    ): Page<Friendship>
 }

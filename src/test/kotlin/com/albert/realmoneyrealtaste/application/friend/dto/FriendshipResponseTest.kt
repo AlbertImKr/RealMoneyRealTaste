@@ -28,7 +28,6 @@ class FriendshipResponseTest {
         assertAll(
             { assertEquals(100L, result.friendshipId) },
             { assertEquals(fromMemberId, result.memberId) },
-            { assertEquals(memberNickname, result.memberNickname) },
             { assertEquals(toMemberId, result.friendMemberId) },
             { assertEquals(friendNickname, result.friendNickname) },
             { assertEquals(FriendshipStatus.PENDING, result.status) },
@@ -51,7 +50,6 @@ class FriendshipResponseTest {
         val response = FriendshipResponse(
             friendshipId,
             memberId,
-            memberNickname,
             friendMemberId,
             friendNickname,
             status,
@@ -62,7 +60,6 @@ class FriendshipResponseTest {
         assertAll(
             { assertEquals(friendshipId, response.friendshipId) },
             { assertEquals(memberId, response.memberId) },
-            { assertEquals(memberNickname, response.memberNickname) },
             { assertEquals(friendMemberId, response.friendMemberId) },
             { assertEquals(friendNickname, response.friendNickname) },
             { assertEquals(status, response.status) },

@@ -18,15 +18,15 @@
             <!-- Actions -->
             <div class="btn-group btn-group-sm">
                 <button class="btn btn-success"
-                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=true',
-                                hx-target='#friend-widget-container',
-                                hx-swap='innerHTML'">
+                        hx-on::after-request="htmx.trigger('#friend-requests-button', 'refresh')"
+                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=true'"
+                >
                     <i class="bi bi-check-lg"></i> 수락
                 </button>
                 <button class="btn btn-outline-danger"
-                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=false',
-                                hx-target='#friend-widget-container',
-                                hx-swap='innerHTML'">
+                        hx-on::after-request="htmx.trigger('#friend-requests-button', 'refresh')"
+                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=false'"
+                >
                     <i class="bi bi-x-lg"></i> 거절
                 </button>
             </div>

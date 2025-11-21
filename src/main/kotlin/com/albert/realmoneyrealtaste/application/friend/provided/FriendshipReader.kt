@@ -26,7 +26,7 @@ interface FriendshipReader {
      * @param friendMemberId 친구 회원 ID
      * @return 친구 관계 또는 null
      */
-    fun findFriendshipBetweenMembers(memberId: Long, friendMemberId: Long): Friendship?
+    fun sentedFriendRequest(memberId: Long, friendMemberId: Long): Friendship?
 
     /**
      * 수신된 대기 중인 친구 요청을 조회합니다.
@@ -103,10 +103,10 @@ interface FriendshipReader {
      * 특정 회원의 최근 친구 목록을 조회합니다.
      *
      * @param memberId 회원 ID
-     * @param limit 조회할 최대 개수
+     * @param pageable 페이징 정보
      * @return 최근 친구 목록
      */
-    fun findRecentFriends(memberId: Long, limit: Int): List<FriendshipResponse>
+    fun findRecentFriends(memberId: Long, pageable: Pageable): Page<FriendshipResponse>
 
     /**
      * 대기 중인 친구 요청 수를 계산합니다.
@@ -117,4 +117,6 @@ interface FriendshipReader {
     fun countPendingRequests(memberId: Long): Long
 
     fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship>
+
+    fun findByMembersId(memberId: Long, friendMemberId: Long): Friendship?
 }

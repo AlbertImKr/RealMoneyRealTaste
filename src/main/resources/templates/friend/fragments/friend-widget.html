@@ -23,6 +23,8 @@
                     <button class="btn btn-sm btn-outline-primary"
                             hx-get="/friends/requests/fragment"
                             hx-swap="innerHTML"
+                            hx-trigger="load,refresh"
+                            id="friend-requests-button"
                             hx-target="#friend-requests-list"
                             th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}">
                         <i class="bi bi-eye"></i> 보기
@@ -41,7 +43,7 @@
                 <div class="row g-3">
                     <!-- Friend items would be populated here dynamically -->
                     <div class="col-6" th:each="friend : ${recentFriends}"
-                         th:if="${recentFriends != null and !recentFriends.empty}">
+                         th:if="${recentFriends != null and !recentFriends.isEmpty()}">
                         <!-- Friends item START -->
                         <div class="card shadow-none text-center h-100">
                             <!-- Card body -->
@@ -50,20 +52,17 @@
                                     <a th:href="@{/members/{id}(id=${friend.id})}">
                                         <img alt=""
                                              class="avatar-img rounded-circle"
-                                             th:src="${friend.profileImageUrl ?: '/assets/images/default-avatar.png'}">
+                                             src="#">
                                     </a>
                                 </div>
                                 <h6 class="card-title mb-1 mt-3">
                                     <a th:href="@{/members/{id}(id=${friend.id})}"
                                        th:text="${friend.nickname}">Amanda Reed</a>
                                 </h6>
-                                <p class="mb-0 small lh-sm"
-                                   th:text="${friend.mutualConnections ?: 0} + ' mutual connections'">16
-                                    mutual connections</p>
                             </div>
                             <!-- Card footer -->
                             <div class="card-footer p-2 border-0">
-                                <details class="btn-group w-100">
+                                <div class="btn-group w-100">
                                     <button class="btn btn-sm btn-outline-primary"
                                             data-bs-placement="top"
                                             data-bs-toggle="tooltip"
@@ -74,14 +73,15 @@
                                     <button class="btn btn-sm btn-outline-danger"
                                             data-bs-placement="top"
                                             data-bs-toggle="tooltip"
-                                            th:attr="hx-delete='/api/friends/' + ${friend.id},
-                                                    hx-target='#friend-widget-' + ${friend.id},
-                                                    hx-swap='outerHTML'"
-                                            th:id="'friend-widget-' + ${friend.id}"
-                                            title="친구 삭제">
+                                            hx-confirm="친구를 정말로 삭제하시겠습니까?"
+                                            hx-on::after-request="htmx.trigger('#friend-widget-container', 'refresh')"
+                                            th:attr="hx-delete='/friendships/' + ${friend.id}"
+                                            th:id="'friend-delete-' + ${friend.id}"
+                                            title="친구 삭제"
+                                    >
                                         <i class="bi bi-person-x"></i>
                                     </button>
-                                </details>
+                                </div>
                             </div>
                         </div>
                         <!-- Friends item END -->

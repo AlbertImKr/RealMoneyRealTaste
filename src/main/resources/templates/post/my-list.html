@@ -245,7 +245,7 @@
                 <div class="row g-4">
                     <!-- Card follow START -->
                     <div hx-swap="innerHTML"
-                         hx-trigger="load"
+                         hx-trigger="load,refresh"
                          id="friend-widget-container"
                          th:attr="hx-get='/members/' + ${author.memberId} + '/friends/widget/fragment'">
                     </div>

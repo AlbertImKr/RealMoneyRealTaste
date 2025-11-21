@@ -57,7 +57,7 @@ class MemberView(
             model.addAttribute("isFriend", isFriend)
 
             // 친구 요청을 보냈는지 확인 (내가 보낸 요청이 대기 중인지)
-            val friendship = friendshipReader.findFriendshipBetweenMembers(memberPrincipal.memberId, id)
+            val friendship = friendshipReader.sentedFriendRequest(memberPrincipal.memberId, id)
             val hasSentFriendRequest = friendship != null
             model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
         }

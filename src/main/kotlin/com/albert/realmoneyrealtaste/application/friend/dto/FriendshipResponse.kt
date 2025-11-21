@@ -10,7 +10,6 @@ import java.time.LocalDateTime
 data class FriendshipResponse(
     val friendshipId: Long,
     val memberId: Long,
-    val memberNickname: String,
     val friendMemberId: Long,
     val friendNickname: String,
     val status: FriendshipStatus,
@@ -28,7 +27,6 @@ data class FriendshipResponse(
             return FriendshipResponse(
                 friendshipId = friendship.requireId(),
                 memberId = friendship.relationShip.memberId,
-                memberNickname = memberNickname,
                 friendMemberId = friendship.relationShip.friendMemberId,
                 friendNickname = friendNickname,
                 status = friendship.status,
@@ -39,7 +37,6 @@ data class FriendshipResponse(
 
         fun from(
             friendship: Friendship,
-            memberNickname: String,
             friendNickname: String,
             mutualFriendsCount: Int = 0,
             profileImageUrl: String? = null,
@@ -47,7 +44,6 @@ data class FriendshipResponse(
             return FriendshipResponse(
                 friendshipId = friendship.requireId(),
                 memberId = friendship.relationShip.memberId,
-                memberNickname = memberNickname,
                 friendMemberId = friendship.relationShip.friendMemberId,
                 friendNickname = friendNickname,
                 status = friendship.status,
