@@ -1,0 +1,127 @@
+<!-- 컬렉션 생성 폼 프래그먼트 -->
+<div th:fragment="write-collection">
+    <div aria-modal="true"
+         class="modal fade show"
+         id="collectionCreateModal"
+         style="display: block;"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>새 컬렉션 만들기
+                        </h5>
+                        <button aria-label="Close"
+                                class="btn-close"
+                                onclick="this.closest('#modal-container').innerHTML=''"
+                                type="button"></button>
+                    </div>
+
+                    <div class="card-body">
+                        <form hx-ext="json-enc"
+                              hx-headers='{"Content-Type": "application/json"}'
+                              hx-indicator="#create-loading"
+                              hx-on::after-request="initCollection(event)"
+                              hx-post="/api/collections"
+                              hx-target="#content-area">
+
+                            <!-- 컬렉션 이름 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="collectionName">컬렉션 이름 *</label>
+                                <input class="form-control"
+                                       id="collectionName"
+                                       maxlength="50"
+                                       name="name"
+                                       placeholder="예: 강남 맛집 모음"
+                                       required
+                                       type="text">
+                                <div class="form-text">최대 50자까지 입력 가능합니다.</div>
+                            </div>
+
+                            <!-- 컬렉션 설명 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="collectionDescription">컬렉션 설명</label>
+                                <textarea class="form-control"
+                                          id="collectionDescription"
+                                          maxlength="200"
+                                          name="description"
+                                          placeholder="이 컬렉션에 대한 설명을 작성해주세요"
+                                          rows="3"></textarea>
+                                <div class="form-text">최대 200자까지 입력 가능합니다.</div>
+                            </div>
+
+                            <!-- 커버 이미지 -->
+                            <div class="mb-3">
+                                <label class="form-label" for="coverImageUrl">커버 이미지 URL</label>
+                                <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-image"></i>
+                        </span>
+                                    <input class="form-control"
+                                           id="coverImageUrl"
+                                           name="coverImageUrl"
+                                           placeholder="https://example.com/image.jpg"
+                                           type="url">
+                                </div>
+                                <div class="form-text">선택사항: 컬렉션을 대표할 이미지 URL을 입력해주세요.</div>
+                            </div>
+
+                            <!-- 공개 설정 -->
+                            <div class="mb-4">
+                                <span class="form-label">공개 설정</span>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input checked
+                                                   class="form-check-input"
+                                                   id="privacyPublic"
+                                                   name="visibility"
+                                                   type="radio"
+                                                   value="PUBLIC">
+                                            <label class="form-check-label" for="privacyPublic">
+                                                <i class="bi bi-globe text-success me-1"></i>
+                                                <strong>공개</strong>
+                                                <div class="small text-muted">모든 사용자가 볼 수 있습니다</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   id="privacyPrivate"
+                                                   name="visibility"
+                                                   type="radio"
+                                                   value="PRIVATE">
+                                            <label class="form-check-label" for="privacyPrivate">
+                                                <i class="bi bi-lock text-secondary me-1"></i>
+                                                <strong>비공개</strong>
+                                                <div class="small text-muted">나만 볼 수 있습니다</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 버튼 영역 -->
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-secondary"
+                                        onclick="this.closest('#modal-container').innerHTML=''"
+                                        type="button">
+                                    <i class="bi bi-x-lg me-1"></i>취소
+                                </button>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-plus-circle me-1"></i>컬렉션 만들기
+                                    <!-- 로딩 스피너 -->
+                                    <span class="spinner-border spinner-border-sm ms-2 d-none"
+                                          id="create-loading"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+</div>

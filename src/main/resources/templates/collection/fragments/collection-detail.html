@@ -1,0 +1,211 @@
+<!-- 컬렉션 상세보기 프래그먼트 -->
+<div th:fragment="collection-detail">
+    <div aria-modal="true"
+         class="modal fade show"
+         style="display: block;"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <h5 class="mb-0 me-3">
+                                <i class="bi bi-collection me-2"></i>
+                                <span th:text="${collection.info.name}">컬렉션 이름</span>
+                            </h5>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="badge bg-secondary" th:if="${collection.privacy.name() == 'PRIVATE'}">
+                                    <i class="bi bi-lock me-1"></i>비공개
+                                </span>
+                                <span class="badge bg-success" th:if="${collection.privacy.name() == 'PUBLIC'}">
+                                    <i class="bi bi-globe me-1"></i>공개
+                                </span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary">
+                                    <span th:text="${collection.postCount ?: 0}">0</span>개 게시글
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 align-items-center">
+                            <!-- 소유자인 경우에만 관리 버튼 표시 -->
+                            <div class="dropdown" sec:authorize="isAuthenticated()"
+                                 th:if="${collection.owner.memberId == member.id}">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                        data-bs-toggle="dropdown">
+                                    <i class="bi bi-gear"></i> 관리
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <button class="dropdown-item"
+                                                hx-swap="innerHTML"
+                                                hx-target="#modal-container"
+                                                th:attr="hx-get=@{/collections/{id}/edit/fragment(id=${collection.id})}">
+                                            <i class="bi bi-pencil me-2"></i>컬렉션 수정
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item"
+                                                hx-swap="innerHTML"
+                                                hx-target="#modal-container"
+                                                th:attr="hx-get=@{/collections/{id}/posts/fragment(id=${collection.id})}">
+                                            <i class="bi bi-list me-2"></i>게시글 관리
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item text-danger"
+                                                hx-confirm="정말 삭제하시겠습니까?"
+                                                hx-on::after-request="initCollectionDetail(event)"
+                                                th:attr="hx-delete=@{/api/collections/{id}(id=${collection.id})}">
+                                            <i class="bi bi-trash me-2"></i>컬렉션 삭제
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <button aria-label="Close"
+                                    class="btn-close"
+                                    onclick="this.closest('#modal-container').innerHTML=''"
+                                    type="button"></button>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- 컬렉션 설명 -->
+                        <p class="text-muted mb-3" th:if="${collection.info.description}"
+                           th:text="${collection.info.description}">컬렉션 설명</p>
+
+                        <!-- 컬렉션 메타 정보 -->
+                        <div class="d-flex flex-wrap gap-3 align-items-center text-muted small mb-4">
+                            <span>
+                                <i class="bi bi-person-circle me-1"></i>
+                                <span th:text="${collection.owner.nickname}">작성자</span>
+                            </span>
+                            <span>
+                                <i class="bi bi-calendar me-1"></i>
+                                <span th:text="${#temporals.format(collection.createdAt, 'yyyy년 MM월 dd일')}">2024년 01월 01일</span>
+                            </span>
+                        </div>
+
+                        <!-- 컬렉션에 포함된 게시글들 -->
+                        <div th:if="${posts != null and !posts.isEmpty()}">
+                            <h6 class="mb-3">
+                                <i class="bi bi-bookmarks me-1"></i>
+                                포함된 게시글
+                            </h6>
+
+                            <div class="row g-3" style="max-height: 400px; overflow-y: auto;">
+                                <div class="col-md-6" th:each="post : ${posts}">
+                                    <div class="card border h-100">
+                                        <!-- 게시글 이미지 -->
+                                        <div class="position-relative">
+                                            <img class="card-img-top"
+                                                 style="height: 150px; object-fit: cover;"
+                                                 th:alt="${post.restaurant.name}"
+                                                 th:if="${post.images != null and !post.images.isEmpty()}"
+                                                 th:src="${post.images.getFirst()}">
+                                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                                 style="height: 150px;"
+                                                 th:unless="${post.images != null and !post.images.isEmpty()}">
+                                                <i class="bi bi-image text-muted fa-2x"></i>
+                                            </div>
+
+                                            <!-- 평점 표시 -->
+                                            <div class="position-absolute top-0 start-0 m-2">
+                                                <span class="badge bg-dark bg-opacity-75">
+                                                    <i class="bi bi-star-fill text-warning me-1"></i>
+                                                    <span th:text="${post.content.rating}">0.0</span>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="card-body py-2">
+                                            <h6 class="card-title mb-1" th:text="${post.restaurant.name}">맛집 이름</h6>
+                                            <p class="card-text text-muted small mb-1"
+                                               th:text="${post.restaurant.address}">맛집 주소</p>
+
+                                            <!-- 게시글 내용 (미리보기) -->
+                                            <p class="card-text small mb-2"
+                                               th:text="${#strings.length(post.content.text) > 50 ?
+                                                        #strings.substring(post.content.text, 0, 50) + '...' :
+                                                        post.content.text}">
+                                                게시글 내용 미리보기...
+                                            </p>
+
+                                            <!-- 게시글 메타 정보 -->
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    <span th:text="${#temporals.format(post.createdAt, 'MM.dd')}">01.01</span>
+                                                </small>
+
+
+                                                <!-- 게시글 보기 버튼 -->
+                                                <button class="btn btn-outline-primary btn-sm"
+                                                        th:onclick="|window.location.href='@{/posts/{id}(id=${post.id})}'|"
+                                                        type="button">
+                                                    <i class="bi bi-eye me-1"></i>보기
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 게시글이 없을 때 -->
+                        <div class="text-center py-5" th:if="${posts == null or posts.isEmpty()}">
+                            <i class="bi bi-collection display-1 text-muted"></i>
+                            <h5 class="mt-3">아직 포함된 게시글이 없습니다</h5>
+                            <p class="text-muted">이 컬렉션에 맛집 게시글을 추가해보세요!</p>
+
+                            <!-- 소유자인 경우에만 게시글 추가 버튼 표시 -->
+                            <button class="btn btn-primary"
+                                    hx-swap="innerHTML"
+                                    hx-target="#modal-container"
+                                    th:attr="hx-get=@{/collections/{id}/posts/fragment(id=${collection.id})}"
+                                    th:if="${collection.owner.memberId == member.id}">
+                                <i class="bi bi-plus-circle me-2"></i>게시글 추가하기
+                            </button>
+                        </div>
+
+                        <!-- 하단 버튼 -->
+                        <div class="d-flex justify-content-center gap-2 mt-4">
+                            <button class="btn btn-secondary"
+                                    onclick="this.closest('#modal-container').innerHTML=''"
+                                    type="button">
+                                <i class="bi bi-x-lg me-1"></i>닫기
+                            </button>
+
+                            <!-- 소유자인 경우에만 게시글 관리 버튼 표시 -->
+                            <button class="btn btn-primary"
+                                    hx-swap="innerHTML"
+                                    hx-target="#modal-container"
+                                    sec:authorize="isAuthenticated()"
+                                    th:attr="hx-get=@{/collections/{id}/posts/fragment(id=${collection.id})}"
+                                    th:if="${collection.owner.memberId == member.id}">
+                                <i class="bi bi-list me-2"></i>게시글 관리
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+
+    <script>
+        function initCollectionDetail(event) {
+            if (event.detail.successful) {
+                htmx.ajax('GET', '/collections/my-list/fragment', {
+                    target: '#content-area',
+                    swap: 'innerHTML'
+                });
+
+                document.getElementById('modal-container').innerHTML = '';
+            }
+        }
+    </script>
+</div>
