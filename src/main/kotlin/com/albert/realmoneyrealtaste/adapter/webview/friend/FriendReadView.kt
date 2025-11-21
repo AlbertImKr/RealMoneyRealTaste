@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.adapter.webview.friend
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam
 @RequestMapping
 class FriendReadView(
     private val friendshipReader: FriendshipReader,
+    private val memberReader: MemberReader,
 ) {
 
     /**
@@ -127,5 +129,29 @@ class FriendReadView(
         model.addAttribute("member", principal)
 
         return FriendViews.MEMBER_FRIENDS_LIST
+    }
+
+    /**
+     * 친구 위젯 프래그먼트 조회
+     */
+    @GetMapping(FriendUrls.FRIEND_WIDGET)
+    fun readFriendWidgetFragment(
+        @PathVariable memberId: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
+        model: Model,
+    ): String {
+        // 최근 친구 목록 (사이드바용)
+        val recentFriends = friendshipReader.findRecentFriends(
+            memberId = memberId,
+            limit = 6
+        )
+
+        val author = memberReader.readMemberById(memberId)
+
+        model.addAttribute("recentFriends", recentFriends)
+        model.addAttribute("author", author)
+        model.addAttribute("member", principal)
+
+        return FriendViews.FRIEND_WIDGET
     }
 }

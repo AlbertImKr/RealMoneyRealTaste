@@ -9,4 +9,5 @@ object FriendViews {
     const val MEMBER_FRIENDS_LIST = "friend/member-list"
 
     const val FRIEND_BUTTON = "friend/fragments/friend-button :: friend-button"
+    const val FRIEND_WIDGET = "friend/fragments/friend-widget :: friend-widget"
 }
