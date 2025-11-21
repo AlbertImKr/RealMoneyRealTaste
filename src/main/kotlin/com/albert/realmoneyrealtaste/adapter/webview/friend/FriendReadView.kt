@@ -36,18 +36,7 @@ class FriendReadView(
     ): String {
         val targetMemberId = principal.memberId
 
-        val friends = if (keyword.isNullOrBlank()) {
-            friendshipReader.findFriendsByMemberId(
-                memberId = targetMemberId,
-                pageable = pageable
-            )
-        } else {
-            friendshipReader.searchFriends(
-                memberId = targetMemberId,
-                keyword = keyword,
-                pageable = pageable
-            )
-        }
+        val friends = findFriends(targetMemberId, keyword, pageable)
 
         model.addAttribute("friends", friends)
         model.addAttribute("member", principal)
@@ -67,18 +56,7 @@ class FriendReadView(
     ): String {
         val targetMemberId = principal.memberId
 
-        val friends = if (keyword.isNullOrBlank()) {
-            friendshipReader.findFriendsByMemberId(
-                memberId = targetMemberId,
-                pageable = pageable
-            )
-        } else {
-            friendshipReader.searchFriends(
-                memberId = targetMemberId,
-                keyword = keyword,
-                pageable = pageable
-            )
-        }
+        val friends = findFriends(targetMemberId, keyword, pageable)
 
         // 최근 친구 목록 (사이드바용)
         val recentFriends = friendshipReader.findRecentFriends(
@@ -104,18 +82,7 @@ class FriendReadView(
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
-        val friends = if (keyword.isNullOrBlank()) {
-            friendshipReader.findFriendsByMemberId(
-                memberId = memberId,
-                pageable = pageable
-            )
-        } else {
-            friendshipReader.searchFriends(
-                memberId = memberId,
-                keyword = keyword,
-                pageable = pageable
-            )
-        }
+        val friends = findFriends(memberId, keyword, pageable)
 
         // 최근 친구 목록 (사이드바용)
         val recentFriends = friendshipReader.findRecentFriends(
@@ -146,12 +113,55 @@ class FriendReadView(
             limit = 6
         )
 
+        // 대기 중인 친구 요청 개수
+        val pendingRequestsCount = if (principal != null && principal.memberId == memberId) {
+            friendshipReader.countPendingRequests(memberId)
+        } else {
+            0
+        }
+
         val author = memberReader.readMemberById(memberId)
 
         model.addAttribute("recentFriends", recentFriends)
+        model.addAttribute("pendingRequestsCount", pendingRequestsCount)
         model.addAttribute("author", author)
         model.addAttribute("member", principal)
 
         return FriendViews.FRIEND_WIDGET
     }
+
+    /**
+     * 친구 요청 리스트 프래그먼트 조회
+     */
+    @GetMapping(FriendUrls.FRIEND_REQUESTS_FRAGMENT)
+    fun readFriendRequestsFragment(
+        @AuthenticationPrincipal principal: MemberPrincipal,
+        model: Model,
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+    ): String {
+        // 대기 중인 친구 요청 목록
+        val pendingRequests = friendshipReader.findPendingRequests(principal.memberId, pageable)
+
+        model.addAttribute("pendingRequests", pendingRequests)
+        model.addAttribute("member", principal)
+
+        return FriendViews.FRIEND_REQUESTS
+    }
+
+    /**
+     * 친구 목록을 조회하는 공통 메서드
+     */
+    private fun findFriends(memberId: Long, keyword: String?, pageable: Pageable) =
+        if (keyword.isNullOrBlank()) {
+            friendshipReader.findFriendsByMemberId(
+                memberId = memberId,
+                pageable = pageable
+            )
+        } else {
+            friendshipReader.searchFriends(
+                memberId = memberId,
+                keyword = keyword,
+                pageable = pageable
+            )
+        }
 }

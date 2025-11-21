@@ -4,7 +4,6 @@ import com.albert.realmoneyrealtaste.application.friend.dto.FriendshipResponse
 import com.albert.realmoneyrealtaste.application.friend.exception.FriendshipNotFoundException
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
-import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.value.FriendRelationship
@@ -17,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class FriendshipReadService(
     private val friendshipRepository: FriendshipRepository,
-    private val memberReader: MemberReader,
 ) : FriendshipReader {
 
     companion object {
@@ -90,7 +88,7 @@ class FriendshipReadService(
     }
 
     override fun countFriendsByMemberId(memberId: Long): Long {
-        return friendshipRepository.countFriendshipsByRelationShipMemberIdAndStatus(memberId, FriendshipStatus.ACCEPTED)
+        return friendshipRepository.countFriends(memberId, FriendshipStatus.ACCEPTED)
     }
 
     override fun searchFriends(memberId: Long, keyword: String, pageable: Pageable): Page<FriendshipResponse> {
@@ -113,5 +111,16 @@ class FriendshipReadService(
                 UNKNOWN_NICKNAME, // memberNickname은 필요시 별도 조회
             )
         }
+    }
+
+    override fun countPendingRequests(memberId: Long): Long {
+        return friendshipRepository.countFriendshipsByRelationShipFriendMemberIdAndStatus(
+            memberId,
+            FriendshipStatus.PENDING
+        )
+    }
+
+    override fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship> {
+        return friendshipRepository.findReceivedFriendships(memberId, FriendshipStatus.PENDING, pageable)
     }
 }

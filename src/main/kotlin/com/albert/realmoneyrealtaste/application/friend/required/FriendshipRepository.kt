@@ -53,6 +53,24 @@ interface FriendshipRepository : Repository<Friendship, Long> {
 
     fun existsByRelationShip(relationShip: FriendRelationship): Boolean
 
+    /**
+     * 특정 회원의 양방향 친구 관계가 활성화된 친구 수를 계산합니다.
+     */
+    @Query(
+        """
+        SELECT COUNT(DISTINCT f1.relationShip.friendMemberId) FROM Friendship f1
+        WHERE f1.relationShip.memberId = :memberId 
+        AND f1.status = :status
+        AND EXISTS (
+            SELECT 1 FROM Friendship f2 
+            WHERE f2.relationShip.friendMemberId = :memberId 
+            AND f2.relationShip.memberId = f1.relationShip.friendMemberId 
+            AND f2.status = :status
+        )
+        """
+    )
+    fun countFriends(memberId: Long, status: FriendshipStatus): Long
+
     fun findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId: Long, friendMemberId: Long): Friendship?
 
     @Query(
@@ -74,7 +92,7 @@ interface FriendshipRepository : Repository<Friendship, Long> {
         pageable: Pageable,
     ): Page<Friendship>
 
-    fun countFriendshipsByRelationShipMemberIdAndStatus(memberId: Long, status: FriendshipStatus): Long
+    fun countFriendshipsByRelationShipFriendMemberIdAndStatus(friendMemberId: Long, status: FriendshipStatus): Long
 
     /**
      * 특정 회원의 친구를 키워드로 검색합니다.

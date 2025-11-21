@@ -244,95 +244,10 @@
             <div class="col-lg-4">
                 <div class="row g-4">
                     <!-- Card follow START -->
-                    <div class="col-md-6 col-lg-12" sec:authorize="isAuthenticated()">
-                        <div class="card">
-                            <!-- Card header START -->
-                            <div class="card-header d-sm-flex justify-content-between border-0">
-                                <h5 class="card-title">
-                                    Friends
-                                </h5>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <a class="dropdown-item" href="#"
-                                               hx-get="/friends/fragment"
-                                               hx-target="#content-area">
-                                                <i class="bi bi-people me-2"></i>모든 친구 보기
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" data-bs-target="#addFriendModal"
-                                               data-bs-toggle="modal"
-                                               href="#">
-                                                <i class="bi bi-person-plus me-2"></i>친구 추가
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="#">
-                                                <i class="bi bi-person-check me-2"></i>친구 요청
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <!-- Card header END -->
-                            <!-- Card body START -->
-                            <div class="card-body position-relative pt-0">
-                                <div class="row g-3">
-                                    <!-- Friend items would be populated here dynamically -->
-                                    <div class="col-6" th:each="friend : ${recentFriends}"
-                                         th:if="${recentFriends != null}">
-                                        <!-- Friends item START -->
-                                        <div class="card shadow-none text-center h-100">
-                                            <!-- Card body -->
-                                            <div class="card-body p-2 pb-0">
-                                                <div class="avatar avatar-story avatar-xl">
-                                                    <a th:href="@{/members/{id}(id=${friend.id})}">
-                                                        <img alt=""
-                                                             class="avatar-img rounded-circle"
-                                                             th:src="${friend.profileImageUrl ?: '/assets/images/default-avatar.png'}">
-                                                    </a>
-                                                </div>
-                                                <h6 class="card-title mb-1 mt-3">
-                                                    <a th:href="@{/members/{id}(id=${friend.id})}"
-                                                       th:text="${friend.nickname}">Amanda Reed</a>
-                                                </h6>
-                                                <p class="mb-0 small lh-sm"
-                                                   th:text="${friend.mutualConnections ?: 0} + ' mutual connections'">16
-                                                    mutual connections</p>
-                                            </div>
-                                            <!-- Card footer -->
-                                            <div class="card-footer p-2 border-0">
-                                                <details class="btn-group w-100">
-                                                    <button class="btn btn-sm btn-outline-primary"
-                                                            data-bs-placement="top"
-                                                            data-bs-toggle="tooltip"
-                                                            th:attr="onclick=|location.href='@{/messages/{id}(id=${friend.id})}'|"
-                                                            title="메시지">
-                                                        <i class="bi bi-chat-left-text"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-danger"
-                                                            data-bs-placement="top"
-                                                            data-bs-toggle="tooltip"
-                                                            th:attr="hx-delete='/api/friends/' + ${friend.id},
-                                                                    hx-target='#friend-widget-' + ${friend.id},
-                                                                    hx-swap='outerHTML'"
-                                                            th:id="'friend-widget-' + ${friend.id}"
-                                                            title="친구 삭제">
-                                                        <i class="bi bi-person-x"></i>
-                                                    </button>
-                                                </details>
-                                            </div>
-                                        </div>
-                                        <!-- Friends item END -->
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Card body END -->
-                        </div>
+                    <div hx-swap="innerHTML"
+                         hx-trigger="load"
+                         id="friend-widget-container"
+                         th:attr="hx-get='/members/' + ${author.memberId} + '/friends/widget/fragment'">
                     </div>
                     <!-- Card follow END -->
                 </div>

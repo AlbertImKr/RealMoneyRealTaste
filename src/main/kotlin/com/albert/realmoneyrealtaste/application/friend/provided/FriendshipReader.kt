@@ -107,4 +107,14 @@ interface FriendshipReader {
      * @return 최근 친구 목록
      */
     fun findRecentFriends(memberId: Long, limit: Int): List<FriendshipResponse>
+
+    /**
+     * 대기 중인 친구 요청 수를 계산합니다.
+     *
+     * @param memberId 회원 ID
+     * @return 대기 중인 친구 요청 수
+     */
+    fun countPendingRequests(memberId: Long): Long
+
+    fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship>
 }
