@@ -1,6 +1,10 @@
 <!-- 친구 요청 리스트 Fragment -->
 <div th:fragment="friend-requests">
-    <div class="list-group list-group-flush" th:if="${pendingRequests != null and !pendingRequests.empty}">
+    <div class="list-group list-group-flush" th:if="${pendingRequests != null and !pendingRequests.isEmpty()}">
+        <button class="btn btn-sm btn-outline-primary"
+                hx-on:click="document.querySelector('#friend-requests-list').innerHTML = ''">
+            숨기기
+        </button>
         <div class="list-group-item d-flex align-items-center"
              th:each="request : ${pendingRequests}">
             <!-- Avatar -->

@@ -23,7 +23,7 @@
                     <button class="btn btn-sm btn-outline-primary"
                             hx-get="/friends/requests/fragment"
                             hx-swap="innerHTML"
-                            hx-trigger="refresh"
+                            hx-trigger="click,refresh"
                             id="friend-requests-button"
                             hx-target="#friend-requests-list"
                             th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}">
