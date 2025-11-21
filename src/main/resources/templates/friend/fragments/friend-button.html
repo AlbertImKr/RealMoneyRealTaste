@@ -8,8 +8,9 @@
      th:id="'friend-button-'+${author.id}">
     <!-- 친구 관계가 있는 경우 (친구 해제) -->
     <form class="d-flex flex-column align-items-center"
-          hx-delete="/api/v1/friendships"
-          hx-swap="innerHTML" th:attr="hx-target='#friend-button-'+${author.id}"
+          hx-swap="innerHTML"
+          th:attr="hx-target='#friend-button-'+${author.id},
+          hx-delete='/api/friendships'+${author.id}"
           th:if="${isFriend}"
     >
         <input name="friendshipId" th:value="${author.id}" type="hidden">
@@ -34,7 +35,7 @@
 
     <!-- 친구 요청을 보낼 수 있는 경우 -->
     <form class="d-flex flex-column align-items-center" hx-ext="json-enc"
-          hx-post="/api/v1/friendships"
+          hx-post="/friendships"
           hx-swap="innerHTML"
           method="post" th:attr="hx-target='#friend-button-'+${author.id}"
           th:if="${!isFriend and !hasSentFriendRequest}"

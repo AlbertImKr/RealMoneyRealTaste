@@ -28,7 +28,7 @@ class FriendWriteView(
     private val friendshipReader: FriendshipReader,
 ) {
 
-    @PostMapping("/api/v1/friendships")
+    @PostMapping(FriendUrls.SEND_FRIEND_REQUEST)
     fun sendFriendRequest(
         @AuthenticationPrincipal principal: MemberPrincipal,
         @RequestBody request: SendFriendRequest,
@@ -46,7 +46,7 @@ class FriendWriteView(
         return FriendViews.FRIEND_BUTTON
     }
 
-    @PutMapping("/api/v1/friendships/{friendshipId}")
+    @PutMapping(FriendUrls.RESPOND_TO_FRIEND_REQUEST)
     fun respondToFriendRequest(
         @PathVariable friendshipId: Long,
         @RequestParam accept: Boolean,
@@ -73,7 +73,7 @@ class FriendWriteView(
         return FriendViews.FRIEND_BUTTON
     }
 
-    @DeleteMapping("/api/v1/friendships/{friendshipId}")
+    @DeleteMapping(FriendUrls.UNFRIEND)
     fun unfriend(
         @PathVariable friendshipId: Long,
         @AuthenticationPrincipal principal: MemberPrincipal,

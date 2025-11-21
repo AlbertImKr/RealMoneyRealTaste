@@ -214,10 +214,11 @@
             <!-- Main content END -->
 
             <!-- Right sidebar START -->
-            <div class="col-lg-4" sec:authorize="isAuthenticated()">
+            <div class="col-lg-4" sec:authorize="isAuthenticated()"
+                 th:if="${member?.email?.address == author?.email?.address}">
                 <div class="row g-4">
                     <!-- Card follow START -->
-                    <div class="col-md-6 col-lg-12" sec:authorize="isAuthenticated()">
+                    <div class="col-md-6 col-lg-12">
                         <div class="card">
                             <!-- Card header START -->
                             <div class="card-header d-sm-flex justify-content-between border-0">

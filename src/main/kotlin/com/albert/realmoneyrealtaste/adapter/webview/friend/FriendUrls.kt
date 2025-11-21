@@ -7,4 +7,7 @@ object FriendUrls {
     const val FRIENDS_FRAGMENT = "/friends/fragment"
     const val FRIENDS = "/friends"
     const val MEMBER_FRIENDS = "/members/{memberId}/friends"
+    const val SEND_FRIEND_REQUEST = "/friendships"
+    const val RESPOND_TO_FRIEND_REQUEST = "/friendships/{friendshipId}"
+    const val UNFRIEND = "/friendships/{friendshipId}"
 }
