@@ -35,7 +35,7 @@ class FriendWriteView(
         model: Model,
     ): String {
         val command = FriendRequestCommand(
-            fromMemberId = principal.memberId,
+            fromMemberId = principal.id,
             toMemberId = request.toMemberId,
         )
         friendRequestor.sendFriendRequest(command)
@@ -55,14 +55,14 @@ class FriendWriteView(
     ): String {
         val request = FriendResponseRequest(
             friendshipId = friendshipId,
-            respondentMemberId = principal.memberId,
+            respondentMemberId = principal.id,
             accept = accept
         )
 
         val friendship = friendResponder.respondToFriendRequest(request)
 
         // 상대방 ID를 찾아서 모델 업데이트
-        val targetMemberId = if (friendship.relationShip.memberId == principal.memberId) {
+        val targetMemberId = if (friendship.relationShip.memberId == principal.id) {
             friendship.relationShip.friendMemberId
         } else {
             friendship.relationShip.memberId
@@ -81,7 +81,7 @@ class FriendWriteView(
     ): String {
         // 임시로 friendshipId를 friendMemberId로 사용
         val request = UnfriendRequest(
-            memberId = principal.memberId,
+            memberId = principal.id,
             friendMemberId = friendshipId
         )
 
@@ -99,12 +99,12 @@ class FriendWriteView(
         model: Model,
     ) {
         // 친구 관계 상태 확인
-        val isFriend = friendshipReader.existsByMemberIds(principal.memberId, targetMemberId)
+        val isFriend = friendshipReader.existsByMemberIds(principal.id, targetMemberId)
         model.addAttribute("isFriend", isFriend)
 
         // 친구 요청을 보냈는지 확인
-        val friendship = friendshipReader.sentedFriendRequest(principal.memberId, targetMemberId)
-        val hasSentFriendRequest = friendship != null && friendship.isSentBy(principal.memberId)
+        val friendship = friendshipReader.sentedFriendRequest(principal.id, targetMemberId)
+        val hasSentFriendRequest = friendship != null && friendship.isSentBy(principal.id)
         model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
 
         // 템플릿에 필요한 author.id 설정

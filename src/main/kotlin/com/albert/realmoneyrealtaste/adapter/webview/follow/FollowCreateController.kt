@@ -29,7 +29,7 @@ class FollowCreateController(
     ): ResponseEntity<String> {
         followCreator.follow(
             FollowCreateRequest(
-                followerId = principal.memberId,
+                followerId = principal.id,
                 followingId = targetId,
             )
         )

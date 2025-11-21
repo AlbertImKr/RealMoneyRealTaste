@@ -22,7 +22,7 @@ class MemberPrincipalTest {
     fun `getAuthorities - success - returns authorities with ROLE prefix`() {
         val roles = setOf(Role.USER, Role.ADMIN)
         val principal = MemberPrincipal(
-            memberId = 1L,
+            id = 1L,
             email = Email("test@example.com"),
             nickname = Nickname("testUser"),
             active = true,
@@ -42,7 +42,7 @@ class MemberPrincipalTest {
     @Test
     fun `getAuthorities - success - returns empty collection when roles is empty`() {
         val principal = MemberPrincipal(
-            memberId = 1L,
+            id = 1L,
             email = Email("test@example.com"),
             nickname = Nickname("testUser"),
             active = true,
@@ -60,7 +60,7 @@ class MemberPrincipalTest {
     @Test
     fun `getAuthorities - success - returns single authority for single role`() {
         val principal = MemberPrincipal(
-            memberId = 1L,
+            id = 1L,
             email = Email("test@example.com"),
             nickname = Nickname("testUser"),
             active = true,
@@ -84,7 +84,7 @@ class MemberPrincipalTest {
         val principal = MemberPrincipal.from(member)
 
         assertNotNull(principal)
-        assertEquals(member.id, principal.memberId)
+        assertEquals(member.id, principal.id)
         assertEquals(member.email, principal.email)
         assertEquals(member.nickname, principal.nickname)
         assertTrue(principal.active)
@@ -169,7 +169,7 @@ class MemberPrincipalTest {
         val roles = setOf(Role.USER, Role.MANAGER)
 
         val principal = MemberPrincipal(
-            memberId = 100L,
+            id = 100L,
             email = email,
             nickname = nickname,
             active = true,
@@ -179,7 +179,7 @@ class MemberPrincipalTest {
             roles = roles
         )
 
-        assertEquals(100L, principal.memberId)
+        assertEquals(100L, principal.id)
         assertEquals(email, principal.email)
         assertEquals(nickname, principal.nickname)
         assertTrue(principal.active)
@@ -190,7 +190,7 @@ class MemberPrincipalTest {
     fun `getAuthorities - success - maps all role types correctly`() {
         val allRoles = setOf(Role.USER, Role.MANAGER, Role.ADMIN)
         val principal = MemberPrincipal(
-            memberId = 1L,
+            id = 1L,
             email = Email("test@example.com"),
             nickname = Nickname("testUser"),
             active = true,

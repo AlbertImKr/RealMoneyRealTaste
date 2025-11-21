@@ -10,7 +10,7 @@ import java.io.Serializable
 import java.time.LocalDateTime
 
 data class MemberPrincipal(
-    val memberId: Long,
+    val id: Long,
     val email: Email,
     val nickname: Nickname,
     val active: Boolean,
@@ -35,7 +35,7 @@ data class MemberPrincipal(
         fun from(member: Member): MemberPrincipal {
             val introValue = member.detail.introduction?.value
             return MemberPrincipal(
-                memberId = member.requireId(),
+                id = member.requireId(),
                 email = member.email,
                 nickname = member.nickname,
                 roles = member.roles.getRoles(),

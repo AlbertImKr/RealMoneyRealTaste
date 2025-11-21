@@ -29,7 +29,7 @@ class PostView(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @Valid @ModelAttribute form: PostCreateForm,
     ): String {
-        val post = postCreator.createPost(memberPrincipal.memberId, form.toPostCreateRequest())
+        val post = postCreator.createPost(memberPrincipal.id, form.toPostCreateRequest())
         return PostUrls.REDIRECT_READ_DETAIL.format(post.requireId())
     }
 
@@ -40,7 +40,7 @@ class PostView(
         model: Model,
     ): String {
         val postsPage = postReader.readPostsByAuthor(
-            authorId = memberPrincipal.memberId,
+            authorId = memberPrincipal.id,
             pageable = pageable,
         )
         model.addAttribute("postCreateForm", PostCreateForm())
@@ -76,7 +76,7 @@ class PostView(
         model: Model,
     ): String {
         val postsPage = postReader.readPostsByAuthor(
-            authorId = memberPrincipal.memberId,
+            authorId = memberPrincipal.id,
             pageable = pageable,
         )
         model.addAttribute("posts", postsPage)
@@ -121,7 +121,7 @@ class PostView(
         @PathVariable postId: Long,
         model: Model,
     ): String {
-        val post = postReader.readPostByAuthorAndId(memberPrincipal.memberId, postId)
+        val post = postReader.readPostByAuthorAndId(memberPrincipal.id, postId)
         model.addAttribute("postEditForm", PostEditForm.fromPost(post))
         return PostViews.EDIT
     }
@@ -132,7 +132,7 @@ class PostView(
         @PathVariable postId: Long,
         @Valid @ModelAttribute postEditForm: PostEditForm,
     ): String {
-        postUpdater.updatePost(postId, memberPrincipal.memberId, postEditForm.toPostEditRequest())
+        postUpdater.updatePost(postId, memberPrincipal.id, postEditForm.toPostEditRequest())
         return PostUrls.REDIRECT_READ_DETAIL.format(postId)
     }
 
@@ -157,7 +157,7 @@ class PostView(
         postId: Long,
         model: Model,
     ) {
-        val currentUserId = memberPrincipal.memberId
+        val currentUserId = memberPrincipal.id
         val post = postReader.readPostById(currentUserId, postId)
         model.addAttribute("post", post)
         model.addAttribute("currentUserId", currentUserId)

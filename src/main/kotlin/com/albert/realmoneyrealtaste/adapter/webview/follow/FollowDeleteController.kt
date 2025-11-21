@@ -29,7 +29,7 @@ class FollowDeleteController(
     ): ResponseEntity<String> {
         followTerminator.unfollow(
             UnfollowRequest(
-                followerId = principal.memberId,
+                followerId = principal.id,
                 followingId = targetId,
             )
         )

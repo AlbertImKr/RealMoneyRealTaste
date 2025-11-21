@@ -121,7 +121,7 @@
 
                             <!-- 소유자인 경우에만 수정/삭제 버튼 표시 -->
                             <div class="d-flex gap-1" sec:authorize="isAuthenticated()"
-                                 th:if="${collection.owner.memberId == member.memberId}">
+                                 th:if="${collection.owner.memberId == member.id}">
                                 <a class="btn btn-outline-info btn-sm"
                                    hx-target="#modal-container"
                                    hx-swap="innerHTML"
@@ -689,7 +689,7 @@
                         <div class="d-flex gap-2 align-items-center">
                             <!-- 소유자인 경우에만 관리 버튼 표시 -->
                             <div class="dropdown" sec:authorize="isAuthenticated()"
-                                 th:if="${collection.owner.memberId == member.memberId}">
+                                 th:if="${collection.owner.memberId == member.id}">
                                 <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
                                         data-bs-toggle="dropdown">
                                     <i class="bi bi-gear"></i> 관리
@@ -826,7 +826,7 @@
                                     hx-swap="innerHTML"
                                     hx-target="#modal-container"
                                     th:attr="hx-get=@{/collections/{id}/posts/fragment(id=${collection.id})}"
-                                    th:if="${collection.owner.memberId == member.memberId}">
+                                    th:if="${collection.owner.memberId == member.id}">
                                 <i class="bi bi-plus-circle me-2"></i>게시글 추가하기
                             </button>
                         </div>
@@ -845,7 +845,7 @@
                                     hx-target="#modal-container"
                                     th:attr="hx-get=@{/collections/{id}/posts/fragment(id=${collection.id})}"
                                     sec:authorize="isAuthenticated()"
-                                    th:if="${collection.owner.memberId == member.memberId}">
+                                    th:if="${collection.owner.memberId == member.id}">
                                 <i class="bi bi-list me-2"></i>게시글 관리
                             </button>
                         </div>

@@ -30,17 +30,17 @@ class CollectionView(
     ): String {
         val collections = when (filter) {
             "public" -> collectionReader.readMyPublicCollections(
-                ownerMemberId = principal.memberId,
+                ownerMemberId = principal.id,
                 pageRequest = pageRequest,
             )
 
             else -> collectionReader.readMyCollections(
-                ownerMemberId = principal.memberId,
+                ownerMemberId = principal.id,
                 pageRequest = pageRequest,
             )
         }
         model.addAttribute("collections", collections)
-        model.addAttribute("author", memberReader.readMemberById(principal.memberId))
+        model.addAttribute("author", memberReader.readMemberById(principal.id))
         model.addAttribute("member", principal)
         return CollectionViews.MY_LIST
     }
@@ -91,7 +91,7 @@ class CollectionView(
             postIds = collection.posts.postIds
         )
         val myPosts = postReader.readPostsByAuthor(
-            authorId = principal.memberId,
+            authorId = principal.id,
             pageable = pageRequest,
         )
 

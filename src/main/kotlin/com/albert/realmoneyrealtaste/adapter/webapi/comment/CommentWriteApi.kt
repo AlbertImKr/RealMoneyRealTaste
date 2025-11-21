@@ -34,7 +34,7 @@ class CommentWriteApi(
                     ReplyCreateRequest(
                         parentCommentId = parentCommentId,
                         content = content,
-                        memberId = memberPrincipal.memberId,
+                        memberId = memberPrincipal.id,
                         postId = postId
                     )
                 )
@@ -46,7 +46,7 @@ class CommentWriteApi(
                     CommentCreateRequest(
                         postId = postId,
                         content = content,
-                        memberId = memberPrincipal.memberId
+                        memberId = memberPrincipal.id
                     )
                 )
             }
@@ -65,7 +65,7 @@ class CommentWriteApi(
             CommentUpdateRequest(
                 commentId = commentId,
                 content = content,
-                memberId = memberPrincipal.memberId
+                memberId = memberPrincipal.id
             )
         )
         return ResponseEntity.ok(updatedComment)

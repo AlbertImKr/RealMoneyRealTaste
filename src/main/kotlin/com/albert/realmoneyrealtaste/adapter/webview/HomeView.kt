@@ -40,7 +40,7 @@ class HomeView(
         val postIds = posts.content.map { it.requireId() }
 
         if (memberPrincipal != null) {
-            val memberId = memberPrincipal.memberId
+            val memberId = memberPrincipal.id
             // 사용자 정보 추가
             addMemberInfo(memberId, model)
 
@@ -55,7 +55,7 @@ class HomeView(
             val suggestedMemberIds = addSuggestedMembers.map { it.requireId() }
 
             // following
-            addFollowingStatus(model, memberPrincipal.memberId, suggestedMemberIds)
+            addFollowingStatus(model, memberPrincipal.id, suggestedMemberIds)
         }
 
         return "index"

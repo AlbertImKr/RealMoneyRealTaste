@@ -38,26 +38,26 @@ class MemberView(
     @GetMapping(MemberUrls.PROFILE)
     fun readProfile(
         @PathVariable id: Long,
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
         model: Model,
     ): String {
         val profileMember = memberReader.readActiveMemberById(id)
 
         model.addAttribute("author", profileMember) // 프로필 주인
-        model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자
+        model.addAttribute("member", principal) // 현재 로그인한 사용자
         model.addAttribute("postCreateForm", PostCreateForm())
 
         // 팔로우 및 친구 관계 상태 확인
-        if (memberPrincipal != null && memberPrincipal.memberId != id) {
-            val followingIds = followReader.findFollowings(memberPrincipal.memberId, listOf(id))
+        if (principal != null && principal.id != id) {
+            val followingIds = followReader.findFollowings(principal.id, listOf(id))
             model.addAttribute("isFollowing", followingIds.contains(id))
 
             // 친구 관계 상태 확인
-            val isFriend = friendshipReader.existsByMemberIds(memberPrincipal.memberId, id)
+            val isFriend = friendshipReader.existsByMemberIds(principal.id, id)
             model.addAttribute("isFriend", isFriend)
 
             // 친구 요청을 보냈는지 확인 (내가 보낸 요청이 대기 중인지)
-            val friendship = friendshipReader.sentedFriendRequest(memberPrincipal.memberId, id)
+            val friendship = friendshipReader.sentedFriendRequest(principal.id, id)
             val hasSentFriendRequest = friendship != null
             model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
         }
@@ -105,7 +105,7 @@ class MemberView(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         model: Model,
     ): String {
-        val member = memberReader.readMemberById(memberPrincipal.memberId)
+        val member = memberReader.readMemberById(memberPrincipal.id)
         model.addAttribute("member", member)
         return MemberViews.SETTING
     }
@@ -125,7 +125,7 @@ class MemberView(
             return "redirect:${MemberUrls.SETTING}#account"
         }
 
-        memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
+        memberUpdater.updateInfo(memberPrincipal.id, form.toAccountUpdateRequest())
 
         redirectAttributes.addFlashAttribute("success", "계정 정보가 성공적으로 업데이트되었습니다.")
         return "redirect:${MemberUrls.SETTING}#account"
@@ -153,7 +153,7 @@ class MemberView(
         }
 
         memberUpdater.updatePassword(
-            memberPrincipal.memberId, RawPassword(request.currentPassword), RawPassword(request.newPassword)
+            memberPrincipal.id, RawPassword(request.currentPassword), RawPassword(request.newPassword)
         )
         redirectAttributes.addFlashAttribute("success", "비밀번호가 성공적으로 변경되었습니다.")
 
@@ -174,7 +174,7 @@ class MemberView(
             return "redirect:${MemberUrls.SETTING}#delete"
         }
 
-        memberUpdater.deactivate(memberPrincipal.memberId)
+        memberUpdater.deactivate(memberPrincipal.id)
 
         // 세션 무효화 및 로그아웃 처리
         request.session.invalidate()
@@ -252,9 +252,9 @@ class MemberView(
     ): String {
         if (memberPrincipal != null) {
             // 추천 사용자 목록 조회
-            val suggestedUsers = memberReader.findSuggestedMembers(memberPrincipal.memberId, 5)
+            val suggestedUsers = memberReader.findSuggestedMembers(memberPrincipal.id, 5)
             val targetIds = suggestedUsers.map { it.requireId() }
-            val followingIds = followReader.findFollowings(memberPrincipal.memberId, targetIds)
+            val followingIds = followReader.findFollowings(memberPrincipal.id, targetIds)
 
             model.addAttribute("suggestedUsers", suggestedUsers)
             model.addAttribute("followings", followingIds)

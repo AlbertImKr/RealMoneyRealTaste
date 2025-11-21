@@ -19,7 +19,7 @@ class CollectionDeleteApi(
     ) {
         collectionDeleter.deleteCollection(
             collectionId = collectionId,
-            ownerMemberId = principal.memberId,
+            ownerMemberId = principal.id,
         )
     }
 }

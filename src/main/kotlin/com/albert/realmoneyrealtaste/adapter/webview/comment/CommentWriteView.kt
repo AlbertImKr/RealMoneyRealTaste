@@ -35,7 +35,7 @@ class CommentWriteView(
                     ReplyCreateRequest(
                         parentCommentId = parentCommentId,
                         content = content,
-                        memberId = memberPrincipal.memberId,
+                        memberId = memberPrincipal.id,
                         postId = postId
                     )
                 )
@@ -47,7 +47,7 @@ class CommentWriteView(
                     CommentCreateRequest(
                         postId = postId,
                         content = content,
-                        memberId = memberPrincipal.memberId
+                        memberId = memberPrincipal.id
                     )
                 )
             }
@@ -74,7 +74,7 @@ class CommentWriteView(
             CommentUpdateRequest(
                 commentId = commentId,
                 content = content,
-                memberId = memberPrincipal.memberId
+                memberId = memberPrincipal.id
             )
         )
 

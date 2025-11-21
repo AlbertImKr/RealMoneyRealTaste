@@ -33,7 +33,7 @@ class FollowView(
         model: Model,
     ): String {
         // memberId가 없으면 현재 사용자의 ID를 사용
-        val targetMemberId = principal.memberId
+        val targetMemberId = principal.id
 
         val followings = if (keyword.isNullOrBlank()) {
             followReader.findFollowingsByMemberId(
@@ -50,7 +50,7 @@ class FollowView(
         val author = memberReader.readMemberById(targetMemberId)
         // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
         val followingIds = followings.content.map { it.followingId }
-        val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followingIds)
+        val currentUserFollowingIds = followReader.findFollowings(principal.id, followingIds)
         model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
         model.addAttribute("followings", followings)
         model.addAttribute("member", principal)
@@ -68,7 +68,7 @@ class FollowView(
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageRequest: Pageable,
         model: Model,
     ): String {
-        val targetMemberId = principal.memberId
+        val targetMemberId = principal.id
 
         val followers = if (keyword.isNullOrBlank()) {
             followReader.findFollowersByMemberId(
@@ -85,7 +85,7 @@ class FollowView(
 
         // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
         val followerIds = followers.content.map { it.followerId }
-        val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followerIds)
+        val currentUserFollowingIds = followReader.findFollowings(principal.id, followerIds)
 
         model.addAttribute("followers", followers)
         model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
@@ -111,7 +111,7 @@ class FollowView(
         val author = memberReader.readMemberById(memberId)
         val followingIds = followings.content.map { it.followingId }
         if (principal != null) {
-            val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followingIds)
+            val currentUserFollowingIds = followReader.findFollowings(principal.id, followingIds)
             model.addAttribute("member", principal)
             model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
         }
@@ -139,7 +139,7 @@ class FollowView(
         val author = memberReader.readMemberById(memberId)
         val followerIds = followers.content.map { it.followerId }
         if (principal != null) {
-            val currentUserFollowingIds = followReader.findFollowings(principal.memberId, followerIds)
+            val currentUserFollowingIds = followReader.findFollowings(principal.id, followerIds)
             model.addAttribute("member", principal)
             model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
         }

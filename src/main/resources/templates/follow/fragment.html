@@ -72,7 +72,7 @@
                     <!-- 팔로우/언팔로우 버튼 -->
                     <div sec:authorize="isAuthenticated()">
                         <th:block
-                                th:if="${#authentication.principal.memberId != followResponse.followingId}">
+                                th:if="${member.id != followResponse.followingId}">
                             <div th:id="'follow-button-' + ${followResponse.followingId}">
                                 <button class="btn btn-primary rounded-circle icon-md ms-auto"
                                         th:attr="hx-delete='/members/' + ${followResponse.followingId} + '/follow',
@@ -196,7 +196,7 @@
                 <div class="ms-md-auto d-flex">
                     <!-- 팔로우/언팔로우 버튼 -->
                     <div sec:authorize="isAuthenticated()">
-                        <th:block th:if="${#authentication.principal.memberId != follow.followerId}">
+                        <th:block th:if="${member.id != follow.followerId}">
                             <div th:id="'follow-button-' + ${follow.followerId}">
                                 <button class="btn btn-primary rounded-circle icon-md ms-auto"
                                         th:attr="hx-delete='/members/' + ${follow.followerId} + '/follow',

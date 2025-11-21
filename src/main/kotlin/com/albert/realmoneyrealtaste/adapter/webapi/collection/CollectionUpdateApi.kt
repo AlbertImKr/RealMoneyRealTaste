@@ -27,7 +27,7 @@ class CollectionUpdateApi(
         @Valid @RequestBody request: CollectionUpdateApiRequest,
     ): ResponseEntity<Map<String, Any>> {
         val collection = collectionUpdater.updateInfo(
-            request.toServiceDto(collectionId = collectionId, ownerMemberId = principal.memberId)
+            request.toServiceDto(collectionId = collectionId, ownerMemberId = principal.id)
         )
 
         return ResponseEntity.ok(
@@ -47,7 +47,7 @@ class CollectionUpdateApi(
         collectionUpdater.addPost(
             collectionId = collectionId,
             postId = postId,
-            ownerMemberId = principal.memberId,
+            ownerMemberId = principal.id,
         )
     }
 
@@ -61,7 +61,7 @@ class CollectionUpdateApi(
         collectionUpdater.removePost(
             collectionId = collectionId,
             postId = postId,
-            ownerMemberId = principal.memberId,
+            ownerMemberId = principal.id,
         )
     }
 }

@@ -34,7 +34,7 @@ class FriendReadView(
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
-        val targetMemberId = principal.memberId
+        val targetMemberId = principal.id
 
         val friends = findFriends(targetMemberId, keyword, pageable)
 
@@ -54,7 +54,7 @@ class FriendReadView(
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
         model: Model,
     ): String {
-        val targetMemberId = principal.memberId
+        val targetMemberId = principal.id
 
         val friends = findFriends(targetMemberId, keyword, pageable)
 
@@ -115,7 +115,7 @@ class FriendReadView(
         )
 
         // 대기 중인 친구 요청 개수
-        val pendingRequestsCount = if (principal != null && principal.memberId == memberId) {
+        val pendingRequestsCount = if (principal != null && principal.id == memberId) {
             friendshipReader.countPendingRequests(memberId)
         } else {
             0
@@ -141,7 +141,7 @@ class FriendReadView(
         @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
     ): String {
         // 대기 중인 친구 요청 목록
-        val pendingRequests = friendshipReader.findPendingRequests(principal.memberId, pageable)
+        val pendingRequests = friendshipReader.findPendingRequests(principal.id, pageable)
 
         model.addAttribute("pendingRequests", pendingRequests)
         model.addAttribute("member", principal)

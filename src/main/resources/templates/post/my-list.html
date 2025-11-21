@@ -216,7 +216,7 @@
                             </li>
                             <li class="nav-item" sec:authorize="isAuthenticated()"
                                 th:if="${member?.email?.address == author?.email?.address}">
-                                <a class="nav-link" th:href="@{/members/{id}/events(id=${author.memberId})}">
+                                <a class="nav-link" th:href="@{/members/{id}/events(id=${author.id})}">
                                     Events</a>
                             </li>
                         </ul>
@@ -247,7 +247,7 @@
                     <div hx-swap="innerHTML"
                          hx-trigger="load,refresh"
                          id="friend-widget-container"
-                         th:attr="hx-get='/members/' + ${author.memberId} + '/friends/widget/fragment'">
+                         th:attr="hx-get='/members/' + ${author.id} + '/friends/widget/fragment'">
                     </div>
                     <!-- Card follow END -->
                 </div>
