@@ -37,8 +37,9 @@ class FriendshipReadService(
         friendMemberId: Long,
     ): Friendship? {
         return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
-            memberId, friendMemberId,
-            FriendshipStatus.ACCEPTED
+            memberId,
+            friendMemberId,
+            FriendshipStatus.PENDING
         )
     }
 
