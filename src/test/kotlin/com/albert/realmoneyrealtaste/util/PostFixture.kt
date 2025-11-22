@@ -12,6 +12,7 @@ class PostFixture {
     companion object {
         const val DEFAULT_AUTHOR_MEMBER_ID = 1L
         const val DEFAULT_AUTHOR_NICKNAME = "테스트작성자"
+        const val DEFAULT_AUTHOR_INTRODUCTION = "안녕하세요. 테스트 작성자입니다."
         const val DEFAULT_RESTAURANT_NAME = "맛있는집"
         const val DEFAULT_RESTAURANT_ADDRESS = "서울시 강남구 테헤란로 123"
         const val DEFAULT_LATITUDE = 37.5665
@@ -23,7 +24,11 @@ class PostFixture {
             "https://example.com/image2.jpg"
         )
 
-        val DEFAULT_AUTHOR = Author(DEFAULT_AUTHOR_MEMBER_ID, DEFAULT_AUTHOR_NICKNAME)
+        val DEFAULT_AUTHOR = Author(
+            memberId = DEFAULT_AUTHOR_MEMBER_ID,
+            nickname = DEFAULT_AUTHOR_NICKNAME,
+            introduction = DEFAULT_AUTHOR_INTRODUCTION
+        )
 
         val DEFAULT_RESTAURANT = Restaurant(
             name = DEFAULT_RESTAURANT_NAME,
@@ -59,6 +64,7 @@ class PostFixture {
             return Post.create(
                 authorMemberId = authorMemberId,
                 authorNickname = authorNickname,
+                authorIntroduction = DEFAULT_AUTHOR_INTRODUCTION,
                 restaurant = restaurant,
                 content = content,
                 images = images

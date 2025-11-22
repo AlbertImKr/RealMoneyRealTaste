@@ -15,7 +15,7 @@ data class Author(
     val nickname: String,
 
     @Column(name = "author_introduction", nullable = false, length = 200)
-    val introduction: String = "",
+    val introduction: String,
 ) {
 
     companion object {

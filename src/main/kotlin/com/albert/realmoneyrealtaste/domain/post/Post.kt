@@ -35,7 +35,7 @@ class Post protected constructor(
 
     status: PostStatus,
 
-    commentCount: Int = 0,
+    commentCount: Int,
 
     heartCount: Int,
 
@@ -56,7 +56,7 @@ class Post protected constructor(
             restaurant: Restaurant,
             content: PostContent,
             images: PostImages,
-            authorIntroduction: String = "",
+            authorIntroduction: String,
         ): Post {
             return Post(
                 author = Author(authorMemberId, authorNickname, authorIntroduction),
@@ -64,6 +64,7 @@ class Post protected constructor(
                 content = content,
                 images = images,
                 status = PostStatus.PUBLISHED,
+                commentCount = 0,
                 heartCount = 0,
                 viewCount = 0,
                 createdAt = LocalDateTime.now(),
