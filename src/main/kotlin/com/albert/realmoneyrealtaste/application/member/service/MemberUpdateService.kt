@@ -34,7 +34,9 @@ class MemberUpdateService(
         try {
             val member = memberReader.readMemberById(memberId)
 
-            if (member.detail.profileAddress != request.profileAddress) {
+            if (member.detail.profileAddress != request.profileAddress
+                && request.profileAddress != null
+            ) {
                 validateProfileAddressNotDuplicated(request.profileAddress)
             }
 
@@ -84,8 +86,8 @@ class MemberUpdateService(
      *
      * @param profileAddress 검증할 프로필 주소
      */
-    private fun validateProfileAddressNotDuplicated(profileAddress: ProfileAddress?) {
-        profileAddress?.let {
+    private fun validateProfileAddressNotDuplicated(profileAddress: ProfileAddress) {
+        profileAddress.let {
             if (memberReader.existsByDetailProfileAddress(it)) {
                 throw DuplicateProfileAddressException()
             }
