@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.application.collection.provided
 
 import com.albert.realmoneyrealtaste.application.collection.dto.CollectionUpdateRequest
 import com.albert.realmoneyrealtaste.application.collection.exception.CollectionUpdateException
+import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 
 interface CollectionUpdater {
@@ -32,4 +33,6 @@ interface CollectionUpdater {
      * @param ownerMemberId 컬렉션 소유자 멤버 ID
      */
     fun removePost(collectionId: Long, postId: Long, ownerMemberId: Long)
+
+    fun updatePrivacy(collectionId: Long, ownerMemberId: Long, privacy: CollectionPrivacy): PostCollection
 }

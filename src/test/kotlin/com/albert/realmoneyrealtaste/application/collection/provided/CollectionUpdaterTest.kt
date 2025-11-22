@@ -31,7 +31,7 @@ class CollectionUpdaterTest : IntegrationTestBase() {
     @Test
     fun `updateInfo - success - updates collection info and returns updated collection`() {
         val member = testMemberHelper.createActivatedMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), ownerName = member.nickname.value)
 
         val newInfo = CollectionInfo(
             name = "수정된 컬렉션",
@@ -51,7 +51,8 @@ class CollectionUpdaterTest : IntegrationTestBase() {
             { assertEquals("수정된 컬렉션", result.info.name) },
             { assertEquals("수정된 설명", result.info.description) },
             { assertEquals("https://example.com/new-cover.jpg", result.info.coverImageUrl) },
-            { assertEquals(member.id, result.owner.memberId) }
+            { assertEquals(member.id, result.owner.memberId) },
+            { assertEquals(member.nickname.value, result.owner.nickname) }
         )
     }
 
@@ -291,15 +292,170 @@ class CollectionUpdaterTest : IntegrationTestBase() {
         )
     }
 
-    private fun createTestCollection(ownerMemberId: Long) = collectionRepository.save(
+    @Test
+    fun `updatePrivacy - success - changes privacy to private`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId(), ownerName = member.nickname.value)
+
+        val result =
+            collectionUpdater.updatePrivacy(collection.requireId(), member.requireId(), CollectionPrivacy.PRIVATE)
+
+        assertAll(
+            { assertEquals(collection.id, result.id) },
+            { assertEquals(CollectionPrivacy.PRIVATE, result.privacy) },
+            { assertEquals(member.id, result.owner.memberId) },
+            { assertEquals(member.nickname.value, result.owner.nickname) },
+        )
+    }
+
+    @Test
+    fun `updatePrivacy - success - changes privacy to public`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(
+            member.requireId(),
+            privacy = CollectionPrivacy.PRIVATE,
+            ownerName = member.nickname.value
+        )
+
+        val result =
+            collectionUpdater.updatePrivacy(collection.requireId(), member.requireId(), CollectionPrivacy.PUBLIC)
+
+        assertAll(
+            { assertEquals(collection.id, result.id) },
+            { assertEquals(CollectionPrivacy.PUBLIC, result.privacy) },
+            { assertEquals(member.id, result.owner.memberId) },
+            { assertEquals(member.nickname.value, result.owner.nickname) }
+        )
+    }
+
+    @Test
+    fun `updatePrivacy - success - persists privacy change to database`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId(), ownerName = member.nickname.value)
+
+        collectionUpdater.updatePrivacy(collection.requireId(), member.requireId(), CollectionPrivacy.PRIVATE)
+
+        val updated = collectionRepository.findById(collection.requireId())
+        assertAll(
+            { assertNotNull(updated) },
+            { assertEquals(CollectionPrivacy.PRIVATE, updated?.privacy) },
+            { assertEquals(member.nickname.value, updated?.owner?.nickname) }
+        )
+    }
+
+    @Test
+    fun `updatePrivacy - failure - throws exception when collection not found`() {
+        val member = testMemberHelper.createActivatedMember()
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.updatePrivacy(999L, member.requireId(), CollectionPrivacy.PRIVATE)
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `updatePrivacy - failure - throws exception when not owner`() {
+        val owner = testMemberHelper.createActivatedMember()
+        val other = testMemberHelper.createActivatedMember(
+            email = "other@test.com",
+            nickname = "다른사람"
+        )
+        val collection = createTestCollection(owner.requireId())
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.updatePrivacy(collection.requireId(), other.requireId(), CollectionPrivacy.PRIVATE)
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `updatePrivacy - failure - does not persist change when update fails`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val originalPrivacy = collection.privacy
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.updatePrivacy(999L, member.requireId(), CollectionPrivacy.PRIVATE) // 존재하지 않는 ID
+        }
+
+        val unchanged = collectionRepository.findById(collection.requireId())
+        assertEquals(originalPrivacy, unchanged?.privacy)
+    }
+
+    @Test
+    fun `updatePrivacy - success - maintains other collection properties`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val originalInfo = collection.info
+        val originalPostCount = collection.posts.postIds.size
+        val originalCreatedAt = collection.createdAt
+
+        val result =
+            collectionUpdater.updatePrivacy(collection.requireId(), member.requireId(), CollectionPrivacy.PRIVATE)
+
+        assertAll(
+            { assertEquals(originalInfo.name, result.info.name) },
+            { assertEquals(originalInfo.description, result.info.description) },
+            { assertEquals(originalInfo.coverImageUrl, result.info.coverImageUrl) },
+            { assertEquals(originalPostCount, result.posts.postIds.size) },
+            { assertEquals(originalCreatedAt, result.createdAt) },
+            { assertEquals(member.id, result.owner.memberId) }
+        )
+    }
+
+    @Test
+    fun `updatePrivacy - success - handles same privacy setting`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId(), privacy = CollectionPrivacy.PUBLIC)
+
+        val result =
+            collectionUpdater.updatePrivacy(collection.requireId(), member.requireId(), CollectionPrivacy.PUBLIC)
+
+        assertAll(
+            { assertEquals(CollectionPrivacy.PUBLIC, result.privacy) },
+        )
+    }
+
+    @Test
+    fun `updatePrivacy - failure - throws exception when collection is deleted`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        collection.delete(member.requireId()) // 컬렉션 삭제
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.updatePrivacy(collection.requireId(), member.requireId(), CollectionPrivacy.PRIVATE)
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    private fun createTestCollection(
+        ownerMemberId: Long,
+        name: String = "테스트 컬렉션",
+        description: String = "테스트용 컬렉션입니다",
+        coverImageUrl: String? = "https://example.com/test.jpg",
+        privacy: CollectionPrivacy = CollectionPrivacy.PUBLIC,
+        ownerName: String = "test",
+    ) = collectionRepository.save(
         PostCollection.create(
             CollectionCreateCommand(
                 ownerMemberId = ownerMemberId,
-                name = "테스트 컬렉션",
-                description = "테스트용 컬렉션입니다",
-                coverImageUrl = "https://example.com/test.jpg",
-                privacy = CollectionPrivacy.PUBLIC,
-                ownerName = "test"
+                name = name,
+                description = description,
+                coverImageUrl = coverImageUrl,
+                privacy = privacy,
+                ownerName = ownerName
             )
         )
     )

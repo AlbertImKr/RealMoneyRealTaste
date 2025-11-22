@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.application.collection.dto.CollectionUpdate
 import com.albert.realmoneyrealtaste.application.collection.exception.CollectionUpdateException
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionReader
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionUpdater
+import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -51,5 +52,24 @@ class CollectionUpdateService(
             memberId = ownerMemberId,
             postId = postId,
         )
+    }
+
+    override fun updatePrivacy(
+        collectionId: Long,
+        ownerMemberId: Long,
+        privacy: CollectionPrivacy,
+    ): PostCollection {
+        try {
+            val collection = collectionReader.readById(collectionId)
+
+            collection.updatePrivacy(
+                memberId = ownerMemberId,
+                newPrivacy = privacy,
+            )
+
+            return collection
+        } catch (e: IllegalArgumentException) {
+            throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
+        }
     }
 }
