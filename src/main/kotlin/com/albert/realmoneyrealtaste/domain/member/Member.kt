@@ -48,9 +48,9 @@ class Member protected constructor(
 
     updatedAt: LocalDateTime,
 
-    followersCount: Long = 0L,
+    followersCount: Long,
 
-    followingsCount: Long = 0L,
+    followingsCount: Long,
 ) : BaseEntity() {
 
     @Embedded
@@ -171,6 +171,16 @@ class Member protected constructor(
 
     fun hasAnyRole(vararg roleList: Role): Boolean = roles.hasAnyRole(*roleList)
 
+    fun updateFollowersCount(count: Long) {
+        followersCount = count
+        updatedAt = LocalDateTime.now()
+    }
+
+    fun updateFollowingsCount(count: Long) {
+        followingsCount = count
+        updatedAt = LocalDateTime.now()
+    }
+
     companion object {
         const val ERROR_INVALID_STATUS_FOR_ACTIVATION = "등록 대기 상태에서만 등록 완료가 가능합니다"
         const val ERROR_INVALID_STATUS_FOR_DEACTIVATION = "등록 완료 상태에서만 탈퇴가 가능합니다"
@@ -192,6 +202,8 @@ class Member protected constructor(
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
             roles = Roles.ofUser(),
+            followersCount = 0L,
+            followingsCount = 0L,
         )
 
         fun registerManager(
@@ -207,6 +219,8 @@ class Member protected constructor(
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
             roles = Roles.of(Role.USER, Role.MANAGER),
+            followersCount = 0L,
+            followingsCount = 0L,
         )
 
         fun registerAdmin(
@@ -222,6 +236,8 @@ class Member protected constructor(
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
             roles = Roles.of(Role.USER, Role.ADMIN),
+            followersCount = 0L,
+            followingsCount = 0L,
         )
     }
 }
