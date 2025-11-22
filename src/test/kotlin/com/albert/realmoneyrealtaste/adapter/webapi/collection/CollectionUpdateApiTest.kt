@@ -3,10 +3,13 @@ package com.albert.realmoneyrealtaste.adapter.webapi.collection
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.adapter.webapi.collection.request.CollectionUpdateApiRequest
 import com.albert.realmoneyrealtaste.application.collection.required.CollectionRepository
+import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import com.albert.realmoneyrealtaste.domain.collection.command.CollectionCreateCommand
+import com.albert.realmoneyrealtaste.domain.post.Post
 import com.albert.realmoneyrealtaste.util.MemberFixture
+import com.albert.realmoneyrealtaste.util.PostFixture
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import com.albert.realmoneyrealtaste.util.WithMockMember
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -14,6 +17,8 @@ import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -21,6 +26,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class CollectionUpdateApiTest : IntegrationTestBase() {
 
@@ -35,6 +41,9 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
     @Autowired
     private lateinit var collectionRepository: CollectionRepository
+
+    @Autowired
+    private lateinit var postRepository: PostRepository
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
@@ -448,4 +457,281 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             )
         )
     )
+
+    private fun createTestPost(
+        authorId: Long,
+        title: String = "테스트 게시글",
+    ): Post {
+        return postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = authorId,
+                authorNickname = "테스트작성자"
+            )
+        )
+    }
+
+    // ========== addPost 테스트 ==========
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `addPost - success - adds post to collection`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+        val post = createTestPost(member.requireId())
+
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isOk)
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertTrue(updatedCollection?.posts?.postIds?.contains(post.requireId()) == true)
+    }
+
+    @Test
+    fun `addPost - failure - returns unauthorized when not authenticated`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val post = createTestPost(member.requireId())
+
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `addPost - failure - returns not found when collection does not exist`() {
+        val member = testMemberHelper.getDefaultMember()
+        val post = createTestPost(member.requireId())
+
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", 999L, post.requireId())
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `addPost - success - adds non-existent post id to collection`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+
+        // 존재하지 않는 postId도 추가 시도 - 서비스 레벨에서는 postId 유효성 검증 안 함
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), 999L)
+        )
+            .andExpect(status().isOk)
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertTrue(updatedCollection?.posts?.postIds?.contains(999L) == true)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `addPost - failure - returns error when not owner`() {
+        val owner = testMemberHelper.createActivatedMember(email = "owner@test.com")
+        val collection = createTestCollection(owner.requireId())
+        val post = createTestPost(owner.requireId())
+
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `addPost - success - does not add duplicate post`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+        val post = createTestPost(member.requireId())
+
+        // 첫 번째 추가
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isOk)
+
+        // 두 번째 추가 (중복) - 예외 발생
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isBadRequest)
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertEquals(1, updatedCollection?.posts?.postIds?.size)
+    }
+
+    // ========== removePost 테스트 ==========
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `removePost - success - removes post from collection`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+        val post = createTestPost(member.requireId())
+
+        // 먼저 게시글 추가
+        mockMvc.perform(
+            post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isOk)
+
+        // 게시글 제거
+        mockMvc.perform(
+            delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isNoContent)
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertTrue(updatedCollection?.posts?.postIds?.contains(post.requireId()) != true)
+    }
+
+    @Test
+    fun `removePost - failure - returns unauthorized when not authenticated`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val post = createTestPost(member.requireId())
+
+        mockMvc.perform(
+            delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `removePost - failure - returns not found when collection does not exist`() {
+        val member = testMemberHelper.getDefaultMember()
+        val post = createTestPost(member.requireId())
+
+        mockMvc.perform(
+            delete("/api/collections/{collectionId}/posts/{postId}", 999L, post.requireId())
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `removePost - failure - returns not found when post does not exist`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+
+        mockMvc.perform(
+            delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), 999L)
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `removePost - failure - returns error when not owner`() {
+        val owner = testMemberHelper.createActivatedMember(email = "owner@test.com")
+        val collection = createTestCollection(owner.requireId())
+        val post = createTestPost(owner.requireId())
+
+        mockMvc.perform(
+            delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `removePost - success - handles removal of non-existent post gracefully`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+        val post = createTestPost(member.requireId())
+
+        // 컬렉션에 추가하지 않은 게시글 제거 시도 - 예외 발생
+        mockMvc.perform(
+            delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+        )
+            .andExpect(status().isBadRequest) // 예외 발생으로 400 반환
+    }
+
+    // ========== 추가 엣지 케이스 테스트 ==========
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateInfo - success - handles special characters in name and description`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+
+        val request = CollectionUpdateApiRequest(
+            name = "특수字符 테스트 !@#$%^&*()",
+            description = "설명에 특수문자와 이모지 🍔🍕🌮 포함",
+            coverImageUrl = "https://example.com/special-chars.jpg"
+        )
+
+        mockMvc.perform(
+            put("/api/collections/{collectionId}", collection.requireId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+
+        val updated = collectionRepository.findById(collection.requireId())
+        assertAll(
+            { assertEquals("특수字符 테스트 !@#$%^&*()", updated?.info?.name) },
+            { assertEquals("설명에 특수문자와 이모지 🍔🍕🌮 포함", updated?.info?.description) }
+        )
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateInfo - success - updates multiple times sequentially`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+
+        // 첫 번째 업데이트
+        val request1 = CollectionUpdateApiRequest(
+            name = "첫 번째 업데이트",
+            description = "첫 번째 설명"
+        )
+
+        mockMvc.perform(
+            put("/api/collections/{collectionId}", collection.requireId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request1))
+        )
+            .andExpect(status().isOk)
+
+        // 두 번째 업데이트
+        val request2 = CollectionUpdateApiRequest(
+            name = "두 번째 업데이트",
+            description = "두 번째 설명",
+            coverImageUrl = "https://example.com/second-update.jpg"
+        )
+
+        mockMvc.perform(
+            put("/api/collections/{collectionId}", collection.requireId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request2))
+        )
+            .andExpect(status().isOk)
+
+        val updated = collectionRepository.findById(collection.requireId())
+        assertAll(
+            { assertEquals("두 번째 업데이트", updated?.info?.name) },
+            { assertEquals("두 번째 설명", updated?.info?.description) },
+            { assertEquals("https://example.com/second-update.jpg", updated?.info?.coverImageUrl) }
+        )
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `updateInfo - failure - handles malformed JSON`() {
+        val member = testMemberHelper.getDefaultMember()
+        val collection = createTestCollection(member.requireId())
+
+        mockMvc.perform(
+            put("/api/collections/{collectionId}", collection.requireId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ malformed json }")
+        )
+            .andExpect(status().isBadRequest)
+    }
 }
