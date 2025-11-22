@@ -37,21 +37,29 @@ class CollectionUpdateService(
     }
 
     override fun addPost(collectionId: Long, postId: Long, ownerMemberId: Long) {
-        val collection = collectionReader.readById(collectionId)
+        try {
+            val collection = collectionReader.readById(collectionId)
 
-        collection.addPost(
-            memberId = ownerMemberId,
-            postId = postId,
-        )
+            collection.addPost(
+                memberId = ownerMemberId,
+                postId = postId,
+            )
+        } catch (e: IllegalArgumentException) {
+            throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
+        }
     }
 
     override fun removePost(collectionId: Long, postId: Long, ownerMemberId: Long) {
-        val collection = collectionReader.readById(collectionId)
+        try {
+            val collection = collectionReader.readById(collectionId)
 
-        collection.removePost(
-            memberId = ownerMemberId,
-            postId = postId,
-        )
+            collection.removePost(
+                memberId = ownerMemberId,
+                postId = postId,
+            )
+        } catch (e: IllegalArgumentException) {
+            throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
+        }
     }
 
     override fun updatePrivacy(

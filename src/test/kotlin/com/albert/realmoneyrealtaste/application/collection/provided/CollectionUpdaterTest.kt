@@ -9,6 +9,7 @@ import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import com.albert.realmoneyrealtaste.domain.collection.command.CollectionCreateCommand
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionInfo
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
+import org.junit.Assert.assertFalse
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import kotlin.test.Test
@@ -438,6 +439,335 @@ class CollectionUpdaterTest : IntegrationTestBase() {
                 { assertTrue(it.cause is IllegalArgumentException) }
             )
         }
+    }
+
+    @Test
+    fun `addPost - success - adds post to collection`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postId = 123L
+
+        collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(updatedCollection)
+        assertTrue(updatedCollection.posts.contains(postId))
+        assertEquals(1, updatedCollection.posts.size())
+    }
+
+    @Test
+    fun `addPost - success - persists post addition to database`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postId = 456L
+
+        collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+
+        val persistedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(persistedCollection)
+        assertTrue(persistedCollection.posts.contains(postId))
+    }
+
+    @Test
+    fun `addPost - success - adds multiple posts to collection`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postIds = listOf(1L, 2L, 3L, 4L, 5L)
+
+        postIds.forEach { postId ->
+            collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        }
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(updatedCollection)
+        assertEquals(postIds.size, updatedCollection.posts.size())
+        postIds.forEach { postId ->
+            assertTrue(updatedCollection.posts.contains(postId))
+        }
+    }
+
+    @Test
+    fun `addPost - failure - throws exception when post is duplicate`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postId = 789L
+
+        // 첫 번째 추가는 성공
+        collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+
+        // 두 번째 추가 (중복)는 실패해야 함
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        }.let { exception ->
+            assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", exception.message)
+            assertTrue(exception.cause is IllegalArgumentException)
+        }
+
+        // 실패 후에도 원래 상태가 유지되어야 함
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(updatedCollection)
+        assertTrue(updatedCollection.posts.contains(postId))
+        assertEquals(1, updatedCollection.posts.size())
+    }
+
+    @Test
+    fun `addPost - failure - throws exception when collection not found`() {
+        val member = testMemberHelper.createActivatedMember()
+        val nonExistentCollectionId = 999L
+        val postId = 123L
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.addPost(nonExistentCollectionId, postId, member.requireId())
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `addPost - failure - throws exception when not owner`() {
+        val owner = testMemberHelper.createActivatedMember()
+        val other = testMemberHelper.createActivatedMember(
+            email = "other@test.com",
+            nickname = "다른사람"
+        )
+        val collection = createTestCollection(owner.requireId())
+        val postId = 123L
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.addPost(collection.requireId(), postId, other.requireId())
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `addPost - failure - throws exception when collection is deleted`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        collection.delete(member.requireId()) // 컬렉션 삭제
+        val postId = 123L
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `addPost - failure - does not persist post when addition fails`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postId = 123L
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.addPost(999L, postId, member.requireId()) // 존재하지 않는 컬렉션
+        }
+
+        val unchangedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(unchangedCollection)
+        assertEquals(0, unchangedCollection.posts.size())
+    }
+
+    @Test
+    fun `removePost - success - removes post from collection`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postId = 123L
+
+        // 먼저 게시글 추가
+        collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+
+        // 게시글 제거
+        collectionUpdater.removePost(collection.requireId(), postId, member.requireId())
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(updatedCollection)
+        assertFalse(updatedCollection.posts.contains(postId))
+        assertEquals(0, updatedCollection.posts.size())
+    }
+
+    @Test
+    fun `removePost - success - persists post removal to database`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postId = 456L
+
+        collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        collectionUpdater.removePost(collection.requireId(), postId, member.requireId())
+
+        flushAndClear()
+        val persistedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(persistedCollection)
+        assertFalse(persistedCollection.posts.contains(postId))
+    }
+
+    @Test
+    fun `removePost - success - removes specific post from multiple posts`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postIds = listOf(1L, 2L, 3L, 4L, 5L)
+
+        // 여러 게시글 추가
+        postIds.forEach { postId ->
+            collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        }
+
+        // 특정 게시글 제거
+        val postToRemove = 3L
+        collectionUpdater.removePost(collection.requireId(), postToRemove, member.requireId())
+
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(updatedCollection)
+        assertEquals(postIds.size - 1, updatedCollection.posts.size())
+        assertFalse(updatedCollection.posts.contains(postToRemove))
+        postIds.filter { it != postToRemove }.forEach { postId ->
+            assertTrue(updatedCollection.posts.contains(postId))
+        }
+    }
+
+    @Test
+    fun `removePost - failure - throws exception when post does not exist`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val existingPostId = 123L
+        val nonExistentPostId = 999L
+
+        // 기존 게시글 추가
+        collectionUpdater.addPost(collection.requireId(), existingPostId, member.requireId())
+
+        // 존재하지 않는 게시글 제거 시도는 실패해야 함
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.removePost(collection.requireId(), nonExistentPostId, member.requireId())
+        }.let { exception ->
+            assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", exception.message)
+            assertTrue(exception.cause is IllegalArgumentException)
+        }
+
+        // 실패 후에도 기존 게시글은 유지되어야 함
+        val updatedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(updatedCollection)
+        assertTrue(updatedCollection.posts.contains(existingPostId))
+        assertEquals(1, updatedCollection.posts.size())
+    }
+
+    @Test
+    fun `removePost - failure - throws exception when collection not found`() {
+        val member = testMemberHelper.createActivatedMember()
+        val nonExistentCollectionId = 999L
+        val postId = 123L
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.removePost(nonExistentCollectionId, postId, member.requireId())
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `removePost - failure - throws exception when not owner`() {
+        val owner = testMemberHelper.createActivatedMember()
+        val other = testMemberHelper.createActivatedMember(
+            email = "other@test.com",
+            nickname = "다른사람"
+        )
+        val collection = createTestCollection(owner.requireId())
+        val postId = 123L
+
+        collectionUpdater.addPost(collection.requireId(), postId, owner.requireId())
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.removePost(collection.requireId(), postId, other.requireId())
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `removePost - failure - throws exception when collection is deleted`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postId = 123L
+
+        collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        collection.delete(member.requireId()) // 컬렉션 삭제
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.removePost(collection.requireId(), postId, member.requireId())
+        }.let {
+            assertAll(
+                { assertEquals("컬렉션 정보 업데이트 중 오류가 발생했습니다.", it.message) },
+                { assertTrue(it.cause is IllegalArgumentException) }
+            )
+        }
+    }
+
+    @Test
+    fun `removePost - failure - does not affect other posts when removal fails`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postIds = listOf(1L, 2L, 3L)
+
+        postIds.forEach { postId ->
+            collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        }
+
+        assertFailsWith<CollectionUpdateException> {
+            collectionUpdater.removePost(999L, 1L, member.requireId()) // 존재하지 않는 컬렉션
+        }
+
+        val unchangedCollection = collectionRepository.findById(collection.requireId())
+        assertNotNull(unchangedCollection)
+        assertEquals(postIds.size, unchangedCollection.posts.size())
+        postIds.forEach { postId ->
+            assertTrue(unchangedCollection.posts.contains(postId))
+        }
+    }
+
+    @Test
+    fun `addPost and removePost - integration - complete lifecycle test`() {
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        val postIds = listOf(10L, 20L, 30L)
+
+        // 게시글 추가
+        postIds.forEach { postId ->
+            collectionUpdater.addPost(collection.requireId(), postId, member.requireId())
+        }
+
+        var currentCollection = collectionRepository.findById(collection.requireId())
+        assertEquals(postIds.size, currentCollection!!.posts.size())
+
+        // 일부 게시글 제거
+        collectionUpdater.removePost(collection.requireId(), postIds[1], member.requireId())
+
+        currentCollection = collectionRepository.findById(collection.requireId())
+        assertEquals(postIds.size - 1, currentCollection!!.posts.size())
+        assertFalse(currentCollection.posts.contains(postIds[1]))
+        assertTrue(currentCollection.posts.contains(postIds[0]))
+        assertTrue(currentCollection.posts.contains(postIds[2]))
+
+        // 남은 게시글 모두 제거
+        collectionUpdater.removePost(collection.requireId(), postIds[0], member.requireId())
+        collectionUpdater.removePost(collection.requireId(), postIds[2], member.requireId())
+
+        currentCollection = collectionRepository.findById(collection.requireId())
+        assertEquals(0, currentCollection!!.posts.size())
     }
 
     private fun createTestCollection(
