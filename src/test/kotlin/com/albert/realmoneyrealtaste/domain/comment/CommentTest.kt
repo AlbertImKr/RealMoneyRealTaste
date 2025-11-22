@@ -28,6 +28,7 @@ class CommentTest {
         assertEquals("좋은 댓글입니다!", comment.content.text)
         assertNull(comment.parentCommentId)
         assertEquals(CommentStatus.PUBLISHED, comment.status)
+        assertEquals(0, comment.repliesCount) // 기본값 확인
         assertNotNull(comment.createdAt)
         assertNotNull(comment.updatedAt)
     }
@@ -353,6 +354,18 @@ class CommentTest {
     }
 
     @Test
+    fun `repliesCount - success - initializes with zero by default`() {
+        val comment = Comment.create(
+            postId = 1L,
+            authorMemberId = 100L,
+            authorNickname = "맛집탐험가",
+            content = CommentContent("새 댓글")
+        )
+
+        assertEquals(0, comment.repliesCount)
+    }
+
+    @Test
     fun `setters - success - for code coverage`() {
         val testComment = TestComment()
         val expectedCreatedAt = LocalDateTime.now().minusDays(1)
@@ -365,6 +378,7 @@ class CommentTest {
             ),
             parentCommentId = 10L,
             createdAt = expectedCreatedAt,
+            repliesCount = 5L,
         )
 
         assertEquals(2L, testComment.postId)
@@ -372,6 +386,7 @@ class CommentTest {
         assertEquals("테스트유저", testComment.author.nickname)
         assertEquals(10L, testComment.parentCommentId)
         assertEquals(expectedCreatedAt, testComment.createdAt)
+        assertEquals(5L, testComment.repliesCount)
     }
 
     private class TestComment : Comment(
@@ -384,18 +399,21 @@ class CommentTest {
         parentCommentId = null,
         status = CommentStatus.PUBLISHED,
         createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now()
+        updatedAt = LocalDateTime.now(),
+        repliesCount = 0,
     ) {
         fun setForCoverage(
             postId: Long,
             author: CommentAuthor,
             parentCommentId: Long,
             createdAt: LocalDateTime,
+            repliesCount: Long,
         ) {
             this.postId = postId
             this.author = author
             this.parentCommentId = parentCommentId
             this.createdAt = createdAt
+            this.repliesCount = repliesCount
         }
     }
 }

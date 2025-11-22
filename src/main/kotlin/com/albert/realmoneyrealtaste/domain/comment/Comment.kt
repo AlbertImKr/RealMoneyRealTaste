@@ -29,7 +29,7 @@ class Comment protected constructor(
     content: CommentContent,
     parentCommentId: Long?,
     status: CommentStatus,
-    repliesCount: Int = 0,
+    repliesCount: Long,
     createdAt: LocalDateTime,
     updatedAt: LocalDateTime,
 ) : BaseEntity() {
@@ -72,7 +72,8 @@ class Comment protected constructor(
                 parentCommentId = parentCommentId,
                 status = CommentStatus.PUBLISHED,
                 createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
+                updatedAt = LocalDateTime.now(),
+                repliesCount = 0,
             )
         }
     }
@@ -99,7 +100,7 @@ class Comment protected constructor(
         protected set
 
     @Column(name = "reply_count", nullable = false)
-    var repliesCount: Int = repliesCount
+    var repliesCount: Long = repliesCount
         protected set
 
     @Column(name = "created_at", nullable = false, updatable = false)
