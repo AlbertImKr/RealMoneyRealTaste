@@ -114,7 +114,7 @@ class PostReadService(
     }
 
     override fun readPostsByIds(postIds: List<Long>): List<Post> {
-        return postRepository.findAllByIdIn(postIds)
+        return postRepository.findAllByStatusAndIdIn(PostStatus.PUBLISHED, postIds)
     }
 
     /**

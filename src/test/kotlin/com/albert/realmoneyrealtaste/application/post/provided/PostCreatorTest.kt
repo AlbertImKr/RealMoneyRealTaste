@@ -5,6 +5,7 @@ import com.albert.realmoneyrealtaste.application.post.dto.PostCreateRequest
 import com.albert.realmoneyrealtaste.application.post.exception.PostCreateException
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.member.value.Email
+import com.albert.realmoneyrealtaste.domain.member.value.Introduction
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.domain.post.PostStatus
 import com.albert.realmoneyrealtaste.domain.post.event.PostCreatedEvent
@@ -33,6 +34,7 @@ class PostCreatorTest(
     @Test
     fun `createPost - success - creates post with valid parameters`() {
         val member = testMemberHelper.createActivatedMember()
+        member.updateInfo(introduction = Introduction("안녕하세요!"))
         val request = createPostRequest()
 
         val result = postCreator.createPost(member.requireId(), request)
@@ -45,6 +47,7 @@ class PostCreatorTest(
         assertEquals(request.content.rating, result.content.rating)
         assertEquals(request.images.urls, result.images.urls)
         assertEquals(PostStatus.PUBLISHED, result.status)
+        assertEquals("안녕하세요!", result.author.introduction)
         assertEquals(0, result.heartCount)
         assertEquals(0, result.viewCount)
     }
@@ -169,6 +172,19 @@ class PostCreatorTest(
         } catch (e: PostCreateException) {
             assertEquals("포스트 생성에 실패했습니다.", e.message)
         }
+    }
+
+    @Test
+    fun `createPost - success - uses empty introduction when member has no introduction`() {
+        val member = testMemberHelper.createActivatedMember()
+        val request = createPostRequest()
+
+        val result = postCreator.createPost(member.requireId(), request)
+
+        assertNotNull(result.id)
+        assertEquals(member.id, result.author.memberId)
+        assertEquals(member.nickname.value, result.author.nickname)
+        assertEquals("", result.author.introduction) // introduction이 없으면 빈 문자열
     }
 
     private fun createPostRequest(

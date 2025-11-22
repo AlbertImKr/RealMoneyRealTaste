@@ -146,5 +146,5 @@ interface PostRepository : Repository<Post, Long> {
      * @param ids 게시글 ID 목록
      * @return 조회된 게시글 목록
      */
-    fun findAllByIdIn(ids: List<Long>): List<Post>
+    fun findAllByStatusAndIdIn(status: PostStatus = PostStatus.PUBLISHED, ids: List<Long>): List<Post>
 }
