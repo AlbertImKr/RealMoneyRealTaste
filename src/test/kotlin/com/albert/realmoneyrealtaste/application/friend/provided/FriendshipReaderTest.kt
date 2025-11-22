@@ -61,7 +61,7 @@ class FriendshipReaderTest(
         )
 
         // 친구 요청만 생성 (수락하지 않음)
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId())
+        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
         friendRequestor.sendFriendRequest(command)
 
         val result = friendshipReader.findActiveFriendship(member1.requireId(), member2.requireId())
@@ -97,7 +97,7 @@ class FriendshipReaderTest(
         )
 
         // 친구 요청 생성 (PENDING 상태)
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId())
+        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val result = friendshipReader.sentedFriendRequest(member1.requireId(), member2.requireId())
@@ -121,7 +121,7 @@ class FriendshipReaderTest(
         )
 
         // 친구 요청 생성
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val result = friendshipReader.findPendingFriendshipReceived(receiver.requireId(), sender.requireId())
@@ -161,7 +161,7 @@ class FriendshipReaderTest(
             nickname = "byid2"
         )
 
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId())
+        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val result = friendshipReader.findFriendshipById(friendship.requireId())
@@ -247,8 +247,8 @@ class FriendshipReaderTest(
         )
 
         // 두 개의 친구 요청 생성
-        val command1 = FriendRequestCommand(sender1.requireId(), receiver.requireId())
-        val command2 = FriendRequestCommand(sender2.requireId(), receiver.requireId())
+        val command1 = FriendRequestCommand(sender1.requireId(), receiver.requireId(), receiver.nickname.value)
+        val command2 = FriendRequestCommand(sender2.requireId(), receiver.requireId(), receiver.nickname.value)
         friendRequestor.sendFriendRequest(command1)
         friendRequestor.sendFriendRequest(command2)
 
@@ -280,8 +280,8 @@ class FriendshipReaderTest(
         )
 
         // 두 개의 친구 요청 생성
-        val command1 = FriendRequestCommand(sender.requireId(), receiver1.requireId())
-        val command2 = FriendRequestCommand(sender.requireId(), receiver2.requireId())
+        val command1 = FriendRequestCommand(sender.requireId(), receiver1.requireId(), receiver1.nickname.value)
+        val command2 = FriendRequestCommand(sender.requireId(), receiver2.requireId(), receiver2.nickname.value)
         friendRequestor.sendFriendRequest(command1)
         friendRequestor.sendFriendRequest(command2)
 
@@ -306,7 +306,7 @@ class FriendshipReaderTest(
             nickname = "exists2"
         )
 
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId())
+        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
         friendRequestor.sendFriendRequest(command)
 
         val result = friendshipReader.existsByMemberIds(member1.requireId(), member2.requireId())
@@ -384,7 +384,7 @@ class FriendshipReaderTest(
 
         // 하나는 수락, 하나는 대기 상태로 유지
         createAcceptedFriendship(friend1.requireId(), member.requireId())
-        val command2 = FriendRequestCommand(friend2.requireId(), member.requireId())
+        val command2 = FriendRequestCommand(friend2.requireId(), member.requireId(), member.nickname.value)
         friendRequestor.sendFriendRequest(command2)
 
         val pageable = PageRequest.of(0, 10)
@@ -422,7 +422,7 @@ class FriendshipReaderTest(
     }
 
     private fun createAcceptedFriendship(fromMemberId: Long, toMemberId: Long): Friendship {
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val command = FriendRequestCommand(fromMemberId, toMemberId, "testUser")
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val response = FriendResponseRequest(

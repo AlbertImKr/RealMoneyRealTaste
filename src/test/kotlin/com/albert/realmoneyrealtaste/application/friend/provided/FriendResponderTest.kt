@@ -40,7 +40,7 @@ class FriendResponderTest(
         )
 
         // 친구 요청 생성
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
         flushAndClear()
         applicationEvents.clear()
@@ -94,7 +94,7 @@ class FriendResponderTest(
         )
 
         // 친구 요청 생성
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
         flushAndClear()
         applicationEvents.clear()
@@ -143,7 +143,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val nonExistentMemberId = 999999L
@@ -196,7 +196,7 @@ class FriendResponderTest(
             nickname = "unauthorized"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 요청을 받지 않은 사람이 응답 시도
@@ -224,7 +224,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 요청을 보낸 사람이 응답 시도
@@ -252,7 +252,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 첫 번째 응답 (수락)
@@ -288,7 +288,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 첫 번째 응답 (거절)
@@ -324,7 +324,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val request = FriendResponseRequest(
@@ -352,7 +352,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 수신자를 비활성화 (실제로는 불가능하지만 테스트를 위해)

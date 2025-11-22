@@ -81,7 +81,8 @@ class FriendResponseService(
         val reverseFriendship = friendRequestor.sendFriendRequest(
             FriendRequestCommand(
                 fromMemberId = originalFriendship.relationShip.friendMemberId,
-                toMemberId = originalFriendship.relationShip.memberId
+                toMemberId = originalFriendship.relationShip.memberId,
+                toMemberNickname = originalFriendship.relationShip.friendNickname,
             )
         )
         reverseFriendship.accept() // 즉시 수락 상태로 설정

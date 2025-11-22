@@ -16,7 +16,7 @@ data class FriendRelationship(
     val friendMemberId: Long,
 
     @Column(name = "friend_nickname", length = 50)
-    val friendNickname: String? = null, // 친구 닉네임 캐싱
+    val friendNickname: String,
 ) {
     companion object {
         const val ERROR_MEMBER_ID_MUST_BE_POSITIVE = "회원 ID는 양수여야 합니다"
@@ -26,15 +26,16 @@ data class FriendRelationship(
         fun of(friendRequestCommand: FriendRequestCommand): FriendRelationship {
             return FriendRelationship(
                 memberId = friendRequestCommand.fromMemberId,
-                friendMemberId = friendRequestCommand.toMemberId
+                friendMemberId = friendRequestCommand.toMemberId,
+                friendNickname = friendRequestCommand.toMemberNickname,
             )
         }
 
-        fun of(memberId: Long, friendMemberId: Long, friendNickname: String? = null): FriendRelationship {
+        fun of(memberId: Long, friendMemberId: Long, friendNickname: String): FriendRelationship {
             return FriendRelationship(
                 memberId = memberId,
                 friendMemberId = friendMemberId,
-                friendNickname = friendNickname
+                friendNickname = friendNickname,
             )
         }
     }

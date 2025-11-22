@@ -37,6 +37,7 @@ class FriendWriteView(
         val command = FriendRequestCommand(
             fromMemberId = principal.id,
             toMemberId = request.toMemberId,
+            toMemberNickname = request.toMemberNickname,
         )
         friendRequestor.sendFriendRequest(command)
 

@@ -11,12 +11,14 @@ class FriendRequestCommandTest {
     fun `create - success - creates command with valid member IDs`() {
         val fromMemberId = 1L
         val toMemberId = 2L
+        val toMemberNickname = "receiver"
 
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
 
         assertAll(
             { assertEquals(fromMemberId, command.fromMemberId) },
-            { assertEquals(toMemberId, command.toMemberId) }
+            { assertEquals(toMemberId, command.toMemberId) },
+            { assertEquals(toMemberNickname, command.toMemberNickname) }
         )
     }
 
@@ -26,7 +28,7 @@ class FriendRequestCommandTest {
         val toMemberId = 2L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(fromMemberId, toMemberId)
+            FriendRequestCommand(fromMemberId, toMemberId, "receiver")
         }.let {
             assertEquals(FriendRequestCommand.ERROR_FROM_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -38,7 +40,7 @@ class FriendRequestCommandTest {
         val toMemberId = 2L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(fromMemberId, toMemberId)
+            FriendRequestCommand(fromMemberId, toMemberId, "receiver")
         }.let {
             assertEquals(FriendRequestCommand.ERROR_FROM_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -50,7 +52,7 @@ class FriendRequestCommandTest {
         val toMemberId = 0L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(fromMemberId, toMemberId)
+            FriendRequestCommand(fromMemberId, toMemberId, "receiver")
         }.let {
             assertEquals(FriendRequestCommand.ERROR_TO_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -62,7 +64,7 @@ class FriendRequestCommandTest {
         val toMemberId = -1L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(fromMemberId, toMemberId)
+            FriendRequestCommand(fromMemberId, toMemberId, "receiver")
         }.let {
             assertEquals(FriendRequestCommand.ERROR_TO_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -73,7 +75,7 @@ class FriendRequestCommandTest {
         val memberId = 1L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(memberId, memberId)
+            FriendRequestCommand(memberId, memberId, "receiver")
         }.let {
             assertEquals(FriendRequestCommand.ERROR_CANNOT_REQUEST_FRIENDSHIP_TO_YOURSELF, it.message)
         }
@@ -85,7 +87,7 @@ class FriendRequestCommandTest {
         val toMemberId = 0L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(fromMemberId, toMemberId)
+            FriendRequestCommand(fromMemberId, toMemberId, "receiver")
         }.let {
             // fromMemberId 검증이 먼저 수행되므로 해당 에러 메시지가 나옴
             assertEquals(FriendRequestCommand.ERROR_FROM_MEMBER_ID_MUST_BE_POSITIVE, it.message)
@@ -98,7 +100,7 @@ class FriendRequestCommandTest {
         val toMemberId = -2L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(fromMemberId, toMemberId)
+            FriendRequestCommand(fromMemberId, toMemberId, "receiver")
         }.let {
             // fromMemberId 검증이 먼저 수행되므로 해당 에러 메시지가 나옴
             assertEquals(FriendRequestCommand.ERROR_FROM_MEMBER_ID_MUST_BE_POSITIVE, it.message)
@@ -110,11 +112,12 @@ class FriendRequestCommandTest {
         val fromMemberId = Long.MAX_VALUE - 1
         val toMemberId = Long.MAX_VALUE
 
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val command = FriendRequestCommand(fromMemberId, toMemberId, "receiver")
 
         assertAll(
             { assertEquals(fromMemberId, command.fromMemberId) },
-            { assertEquals(toMemberId, command.toMemberId) }
+            { assertEquals(toMemberId, command.toMemberId) },
+            { assertEquals("receiver", command.toMemberNickname) }
         )
     }
 
@@ -123,11 +126,36 @@ class FriendRequestCommandTest {
         val fromMemberId = 1L
         val toMemberId = 1L + 1
 
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val command = FriendRequestCommand(fromMemberId, toMemberId, "receiver")
 
         assertAll(
             { assertEquals(fromMemberId, command.fromMemberId) },
-            { assertEquals(toMemberId, command.toMemberId) }
+            { assertEquals(toMemberId, command.toMemberId) },
+            { assertEquals("receiver", command.toMemberNickname) }
         )
+    }
+
+    @Test
+    fun `create - failure - throws exception when toMemberNickname is empty`() {
+        val fromMemberId = 1L
+        val toMemberId = 2L
+        val emptyNickname = ""
+
+        assertFailsWith<IllegalArgumentException> {
+            FriendRequestCommand(fromMemberId, toMemberId, emptyNickname)
+        }.let {
+            assertEquals(FriendRequestCommand.ERROR_TO_MEMBER_NICKNAME_MUST_NOT_BE_EMPTY, it.message)
+        }
+    }
+
+    @Test
+    fun `create - success - accepts valid toMemberNickname`() {
+        val fromMemberId = 1L
+        val toMemberId = 2L
+        val nickname = "testUser"
+
+        val command = FriendRequestCommand(fromMemberId, toMemberId, nickname)
+
+        assertEquals(nickname, command.toMemberNickname)
     }
 }

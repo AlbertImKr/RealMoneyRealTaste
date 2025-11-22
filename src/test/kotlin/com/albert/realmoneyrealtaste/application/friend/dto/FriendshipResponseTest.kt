@@ -17,7 +17,7 @@ class FriendshipResponseTest {
         val toMemberId = 2L
         val memberNickname = "sender"
         val friendNickname = "receiver"
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val command = FriendRequestCommand(fromMemberId, toMemberId, friendNickname)
         val friendship = Friendship.request(command)
 
         // ID 설정 (실제로는 JPA가 수행)

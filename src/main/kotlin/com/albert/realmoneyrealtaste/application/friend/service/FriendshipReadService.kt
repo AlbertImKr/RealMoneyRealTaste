@@ -45,7 +45,7 @@ class FriendshipReadService(
 
     override fun findPendingFriendshipReceived(memberId: Long, fromMemberId: Long): Friendship? {
         return friendshipRepository.findByRelationShipAndStatus(
-            FriendRelationship(fromMemberId, memberId),
+            FriendRelationship(fromMemberId, memberId, ""),
             FriendshipStatus.PENDING
         )
     }
@@ -78,7 +78,7 @@ class FriendshipReadService(
     }
 
     override fun existsByMemberIds(memberId: Long, friendMemberId: Long): Boolean {
-        return friendshipRepository.existsByRelationShip(FriendRelationship(memberId, friendMemberId))
+        return friendshipRepository.existsByRelationShip(FriendRelationship(memberId, friendMemberId, ""))
     }
 
     override fun findByMembersId(
@@ -126,7 +126,7 @@ class FriendshipReadService(
             .map { friendship ->
                 FriendshipResponse.from(
                     friendship,
-                    friendship.relationShip.friendNickname ?: UNKNOWN_NICKNAME,
+                    friendship.relationShip.friendNickname,
                 )
             }
     }

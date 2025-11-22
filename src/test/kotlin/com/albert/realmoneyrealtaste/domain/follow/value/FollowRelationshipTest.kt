@@ -125,6 +125,111 @@ class FollowRelationshipTest {
     }
 
     @Test
+    fun `create - failure - throws exception when followerNickname is blank`() {
+        val followerId = 1L
+        val followerNickname = ""
+        val followingId = 2L
+        val followingNickname = "following"
+
+        assertFailsWith<IllegalArgumentException> {
+            FollowRelationship(followerId, followerNickname, followingId, followingNickname)
+        }.let {
+            assertEquals("팔로워 닉네임은 비어있을 수 없습니다", it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when followerNickname is only whitespace`() {
+        val followerId = 1L
+        val followerNickname = "   "
+        val followingId = 2L
+        val followingNickname = "following"
+
+        assertFailsWith<IllegalArgumentException> {
+            FollowRelationship(followerId, followerNickname, followingId, followingNickname)
+        }.let {
+            assertEquals("팔로워 닉네임은 비어있을 수 없습니다", it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when followingNickname is blank`() {
+        val followerId = 1L
+        val followerNickname = "follower"
+        val followingId = 2L
+        val followingNickname = ""
+
+        assertFailsWith<IllegalArgumentException> {
+            FollowRelationship(followerId, followerNickname, followingId, followingNickname)
+        }.let {
+            assertEquals("팔로잉 대상 닉네임은 비어있을 수 없습니다", it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when followingNickname is only whitespace`() {
+        val followerId = 1L
+        val followerNickname = "follower"
+        val followingId = 2L
+        val followingNickname = "   "
+
+        assertFailsWith<IllegalArgumentException> {
+            FollowRelationship(followerId, followerNickname, followingId, followingNickname)
+        }.let {
+            assertEquals("팔로잉 대상 닉네임은 비어있을 수 없습니다", it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when both nicknames are blank`() {
+        val followerId = 1L
+        val followerNickname = ""
+        val followingId = 2L
+        val followingNickname = ""
+
+        assertFailsWith<IllegalArgumentException> {
+            FollowRelationship(followerId, followerNickname, followingId, followingNickname)
+        }.let {
+            // followerNickname 검증이 먼저 수행되므로 해당 에러 메시지가 나옴
+            assertEquals("팔로워 닉네임은 비어있을 수 없습니다", it.message)
+        }
+    }
+
+    @Test
+    fun `create - success - accepts valid nicknames with special characters`() {
+        val followerId = 1L
+        val followerNickname = "follower_123"
+        val followingId = 2L
+        val followingNickname = "following-456"
+
+        val relationship = FollowRelationship(followerId, followerNickname, followingId, followingNickname)
+
+        assertAll(
+            { assertEquals(followerId, relationship.followerId) },
+            { assertEquals(followerNickname, relationship.followerNickname) },
+            { assertEquals(followingId, relationship.followingId) },
+            { assertEquals(followingNickname, relationship.followingNickname) }
+        )
+    }
+
+    @Test
+    fun `create - success - accepts valid nicknames with Korean characters`() {
+        val followerId = 1L
+        val followerNickname = "팔로워"
+        val followingId = 2L
+        val followingNickname = "팔로잉대상"
+
+        val relationship = FollowRelationship(followerId, followerNickname, followingId, followingNickname)
+
+        assertAll(
+            { assertEquals(followerId, relationship.followerId) },
+            { assertEquals(followerNickname, relationship.followerNickname) },
+            { assertEquals(followingId, relationship.followingId) },
+            { assertEquals(followingNickname, relationship.followingNickname) }
+        )
+    }
+
+    @Test
     fun `create - success - accepts large positive member IDs`() {
         val followerId = Long.MAX_VALUE - 1
         val followerNickname = "follower"

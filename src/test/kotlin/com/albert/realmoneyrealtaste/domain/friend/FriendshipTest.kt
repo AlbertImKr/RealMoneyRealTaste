@@ -17,7 +17,8 @@ class FriendshipTest {
     fun `request - success - creates pending friendship with valid command`() {
         val fromMemberId = 1L
         val toMemberId = 2L
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val toMemberNickname = "receiver"
+        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
         val before = LocalDateTime.now()
 
         val friendship = Friendship.request(command)
@@ -25,6 +26,7 @@ class FriendshipTest {
         assertAll(
             { assertEquals(fromMemberId, friendship.relationShip.memberId) },
             { assertEquals(toMemberId, friendship.relationShip.friendMemberId) },
+            { assertEquals(toMemberNickname, friendship.relationShip.friendNickname) },
             { assertEquals(FriendshipStatus.PENDING, friendship.status) },
             { assertTrue(friendship.createdAt >= before) },
             { assertTrue(friendship.updatedAt >= before) },
@@ -38,6 +40,7 @@ class FriendshipTest {
         val command = mockk<FriendRequestCommand> {
             every { fromMemberId } returns memberId
             every { toMemberId } returns memberId
+            every { toMemberNickname } returns "self"
         }
 
         assertFailsWith<IllegalArgumentException> {
@@ -283,7 +286,7 @@ class FriendshipTest {
 
     @Test
     fun `friendship lifecycle - success - complete workflow from request to unfriend`() {
-        val command = FriendRequestCommand(1L, 2L)
+        val command = FriendRequestCommand(1L, 2L, "receiver")
 
         // 1. 친구 요청 생성
         val friendship = Friendship.request(command)
@@ -300,7 +303,7 @@ class FriendshipTest {
 
     @Test
     fun `friendship lifecycle - success - complete workflow from request to reject`() {
-        val command = FriendRequestCommand(1L, 2L)
+        val command = FriendRequestCommand(1L, 2L, "receiver")
 
         // 1. 친구 요청 생성
         val friendship = Friendship.request(command)
@@ -312,7 +315,7 @@ class FriendshipTest {
     }
 
     private fun createPendingFriendship(): Friendship {
-        val command = FriendRequestCommand(1L, 2L)
+        val command = FriendRequestCommand(1L, 2L, "receiver")
         return Friendship.request(command)
     }
 
@@ -323,7 +326,7 @@ class FriendshipTest {
     }
 
     private fun createFriendship(fromMemberId: Long, toMemberId: Long): Friendship {
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val command = FriendRequestCommand(fromMemberId, toMemberId, "receiver")
         return Friendship.request(command)
     }
 }

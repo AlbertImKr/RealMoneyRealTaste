@@ -256,7 +256,7 @@ class FriendshipTerminatorTest(
         )
 
         // 친구 요청만 생성 (수락하지 않음)
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         friendRequestor.sendFriendRequest(command)
 
         // PENDING 상태의 친구 요청에 대해 해제 시도
@@ -276,7 +276,7 @@ class FriendshipTerminatorTest(
 
     private fun createAcceptedFriendship(fromMemberId: Long, toMemberId: Long): Friendship {
         // 친구 요청 생성
-        val command = FriendRequestCommand(fromMemberId, toMemberId)
+        val command = FriendRequestCommand(fromMemberId, toMemberId, "testUser")
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 친구 요청 수락
