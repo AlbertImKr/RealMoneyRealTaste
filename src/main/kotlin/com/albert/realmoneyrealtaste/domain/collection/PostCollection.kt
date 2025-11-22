@@ -228,7 +228,7 @@ class PostCollection protected constructor(
         fun create(createCommand: CollectionCreateCommand): PostCollection {
             val now = LocalDateTime.now()
             return PostCollection(
-                owner = CollectionOwner(createCommand.ownerMemberId),
+                owner = CollectionOwner(createCommand.ownerMemberId, createCommand.ownerName),
                 info = CollectionInfo(
                     name = createCommand.name,
                     description = createCommand.description,

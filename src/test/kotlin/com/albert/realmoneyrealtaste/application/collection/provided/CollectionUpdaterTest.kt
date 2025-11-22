@@ -298,7 +298,8 @@ class CollectionUpdaterTest : IntegrationTestBase() {
                 name = "테스트 컬렉션",
                 description = "테스트용 컬렉션입니다",
                 coverImageUrl = "https://example.com/test.jpg",
-                privacy = CollectionPrivacy.PUBLIC
+                privacy = CollectionPrivacy.PUBLIC,
+                ownerName = "test"
             )
         )
     )

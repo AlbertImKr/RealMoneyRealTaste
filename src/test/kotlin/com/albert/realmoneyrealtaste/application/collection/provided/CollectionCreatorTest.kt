@@ -225,7 +225,8 @@ class CollectionCreatorTest(
             CollectionCreateCommand(
                 ownerMemberId = member.requireId(),
                 name = "", // 빈 이름
-                description = "설명"
+                description = "설명",
+                ownerName = "test"
             )
         }
     }
@@ -269,6 +270,7 @@ class CollectionCreatorTest(
         name = name,
         description = description,
         coverImageUrl = coverImageUrl,
-        privacy = privacy
+        privacy = privacy,
+        ownerName = "test"
     )
 }

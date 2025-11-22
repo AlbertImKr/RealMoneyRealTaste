@@ -49,7 +49,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - updates collection info and returns success response`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "업데이트된 컬렉션",
@@ -73,8 +73,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - persists changes to repository`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
-        val originalUpdatedAt = collection.updatedAt
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "저장 확인 컬렉션",
@@ -104,7 +103,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - updates with minimal fields`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "최소 업데이트"
@@ -125,7 +124,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - updates with empty description`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "빈 설명 테스트",
@@ -152,7 +151,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - removes cover image by setting null`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = collection.info.name,
@@ -174,7 +173,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     fun `updateInfo - failure - returns unauthorized when not authenticated`() {
         val member = testMemberHelper.createActivatedMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "인증 실패 테스트",
@@ -212,7 +211,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             email = "other@test.com",
             nickname = "다른사람"
         )
-        val collection = createTestCollection(owner.requireId())
+        val collection = createTestCollection(owner.requireId(), owner.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "권한 없는 수정",
@@ -231,7 +230,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when name is blank`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "",
@@ -250,7 +249,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when name exceeds max length`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "a".repeat(101), // 최대 길이 초과
@@ -269,7 +268,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when description exceeds max length`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "컬렉션",
@@ -288,7 +287,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - validation error when cover image url is invalid`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "컬렉션",
@@ -308,7 +307,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - missing required content type`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "컬렉션",
@@ -327,7 +326,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - does not persist changes when validation fails`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val originalName = collection.info.name
         val originalDescription = collection.info.description
 
@@ -385,7 +384,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - returns correct response structure`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "응답 구조 테스트",
@@ -415,7 +414,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - maintains collection properties except info`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val originalPrivacy = collection.privacy
         val originalPostCount = collection.posts.size()
         val originalCreatedAt = collection.createdAt
@@ -445,15 +444,17 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
     private fun createTestCollection(
         ownerMemberId: Long,
+        ownerMemberName: String,
         name: String = "테스트 컬렉션",
     ) = collectionRepository.save(
         PostCollection.create(
             CollectionCreateCommand(
                 ownerMemberId = ownerMemberId,
+                ownerName = ownerMemberName,
                 name = name,
                 description = "테스트용 컬렉션입니다",
                 coverImageUrl = "https://example.com/test.jpg",
-                privacy = CollectionPrivacy.PUBLIC
+                privacy = CollectionPrivacy.PUBLIC,
             )
         )
     )
@@ -476,7 +477,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `addPost - success - adds post to collection`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val post = createTestPost(member.requireId())
 
         mockMvc.perform(
@@ -491,7 +492,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     fun `addPost - failure - returns unauthorized when not authenticated`() {
         val member = testMemberHelper.createActivatedMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val post = createTestPost(member.requireId())
 
         mockMvc.perform(
@@ -516,7 +517,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `addPost - success - adds non-existent post id to collection`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         // 존재하지 않는 postId도 추가 시도 - 서비스 레벨에서는 postId 유효성 검증 안 함
         mockMvc.perform(
@@ -532,7 +533,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `addPost - failure - returns error when not owner`() {
         val owner = testMemberHelper.createActivatedMember(email = "owner@test.com")
-        val collection = createTestCollection(owner.requireId())
+        val collection = createTestCollection(owner.requireId(), owner.nickname.value)
         val post = createTestPost(owner.requireId())
 
         mockMvc.perform(
@@ -545,7 +546,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `addPost - success - does not add duplicate post`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val post = createTestPost(member.requireId())
 
         // 첫 번째 추가
@@ -570,7 +571,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `removePost - success - removes post from collection`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val post = createTestPost(member.requireId())
 
         // 먼저 게시글 추가
@@ -592,7 +593,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @Test
     fun `removePost - failure - returns unauthorized when not authenticated`() {
         val member = testMemberHelper.createActivatedMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val post = createTestPost(member.requireId())
 
         mockMvc.perform(
@@ -617,7 +618,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `removePost - failure - returns not found when post does not exist`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         mockMvc.perform(
             delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), 999L)
@@ -629,7 +630,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `removePost - failure - returns error when not owner`() {
         val owner = testMemberHelper.createActivatedMember(email = "owner@test.com")
-        val collection = createTestCollection(owner.requireId())
+        val collection = createTestCollection(owner.requireId(), owner.nickname.value)
         val post = createTestPost(owner.requireId())
 
         mockMvc.perform(
@@ -642,7 +643,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `removePost - success - handles removal of non-existent post gracefully`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
         val post = createTestPost(member.requireId())
 
         // 컬렉션에 추가하지 않은 게시글 제거 시도 - 예외 발생
@@ -658,7 +659,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - handles special characters in name and description`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         val request = CollectionUpdateApiRequest(
             name = "특수字符 테스트 !@#$%^&*()",
@@ -684,7 +685,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - success - updates multiple times sequentially`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         // 첫 번째 업데이트
         val request1 = CollectionUpdateApiRequest(
@@ -725,7 +726,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `updateInfo - failure - handles malformed JSON`() {
         val member = testMemberHelper.getDefaultMember()
-        val collection = createTestCollection(member.requireId())
+        val collection = createTestCollection(member.requireId(), member.nickname.value)
 
         mockMvc.perform(
             put("/api/collections/{collectionId}", collection.requireId())

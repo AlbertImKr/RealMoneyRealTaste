@@ -24,6 +24,7 @@ class PostCollectionTest {
                 description = "내가 다녀온 맛집들",
                 coverImageUrl = "https://example.com/cover.jpg",
                 privacy = CollectionPrivacy.PUBLIC,
+                ownerName = "test",
             )
         )
 
@@ -49,6 +50,7 @@ class PostCollectionTest {
                 ownerMemberId = 1L,
                 name = "맛집 모음",
                 description = "내가 다녀온 맛집들",
+                ownerName = "test",
             )
         )
 
@@ -66,6 +68,7 @@ class PostCollectionTest {
                 name = "맛집 모음",
                 description = "내가 다녀온 맛집들",
                 privacy = CollectionPrivacy.PRIVATE,
+                ownerName = "test",
             )
         )
 
@@ -399,6 +402,7 @@ class PostCollectionTest {
                 name = "Private",
                 description = "설명",
                 privacy = CollectionPrivacy.PRIVATE,
+                ownerName = "test",
             )
         )
 
@@ -448,7 +452,8 @@ class PostCollectionTest {
         // Empty collection 검증
         assertAll(
             { assertTrue(collection.isEmpty()) },
-            { assertEquals(0, collection.getPostCount()) }
+            { assertEquals(0, collection.getPostCount()) },
+            { assertEquals(0, collection.postCounts()) } // postCounts() 테스트 추가
         )
 
         // With posts 검증
@@ -456,8 +461,122 @@ class PostCollectionTest {
         collection.addPost(1L, 200L)
         assertAll(
             { assertFalse(collection.isEmpty()) },
-            { assertEquals(2, collection.getPostCount()) }
+            { assertEquals(2, collection.getPostCount()) },
+            { assertEquals(2, collection.postCounts()) } // postCounts() 테스트 추가
         )
+    }
+
+    @Test
+    fun `postCounts - success - returns zero for newly created collection`() {
+        val collection = createDefaultCollection()
+
+        assertEquals(0, collection.postCounts())
+    }
+
+    @Test
+    fun `postCounts - success - returns correct count after adding posts`() {
+        val collection = createDefaultCollection()
+
+        // 게시글 추가 및 카운트 확인
+        collection.addPost(1L, 100L)
+        assertEquals(1, collection.postCounts())
+
+        collection.addPost(1L, 200L)
+        assertEquals(2, collection.postCounts())
+
+        collection.addPost(1L, 300L)
+        assertEquals(3, collection.postCounts())
+    }
+
+    @Test
+    fun `postCounts - success - returns correct count after removing posts`() {
+        val collection = createDefaultCollection()
+
+        // 여러 게시글 추가
+        collection.addPost(1L, 100L)
+        collection.addPost(1L, 200L)
+        collection.addPost(1L, 300L)
+        collection.addPost(1L, 400L)
+        assertEquals(4, collection.postCounts())
+
+        // 게시글 제거 및 카운트 확인
+        collection.removePost(1L, 200L)
+        assertEquals(3, collection.postCounts())
+
+        collection.removePost(1L, 400L)
+        assertEquals(2, collection.postCounts())
+
+        collection.removePost(1L, 100L)
+        assertEquals(1, collection.postCounts())
+
+        collection.removePost(1L, 300L)
+        assertEquals(0, collection.postCounts())
+    }
+
+    @Test
+    fun `postCounts - success - maintains count after collection operations`() {
+        val collection = createDefaultCollection()
+
+        // 게시글 추가
+        collection.addPost(1L, 100L)
+        collection.addPost(1L, 200L)
+        assertEquals(2, collection.postCounts())
+
+        // 컬렉션 정보 업데이트 (게시글 수에는 영향 없음)
+        val newInfo = CollectionInfo("Updated", "Updated Description", null)
+        collection.updateInfo(1L, newInfo)
+        assertEquals(2, collection.postCounts())
+
+        // 공개 설정 변경 (게시글 수에는 영향 없음)
+        collection.updatePrivacy(1L, CollectionPrivacy.PRIVATE)
+        assertEquals(2, collection.postCounts())
+
+        // 컬렉션 삭제 (소프트 삭제이므로 게시글 수 유지)
+        collection.delete(1L)
+        assertEquals(2, collection.postCounts())
+    }
+
+    @Test
+    fun `postCounts - success - consistent with getPostCount method`() {
+        val collection = createDefaultCollection()
+
+        // 초기 상태
+        assertEquals(collection.getPostCount(), collection.postCounts())
+
+        // 게시글 추가 후
+        collection.addPost(1L, 100L)
+        assertEquals(collection.getPostCount(), collection.postCounts())
+
+        collection.addPost(1L, 200L)
+        collection.addPost(1L, 300L)
+        assertEquals(collection.getPostCount(), collection.postCounts())
+
+        // 게시글 제거 후
+        collection.removePost(1L, 200L)
+        assertEquals(collection.getPostCount(), collection.postCounts())
+
+        collection.removePost(1L, 100L)
+        collection.removePost(1L, 300L)
+        assertEquals(collection.getPostCount(), collection.postCounts())
+    }
+
+    @Test
+    fun `postCounts - success - works correctly for large number of posts`() {
+        val collection = createDefaultCollection()
+
+        // 많은 수의 게시글 추가
+        for (i in 1..100) {
+            collection.addPost(1L, i.toLong())
+        }
+
+        assertEquals(100, collection.postCounts())
+
+        // 절반 제거
+        for (i in 51..100) {
+            collection.removePost(1L, i.toLong())
+        }
+
+        assertEquals(50, collection.postCounts())
     }
 
     @Test
@@ -494,7 +613,7 @@ class PostCollectionTest {
     @Test
     fun `setters - success - for code coverage`() {
         val collection = TestCollection()
-        val newOwner = CollectionOwner(2L)
+        val newOwner = CollectionOwner(2L, "owner")
         val newCreatedAt = LocalDateTime.of(2023, 1, 1, 0, 0)
 
         collection.setForCoverage(newOwner, newCreatedAt)
@@ -521,12 +640,13 @@ class PostCollectionTest {
             name = name,
             description = description,
             coverImageUrl = coverImageUrl,
-            privacy = privacy
+            privacy = privacy,
+            ownerName = name,
         )
     }
 
     private class TestCollection : PostCollection(
-        owner = CollectionOwner(1L),
+        owner = CollectionOwner(1L, "owner"),
         info = CollectionInfo("테스트", "설명", null),
         privacy = CollectionPrivacy.PUBLIC,
         status = CollectionStatus.ACTIVE,

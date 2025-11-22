@@ -24,7 +24,7 @@ class CreateCollectionApiRequestTest {
             coverImageUrl = "https://example.com/cover.jpg"
         )
 
-        val command = request.toCommand(ownerMemberId = 123L)
+        val command = request.toCommand(ownerMemberId = 123L, ownerName = "test")
 
         assertAll(
             { assertEquals(123L, command.ownerMemberId) },
@@ -41,7 +41,7 @@ class CreateCollectionApiRequestTest {
             name = "기본 컬렉션"
         )
 
-        val command = request.toCommand(ownerMemberId = 456L)
+        val command = request.toCommand(ownerMemberId = 456L, ownerName = "test")
 
         assertAll(
             { assertEquals(456L, command.ownerMemberId) },
@@ -61,7 +61,7 @@ class CreateCollectionApiRequestTest {
             coverImageUrl = "  https://example.com/image.jpg  "
         )
 
-        val command = request.toCommand(ownerMemberId = 789L)
+        val command = request.toCommand(ownerMemberId = 789L, ownerName = "test")
 
         assertAll(
             { assertEquals("컬렉션 이름", command.name) },
@@ -86,9 +86,9 @@ class CreateCollectionApiRequestTest {
         )
 
         assertAll(
-            { assertEquals(CollectionPrivacy.PUBLIC, publicRequest.toCommand(1L).privacy) },
-            { assertEquals(CollectionPrivacy.PRIVATE, privateRequest.toCommand(1L).privacy) },
-            { assertEquals(CollectionPrivacy.PRIVATE, invalidRequest.toCommand(1L).privacy) } // 기본값
+            { assertEquals(CollectionPrivacy.PUBLIC, publicRequest.toCommand(1L, ownerName = "test").privacy) },
+            { assertEquals(CollectionPrivacy.PRIVATE, privateRequest.toCommand(1L, ownerName = "test").privacy) },
+            { assertEquals(CollectionPrivacy.PRIVATE, invalidRequest.toCommand(1L, ownerName = "test").privacy) } // 기본값
         )
     }
 
@@ -104,8 +104,8 @@ class CreateCollectionApiRequestTest {
         )
 
         assertAll(
-            { assertNull(requestWithEmpty.toCommand(1L).coverImageUrl) },
-            { assertNull(requestWithBlank.toCommand(1L).coverImageUrl) }
+            { assertNull(requestWithEmpty.toCommand(1L, ownerName = "test").coverImageUrl) },
+            { assertNull(requestWithBlank.toCommand(1L, ownerName = "test").coverImageUrl) }
         )
     }
 
@@ -380,7 +380,7 @@ class CreateCollectionApiRequestTest {
             visibility = "public"
         )
 
-        val command = mixedCaseRequest.toCommand(1L)
+        val command = mixedCaseRequest.toCommand(1L, ownerName = "test")
         assertEquals(CollectionPrivacy.PUBLIC, command.privacy)
     }
 

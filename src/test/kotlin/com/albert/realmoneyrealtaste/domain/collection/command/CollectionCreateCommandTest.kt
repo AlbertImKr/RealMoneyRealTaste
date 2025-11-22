@@ -16,7 +16,8 @@ class CollectionCreateCommandTest {
             name = "맛집 컬렉션",
             description = "내가 좋아하는 맛집들",
             coverImageUrl = "https://example.com/cover.jpg",
-            privacy = CollectionPrivacy.PUBLIC
+            privacy = CollectionPrivacy.PUBLIC,
+            ownerName = "test"
         )
 
         assertAll(
@@ -33,7 +34,8 @@ class CollectionCreateCommandTest {
         val command = CollectionCreateCommand(
             ownerMemberId = 1L,
             name = "컬렉션",
-            description = ""
+            description = "",
+            ownerName = "test"
         )
 
         assertAll(
@@ -41,8 +43,87 @@ class CollectionCreateCommandTest {
             { assertEquals("컬렉션", command.name) },
             { assertEquals("", command.description) },
             { assertEquals(null, command.coverImageUrl) },
-            { assertEquals(CollectionPrivacy.PUBLIC, command.privacy) }
+            { assertEquals(CollectionPrivacy.PUBLIC, command.privacy) },
+            { assertEquals("test", command.ownerName) }
         )
+    }
+
+    @Test
+    fun `create - failure - throws exception when ownerMemberId is zero`() {
+        assertFailsWith<IllegalArgumentException> {
+            CollectionCreateCommand(
+                ownerMemberId = 0L,
+                name = "컬렉션",
+                description = "설명",
+                ownerName = "test"
+            )
+        }.let {
+            assertEquals("소유자 회원 ID는 양수여야 합니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when ownerMemberId is negative`() {
+        assertFailsWith<IllegalArgumentException> {
+            CollectionCreateCommand(
+                ownerMemberId = -1L,
+                name = "컬렉션",
+                description = "설명",
+                ownerName = "test"
+            )
+        }.let {
+            assertEquals("소유자 회원 ID는 양수여야 합니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when ownerName is empty`() {
+        assertFailsWith<IllegalArgumentException> {
+            CollectionCreateCommand(
+                ownerMemberId = 1L,
+                name = "컬렉션",
+                description = "설명",
+                ownerName = ""
+            )
+        }.let {
+            assertEquals("소유자 닉네임은 비어있을 수 없습니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `create - success - accepts valid ownerName with various characters`() {
+        val command = CollectionCreateCommand(
+            ownerMemberId = 1L,
+            name = "컬렉션",
+            description = "설명",
+            ownerName = "테스트유저123"
+        )
+
+        assertEquals("테스트유저123", command.ownerName)
+    }
+
+    @Test
+    fun `create - success - accepts ownerName with Korean characters`() {
+        val command = CollectionCreateCommand(
+            ownerMemberId = 1L,
+            name = "컬렉션",
+            description = "설명",
+            ownerName = "맛집탐험가"
+        )
+
+        assertEquals("맛집탐험가", command.ownerName)
+    }
+
+    @Test
+    fun `create - success - accepts maximum positive ownerMemberId`() {
+        val command = CollectionCreateCommand(
+            ownerMemberId = Long.MAX_VALUE,
+            name = "컬렉션",
+            description = "설명",
+            ownerName = "test"
+        )
+
+        assertEquals(Long.MAX_VALUE, command.ownerMemberId)
     }
 
     @Test
@@ -51,7 +132,8 @@ class CollectionCreateCommandTest {
             ownerMemberId = 1L,
             name = "비공개 컬렉션",
             description = "개인적인 컬렉션",
-            privacy = CollectionPrivacy.PRIVATE
+            privacy = CollectionPrivacy.PRIVATE,
+            ownerName = "test"
         )
 
         assertEquals(CollectionPrivacy.PRIVATE, command.privacy)
@@ -63,7 +145,8 @@ class CollectionCreateCommandTest {
             CollectionCreateCommand(
                 ownerMemberId = 1L,
                 name = "",
-                description = "설명"
+                description = "설명",
+                ownerName = "test"
             )
         }.let {
             assertEquals(CollectionInfo.ERROR_NAME_BLANK, it.message)
@@ -76,7 +159,8 @@ class CollectionCreateCommandTest {
             CollectionCreateCommand(
                 ownerMemberId = 1L,
                 name = "   ",
-                description = "설명"
+                description = "설명",
+                ownerName = "test"
             )
         }.let {
             assertEquals(CollectionInfo.ERROR_NAME_BLANK, it.message)
@@ -91,7 +175,8 @@ class CollectionCreateCommandTest {
             CollectionCreateCommand(
                 ownerMemberId = 1L,
                 name = longName,
-                description = "설명"
+                description = "설명",
+                ownerName = "test"
             )
         }.let {
             assertEquals(CollectionInfo.ERROR_NAME_LENGTH_EXCEEDED, it.message)
@@ -105,7 +190,8 @@ class CollectionCreateCommandTest {
         val command = CollectionCreateCommand(
             ownerMemberId = 1L,
             name = maxLengthName,
-            description = "설명"
+            description = "설명",
+            ownerName = "test"
         )
 
         assertEquals(CollectionInfo.MAX_NAME_LENGTH, command.name.length)
@@ -119,7 +205,8 @@ class CollectionCreateCommandTest {
             CollectionCreateCommand(
                 ownerMemberId = 1L,
                 name = "컬렉션",
-                description = longDescription
+                description = longDescription,
+                ownerName = "test"
             )
         }.let {
             assertEquals(CollectionInfo.ERROR_DESCRIPTION_LENGTH_EXCEEDED, it.message)
@@ -133,7 +220,8 @@ class CollectionCreateCommandTest {
         val command = CollectionCreateCommand(
             ownerMemberId = 1L,
             name = "컬렉션",
-            description = maxLengthDescription
+            description = maxLengthDescription,
+            ownerName = "test"
         )
 
         assertEquals(CollectionInfo.MAX_DESCRIPTION_LENGTH, command.description.length)
@@ -144,7 +232,8 @@ class CollectionCreateCommandTest {
         val command = CollectionCreateCommand(
             ownerMemberId = 1L,
             name = "컬렉션",
-            description = ""
+            description = "",
+            ownerName = "test"
         )
 
         assertEquals("", command.description)
@@ -157,7 +246,8 @@ class CollectionCreateCommandTest {
                 ownerMemberId = 1L,
                 name = "컬렉션",
                 description = "설명",
-                coverImageUrl = ""
+                coverImageUrl = "",
+                ownerName = "test"
             )
         }.let {
             assertEquals(CollectionInfo.ERROR_COVER_IMAGE_URL_BLANK, it.message)
@@ -171,7 +261,8 @@ class CollectionCreateCommandTest {
                 ownerMemberId = 1L,
                 name = "컬렉션",
                 description = "설명",
-                coverImageUrl = "   "
+                coverImageUrl = "   ",
+                ownerName = "test"
             )
         }.let {
             assertEquals(CollectionInfo.ERROR_COVER_IMAGE_URL_BLANK, it.message)
@@ -187,7 +278,8 @@ class CollectionCreateCommandTest {
                 ownerMemberId = 1L,
                 name = "컬렉션",
                 description = "설명",
-                coverImageUrl = longUrl
+                coverImageUrl = longUrl,
+                ownerName = "test"
             )
         }.let {
             assertEquals(CollectionInfo.ERROR_COVER_IMAGE_URL_LENGTH_EXCEEDED, it.message)
@@ -202,7 +294,8 @@ class CollectionCreateCommandTest {
             ownerMemberId = 1L,
             name = "컬렉션",
             description = "설명",
-            coverImageUrl = maxLengthUrl
+            coverImageUrl = maxLengthUrl,
+            ownerName = "test"
         )
 
         assertEquals(CollectionInfo.MAX_COVER_IMAGE_URL_LENGTH, command.coverImageUrl!!.length)
@@ -214,7 +307,8 @@ class CollectionCreateCommandTest {
             ownerMemberId = 1L,
             name = "컬렉션",
             description = "설명",
-            coverImageUrl = null
+            coverImageUrl = null,
+            ownerName = "test"
         )
 
         assertEquals(null, command.coverImageUrl)
@@ -228,7 +322,8 @@ class CollectionCreateCommandTest {
             ownerMemberId = 1L,
             name = "컬렉션",
             description = "설명",
-            coverImageUrl = validUrl
+            coverImageUrl = validUrl,
+            ownerName = "test"
         )
 
         assertEquals(validUrl, command.coverImageUrl)
@@ -239,7 +334,8 @@ class CollectionCreateCommandTest {
         val command = CollectionCreateCommand(
             ownerMemberId = 1L,
             name = "컬렉션",
-            description = "설명"
+            description = "설명",
+            ownerName = "test"
         )
 
         assertEquals(CollectionPrivacy.PUBLIC, command.privacy)
@@ -252,7 +348,8 @@ class CollectionCreateCommandTest {
                 ownerMemberId = 1L,
                 name = "컬렉션",
                 description = "설명",
-                privacy = privacy
+                privacy = privacy,
+                ownerName = "test"
             )
 
             assertEquals(privacy, command.privacy)

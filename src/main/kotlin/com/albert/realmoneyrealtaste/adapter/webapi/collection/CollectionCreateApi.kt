@@ -24,7 +24,7 @@ class CollectionCreateApi(
         @Valid @RequestBody request: CollectionCreateApiRequest,
     ): ResponseEntity<Map<String, Any>> {
         val collection = collectionCreator.createCollection(
-            request.toCommand(ownerMemberId = principal.id)
+            request.toCommand(ownerMemberId = principal.id, ownerName = principal.nickname.value)
         )
 
         return ResponseEntity.ok(
