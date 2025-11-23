@@ -1,3 +1,3 @@
 package com.albert.realmoneyrealtaste.application.post.exception
 
-class PostDeleteException(message: String, cause: Throwable) : RuntimeException(message, cause)
+class PostDeleteException(message: String, cause: Throwable) : PostApplicationException(message, cause)

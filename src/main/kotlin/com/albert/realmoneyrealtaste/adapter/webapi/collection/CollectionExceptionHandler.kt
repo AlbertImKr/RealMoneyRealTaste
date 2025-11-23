@@ -39,14 +39,4 @@ class CollectionExceptionHandler {
             )
         )
     }
-
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<Map<String, Any>> {
-        return ResponseEntity.badRequest().body(
-            mapOf(
-                "success" to false,
-                "error" to "잘못된 요청입니다: ${ex.message}",
-            )
-        )
-    }
 }

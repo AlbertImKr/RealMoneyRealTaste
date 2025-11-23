@@ -3,11 +3,9 @@ package com.albert.realmoneyrealtaste.adapter.webview.post
 import com.albert.realmoneyrealtaste.application.post.exception.PostCreateException
 import com.albert.realmoneyrealtaste.application.post.exception.PostUpdateException
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 import java.net.URI
 
@@ -27,7 +25,6 @@ class PostExceptionHandler {
         return "redirect:$currentUrl"
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(PostCreateException::class)
     fun handlePostCreateException(
         ex: PostCreateException,

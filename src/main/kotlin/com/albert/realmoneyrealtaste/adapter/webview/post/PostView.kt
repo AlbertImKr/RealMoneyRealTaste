@@ -162,7 +162,7 @@ class PostView(
         val post = postReader.readPostById(currentUserId, postId)
         model.addAttribute("post", post)
         model.addAttribute("currentUserId", currentUserId)
-        model.addAttribute("currentUserNickname", memberPrincipal.nickname)
+        model.addAttribute("currentUserNickname", memberPrincipal.nickname.value)
     }
 
     /**

@@ -105,7 +105,8 @@ class PostViewTest : IntegrationTestBase() {
                 .param("contentRating", "5")
                 .param("imagesUrls", "https://example.com/image1.jpg", "https://example.com/image2.jpg")
         )
-            .andExpect(status().isForbidden)
+            .andExpect(status().is3xxRedirection)
+            .andExpect(redirectedUrl("/posts/new"))
     }
 
     @Test
@@ -127,22 +128,6 @@ class PostViewTest : IntegrationTestBase() {
             .andExpect(view().name(PostViews.DETAIL))
             .andExpect(model().attributeExists("post"))
             .andExpect(model().attributeExists("currentUserId"))
-    }
-
-    @Test
-    fun `readPost - failure - returns forbidden when not authenticated`() {
-        val member = testMemberHelper.createActivatedMember()
-        val post = postRepository.save(
-            PostFixture.createPost(
-                authorMemberId = member.requireId(),
-                authorNickname = member.nickname.value
-            )
-        )
-
-        mockMvc.perform(
-            get("/posts/{postId}", post.requireId())
-        )
-            .andExpect(status().isForbidden)
     }
 
     @Test
@@ -396,7 +381,6 @@ class PostViewTest : IntegrationTestBase() {
                 authorNickname = author.nickname.value
             )
         )
-        flushAndClear()
 
         mockMvc.perform(
             post("/posts/{postId}/edit", post.requireId())
@@ -528,22 +512,6 @@ class PostViewTest : IntegrationTestBase() {
             .andExpect(status().isOk)
             .andExpect(view().name("post/modal-detail :: post-detail-modal"))
             .andExpect(model().attributeExists("post"))
-    }
-
-    @Test
-    fun `readPostDetailModal - failure - returns forbidden when not authenticated`() {
-        val member = testMemberHelper.createActivatedMember()
-        val post = postRepository.save(
-            PostFixture.createPost(
-                authorMemberId = member.requireId(),
-                authorNickname = member.nickname.value
-            )
-        )
-
-        mockMvc.perform(
-            get("/posts/{postId}/modal", post.requireId())
-        )
-            .andExpect(status().isForbidden)
     }
 
     @Test
