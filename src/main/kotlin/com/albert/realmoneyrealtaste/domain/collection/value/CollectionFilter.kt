@@ -6,6 +6,6 @@ enum class CollectionFilter(val value: String) {
 
     companion object {
         fun from(value: String?): CollectionFilter =
-            entries.find { it.value == value } ?: ALL
+            entries.find { it.value == value?.lowercase() } ?: ALL
     }
 }

@@ -74,22 +74,6 @@ class CollectionReadView(
         return CollectionViews.WRITE_FRAGMENT
     }
 
-    @GetMapping(CollectionUrls.COLLECTION_POSTS_FRAGMENT)
-    fun readCollectionPostsFragment(
-        @PathVariable collectionId: Long,
-        @AuthenticationPrincipal principal: MemberPrincipal,
-        model: Model,
-        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC, size = 5) pageRequest: Pageable,
-    ): String {
-        val collection = collectionReader.readById(collectionId)
-
-        model.addAttribute("collection", collection)
-
-        setCommonModelAttributes(model, principal)
-
-        return CollectionViews.COLLECTION_POSTS_FRAGMENT
-    }
-
     /**
      * 특정 사용자의 컬렉션 목록 조회
      */
