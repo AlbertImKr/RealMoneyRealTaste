@@ -23,6 +23,7 @@ class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/members/*/posts/fragment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/collections/fragment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/collections/*/detail/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/collections/*/posts/fragment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/following/fragment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/followers/fragment").permitAll()
                     .requestMatchers("/signup", "/members/activate", "/signin").permitAll()

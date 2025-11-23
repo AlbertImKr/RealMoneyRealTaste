@@ -2,12 +2,15 @@ package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.application.member.exception.MemberActivateException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
+import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberResendActivationEmailException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberUpdateException
 import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
 
 @ControllerAdvice(annotations = [Controller::class])
@@ -66,5 +69,17 @@ class MemberExceptionHandler {
         redirectAttributes.addFlashAttribute("error", "비밀번호 재설정에 실패했습니다. 다시 시도해주세요.")
 
         return "redirect:/"
+    }
+
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(MemberNotFoundException::class)
+    fun handleMemberNotFoundException(
+        ex: MemberNotFoundException,
+        redirectAttributes: RedirectAttributes,
+    ): String {
+        redirectAttributes.addFlashAttribute("success", false)
+        redirectAttributes.addFlashAttribute("error", "회원 정보를 찾을 수 없습니다.")
+
+        return "error/404"
     }
 }

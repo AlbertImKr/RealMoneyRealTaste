@@ -59,7 +59,7 @@ class PostFixture {
             authorNickname: String = DEFAULT_AUTHOR_NICKNAME,
             restaurant: Restaurant = DEFAULT_RESTAURANT,
             content: PostContent = DEFAULT_CONTENT,
-            images: PostImages = DEFAULT_IMAGES,
+            images: PostImages = createImages(3),
         ): Post {
             return Post.create(
                 authorMemberId = authorMemberId,

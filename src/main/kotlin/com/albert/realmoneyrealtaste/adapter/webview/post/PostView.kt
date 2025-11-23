@@ -176,7 +176,14 @@ class PostView(
         @AuthenticationPrincipal principal: MemberPrincipal?,
         model: Model,
     ): String {
-        val posts = postIds.map { postReader.readPostById(principal?.id ?: 0, it) }
+        if (principal == null) {
+            val posts = postIds.map { postReader.readPostById(it) }
+            model.addAttribute("posts", posts)
+            model.addAttribute("authorId", authorId)
+            model.addAttribute("collectionId", collectionId)
+            return PostViews.POST_LIST_FRAGMENT
+        }
+        val posts = postIds.map { postReader.readPostById(principal.id, it) }
 
         model.addAttribute("posts", posts)
         model.addAttribute("authorId", authorId)
