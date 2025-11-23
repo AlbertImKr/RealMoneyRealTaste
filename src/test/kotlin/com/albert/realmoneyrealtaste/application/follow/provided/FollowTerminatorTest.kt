@@ -335,18 +335,7 @@ class FollowTerminatorTest(
     }
 
     private fun createActiveFollow(followerId: Long, followingId: Long): Follow {
-        val follower = testMemberHelper.createActivatedMember(
-            email = "follower${followerId}@test.com",
-            nickname = "follower${followerId}"
-        )
-        val following = testMemberHelper.createActivatedMember(
-            email = "following${followingId}@test.com",
-            nickname = "following${followingId}"
-        )
-        val request = FollowCreateRequest(
-            followerId = follower.requireId(),
-            followingId = following.requireId()
-        )
+        val request = FollowCreateRequest(followerId, followingId)
         return followCreator.follow(request)
     }
 }
