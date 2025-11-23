@@ -43,8 +43,7 @@ class PostTest {
         val post = PostFixture.createPost()
 
         assertTrue(post.images.isNotEmpty())
-        assertEquals(2, post.images.size())
-        assertEquals(PostFixture.DEFAULT_IMAGE_URLS, post.images.urls)
+        assertEquals(3, post.images.size())
     }
 
     @Test

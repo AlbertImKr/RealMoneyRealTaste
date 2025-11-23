@@ -13,6 +13,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -90,6 +91,7 @@ class MemberPrincipalTest {
         assertTrue(principal.active)
         assertEquals(1, principal.getAuthorities().size)
         assertTrue(principal.getAuthorities().contains(SimpleGrantedAuthority("ROLE_USER")))
+        assertNotNull(principal.createdAt)
     }
 
     @Test
@@ -163,6 +165,48 @@ class MemberPrincipalTest {
     }
 
     @Test
+    fun `from - success - sets address value when it exists`() {
+        val member = createMemberWithId(42L)
+        member.activate()
+        member.updateInfo(address = ("서울시 강남구"))
+
+        val principal = MemberPrincipal.from(member)
+
+        assertEquals("서울시 강남구", principal.address)
+    }
+
+    @Test
+    fun `from - success - sets default address when address is null`() {
+        val member = createMemberWithId(42L)
+        member.activate()
+
+        val principal = MemberPrincipal.from(member)
+
+        assertEquals("아직 주소가 없어요!", principal.address)
+    }
+
+    @Test
+    fun `from - success - sets default profileImageUrl`() {
+        val member = createMemberWithId(42L)
+        member.activate()
+
+        val principal = MemberPrincipal.from(member)
+
+        assertEquals("#", principal.profileImageUrl)
+    }
+
+    @Test
+    fun `from - success - sets default followersCount and followingsCount`() {
+        val member = createMemberWithId(42L)
+        member.activate()
+
+        val principal = MemberPrincipal.from(member)
+
+        assertEquals(0L, principal.followersCount)
+        assertEquals(0L, principal.followingsCount)
+    }
+
+    @Test
     fun `constructor - success - creates MemberPrincipal with all properties`() {
         val email = Email("test@example.com")
         val nickname = Nickname("testUser")
@@ -187,6 +231,46 @@ class MemberPrincipalTest {
     }
 
     @Test
+    fun `constructor - success - uses default values for optional parameters`() {
+        val principal = MemberPrincipal(
+            id = 1L,
+            email = Email("test@example.com"),
+            nickname = Nickname("testUser"),
+            active = true,
+            introduction = "자기소개",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
+            roles = setOf(Role.USER)
+            // profileImageUrl, followersCount, followingsCount은 기본값 사용
+        )
+
+        assertEquals("#", principal.profileImageUrl) // 기본값
+        assertEquals(0L, principal.followersCount)   // 기본값
+        assertEquals(0L, principal.followingsCount) // 기본값
+    }
+
+    @Test
+    fun `constructor - success - sets custom values for optional parameters`() {
+        val principal = MemberPrincipal(
+            id = 1L,
+            email = Email("test@example.com"),
+            nickname = Nickname("testUser"),
+            active = true,
+            introduction = "자기소개",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
+            profileImageUrl = "https://example.com/profile.jpg",
+            roles = setOf(Role.USER),
+            followersCount = 100L,
+            followingsCount = 50L
+        )
+
+        assertEquals("https://example.com/profile.jpg", principal.profileImageUrl)
+        assertEquals(100L, principal.followersCount)
+        assertEquals(50L, principal.followingsCount)
+    }
+
+    @Test
     fun `getAuthorities - success - maps all role types correctly`() {
         val allRoles = setOf(Role.USER, Role.MANAGER, Role.ADMIN)
         val principal = MemberPrincipal(
@@ -206,6 +290,59 @@ class MemberPrincipalTest {
         assertTrue(authorities.any { it.authority == "ROLE_USER" })
         assertTrue(authorities.any { it.authority == "ROLE_MANAGER" })
         assertTrue(authorities.any { it.authority == "ROLE_ADMIN" })
+    }
+
+    @Test
+    fun `hasRole - success - returns true when user has the role`() {
+        val principal = MemberPrincipal(
+            id = 1L,
+            email = Email("test@example.com"),
+            nickname = Nickname("testUser"),
+            active = true,
+            introduction = "",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
+            roles = setOf(Role.USER, Role.ADMIN)
+        )
+
+        assertTrue(principal.hasRole(Role.USER))
+        assertTrue(principal.hasRole(Role.ADMIN))
+    }
+
+    @Test
+    fun `hasRole - success - returns false when user does not have the role`() {
+        val principal = MemberPrincipal(
+            id = 1L,
+            email = Email("test@example.com"),
+            nickname = Nickname("testUser"),
+            active = true,
+            introduction = "",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
+            roles = setOf(Role.USER)
+        )
+
+        assertTrue(principal.hasRole(Role.USER))
+        assertFalse(principal.hasRole(Role.ADMIN))
+        assertFalse(principal.hasRole(Role.MANAGER))
+    }
+
+    @Test
+    fun `hasRole - success - returns false when roles is empty`() {
+        val principal = MemberPrincipal(
+            id = 1L,
+            email = Email("test@example.com"),
+            nickname = Nickname("testUser"),
+            active = true,
+            introduction = "",
+            address = "서울시",
+            createdAt = LocalDateTime.now(),
+            roles = emptySet()
+        )
+
+        assertFalse(principal.hasRole(Role.USER))
+        assertFalse(principal.hasRole(Role.ADMIN))
+        assertFalse(principal.hasRole(Role.MANAGER))
     }
 
     fun createMemberWithId(

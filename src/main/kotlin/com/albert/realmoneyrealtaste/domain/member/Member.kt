@@ -132,13 +132,14 @@ class Member protected constructor(
         nickname: Nickname? = null,
         profileAddress: ProfileAddress? = null,
         introduction: Introduction? = null,
+        address: String? = null,
     ) {
-        if (nickname == null && profileAddress == null && introduction == null) return
+        if (nickname == null && profileAddress == null && introduction == null && address == null) return
 
         require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_INFO_UPDATE }
 
         nickname?.let { this.nickname = it }
-        detail.updateInfo(profileAddress, introduction)
+        detail.updateInfo(profileAddress, introduction, address)
         updatedAt = LocalDateTime.now()
     }
 

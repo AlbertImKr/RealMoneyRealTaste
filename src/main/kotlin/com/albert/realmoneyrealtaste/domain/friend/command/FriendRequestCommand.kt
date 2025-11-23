@@ -23,6 +23,6 @@ data class FriendRequestCommand(
         require(fromMemberId > 0) { ERROR_FROM_MEMBER_ID_MUST_BE_POSITIVE }
         require(toMemberId > 0) { ERROR_TO_MEMBER_ID_MUST_BE_POSITIVE }
         require(fromMemberId != toMemberId) { ERROR_CANNOT_REQUEST_FRIENDSHIP_TO_YOURSELF }
-        require(toMemberNickname.isNotEmpty()) { ERROR_TO_MEMBER_NICKNAME_MUST_NOT_BE_EMPTY }
+        require(toMemberNickname.isNotBlank()) { ERROR_TO_MEMBER_NICKNAME_MUST_NOT_BE_EMPTY }
     }
 }

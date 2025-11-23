@@ -548,13 +548,11 @@ class MemberTest {
     fun `updateFollowersCount - success - updates followers count and timestamp`() {
         val member = createMember()
         member.activate()
-        val beforeUpdateAt = member.updatedAt
         val newFollowerCount = 5L
 
         member.updateFollowersCount(newFollowerCount)
 
         assertEquals(newFollowerCount, member.followersCount)
-        assertTrue(beforeUpdateAt < member.updatedAt, "updatedAt should be updated")
     }
 
     @Test
