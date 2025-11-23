@@ -247,19 +247,16 @@ class MemberView(
 
     @GetMapping(MemberUrls.FRAGMENT_SUGGEST_USERS_SIDEBAR)
     fun readSidebarFragment(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         model: Model,
     ): String {
-        if (memberPrincipal != null) {
-            // 추천 사용자 목록 조회
-            val suggestedUsers = memberReader.findSuggestedMembers(memberPrincipal.id, 5)
-            val targetIds = suggestedUsers.map { it.requireId() }
-            val followingIds = followReader.findFollowings(memberPrincipal.id, targetIds)
+        val suggestedUsers = memberReader.findSuggestedMembers(memberPrincipal.id, 5)
+        val targetIds = suggestedUsers.map { it.requireId() }
+        val followingIds = followReader.findFollowings(memberPrincipal.id, targetIds)
 
-            model.addAttribute("suggestedUsers", suggestedUsers)
-            model.addAttribute("followings", followingIds)
-            model.addAttribute("member", memberPrincipal)
-        }
+        model.addAttribute("suggestedUsers", suggestedUsers)
+        model.addAttribute("followings", followingIds)
+        model.addAttribute("member", memberPrincipal)
         return MemberViews.SUGGEST_USERS_SIDEBAR_CONTENT
     }
 }

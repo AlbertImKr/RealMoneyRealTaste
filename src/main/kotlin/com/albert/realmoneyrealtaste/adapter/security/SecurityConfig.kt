@@ -19,6 +19,7 @@ class SecurityConfig {
                 it.requestMatchers("/").permitAll()
                     .requestMatchers(HttpMethod.GET, "/posts/mine", "posts/mine/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/posts/*/edit").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/members/setting").authenticated()
                     .requestMatchers(HttpMethod.GET, "/members/*").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/posts/fragment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/collections/fragment").permitAll()
