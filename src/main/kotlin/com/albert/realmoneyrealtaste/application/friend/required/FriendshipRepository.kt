@@ -51,7 +51,15 @@ interface FriendshipRepository : Repository<Friendship, Long> {
         pageable: Pageable,
     ): Page<Friendship>
 
-    fun existsByRelationShip(relationShip: FriendRelationship): Boolean
+    @Query(
+        """
+        SELECT COUNT(f) > 0 
+        FROM Friendship f 
+        WHERE f.relationShip.memberId = :memberId 
+        AND f.relationShip.friendMemberId = :friendId
+    """
+    )
+    fun existsBy(memberId: Long, friendId: Long): Boolean
 
     fun findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId: Long, friendMemberId: Long): Friendship?
 

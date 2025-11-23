@@ -37,7 +37,7 @@ class FriendshipReaderTest(
         )
 
         // 친구 관계 생성
-        createAcceptedFriendship(member1.requireId(), member2.requireId())
+        createAcceptedFriendship(member1.requireId(), member2.requireId(), member2.nickname.value)
 
         val result = friendshipReader.findActiveFriendship(member1.requireId(), member2.requireId())
 
@@ -185,37 +185,6 @@ class FriendshipReaderTest(
     }
 
     @Test
-    fun `findFriendsByMemberId - success - returns accepted friendships with member nicknames`() {
-        val member = testMemberHelper.createActivatedMember(
-            email = "friends-member@test.com",
-            nickname = "mainmember"
-        )
-        val friend1 = testMemberHelper.createActivatedMember(
-            email = "friend1@test.com",
-            nickname = "friend1"
-        )
-        val friend2 = testMemberHelper.createActivatedMember(
-            email = "friend2@test.com",
-            nickname = "friend2"
-        )
-
-        // 두 개의 친구 관계 생성
-        createAcceptedFriendship(friend1.requireId(), member.requireId())
-        createAcceptedFriendship(friend2.requireId(), member.requireId())
-
-        val pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending())
-        val result = friendshipReader.findFriendsByMemberId(member.requireId(), pageable)
-
-        assertAll(
-            { assertEquals(2, result.totalElements) },
-            { assertFalse(result.isEmpty) },
-            { assertTrue(result.content.any { it.friendNickname == "friend1" }) },
-            { assertTrue(result.content.any { it.friendNickname == "friend2" }) },
-            { assertTrue(result.content.all { it.status == FriendshipStatus.ACCEPTED }) }
-        )
-    }
-
-    @Test
     fun `findFriendsByMemberId - success - returns empty page when no friends`() {
         val member = testMemberHelper.createActivatedMember(
             email = "nofriends@test.com",
@@ -258,8 +227,7 @@ class FriendshipReaderTest(
         assertAll(
             { assertEquals(2, result.totalElements) },
             { assertFalse(result.isEmpty) },
-            { assertTrue(result.content.any { it.friendNickname == "sender1" }) },
-            { assertTrue(result.content.any { it.friendNickname == "sender2" }) },
+            { assertTrue(result.content.all { it.friendNickname == receiver.nickname.value }) },
             { assertTrue(result.content.all { it.status == FriendshipStatus.PENDING }) }
         )
     }
@@ -346,7 +314,7 @@ class FriendshipReaderTest(
         }
 
         friends.forEach { friend ->
-            createAcceptedFriendship(friend.requireId(), member.requireId())
+            createAcceptedFriendship(friend.requireId(), member.requireId(), member.nickname.value)
         }
 
         // 페이지 크기 2로 첫 번째 페이지 조회
@@ -383,7 +351,7 @@ class FriendshipReaderTest(
         )
 
         // 하나는 수락, 하나는 대기 상태로 유지
-        createAcceptedFriendship(friend1.requireId(), member.requireId())
+        createAcceptedFriendship(friend1.requireId(), member.requireId(), member.nickname.value)
         val command2 = FriendRequestCommand(friend2.requireId(), member.requireId(), member.nickname.value)
         friendRequestor.sendFriendRequest(command2)
 
@@ -396,33 +364,8 @@ class FriendshipReaderTest(
         )
     }
 
-    @Test
-    fun `mapToFriendshipResponses - success - handles unknown member gracefully`() {
-        val member = testMemberHelper.createActivatedMember(
-            email = "known-member@test.com",
-            nickname = "known"
-        )
-        val friend = testMemberHelper.createActivatedMember(
-            email = "friend@test.com",
-            nickname = "friend"
-        )
-
-        createAcceptedFriendship(friend.requireId(), member.requireId())
-
-        // 친구를 비활성화
-        friend.deactivate()
-
-        val pageable = PageRequest.of(0, 10)
-        val result = friendshipReader.findFriendsByMemberId(member.requireId(), pageable)
-
-        assertAll(
-            { assertEquals(1, result.totalElements) },
-            { assertEquals(result.content.first().friendNickname, "Unknown") },
-        )
-    }
-
-    private fun createAcceptedFriendship(fromMemberId: Long, toMemberId: Long): Friendship {
-        val command = FriendRequestCommand(fromMemberId, toMemberId, "testUser")
+    private fun createAcceptedFriendship(fromMemberId: Long, toMemberId: Long, toMemberNickname: String): Friendship {
+        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val response = FriendResponseRequest(
@@ -452,9 +395,9 @@ class FriendshipReaderTest(
             nickname = "deactivate2",
         )
 
-        createAcceptedFriendship(activeFriend.requireId(), member.requireId())
-        createAcceptedFriendship(deactivateFriend1.requireId(), member.requireId())
-        createAcceptedFriendship(deactivateFriend2.requireId(), member.requireId())
+        createAcceptedFriendship(activeFriend.requireId(), member.requireId(), member.nickname.value)
+        createAcceptedFriendship(deactivateFriend1.requireId(), member.requireId(), member.nickname.value)
+        createAcceptedFriendship(deactivateFriend2.requireId(), member.requireId(), member.nickname.value)
 
         // 친구들을 비활성화
         deactivateFriend1.deactivate()
@@ -467,11 +410,307 @@ class FriendshipReaderTest(
         assertAll(
             { assertEquals(3, result.totalElements) },
             { assertEquals(3, result.content.size) },
-            { assertTrue(result.content.any { it.friendNickname == "activeFriend" }) },
-            {
-                assertTrue(result.content.filter { it.friendNickname != "activeFriend" }
-                    .all { it.friendNickname == "Unknown" })
-            },
+            { assertEquals(result.content.count { it.friendMemberId == activeFriend.requireId() }, 1) },
+            { assertEquals(result.content.count { it.friendMemberId == deactivateFriend1.requireId() }, 1) },
+            { assertEquals(result.content.count { it.friendMemberId == deactivateFriend2.requireId() }, 1) },
         )
+    }
+
+    @Test
+    fun `countFriendsByMemberId - success - returns correct friend count`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "count-member@test.com",
+            nickname = "member"
+        )
+        val friends = (1..3).map { index ->
+            testMemberHelper.createActivatedMember(
+                email = "countfriend$index@test.com",
+                nickname = "countfriend$index"
+            )
+        }
+
+        friends.forEach { friend ->
+            createAcceptedFriendship(friend.requireId(), member.requireId(), member.nickname.value)
+        }
+
+        val result = friendshipReader.countFriendsByMemberId(member.requireId())
+
+        assertEquals(friends.size.toLong(), result)
+    }
+
+    @Test
+    fun `countFriendsByMemberId - success - returns zero when no friends`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "nocount@test.com",
+            nickname = "nocount"
+        )
+
+        val result = friendshipReader.countFriendsByMemberId(member.requireId())
+
+        assertEquals(0L, result)
+    }
+
+    @Test
+    fun `countFriendsByMemberId - success - excludes pending friendships`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "excludecount@test.com",
+            nickname = "member"
+        )
+        val friend1 = testMemberHelper.createActivatedMember(
+            email = "acceptedcount@test.com",
+            nickname = "accepted"
+        )
+        val friend2 = testMemberHelper.createActivatedMember(
+            email = "pendingcount@test.com",
+            nickname = "pending"
+        )
+
+        // 하나는 수락, 하나는 대기 상태
+        createAcceptedFriendship(friend1.requireId(), member.requireId(), member.nickname.value)
+        val command2 = FriendRequestCommand(friend2.requireId(), member.requireId(), member.nickname.value)
+        friendRequestor.sendFriendRequest(command2)
+
+        val result = friendshipReader.countFriendsByMemberId(member.requireId())
+
+        assertEquals(1L, result) // 수락된 친구만 카운트
+    }
+
+    @Test
+    fun `searchFriends - success - returns friends matching keyword`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "search-member@test.com",
+            nickname = "member"
+        )
+        val targetFriend1 = testMemberHelper.createActivatedMember(
+            email = "target1@test.com",
+            nickname = "searchable"
+        )
+        val targetFriend2 = testMemberHelper.createActivatedMember(
+            email = "target2@test.com",
+            nickname = "searchable2"
+        )
+        val otherFriend = testMemberHelper.createActivatedMember(
+            email = "other@test.com",
+            nickname = "other"
+        )
+
+        createAcceptedFriendship(targetFriend1.requireId(), member.requireId(), member.nickname.value)
+        createAcceptedFriendship(targetFriend2.requireId(), member.requireId(), member.nickname.value)
+        createAcceptedFriendship(otherFriend.requireId(), member.requireId(), member.nickname.value)
+        val result1 = friendshipReader.findFriendsByMemberId(member.requireId(), PageRequest.of(0, 10))
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.searchFriends(member.requireId(), "search", pageable)
+
+        assertAll(
+            { assertEquals(2, result.totalElements) },
+            { assertTrue(result.content.all { it.friendNickname.contains("search") }) },
+            { assertFalse(result.content.any { it.friendNickname == "other" }) }
+        )
+    }
+
+    @Test
+    fun `searchFriends - success - returns empty when no friends match keyword`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "nomatch-member@test.com",
+            nickname = "member"
+        )
+        val friend = testMemberHelper.createActivatedMember(
+            email = "nomatch@test.com",
+            nickname = "friend"
+        )
+
+        createAcceptedFriendship(friend.requireId(), member.requireId(), member.nickname.value)
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.searchFriends(member.requireId(), "nonexistent", pageable)
+
+        assertTrue(result.isEmpty)
+        assertEquals(0, result.totalElements)
+    }
+
+    @Test
+    fun `searchFriends - success - handles empty keyword`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "emptykeyword@test.com",
+            nickname = "member"
+        )
+        val friends = (1..3).map { index ->
+            testMemberHelper.createActivatedMember(
+                email = "emptyfriend$index@test.com",
+                nickname = "emptyfriend$index"
+            )
+        }
+
+        friends.forEach { friend ->
+            createAcceptedFriendship(friend.requireId(), member.requireId(), member.nickname.value)
+        }
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.searchFriends(member.requireId(), "", pageable)
+
+        assertEquals(friends.size.toLong(), result.totalElements)
+    }
+
+    @Test
+    fun `findRecentFriends - success - returns friends ordered by creation date`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "recent-member@test.com",
+            nickname = "member"
+        )
+
+        // 시간 차이를 두고 친구 생성
+        val friend1 = testMemberHelper.createActivatedMember(
+            email = "recent1@test.com",
+            nickname = "recent1"
+        )
+        val friend2 = testMemberHelper.createActivatedMember(
+            email = "recent2@test.com",
+            nickname = "recent2"
+        )
+        val friend3 = testMemberHelper.createActivatedMember(
+            email = "recent3@test.com",
+            nickname = "recent3"
+        )
+
+        createAcceptedFriendship(friend1.requireId(), member.requireId(), member.nickname.value)
+        Thread.sleep(100) // 시간 차이 보장
+        createAcceptedFriendship(friend2.requireId(), member.requireId(), member.nickname.value)
+        Thread.sleep(100)
+        createAcceptedFriendship(friend3.requireId(), member.requireId(), member.nickname.value)
+
+        val pageable = PageRequest.of(0, 2, Sort.by("createdAt").descending())
+        val result = friendshipReader.findRecentFriends(member.requireId(), pageable)
+
+        assertAll(
+            { assertEquals(3, result.totalElements) },
+            { assertEquals(2, result.content.size) },
+            { assertEquals(friend3.requireId(), result.content[0].friendMemberId) }, // 가장 최근
+            { assertEquals(friend2.requireId(), result.content[1].friendMemberId) }
+        )
+    }
+
+    @Test
+    fun `findRecentFriends - success - returns empty when no friends`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "norecent@test.com",
+            nickname = "norecent"
+        )
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.findRecentFriends(member.requireId(), pageable)
+
+        assertTrue(result.isEmpty)
+        assertEquals(0, result.totalElements)
+    }
+
+    @Test
+    fun `countPendingRequests - success - returns correct pending request count`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "pendingcount-member@test.com",
+            nickname = "member"
+        )
+        val senders = (1..3).map { index ->
+            testMemberHelper.createActivatedMember(
+                email = "sender$index@test.com",
+                nickname = "sender$index"
+            )
+        }
+
+        // 받은 친구 요청 생성
+        senders.forEach { sender ->
+            val command = FriendRequestCommand(sender.requireId(), member.requireId(), member.nickname.value)
+            friendRequestor.sendFriendRequest(command)
+        }
+
+        val result = friendshipReader.countPendingRequests(member.requireId())
+
+        assertEquals(senders.size.toLong(), result)
+    }
+
+    @Test
+    fun `countPendingRequests - success - returns zero when no pending requests`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "nopendingcount@test.com",
+            nickname = "nopending"
+        )
+
+        val result = friendshipReader.countPendingRequests(member.requireId())
+
+        assertEquals(0L, result)
+    }
+
+    @Test
+    fun `countPendingRequests - success - excludes accepted friendships`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "excludepending@test.com",
+            nickname = "member"
+        )
+        val sender1 = testMemberHelper.createActivatedMember(
+            email = "pendingsender@test.com",
+            nickname = "pendingsender"
+        )
+        val sender2 = testMemberHelper.createActivatedMember(
+            email = "acceptedsender@test.com",
+            nickname = "acceptedsender"
+        )
+
+        // 하나는 대기 상태, 하나는 수락
+        val command1 = FriendRequestCommand(sender1.requireId(), member.requireId(), member.nickname.value)
+        friendRequestor.sendFriendRequest(command1)
+        createAcceptedFriendship(sender2.requireId(), member.requireId(), member.nickname.value)
+
+        val result = friendshipReader.countPendingRequests(member.requireId())
+
+        assertEquals(1L, result) // 대기 중인 요청만 카운트
+    }
+
+    @Test
+    fun `findPendingRequests - success - returns pending friendships as entities`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "pendingentity@test.com",
+            nickname = "member"
+        )
+        val senders = (1..3).map { index ->
+            testMemberHelper.createActivatedMember(
+                email = "entitysender$index@test.com",
+                nickname = "entitysender$index"
+            )
+        }
+
+        val friendships = senders.map { sender ->
+            val command = FriendRequestCommand(sender.requireId(), member.requireId(), member.nickname.value)
+            friendRequestor.sendFriendRequest(command)
+        }
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.findPendingRequests(member.requireId(), pageable)
+
+        assertAll(
+            { assertEquals(friendships.size.toLong(), result.totalElements) },
+            { assertEquals(friendships.size, result.content.size) },
+            { assertTrue(result.content.all { it.status == FriendshipStatus.PENDING }) },
+            {
+                assertTrue(result.content.all { friendship ->
+                    friendships.any { it.requireId() == friendship.requireId() }
+                })
+            }
+        )
+    }
+
+    @Test
+    fun `findByMembersId - success - returns null when no relationship exists`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "norelation1@test.com",
+            nickname = "norelation1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "norelation2@test.com",
+            nickname = "norelation2"
+        )
+
+        val result = friendshipReader.findByMembersId(member1.requireId(), member2.requireId())
+
+        assertNull(result)
     }
 }

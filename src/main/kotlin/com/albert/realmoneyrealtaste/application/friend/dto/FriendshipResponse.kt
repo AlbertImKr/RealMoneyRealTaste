@@ -23,17 +23,6 @@ data class FriendshipResponse(
     val profileImageUrl: String? = null, // 프로필 이미지 URL
 ) {
     companion object {
-        fun from(friendship: Friendship, memberNickname: String, friendNickname: String): FriendshipResponse {
-            return FriendshipResponse(
-                friendshipId = friendship.requireId(),
-                memberId = friendship.relationShip.memberId,
-                friendMemberId = friendship.relationShip.friendMemberId,
-                friendNickname = friendNickname,
-                status = friendship.status,
-                createdAt = friendship.createdAt,
-                updatedAt = friendship.updatedAt
-            )
-        }
 
         fun from(
             friendship: Friendship,

@@ -6,7 +6,6 @@ import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReade
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
-import com.albert.realmoneyrealtaste.domain.friend.value.FriendRelationship
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -44,8 +43,8 @@ class FriendshipReadService(
     }
 
     override fun findPendingFriendshipReceived(memberId: Long, fromMemberId: Long): Friendship? {
-        return friendshipRepository.findByRelationShipAndStatus(
-            FriendRelationship(fromMemberId, memberId, ""),
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+            fromMemberId, memberId,
             FriendshipStatus.PENDING
         )
     }
@@ -78,7 +77,7 @@ class FriendshipReadService(
     }
 
     override fun existsByMemberIds(memberId: Long, friendMemberId: Long): Boolean {
-        return friendshipRepository.existsByRelationShip(FriendRelationship(memberId, friendMemberId, ""))
+        return friendshipRepository.existsBy(memberId, friendMemberId)
     }
 
     override fun findByMembersId(

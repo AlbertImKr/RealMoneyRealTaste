@@ -4,11 +4,14 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.friend.dto.FriendResponseRequest
 import com.albert.realmoneyrealtaste.application.friend.dto.UnfriendRequest
 import com.albert.realmoneyrealtaste.application.friend.exception.UnfriendException
+import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendshipTerminatedEvent
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.event.ApplicationEvents
@@ -16,6 +19,7 @@ import org.springframework.test.context.event.RecordApplicationEvents
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @RecordApplicationEvents
@@ -25,6 +29,7 @@ class FriendshipTerminatorTest(
     private val friendResponder: FriendResponder,
     private val friendshipReader: FriendshipReader,
     private val testMemberHelper: TestMemberHelper,
+    private val friendshipRepository: FriendshipRepository,
 ) : IntegrationTestBase() {
 
     @Autowired
@@ -53,10 +58,10 @@ class FriendshipTerminatorTest(
         friendshipTerminator.unfriend(request)
 
         // 양방향 친구 관계 모두 해제되었는지 확인
-        val savedFriendShip = friendshipReader.sentedFriendRequest(
+        val savedFriendShip = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
             member1.requireId(), member2.requireId()
         )
-        val savedReverseFriendShip = friendshipReader.sentedFriendRequest(
+        val savedReverseFriendShip = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
             member2.requireId(), member1.requireId()
         )
         val allFriendships = listOfNotNull(savedFriendShip, savedReverseFriendShip)
@@ -96,10 +101,10 @@ class FriendshipTerminatorTest(
         friendshipTerminator.unfriend(request)
 
         // 양방향 친구 관계 모두 해제되었는지 확인
-        val savedFriendship = friendshipReader.sentedFriendRequest(
+        val savedFriendship = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
             member1.requireId(), member2.requireId()
         )
-        val savedReverseFriendship = friendshipReader.sentedFriendRequest(
+        val savedReverseFriendship = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
             member2.requireId(), member1.requireId()
         )
         val allFriendships = listOfNotNull(savedFriendship, savedReverseFriendship)
@@ -272,6 +277,203 @@ class FriendshipTerminatorTest(
         // 이벤트는 발행됨
         val events = applicationEvents.stream(FriendshipTerminatedEvent::class.java).toList()
         assertEquals(1, events.size)
+    }
+
+    @Test
+    fun `unfriend - failure - throws exception when trying to unfriend self`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "selfunfriend@test.com",
+            nickname = "selfunfriend"
+        )
+
+        val request = mockk<UnfriendRequest>()
+        every { request.memberId } returns 1L
+        every { request.friendMemberId } returns 1L
+
+
+        assertFailsWith<UnfriendException> {
+            friendshipTerminator.unfriend(request)
+        }.let {
+            assertEquals("친구 관계 해제에 실패했습니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `unfriend - success - handles rejected friendship correctly`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "rejected-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "rejected-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        // 친구 요청 생성 후 거절
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
+        val friendship = friendRequestor.sendFriendRequest(command)
+        val response = FriendResponseRequest(
+            friendshipId = friendship.requireId(),
+            respondentMemberId = receiver.requireId(),
+            accept = false
+        )
+        friendResponder.respondToFriendRequest(response)
+
+        // REJECTED 상태의 친구 관계에 대해 해제 시도
+        val request = UnfriendRequest(
+            memberId = sender.requireId(),
+            friendMemberId = receiver.requireId()
+        )
+
+        // findActiveFriendship이 ACCEPTED 상태만 찾으므로 해제 대상이 없음
+        // 정상적으로 처리됨 (null 체크)
+        friendshipTerminator.unfriend(request)
+
+        // 이벤트는 발행됨
+        val events = applicationEvents.stream(FriendshipTerminatedEvent::class.java).toList()
+        assertEquals(1, events.size)
+    }
+
+    @Test
+    fun `unfriend - success - handles multiple friendships termination`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "multi1@test.com",
+            nickname = "multi1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "multi2@test.com",
+            nickname = "multi2"
+        )
+        val member3 = testMemberHelper.createActivatedMember(
+            email = "multi3@test.com",
+            nickname = "multi3"
+        )
+
+        // 여러 친구 관계 생성
+        createAcceptedFriendship(member1.requireId(), member2.requireId())
+        createAcceptedFriendship(member1.requireId(), member3.requireId())
+
+        // member1과 member2의 친구 관계 해제
+        val request1 = UnfriendRequest(
+            memberId = member1.requireId(),
+            friendMemberId = member2.requireId()
+        )
+        friendshipTerminator.unfriend(request1)
+
+        // member1과 member3의 친구 관계는 유지되어야 함
+        val activeFriendship = friendshipReader.findActiveFriendship(member1.requireId(), member3.requireId())
+        assertNotNull(activeFriendship)
+        assertEquals(FriendshipStatus.ACCEPTED, activeFriendship.status)
+
+        // member1과 member2의 관계는 해제되어야 함
+        val terminatedFriendship = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            member1.requireId(),
+            member2.requireId()
+        )
+
+        assertNotNull(terminatedFriendship)
+        assertEquals(FriendshipStatus.UNFRIENDED, terminatedFriendship.status)
+    }
+
+    @Test
+    fun `unfriend - success - persists termination to database`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "persist1@test.com",
+            nickname = "persist1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "persist2@test.com",
+            nickname = "persist2"
+        )
+
+        // 친구 관계 생성
+        createAcceptedFriendship(member1.requireId(), member2.requireId())
+        flushAndClear()
+
+        // 친구 관계 해제
+        val request = UnfriendRequest(
+            memberId = member1.requireId(),
+            friendMemberId = member2.requireId()
+        )
+        friendshipTerminator.unfriend(request)
+
+        flushAndClear()
+
+        // 데이터베이스에서 상태 확인
+        val friendship1 = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            member1.requireId(),
+            member2.requireId()
+        )
+        val friendship2 = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            member2.requireId(),
+            member1.requireId()
+        )
+
+        assertNotNull(friendship1)
+        assertNotNull(friendship2)
+        assertEquals(FriendshipStatus.UNFRIENDED, friendship1.status)
+        assertEquals(FriendshipStatus.UNFRIENDED, friendship2.status)
+    }
+
+    @Test
+    fun `unfriend - success - does not affect other friendships`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "isolate1@test.com",
+            nickname = "isolate1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "isolate2@test.com",
+            nickname = "isolate2"
+        )
+        val member3 = testMemberHelper.createActivatedMember(
+            email = "isolate3@test.com",
+            nickname = "isolate3"
+        )
+        val member4 = testMemberHelper.createActivatedMember(
+            email = "isolate4@test.com",
+            nickname = "isolate4"
+        )
+
+        // 여러 친구 관계 생성
+        createAcceptedFriendship(member1.requireId(), member2.requireId())
+        createAcceptedFriendship(member1.requireId(), member3.requireId())
+        createAcceptedFriendship(member2.requireId(), member4.requireId())
+
+        // member1과 member2의 관계만 해제
+        val request = UnfriendRequest(
+            memberId = member1.requireId(),
+            friendMemberId = member2.requireId()
+        )
+        friendshipTerminator.unfriend(request)
+
+        // 다른 관계들은 영향받지 않아야 함
+        val friendship1And3 = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            member1.requireId(),
+            member3.requireId()
+        )
+        val friendship2And4 = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            member2.requireId(),
+            member4.requireId()
+        )
+
+        assertNotNull(friendship1And3)
+        assertNotNull(friendship2And4)
+        assertEquals(FriendshipStatus.ACCEPTED, friendship1And3.status)
+        assertEquals(FriendshipStatus.ACCEPTED, friendship2And4.status)
+
+        // 해제된 관계 확인
+        val terminated1And2 = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            member1.requireId(),
+            member2.requireId(),
+        )
+        val terminated2And1 = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            member2.requireId(),
+            member1.requireId(),
+        )
+        assertNotNull(terminated1And2)
+        assertNotNull(terminated2And1)
+        assertEquals(FriendshipStatus.UNFRIENDED, terminated1And2.status)
+        assertEquals(FriendshipStatus.UNFRIENDED, terminated2And1.status)
     }
 
     private fun createAcceptedFriendship(fromMemberId: Long, toMemberId: Long): Friendship {

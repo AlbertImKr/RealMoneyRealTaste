@@ -16,6 +16,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @RecordApplicationEvents
 class FriendRequestorTest(
@@ -129,31 +130,7 @@ class FriendRequestorTest(
     }
 
     @Test
-    fun `sendFriendRequest - failure - throws exception when duplicate pending request exists`() {
-        // given
-        val fromMember = testMemberHelper.createActivatedMember(
-            email = "duplicate-sender@test.com",
-            nickname = "duplicatesender"
-        )
-        val toMember = testMemberHelper.createActivatedMember(
-            email = "duplicate-receiver@test.com",
-            nickname = "duplicatereceiver"
-        )
-
-        // 첫 번째 요청
-        val command = FriendRequestCommand(fromMember.requireId(), toMember.requireId(), toMember.nickname.value)
-        friendRequestor.sendFriendRequest(command)
-
-        // when & then
-        assertFailsWith<FriendRequestException> {
-            friendRequestor.sendFriendRequest(command)
-        }.let {
-            assertEquals("친구 요청에 실패했습니다.", it.message)
-        }
-    }
-
-    @Test
-    fun `sendFriendRequest - failure - throws exception when friendship already exists`() {
+    fun `sendFriendRequest - success - return existing friendship when friendship already exists`() {
         // given
         val member1 = testMemberHelper.createActivatedMember(
             email = "friend1@test.com",
@@ -174,11 +151,14 @@ class FriendRequestorTest(
         val duplicateCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
 
         // when & then
-        assertFailsWith<FriendRequestException> {
-            friendRequestor.sendFriendRequest(duplicateCommand)
-        }.let {
-            assertEquals("친구 요청에 실패했습니다.", it.message)
-        }
+        val result = friendRequestor.sendFriendRequest(duplicateCommand)
+
+        assertAll(
+            { assertEquals(friendship.requireId(), result.requireId()) },
+            { assertEquals(friendship.relationShip.memberId, result.relationShip.memberId) },
+            { assertEquals(friendship.relationShip.friendMemberId, result.relationShip.friendMemberId) },
+            { assertEquals(friendship.status, result.status) }
+        )
     }
 
     @Test
@@ -277,5 +257,100 @@ class FriendRequestorTest(
         }.let {
             assertEquals("친구 요청에 실패했습니다.", it.message)
         }
+    }
+
+    @Test
+    fun `sendFriendRequest - success - creates friendship with correct timestamps`() {
+        val fromMember = testMemberHelper.createActivatedMember(
+            email = "timestamp-from@test.com",
+            nickname = "frommember"
+        )
+        val toMember = testMemberHelper.createActivatedMember(
+            email = "timestamp-to@test.com",
+            nickname = "tomember"
+        )
+
+        val command = FriendRequestCommand(fromMember.requireId(), toMember.requireId(), toMember.nickname.value)
+        val beforeCreation = java.time.LocalDateTime.now()
+
+        val result = friendRequestor.sendFriendRequest(command)
+
+        val afterCreation = java.time.LocalDateTime.now()
+
+        assertAll(
+            { assertNotNull(result.createdAt) },
+            { assertNotNull(result.updatedAt) },
+            { assertEquals(result.createdAt, result.updatedAt) },
+            { assertTrue(result.createdAt.isAfter(beforeCreation.minusSeconds(1))) },
+            { assertTrue(result.createdAt.isBefore(afterCreation.plusSeconds(1))) }
+        )
+    }
+
+    @Test
+    fun `sendFriendRequest - success - persists friendship to database correctly`() {
+        val fromMember = testMemberHelper.createActivatedMember(
+            email = "persist-from@test.com",
+            nickname = "frommember"
+        )
+        val toMember = testMemberHelper.createActivatedMember(
+            email = "persist-to@test.com",
+            nickname = "tomember"
+        )
+
+        val command = FriendRequestCommand(fromMember.requireId(), toMember.requireId(), toMember.nickname.value)
+        val result = friendRequestor.sendFriendRequest(command)
+
+        flushAndClear()
+
+        val persisted = friendshipRepository.findById(result.requireId())
+        assertAll(
+            { assertNotNull(persisted) },
+            { assertEquals(result.requireId(), persisted?.requireId()) },
+            { assertEquals(FriendshipStatus.PENDING, persisted?.status) },
+            { assertEquals(fromMember.requireId(), persisted?.relationShip?.memberId) },
+            { assertEquals(toMember.requireId(), persisted?.relationShip?.friendMemberId) }
+        )
+    }
+
+    @Test
+    fun `sendFriendRequest - failure - throws exception when both members are the same`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "same@test.com",
+            nickname = "same"
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            FriendRequestCommand(member.requireId(), member.requireId(), member.nickname.value)
+        }
+    }
+
+    @Test
+    fun `sendFriendRequest - success - allows request after rejection`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "after-rejection1@test.com",
+            nickname = "member1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "after-rejection2@test.com",
+            nickname = "member2"
+        )
+
+        // 첫 번째 요청 후 거절
+        val firstCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
+        val firstFriendship = friendRequestor.sendFriendRequest(firstCommand)
+        firstFriendship.reject()
+        friendshipRepository.save(firstFriendship)
+
+        // 거절된 후 동일 방향으로 다시 요청 (허용되어야 함)
+        val secondCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
+        val result = friendRequestor.sendFriendRequest(secondCommand)
+
+        assertAll(
+            { assertNotNull(result) },
+            { assertEquals(member1.requireId(), result.relationShip.memberId) },
+            { assertEquals(member2.requireId(), result.relationShip.friendMemberId) },
+            { assertEquals(FriendshipStatus.PENDING, result.status) },
+            { assertEquals(firstFriendship.requireId(), result.requireId()) }
+        )
     }
 }
