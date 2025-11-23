@@ -138,7 +138,7 @@ interface PostRepository : Repository<Post, Long> {
      * @param status 제외할 게시글 상태 (기본값: DELETED)
      * @return 게시글 수
      */
-    fun countByAuthorMemberIdAndStatusNot(memberId: Long, status: PostStatus = PostStatus.DELETED): Long
+    fun countByAuthorMemberIdAndStatusNot(memberId: Long, status: PostStatus): Long
 
     /**
      * 게시글 ID 목록으로 게시글들을 조회합니다.
@@ -146,5 +146,5 @@ interface PostRepository : Repository<Post, Long> {
      * @param ids 게시글 ID 목록
      * @return 조회된 게시글 목록
      */
-    fun findAllByStatusAndIdIn(status: PostStatus = PostStatus.PUBLISHED, ids: List<Long>): List<Post>
+    fun findAllByStatusAndIdIn(status: PostStatus, ids: List<Long>): List<Post>
 }
