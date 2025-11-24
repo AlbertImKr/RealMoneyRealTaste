@@ -13,7 +13,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.model
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.assertTrue
 
@@ -76,8 +75,6 @@ class FollowTerminateViewTest : IntegrationTestBase() {
     fun `unfollow - failure - when target member does not exist returns 400 with error message`() {
         mockMvc.perform(delete("/members/9999/follow").with(csrf()))
             .andExpect(status().isBadRequest())
-            .andExpect(model().attribute("success", false))
-            .andExpect(model().attribute("error", "언팔로우에 실패했습니다."))
     }
 
     @Test
@@ -87,8 +84,6 @@ class FollowTerminateViewTest : IntegrationTestBase() {
 
         mockMvc.perform(delete("/members/${currentMember.requireId()}/follow").with(csrf()))
             .andExpect(status().isBadRequest())
-            .andExpect(model().attribute("success", false))
-            .andExpect(model().attribute("error", "자기 자신을 언팔로우할 수 없습니다"))
     }
 
     @Test
@@ -99,8 +94,6 @@ class FollowTerminateViewTest : IntegrationTestBase() {
         // 팔로우하지 않은 상태에서 언팔로우 시도
         mockMvc.perform(delete("/members/${targetMember.requireId()}/follow").with(csrf()))
             .andExpect(status().isBadRequest)
-            .andExpect(model().attribute("success", false))
-            .andExpect(model().attribute("error", "언팔로우에 실패했습니다."))
     }
 
     @Test

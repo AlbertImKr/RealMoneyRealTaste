@@ -27,12 +27,16 @@ class FollowTerminateView(
         @AuthenticationPrincipal principal: MemberPrincipal,
         @PathVariable targetId: Long,
     ): ResponseEntity<String> {
-        followTerminator.unfollow(
+        val request = try {
             UnfollowRequest(
                 followerId = principal.id,
                 followingId = targetId,
             )
-        )
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(e.message)
+        }
+
+        followTerminator.unfollow(request)
 
         // 팔로우 버튼 HTML 조각 반환
         val followButtonHtml = """

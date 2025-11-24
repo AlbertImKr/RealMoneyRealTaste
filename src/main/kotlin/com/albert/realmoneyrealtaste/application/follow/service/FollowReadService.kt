@@ -86,17 +86,6 @@ class FollowReadService(
         )
     }
 
-    override fun findFollowers(
-        followingId: Long,
-        targetIds: List<Long>,
-    ): List<Long> {
-        return followRepository.findFollowerByIds(
-            followingId,
-            targetIds,
-            FollowStatus.ACTIVE
-        )
-    }
-
     override fun checkIsMutualFollow(member1Id: Long, member2Id: Long): Boolean {
         val member1FollowsMember2 = checkIsFollowing(member1Id, member2Id)
         val member2FollowsMember1 = checkIsFollowing(member2Id, member1Id)

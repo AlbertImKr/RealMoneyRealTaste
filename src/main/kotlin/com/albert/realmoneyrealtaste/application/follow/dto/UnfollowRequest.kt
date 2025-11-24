@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.follow.dto
 
 data class UnfollowRequest(
+
     val followerId: Long,
     val followingId: Long,
 ) {

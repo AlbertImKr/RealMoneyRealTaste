@@ -274,8 +274,11 @@ class FriendshipReaderTest(
             nickname = "exists2"
         )
 
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        friendRequestor.sendFriendRequest(command)
+        val friendRequestCommand =
+            FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
+        val friendship = friendRequestor.sendFriendRequest(friendRequestCommand)
+        val friendResponseRequest = FriendResponseRequest(friendship.requireId(), member2.requireId(), true)
+        friendResponder.respondToFriendRequest(friendResponseRequest)
 
         val result = friendshipReader.isFriend(member1.requireId(), member2.requireId())
 

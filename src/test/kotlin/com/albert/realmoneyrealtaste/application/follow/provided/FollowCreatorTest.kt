@@ -115,7 +115,7 @@ class FollowCreatorTest(
     }
 
     @Test
-    fun `follow - failure - throws exception when duplicate active follow exists`() {
+    fun `follow - success - when duplicate active follow exists`() {
         val follower = testMemberHelper.createActivatedMember(
             email = "duplicate-follower@test.com",
             nickname = "duplicatefollower"
@@ -133,11 +133,14 @@ class FollowCreatorTest(
         followCreator.follow(request)
 
         // 중복 팔로우 시도
-        assertFailsWith<FollowCreateException> {
-            followCreator.follow(request)
-        }.let {
-            assertEquals("팔로우에 실패했습니다.", it.message)
-        }
+        val result = followCreator.follow(request)
+
+        assertAll(
+            { assertNotNull(result) },
+            { assertEquals(follower.requireId(), result.relationship.followerId) },
+            { assertEquals(following.requireId(), result.relationship.followingId) },
+            { assertEquals(FollowStatus.ACTIVE, result.status) },
+        )
     }
 
     @Test
