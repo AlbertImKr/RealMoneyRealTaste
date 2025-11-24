@@ -27,6 +27,11 @@ class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/members/*/collections/*/posts/fragment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/following/fragment").permitAll()
                     .requestMatchers(HttpMethod.GET, "/members/*/followers/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/friends").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/friends/widget/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/friends").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/friends/fragment").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/friends/requests/fragment").authenticated()
                     .requestMatchers("/signup", "/members/activate", "/signin").permitAll()
                     .requestMatchers("/members/password-forgot", "/members/password-reset").permitAll()
                     .requestMatchers(HttpMethod.GET, "/posts/*/comments/**").permitAll()
@@ -39,6 +44,8 @@ class SecurityConfig {
             .csrf {
                 it.ignoringRequestMatchers(
                     "/api/**",
+                    "/friendships",
+                    "/friendships/*",
                 )
             }
             .formLogin {
