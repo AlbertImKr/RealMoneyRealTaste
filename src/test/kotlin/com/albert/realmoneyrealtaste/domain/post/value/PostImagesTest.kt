@@ -98,4 +98,27 @@ class PostImagesTest {
     fun `constants - success - has correct max count`() {
         assertEquals(5, PostImages.MAX_IMAGE_COUNT)
     }
+
+    @Test
+    fun `getFirst - success - returns first url when not empty`() {
+        val firstUrl = "https://example.com/1.jpg"
+        val images = PostImages(listOf(firstUrl, "https://example.com/2.jpg"))
+
+        assertEquals(firstUrl, images.getFirst())
+    }
+
+    @Test
+    fun `getFirst - success - returns null when empty`() {
+        val images = PostImages.empty()
+
+        assertEquals(null, images.getFirst())
+    }
+
+    @Test
+    fun `getFirst - success - returns first url for single item list`() {
+        val singleUrl = "https://example.com/only.jpg"
+        val images = PostImages(listOf(singleUrl))
+
+        assertEquals(singleUrl, images.getFirst())
+    }
 }

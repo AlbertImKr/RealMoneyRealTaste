@@ -37,6 +37,12 @@ interface CommentRepository : Repository<Comment, Long> {
      */
     fun findByPostIdAndStatus(postId: Long, status: CommentStatus, pageable: Pageable): Page<Comment>
 
+    fun findByPostIdAndParentCommentIdIsNullAndStatus(
+        postId: Long,
+        status: CommentStatus,
+        pageable: Pageable,
+    ): Page<Comment>
+
     /**
      * 부모 댓글 ID로 대댓글 목록을 조회합니다.
      *
@@ -55,6 +61,8 @@ interface CommentRepository : Repository<Comment, Long> {
      * @return 댓글 수
      */
     fun countByPostIdAndStatus(postId: Long, status: CommentStatus): Long
+
+    fun countByPostIdAndStatusAndParentCommentIdIsNull(postId: Long, status: CommentStatus): Long
 
     /**
      * 회원이 작성한 댓글 목록을 조회합니다.

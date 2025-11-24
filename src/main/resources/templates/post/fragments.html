@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Posts Fragment</title>
+</head>
+<body>
+<div th:fragment="posts-content">
+    <!-- Posts 헤더 -->
+    <!-- Share feed START -->
+    <div class="card card-body m-3" sec:authorize="isAuthenticated()"
+         th:if="${member?.email?.address == author?.email?.address}">
+        <div class="d-flex mb-3">
+            <!-- Avatar -->
+            <div class="avatar avatar-xs me-2">
+                <a href="#">
+                    <img alt=""
+                         class="avatar-img rounded-circle"
+                         src="#">
+                </a>
+            </div>
+            <!-- Post input -->
+            <form class="w-100">
+                <label class="visually-hidden" for="postInput">Create post</label>
+                <input class="form-control pe-4 border-0" data-bs-target="#modalCreateFeed"
+                       data-bs-toggle="modal"
+                       id="postInput"
+                       th:placeholder="${member?.nickname?.value ?: '사용자'} + '님, 어떤 맛집을 다녀오셨나요?'"
+                       type="text">
+            </form>
+        </div>
+
+        <!-- Share feed toolbar START -->
+        <ul class="nav nav-pills nav-stack small fw-normal">
+            <li class="nav-item">
+                <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                   data-bs-toggle="modal"
+                   href="#">
+                    <i class="bi bi-image-fill text-success pe-2"></i>Photo
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                   data-bs-toggle="modal"
+                   href="#">
+                    <i class="bi bi-geo-alt-fill text-danger pe-2"></i>Location
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                   data-bs-toggle="modal"
+                   href="#">
+                    <i class="bi bi-star-fill text-warning pe-2"></i>Rating
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link bg-light py-1 px-2 mb-0" data-bs-target="#modalCreateFeed"
+                   data-bs-toggle="modal"
+                   href="#">
+                    <i class="bi bi-emoji-smile-fill text-warning pe-2"></i>Feeling /Activity
+                </a>
+            </li>
+        </ul>
+        <!-- Share feed toolbar END -->
+    </div>
+    <!-- Share feed END -->
+
+    <div class="card-body d-grid gap-3">
+        <!-- 포스트가 없을 때 -->
+        <div class="card text-center py-5" th:if="${posts == null or posts.isEmpty()}">
+            <div class="card-body">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h5 class="mt-3">아직 포스트가 없습니다</h5>
+                <p class="text-muted">첫 번째 포스트를 작성해보세요!</p>
+                <button class="btn btn-primary" data-bs-target="#modalCreateFeed" data-bs-toggle="modal"
+                        sec:authorize="isAuthenticated()"
+                        th:if="member.id == author.id"
+                >
+                    <i class="bi bi-plus-circle me-2"></i>포스트 작성하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 포스트 리스트 -->
+        <div class="card" th:each="post : ${posts.content}">
+            <!-- Card header START -->
+            <div class="card-header border-0 pb-0">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <!-- Avatar -->
+                        <div class="avatar avatar-story me-2">
+                            <a th:href="@{/members/{id}(id=${post.author.memberId})}">
+                                <img alt=""
+                                     class="avatar-img rounded-circle"
+                                     src="#">
+                            </a>
+                        </div>
+                        <!-- Info -->
+                        <div>
+                            <div class="nav nav-divider">
+                                <h6 class="nav-item card-title mb-0">
+                                    <a th:href="@{/members/{id}(id=${post.author.memberId})}"
+                                       th:text="${post.author.nickname}">Lori Ferguson</a>
+                                </h6>
+                                <span class="nav-item small" th:data-created-at="${post.createdAt}">
+                                            <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">
+                                                2 hrs ago
+                                            </span>
+                                        </span>
+                            </div>
+                            <p class="mb-0 small"
+                               th:text="${post.author.introduction != null ? post.author.introduction : '진짜 내돈내산 푸드 리뷰어'}">
+                                진짜 내돈내산 푸드 리뷰어
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Card feed action dropdown START -->
+                    <div class="dropdown">
+                        <a aria-expanded="false" class="text-secondary btn btn-secondary-soft-hover py-1 px-2"
+                           data-bs-toggle="dropdown"
+                           href="#"
+                           th:id="'cardFeedAction' + ${post.id}">
+                            <i class="bi bi-three-dots"></i>
+                        </a>
+                        <!-- Card feed action dropdown menu -->
+                        <ul class="dropdown-menu dropdown-menu-end"
+                            th:attr="aria-labelledby='cardFeedAction' + ${post.id}">
+                            <li th:if="${member != null and member.id == post.author.memberId}">
+                                <a class="dropdown-item" th:href="@{/posts/{id}/edit(id=${post.id})}">
+                                    <i class="bi bi-pencil-square fa-fw pe-2"></i>게시글 수정
+                                </a>
+                            </li>
+                            <li th:if="${member != null and member.id == post.author.memberId}">
+                                <a class="dropdown-item text-danger" href="#"
+                                   hx-confirm='정말 삭제하시겠습니까?'
+                                   hx-on::afterRequest='if(event.detail.xhr.status === 200) location.reload()'
+                                   th:attr="hx-delete='/api/posts/' + ${post.id}">
+                                    <i class="bi bi-trash fa-fw pe-2"></i>게시글 삭제
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="bi bi-flag fa-fw pe-2"></i>게시글 신고</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Card feed action dropdown END -->
+                </div>
+            </div>
+            <!-- Card header END -->
+
+            <!-- Card body START -->
+            <div class="card-body">
+                <p th:text="${post.content.text}">
+                    I'm thrilled to share that I've completed a graduate certificate course in project
+                    management with the president's honor roll.
+                </p>
+
+                <!-- Card img -->
+                <div th:if="${post.images != null and !post.images.isEmpty()}">
+                    <img alt="Post"
+                         class="card-img post-detail-trigger"
+                         data-bs-target="#postDetailModal"
+                         data-bs-toggle="modal"
+                         style="cursor: pointer;"
+                         th:attr="hx-get='/posts/' + ${post.id} + '/modal',
+                                          hx-target='#post-detail-modal-content',
+                                          hx-swap='innerHTML',
+                                          hx-trigger='click',
+                                          hx-indicator='#post-detail-loading'"
+                         th:src="${post.images.urls[0]}">
+                </div>
+
+                <!-- Feed react START -->
+                <ul class="nav nav-stack py-3 small">
+                    <!-- Like 기능 -->
+                    <li class="nav-item">
+                        <button class="nav-link btn p-0 border-0 bg-transparent like-btn"
+                                data-bs-container="body"
+                                data-bs-placement="top"
+                                data-bs-toggle="tooltip"
+                                th:attr="hx-post='/posts/' + ${post.id} + '/like',
+                                                hx-target='#heart-section-' + ${post.id},
+                                                hx-swap='outerHTML'"
+                                th:classappend="${hearts != null and hearts.contains(post.id)} ? 'active text-danger' : ''"
+                                th:title="${hearts != null and hearts.contains(post.id)} ? '추천 취소' : '추천'">
+                            <div th:id="'heart-section-' + ${post.id}">
+                                <i th:class="${hearts != null and hearts.contains(post.id)} ? 'bi bi-heart-fill pe-1' : 'bi bi-heart pe-1'"></i>
+                                <span th:if="${hearts != null and hearts.contains(post.id)}">Liked</span>
+                                <span th:unless="${hearts != null and hearts.contains(post.id)}">Like</span>
+                                (<span th:text="${post.heartCount}">56</span>)
+                            </div>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                                <span class="nav-link">
+                                    <i class="bi bi-eye-fill pe-1"></i>
+                                    Views (<span th:text="${post.viewCount}">102</span>)
+                                </span>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn p-0 border-0 bg-transparent"
+                                data-bs-target="#postDetailModal"
+                                data-bs-toggle="modal"
+                                style="cursor: pointer;"
+                                th:attr="hx-get='/posts/' + ${post.id} + '/modal',
+                                          hx-target='#post-detail-modal-content',
+                                          hx-swap='innerHTML',
+                                          hx-trigger='click',
+                                          hx-indicator='#post-detail-loading'"
+                        >
+                            <i class="bi bi-chat-fill pe-1"></i>
+                            Comments (<span th:id="'comment-count-' + ${post.id}"
+                                            th:text="${post.commentCount ?: 0}">0</span>)
+                        </button>
+                    </li>
+                    <!-- Card share action START -->
+                    <li class="nav-item dropdown ms-sm-auto">
+                        <a aria-expanded="false"
+                           class="nav-link mb-0"
+                           data-bs-toggle="dropdown"
+                           href="#"
+                           th:id="'cardShareAction' + ${post.id}">
+                            <i class="bi bi-reply-fill flip-horizontal ps-1"></i>
+                            Share
+                        </a>
+                        <!-- Card share action dropdown menu -->
+                        <ul class="dropdown-menu dropdown-menu-end"
+                            th:attr="aria-labelledby='cardShareAction' + ${post.id}">
+                            <li>
+                                <button class="dropdown-item" href="#"
+                                        onclick="navigator.clipboard.writeText(window.location.origin + '/posts/' + this.getAttribute('data-post-id')).then(() => alert('링크가 복사되었습니다.'))"
+                                        th:attr="data-post-id=${post.id}">
+                                    <i class="bi bi-link fa-fw pe-2"></i>링크 복사
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- Card share action END -->
+                </ul>
+                <!-- Feed react END -->
+            </div>
+            <!-- Card body END -->
+        </div>
+        <!-- Card post item END -->
+
+        <!-- Load more posts -->
+        <div class="card-footer border-0 pt-0"
+             th:if="${posts != null and !posts.isEmpty() and posts.hasNext()}">
+            <!-- Load more posts -->
+            <button aria-pressed="true"
+                    class="btn btn-link btn-link-loader btn-sm text-secondary d-flex align-items-center"
+                    data-bs-toggle="button" href="#"
+                    th:href="@{/posts/mime(page=${posts.number + 1})}">
+                <div class="spinner-dots me-2">
+                    <span class="spinner-dot"></span>
+                    <span class="spinner-dot"></span>
+                    <span class="spinner-dot"></span>
+                </div>
+                Load more posts
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Post Detail Modal START -->
+    <div aria-hidden="true" aria-labelledby="postDetailModalLabel" class="modal fade" id="postDetailModal"
+         tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl d-flex align-items-center justify-content-center min-vh-100">
+            <div class="modal-content mx-auto" style="max-height: 90vh; overflow-y: auto;">
+                <!-- Modal header START -->
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="postDetailModalLabel">
+                        <i class="bi bi-card-image text-primary me-2"></i>게시글 상세보기
+                    </h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <!-- Modal header END -->
+                <!-- Modal body START -->
+                <div class="modal-body">
+                    <div class="text-center py-3" id="post-detail-loading">
+                        <output class="spinner-border text-primary">
+                            <span class="visually-hidden">Loading...</span>
+                        </output>
+                    </div>
+                    <div id="post-detail-modal-content">
+                        <!-- Post detail content will be loaded here -->
+                    </div>
+                </div>
+                <!-- Modal body END -->
+            </div>
+        </div>
+    </div>
+    <!-- Post Detail Modal END -->
+
+</div>
+</body>
+</html>

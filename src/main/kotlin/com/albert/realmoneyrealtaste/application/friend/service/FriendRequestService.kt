@@ -6,6 +6,7 @@ import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReade
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
+import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestSentEvent
 import jakarta.transaction.Transactional
@@ -23,7 +24,6 @@ class FriendRequestService(
 
     companion object {
         const val ERROR_FRIEND_REQUEST_FAILED = "친구 요청에 실패했습니다."
-        const val ERROR_DUPLICATE_REQUEST = "이미 친구 요청을 보냈거나 친구 관계입니다."
     }
 
     override fun sendFriendRequest(command: FriendRequestCommand): Friendship {
@@ -32,7 +32,13 @@ class FriendRequestService(
             validateMembersExist(command)
 
             // 기존 친구 관계나 요청이 있는지 확인
-            validateNoDuplicateRequest(command.fromMemberId, command.toMemberId)
+            val existingFriendship = friendshipReader.findByMembersId(command.fromMemberId, command.toMemberId)
+
+            if (existingFriendship != null) {
+                existingFriendship.status = FriendshipStatus.PENDING
+                publishEvent(existingFriendship, command)
+                return existingFriendship
+            }
 
             // 친구 요청 생성
             val friendship = Friendship.request(command)
@@ -63,11 +69,5 @@ class FriendRequestService(
                 toMemberId = command.toMemberId
             )
         )
-    }
-
-    private fun validateNoDuplicateRequest(fromMemberId: Long, toMemberId: Long) {
-        // 양방향으로 기존 관계 확인 (ACCEPTED, PENDING 상태)
-        val existingRelationship = friendshipReader.existsByMemberIds(fromMemberId, toMemberId)
-        require(!existingRelationship) { ERROR_DUPLICATE_REQUEST }
     }
 }

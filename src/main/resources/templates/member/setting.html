@@ -6,29 +6,12 @@
 
     <!-- Meta Tags -->
     <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
-    <!-- End Meta Tags -->
 
-    <!-- Dark mode -->
-    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
-    <!-- End Dark mode -->
+    <!-- Styles -->
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
 
-    <!-- Favicon -->
-    <link href="/assets/images/favicon.ico" rel="shortcut icon">
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Plugins CSS -->
-    <link href="/assets/vendor/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/choices.js/public/assets/styles/choices.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/dropzone/dist/dropzone.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/flatpickr/dist/flatpickr.css" rel="stylesheet" type="text/css">
-
-    <!-- Theme CSS -->
-    <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
-
+    <!-- Core Scripts -->
+    <th:block th:replace="~{fragments/head :: core-scripts}"></th:block>
 </head>
 
 <body>
@@ -229,6 +212,15 @@
                             </div>
                             <div class="card-body">
                                 <form class="row g-3" method="post" th:action="@{/members/setting/password}">
+                                    <label>
+                                        <input autocomplete="username"
+                                               class="visually-hidden"
+                                               name="username"
+                                               readonly
+                                               tabindex="-1"
+                                               th:value="${member.email.address}"
+                                               type="text">
+                                    </label>
                                     <!-- Current password -->
                                     <div class="col-12">
                                         <label class="form-label" for="currentPassword">현재 비밀번호</label>
@@ -328,65 +320,7 @@
 <!-- Bootstrap JS -->
 <script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Vendors -->
-<script src="/assets/vendor/choices.js/public/assets/scripts/choices.min.js"></script>
-<script src="/assets/vendor/dropzone/dist/dropzone.js"></script>
-<script src="/assets/vendor/flatpickr/dist/flatpickr.min.js"></script>
-
-<!-- Theme Functions -->
-<script src="/assets/js/functions.js"></script>
-
-<script>
-    // 탭 해시 네비게이션 스크립트
-    document.addEventListener('DOMContentLoaded', function () {
-        const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
-
-        // 탭 클릭 시 URL 해시 업데이트
-        tabButtons.forEach(button => {
-            button.addEventListener('shown.bs.tab', function (e) {
-                const targetId = e.target.getAttribute('data-bs-target');
-                if (targetId) {
-                    const hash = targetId.replace('#nav-setting-tab-', '');
-                    window.history.pushState(null, '', `#${hash}`);
-                }
-            });
-        });
-
-        // 페이지 로드 시 URL 해시에 따라 탭 활성화
-        function activateTabFromHash() {
-            const hash = window.location.hash.replace('#', '');
-            if (hash) {
-                let targetTab;
-
-                // 해시에 따라 탭 선택
-                switch (hash) {
-                    case 'account':
-                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-account"]');
-                        break;
-                    case 'password':
-                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-password"]');
-                        break;
-                    case 'delete':
-                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-delete"]');
-                        break;
-                    default:
-                        targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-account"]');
-                }
-
-                if (targetTab) {
-                    const tab = new bootstrap.Tab(targetTab);
-                    tab.show();
-                }
-            }
-        }
-
-        // 초기 로드 시 탭 활성화
-        activateTabFromHash();
-
-        // 뒤로가기/앞으로가기 버튼 대응
-        window.addEventListener('hashchange', activateTabFromHash);
-    });
-</script>
+<th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
 
 </body>
 

@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.Repository
 
 /**
@@ -77,4 +78,15 @@ interface MemberRepository : Repository<Member, Long> {
      * @return 조회된 회원 엔티티 목록
      */
     fun findAllByIdInAndStatus(memberIds: List<Long>, status: MemberStatus): List<Member>
+
+    @Query(
+        """
+        SELECT m FROM Member m
+        WHERE  m.status = :status
+          AND m.id != :memberId
+        ORDER BY FUNCTION('RAND')
+        LIMIT :limit
+        """
+    )
+    fun findSuggestedMembers(memberId: Long, status: MemberStatus, limit: Long): List<Member>
 }

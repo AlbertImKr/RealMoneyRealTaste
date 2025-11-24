@@ -13,10 +13,14 @@ data class Author(
 
     @Column(name = "author_nickname", nullable = false, length = MAX_NICKNAME_LENGTH)
     val nickname: String,
+
+    @Column(name = "author_introduction", nullable = false, length = MAX_INTRODUCTION_LENGTH)
+    val introduction: String,
 ) {
 
     companion object {
         const val MAX_NICKNAME_LENGTH = 20
+        const val MAX_INTRODUCTION_LENGTH = 500
 
         const val ERROR_NICKNAME_BLANK = "작성자 닉네임은 필수입니다."
         const val ERROR_NICKNAME_LENGTH = "닉네임은 20자 이내여야 합니다."

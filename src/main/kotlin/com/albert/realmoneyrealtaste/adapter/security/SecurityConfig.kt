@@ -17,10 +17,26 @@ class SecurityConfig {
         httpSecurity
             .authorizeHttpRequests {
                 it.requestMatchers("/").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/posts/mine", "posts/mine/**").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/posts/*/edit").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/members/setting").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/members/*").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/posts/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/collections/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/collections/*/detail/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/collections/*/posts/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/following/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/followers/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/friends").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/members/*/friends/widget/fragment").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/friends").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/friends/fragment").authenticated()
+                    .requestMatchers(HttpMethod.GET, "/friends/requests/fragment").authenticated()
                     .requestMatchers("/signup", "/members/activate", "/signin").permitAll()
                     .requestMatchers("/members/password-forgot", "/members/password-reset").permitAll()
                     .requestMatchers(HttpMethod.GET, "/posts/*/comments/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/comments/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
                     .requestMatchers("/assets/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
@@ -28,6 +44,8 @@ class SecurityConfig {
             .csrf {
                 it.ignoringRequestMatchers(
                     "/api/**",
+                    "/friendships",
+                    "/friendships/*",
                 )
             }
             .formLogin {

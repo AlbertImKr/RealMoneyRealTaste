@@ -8,6 +8,8 @@
         <meta content="Albert" name="author">
         <meta content="RMRT - 내돈 내산 맛집 추천 서비스" name="description">
         <meta content="RMRT, 맛집, 추천, 리뷰" name="keywords">
+        <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf != null}"/>
+        <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf != null}"/>
     </th:block>
 </head>
 <body>

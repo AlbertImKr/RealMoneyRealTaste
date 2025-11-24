@@ -1,11 +1,11 @@
 package com.albert.realmoneyrealtaste.application.follow.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
 import com.albert.realmoneyrealtaste.application.follow.event.FollowStartedEvent
 import com.albert.realmoneyrealtaste.application.follow.exception.FollowCreateException
 import com.albert.realmoneyrealtaste.application.follow.required.FollowRepository
 import com.albert.realmoneyrealtaste.domain.follow.FollowStatus
-import com.albert.realmoneyrealtaste.domain.follow.command.FollowCreateCommand
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,10 +37,13 @@ class FollowCreatorTest(
             email = "following@test.com",
             nickname = "following"
         )
-        val command = FollowCreateCommand(follower.requireId(), following.requireId())
+        val request = FollowCreateRequest(
+            followerId = follower.requireId(),
+            followingId = following.requireId(),
+        )
         applicationEvents.clear()
 
-        val result = followCreator.follow(command)
+        val result = followCreator.follow(request)
 
         // 반환된 결과 검증
         assertAll(
@@ -80,10 +83,13 @@ class FollowCreatorTest(
             email = "existing@test.com",
             nickname = "existing"
         )
-        val command = FollowCreateCommand(nonExistentFollowerId, following.requireId())
+        val request = FollowCreateRequest(
+            followerId = nonExistentFollowerId,
+            followingId = following.requireId(),
+        )
 
         assertFailsWith<FollowCreateException> {
-            followCreator.follow(command)
+            followCreator.follow(request)
         }.let {
             assertEquals("팔로우에 실패했습니다.", it.message)
         }
@@ -96,17 +102,20 @@ class FollowCreatorTest(
             nickname = "existing2"
         )
         val nonExistentFollowingId = 999999L
-        val command = FollowCreateCommand(follower.requireId(), nonExistentFollowingId)
+        val request = FollowCreateRequest(
+            followerId = follower.requireId(),
+            followingId = nonExistentFollowingId,
+        )
 
         assertFailsWith<FollowCreateException> {
-            followCreator.follow(command)
+            followCreator.follow(request = request)
         }.let {
             assertEquals("팔로우에 실패했습니다.", it.message)
         }
     }
 
     @Test
-    fun `follow - failure - throws exception when duplicate active follow exists`() {
+    fun `follow - success - when duplicate active follow exists`() {
         val follower = testMemberHelper.createActivatedMember(
             email = "duplicate-follower@test.com",
             nickname = "duplicatefollower"
@@ -117,15 +126,21 @@ class FollowCreatorTest(
         )
 
         // 첫 번째 팔로우
-        val command = FollowCreateCommand(follower.requireId(), following.requireId())
-        followCreator.follow(command)
+        val request = FollowCreateRequest(
+            followerId = follower.requireId(),
+            followingId = following.requireId()
+        )
+        followCreator.follow(request)
 
         // 중복 팔로우 시도
-        assertFailsWith<FollowCreateException> {
-            followCreator.follow(command)
-        }.let {
-            assertEquals("팔로우에 실패했습니다.", it.message)
-        }
+        val result = followCreator.follow(request)
+
+        assertAll(
+            { assertNotNull(result) },
+            { assertEquals(follower.requireId(), result.relationship.followerId) },
+            { assertEquals(following.requireId(), result.relationship.followingId) },
+            { assertEquals(FollowStatus.ACTIVE, result.status) },
+        )
     }
 
     @Test
@@ -140,12 +155,15 @@ class FollowCreatorTest(
         )
 
         // 첫 번째 팔로우 후 언팔로우
-        val command = FollowCreateCommand(follower.requireId(), following.requireId())
-        val firstFollow = followCreator.follow(command)
+        val request = FollowCreateRequest(
+            followerId = follower.requireId(),
+            followingId = following.requireId()
+        )
+        val firstFollow = followCreator.follow(request)
         firstFollow.unfollow()
 
         // 다시 팔로우 (허용되어야 함)
-        val result = followCreator.follow(command)
+        val result = followCreator.follow(request)
 
         assertAll(
             { assertNotNull(result) },
@@ -167,13 +185,16 @@ class FollowCreatorTest(
         )
 
         // 첫 번째 팔로우 후 차단
-        val command = FollowCreateCommand(follower.requireId(), following.requireId())
-        val firstFollow = followCreator.follow(command)
+        val request = FollowCreateRequest(
+            followerId = follower.requireId(),
+            followingId = following.requireId()
+        )
+        val firstFollow = followCreator.follow(request)
         firstFollow.block()
         followRepository.save(firstFollow)
 
         // 다시 팔로우 (허용되어야 함)
-        val result = followCreator.follow(command)
+        val result = followCreator.follow(request)
 
         assertAll(
             { assertNotNull(result) },
@@ -198,11 +219,16 @@ class FollowCreatorTest(
             nickname = "following2"
         )
 
-        val command1 = FollowCreateCommand(follower.requireId(), following1.requireId())
-        val command2 = FollowCreateCommand(follower.requireId(), following2.requireId())
-
-        val result1 = followCreator.follow(command1)
-        val result2 = followCreator.follow(command2)
+        val request1 = FollowCreateRequest(
+            follower.requireId(),
+            following1.requireId()
+        )
+        val request2 = FollowCreateRequest(
+            follower.requireId(),
+            following2.requireId()
+        )
+        val result1 = followCreator.follow(request1)
+        val result2 = followCreator.follow(request2)
 
         assertAll(
             { assertEquals(follower.requireId(), result1.relationship.followerId) },
@@ -227,10 +253,13 @@ class FollowCreatorTest(
         )
         // 활성화하지 않음 (PENDING 상태)
 
-        val command = FollowCreateCommand(activeFollower.requireId(), inactiveMember.requireId())
+        val request = FollowCreateRequest(
+            activeFollower.requireId(),
+            inactiveMember.requireId()
+        )
 
         assertFailsWith<FollowCreateException> {
-            followCreator.follow(command)
+            followCreator.follow(request)
         }.let {
             assertEquals("팔로우에 실패했습니다.", it.message)
         }
@@ -244,7 +273,11 @@ class FollowCreatorTest(
         )
 
         assertFailsWith<IllegalArgumentException> {
-            FollowCreateCommand(member.requireId(), member.requireId())
+            val request = FollowCreateRequest(
+                member.requireId(),
+                member.requireId(),
+            )
+            followCreator.follow(request)
         }
     }
 
@@ -259,8 +292,11 @@ class FollowCreatorTest(
             nickname = "persistfollowing"
         )
 
-        val command = FollowCreateCommand(follower.requireId(), following.requireId())
-        val result = followCreator.follow(command)
+        val request = FollowCreateRequest(
+            follower.requireId(),
+            following.requireId(),
+        )
+        val result = followCreator.follow(request)
 
         // 데이터베이스에서 다시 조회하여 확인
         val persisted = followRepository.findById(result.requireId())
@@ -285,8 +321,11 @@ class FollowCreatorTest(
             nickname = "statefollowing"
         )
 
-        val command = FollowCreateCommand(follower.requireId(), following.requireId())
-        val result = followCreator.follow(command)
+        val request = FollowCreateRequest(
+            follower.requireId(),
+            following.requireId(),
+        )
+        val result = followCreator.follow(request)
 
         assertAll(
             { assertEquals(FollowStatus.ACTIVE, result.status) },
@@ -308,12 +347,15 @@ class FollowCreatorTest(
         )
 
         // A가 B를 팔로우
-        val command1 = FollowCreateCommand(member1.requireId(), member2.requireId())
-        val result1 = followCreator.follow(command1)
+        val request1 = FollowCreateRequest(
+            member1.requireId(),
+            member2.requireId()
+        )
+        val result1 = followCreator.follow(request1)
 
         // B가 A를 팔로우 (허용되어야 함)
-        val command2 = FollowCreateCommand(member2.requireId(), member1.requireId())
-        val result2 = followCreator.follow(command2)
+        val request2 = FollowCreateRequest(member2.requireId(), member1.requireId())
+        val result2 = followCreator.follow(request2)
 
         assertAll(
             { assertEquals(member1.requireId(), result1.relationship.followerId) },

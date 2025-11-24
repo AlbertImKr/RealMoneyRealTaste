@@ -1,0 +1,555 @@
+<!-- Scripts fragment -->
+<th:block th:fragment="scripts">
+    <!-- Bootstrap JS -->
+    <script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Tab Hash Navigation -->
+    <script>
+        // 탭 해시 네비게이션 스크립트
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+
+            // 탭 클릭 시 URL 해시 업데이트
+            tabButtons.forEach(button => {
+                button.addEventListener('shown.bs.tab', function (e) {
+                    const targetId = e.target.getAttribute('data-bs-target');
+                    if (targetId) {
+                        const hash = targetId.replace('#nav-setting-tab-', '');
+                        window.history.pushState(null, '', `#${hash}`);
+                    }
+                });
+            });
+
+            // 페이지 로드 시 URL 해시에 따라 탭 활성화
+            function activateTabFromHash() {
+                const hash = window.location.hash.replace('#', '');
+                if (hash) {
+                    let targetTab;
+
+                    // 해시에 따라 탭 선택
+                    switch (hash) {
+                        case 'account':
+                            targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-account"]');
+                            break;
+                        case 'password':
+                            targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-password"]');
+                            break;
+                        case 'delete':
+                            targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-delete"]');
+                            break;
+                        default:
+                            targetTab = document.querySelector('[data-bs-target="#nav-setting-tab-account"]');
+                    }
+
+                    if (targetTab) {
+                        const tab = new bootstrap.Tab(targetTab);
+                        tab.show();
+                    }
+                }
+            }
+
+            // 초기 로드 시 탭 활성화
+            activateTabFromHash();
+
+            // 뒤로가기/앞으로가기 버튼 대응
+            window.addEventListener('hashchange', activateTabFromHash);
+        });
+    </script>
+
+    <!-- Core UI Functions -->
+    <script>
+        "use strict";
+
+        const UI = {
+            init: function () {
+                this.initTooltips();
+                this.initPopovers();
+                this.initAutoResize();
+                this.initToasts();
+                this.initPasswordToggle();
+            },
+
+            // Helper functions
+            select: function (selector) {
+                return document.querySelector(selector);
+            },
+
+            selectAll: function (selector) {
+                return document.querySelectorAll(selector);
+            },
+
+            // Bootstrap Tooltips
+            initTooltips: function () {
+                const tooltipTriggers = this.selectAll('[data-bs-toggle="tooltip"]');
+                tooltipTriggers.forEach(function (element) {
+                    new bootstrap.Tooltip(element);
+                });
+            },
+
+            // Bootstrap Popovers
+            initPopovers: function () {
+                const popoverTriggers = this.selectAll('[data-bs-toggle="popover"]');
+                popoverTriggers.forEach(function (element) {
+                    new bootstrap.Popover(element);
+                });
+            },
+
+            // Auto-resize textareas
+            initAutoResize: function () {
+                const textareas = this.selectAll('[data-autoresize]');
+                textareas.forEach(function (textarea) {
+                    const offset = textarea.offsetHeight - textarea.clientHeight;
+                    textarea.addEventListener('input', function () {
+                        this.style.height = 'auto';
+                        this.style.height = this.scrollHeight + offset + 'px';
+                    });
+                });
+            },
+
+            // Toast notifications
+            initToasts: function () {
+                const toastButtons = this.selectAll('.toast-btn');
+                toastButtons.forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        const targetId = this.dataset.target;
+                        const toastElement = document.getElementById(targetId);
+                        if (toastElement) {
+                            const toast = new bootstrap.Toast(toastElement);
+                            toast.show();
+                        }
+                    });
+                });
+            },
+
+            // Password visibility toggle
+            initPasswordToggle: function () {
+                const passwordInputs = this.selectAll('.fakepassword');
+                passwordInputs.forEach(function (passwordInput) {
+                    const toggleButton = passwordInput.parentElement.querySelector('.fakepasswordicon');
+                    if (toggleButton) {
+                        toggleButton.addEventListener('click', function () {
+                            const type = passwordInput.type === 'password' ? 'text' : 'password';
+                            passwordInput.type = type;
+
+                            // Update icon
+                            const icon = this.querySelector('i');
+                            if (icon) {
+                                icon.classList.toggle('bi-eye');
+                                icon.classList.toggle('bi-eye-slash');
+                            }
+                        });
+                    }
+                });
+            }
+        };
+
+        // Initialize UI functions when DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            UI.init();
+        });
+    </script>
+
+    <!-- HTMX Indicator Styles -->
+    <style>
+        .htmx-indicator {
+            display: none;
+        }
+
+        .htmx-request .htmx-indicator {
+            display: inline;
+        }
+
+        .htmx-request.htmx-indicator {
+            display: inline;
+        }
+    </style>
+
+    <!-- HTMX Core Functions -->
+    <script>
+        "use strict";
+
+        const HTMX = {
+            init: function () {
+                this.setupCSRF();
+                this.setupLoadingIndicators();
+                this.setupErrorHandling();
+                this.setupTabManagement();
+            },
+
+            setupCSRF: function () {
+                document.body.addEventListener('htmx:configRequest', function (event) {
+                    const csrfToken = document.querySelector('meta[name="_csrf"]');
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+
+                    if (csrfToken && csrfHeader) {
+                        event.detail.headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
+                    }
+                });
+            },
+
+            setupLoadingIndicators: function () {
+                document.body.addEventListener('htmx:beforeRequest', function (event) {
+                    const targetId = event.detail.target?.id;
+
+                    if (targetId === 'post-detail-modal-content') {
+                        const loadingElement = document.getElementById('post-detail-loading');
+                        if (loadingElement) {
+                            loadingElement.style.display = 'block';
+                        }
+                    } else if (targetId === 'content-area') {
+                        const loadingElement = document.getElementById('loading-indicator');
+                        if (loadingElement) {
+                            loadingElement.style.display = 'block';
+                        }
+                    }
+                });
+
+                document.body.addEventListener('htmx:afterRequest', function (event) {
+                    const targetId = event.detail.target?.id;
+
+                    if (targetId === 'post-detail-modal-content') {
+                        const loadingElement = document.getElementById('post-detail-loading');
+                        if (loadingElement) {
+                            loadingElement.style.display = 'none';
+                        }
+
+                        if (event.detail.xhr.status === 200) {
+                            const modalBody = document.querySelector('#postDetailModal .modal-body');
+                            if (modalBody) {
+                                modalBody.scrollTop = 0;
+                            }
+
+                            setTimeout(() => {
+                                const modalLoadedEvent = new CustomEvent('modalContentLoaded');
+                                document.dispatchEvent(modalLoadedEvent);
+                            }, 100);
+                        }
+                    } else if (targetId === 'content-area') {
+                        const loadingElement = document.getElementById('loading-indicator');
+                        if (loadingElement) {
+                            loadingElement.style.display = 'none';
+                        }
+                    }
+                });
+            },
+
+            setupErrorHandling: function () {
+                document.body.addEventListener('htmx:responseError', function (event) {
+                    const contentElement = document.getElementById('post-detail-modal-content');
+                    if (!contentElement) return;
+
+                    if (event.detail.xhr.status === 403) {
+                        contentElement.innerHTML = `
+                            <div class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-lock text-danger" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">로그인이 필요합니다</h5>
+                                <p class="text-muted mb-3">게시글을 보려면 로그인해주세요.</p>
+                                <a class="btn btn-primary" href="/signin">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>로그인
+                                </a>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    contentElement.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="text-muted mb-2">게시글을 불러올 수 없습니다</h5>
+                            <p class="text-muted mb-3">네트워크 연결을 확인하고 다시 시도해주세요.</p>
+                            <button class="btn btn-primary" onclick="location.reload()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>새로고침
+                            </button>
+                        </div>
+                    `;
+                });
+            },
+
+            setupTabManagement: function () {
+                document.body.addEventListener('htmx:beforeRequest', function (evt) {
+                    if (evt.detail.target?.id === 'content-area') {
+                        document.querySelectorAll('.nav-link').forEach(tab => {
+                            tab.classList.remove('active');
+                        });
+                        evt.detail.elt.classList.add('active');
+                    }
+                });
+            }
+        };
+
+        // Initialize HTMX functions when DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            HTMX.init();
+
+            // Posts 탭 자동 클릭 (my-list.html용)
+            const postsTab = document.getElementById('posts-tab');
+            if (postsTab) {
+                postsTab.click();
+            }
+        });
+    </script>
+
+    <!-- Post Detail Modal Script -->
+    <script>
+        function removeFocusFromModal() {
+            const modalElement = document.getElementById('postDetailModal');
+            if (modalElement) {
+                modalElement.addEventListener('hide.bs.modal', function () {
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', removeFocusFromModal);
+    </script>
+
+    <!-- Modal Create Post Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 모달이 열릴 때마다 초기화
+            const modalElement = document.getElementById('modalCreateFeed');
+            if (modalElement) {
+                // 모달이 열린 후
+                modalElement.addEventListener('shown.bs.modal', function () {
+                    initModalRatingStars();
+                    initModalImageUpload();
+                });
+
+                // 모달이 닫히기 시작할 때 (중요!)
+                modalElement.addEventListener('hide.bs.modal', function () {
+                    // 포커스된 요소가 있다면 포커스 해제
+                    if (document.activeElement) {
+                        document.activeElement.blur();
+                    }
+                });
+            }
+
+
+            // 평점 선택 기능
+            function initModalRatingStars() {
+                const stars = document.querySelectorAll('#modal-rating-stars i');
+                const ratingInput = document.getElementById('modal-contentRating');
+                const ratingText = document.getElementById('modal-rating-text');
+
+                if (!stars.length) return;
+
+                stars.forEach(star => {
+                    star.addEventListener('click', function () {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        ratingInput.value = rating;
+
+                        // 별 채우기
+                        stars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.classList.remove('bi-star');
+                                s.classList.add('bi-star-fill');
+                            } else {
+                                s.classList.remove('bi-star-fill');
+                                s.classList.add('bi-star');
+                            }
+                        });
+
+                        // 텍스트 업데이트
+                        ratingText.textContent = rating + '점';
+                    });
+
+                    // 호버 효과
+                    star.addEventListener('mouseenter', function () {
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        stars.forEach((s, index) => {
+                            if (index < rating) {
+                                s.style.opacity = '1';
+                            } else {
+                                s.style.opacity = '0.5';
+                            }
+                        });
+                    });
+                });
+
+                const ratingContainer = document.getElementById('modal-rating-stars');
+                if (ratingContainer) {
+                    ratingContainer.addEventListener('mouseleave', function () {
+                        stars.forEach(s => {
+                            s.style.opacity = '1';
+                        });
+                    });
+                }
+            }
+
+            // 이미지 URL 관리
+            function initModalImageUpload() {
+                let imageCount = 1;
+                const maxImages = 5;
+                const addImageBtn = document.getElementById('modal-add-image-btn');
+                const imageUrlContainer = document.getElementById('modal-image-url-container');
+
+                if (!addImageBtn || !imageUrlContainer) return;
+
+                function updateImageIndices() {
+                    const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
+                    inputGroups.forEach((group, index) => {
+                        const input = group.querySelector('.image-url-input');
+                        input.setAttribute('data-index', index);
+                        input.setAttribute('name', `imagesUrls[${index}]`);
+                        group.setAttribute('data-image-index', index);
+                    });
+                    imageCount = inputGroups.length;
+
+                    // 최대 개수 도달 시 추가 버튼 숨김
+                    addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'inline-block';
+
+                    // 삭제 버튼 표시/숨김
+                    inputGroups.forEach((group, index) => {
+                        const removeBtn = group.querySelector('.remove-image-btn');
+                        if (removeBtn) {
+                            removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
+                        }
+                    });
+                }
+
+                addImageBtn.addEventListener('click', function () {
+                    if (imageCount >= maxImages) return;
+
+                    const newIndex = imageCount;
+                    const newInputGroup = document.createElement('div');
+                    newInputGroup.className = 'input-group mb-2';
+                    newInputGroup.setAttribute('data-image-index', newIndex);
+                    newInputGroup.innerHTML = `
+                <input type="text"
+                       class="form-control image-url-input"
+                       name="imagesUrls[${newIndex}]"
+                       placeholder="이미지 URL을 입력하세요"
+                       data-index="${newIndex}">
+                <button class="btn btn-outline-danger remove-image-btn" type="button">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+
+                    imageUrlContainer.appendChild(newInputGroup);
+
+                    // 삭제 버튼 이벤트
+                    const removeBtn = newInputGroup.querySelector('.remove-image-btn');
+                    removeBtn.addEventListener('click', function () {
+                        newInputGroup.remove();
+                        updateImageIndices();
+                    });
+
+                    updateImageIndices();
+                });
+
+                // 삭제 버튼 이벤트
+                imageUrlContainer.addEventListener('click', function (e) {
+                    if (e.target.closest('.remove-image-btn')) {
+                        const inputGroup = e.target.closest('.input-group');
+                        if (imageCount > 1) {
+                            inputGroup.remove();
+                            updateImageIndices();
+                        }
+                    }
+                });
+
+                // 초기 상태 설정
+                updateImageIndices();
+            }
+        });
+    </script>
+
+    <!-- Time Script -->
+    <script>
+        // 상대 시간 업데이트 함수 (최적화)
+        function updateRelativeTime() {
+            const elements = document.querySelectorAll('[data-created-at]');
+            const now = Date.now(); // new Date()보다 빠름
+
+            elements.forEach(function (element) {
+                const createdAtStr = element.getAttribute('data-created-at');
+                if (!createdAtStr) return;
+
+                const createdAt = new Date(createdAtStr).getTime();
+                const diffMs = now - createdAt;
+
+                let relativeTime;
+
+                if (diffMs < 60000) { // 1분 미만
+                    relativeTime = '방금 전';
+                } else if (diffMs < 3600000) { // 1시간 미만
+                    relativeTime = Math.floor(diffMs / 60000) + '분 전';
+                } else if (diffMs < 86400000) { // 24시간 미만
+                    relativeTime = Math.floor(diffMs / 3600000) + '시간 전';
+                } else if (diffMs < 31536000000) { // 1년 미만
+                    relativeTime = Math.floor(diffMs / 86400000) + '일 전';
+                } else {
+                    relativeTime = Math.floor(diffMs / 31536000000) + '년 전';
+                }
+
+                // 텍스트가 변경될 때만 업데이트 (성능 최적화)
+                if (element.textContent !== relativeTime) {
+                    element.textContent = relativeTime;
+                }
+            });
+        }
+
+        // 즉시 실행 (DOM 로드 기다리지 않음)
+        (function initializeTimeUpdates() {
+            // 첫 실행
+            updateRelativeTime();
+
+            // DOM이 완전히 로드되면 다시 실행
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updateRelativeTime);
+            }
+
+            // 1분마다 업데이트 (기존 interval 중복 방지)
+            if (!window.timeUpdateInterval) {
+                window.timeUpdateInterval = setInterval(updateRelativeTime, 60000);
+            }
+        })();
+
+        // 동적 콘텐츠 로드 시 시간 업데이트 (HTMX, AJAX 등)
+        function updateTimeForNewContent(container = document) {
+            const elements = container.querySelectorAll('[data-created-at]');
+            const now = Date.now();
+
+            elements.forEach(function (element) {
+                const createdAtStr = element.getAttribute('data-created-at');
+                if (!createdAtStr || element.textContent.includes('전') || element.textContent === '방금 전') {
+                    return; // 이미 처리된 요소는 스킵
+                }
+
+                const createdAt = new Date(createdAtStr).getTime();
+                const diffMs = now - createdAt;
+
+                let relativeTime;
+
+                if (diffMs < 60000) {
+                    relativeTime = '방금 전';
+                } else if (diffMs < 3600000) {
+                    relativeTime = Math.floor(diffMs / 60000) + '분 전';
+                } else if (diffMs < 86400000) {
+                    relativeTime = Math.floor(diffMs / 3600000) + '시간 전';
+                } else if (diffMs < 31536000000) {
+                    relativeTime = Math.floor(diffMs / 86400000) + '일 전';
+                } else {
+                    relativeTime = Math.floor(diffMs / 31536000000) + '년 전';
+                }
+
+                element.textContent = relativeTime;
+            });
+        }
+
+        // HTMX 이벤트와 연동
+        document.addEventListener('htmx:afterSettle', function (event) {
+            updateTimeForNewContent(event.detail.target);
+        });
+
+        // 전역으로 노출 (필요시 수동 호출 가능)
+        window.updateRelativeTime = updateRelativeTime;
+        window.updateTimeForNewContent = updateTimeForNewContent;
+    </script>
+</th:block>

@@ -225,7 +225,8 @@ class CollectionCreatorTest(
             CollectionCreateCommand(
                 ownerMemberId = member.requireId(),
                 name = "", // 빈 이름
-                description = "설명"
+                description = "설명",
+                ownerName = "test"
             )
         }
     }
@@ -258,17 +259,146 @@ class CollectionCreatorTest(
         assertEquals(longDescription, result.info.description)
     }
 
+    @Test
+    fun `createCollection - success - creates collection with maximum length name`() {
+        val member = testMemberHelper.createActivatedMember()
+        val maxLengthName = "a".repeat(CollectionInfo.MAX_NAME_LENGTH)
+        val command = createCollectionCommand(
+            ownerMemberId = member.requireId(),
+            name = maxLengthName
+        )
+
+        val result = collectionCreator.createCollection(command)
+
+        assertEquals(maxLengthName, result.info.name)
+    }
+
+    @Test
+    fun `createCollection - failure - throws exception when name exceeds maximum length`() {
+        val member = testMemberHelper.createActivatedMember()
+        val tooLongName = "a".repeat(CollectionInfo.MAX_NAME_LENGTH + 1)
+
+        assertFailsWith<IllegalArgumentException> {
+            createCollectionCommand(
+                ownerMemberId = member.requireId(),
+                name = tooLongName
+            )
+        }
+    }
+
+    @Test
+    fun `createCollection - failure - throws exception when description exceeds maximum length`() {
+        val member = testMemberHelper.createActivatedMember()
+        val tooLongDescription = "a".repeat(CollectionInfo.MAX_DESCRIPTION_LENGTH + 1)
+
+        assertFailsWith<IllegalArgumentException> {
+            createCollectionCommand(
+                ownerMemberId = member.requireId(),
+                description = tooLongDescription
+            )
+        }
+    }
+
+    @Test
+    fun `createCollection - success - creates collection with special characters in name`() {
+        val member = testMemberHelper.createActivatedMember()
+        val specialName = "특수문자 !@#$%^&*() 테스트"
+        val command = createCollectionCommand(
+            ownerMemberId = member.requireId(),
+            name = specialName
+        )
+
+        val result = collectionCreator.createCollection(command)
+
+        assertEquals(specialName, result.info.name)
+    }
+
+    @Test
+    fun `createCollection - success - creates collection with unicode characters`() {
+        val member = testMemberHelper.createActivatedMember()
+        val unicodeName = "🍔 맛집 컬렉션 🍕"
+        val unicodeDescription = "다양한 나라의 음식을 모아봅니다 🌍"
+        val command = createCollectionCommand(
+            ownerMemberId = member.requireId(),
+            name = unicodeName,
+            description = unicodeDescription
+        )
+
+        val result = collectionCreator.createCollection(command)
+
+        assertEquals(unicodeName, result.info.name)
+        assertEquals(unicodeDescription, result.info.description)
+    }
+
+    @Test
+    fun `createCollection - success - creates collection with very long owner name`() {
+        val member = testMemberHelper.createActivatedMember()
+        val longOwnerName = "a".repeat(100)
+        val command = createCollectionCommand(
+            ownerMemberId = member.requireId(),
+            ownerMemberName = longOwnerName,
+        )
+
+        val result = collectionCreator.createCollection(command)
+
+        assertEquals(longOwnerName, result.owner.nickname)
+    }
+
+    @Test
+    fun `createCollection - success - handles concurrent creation for same member`() {
+        val member = testMemberHelper.createActivatedMember()
+
+        val command1 = createCollectionCommand(
+            ownerMemberId = member.requireId(),
+            name = "동시 생성 1"
+        )
+        val command2 = createCollectionCommand(
+            ownerMemberId = member.requireId(),
+            name = "동시 생성 2"
+        )
+
+        val collection1 = collectionCreator.createCollection(command1)
+        val collection2 = collectionCreator.createCollection(command2)
+
+        assertNotNull(collection1.id)
+        assertNotNull(collection2.id)
+        assertTrue(collection1.id != collection2.id)
+        assertEquals(member.id, collection1.owner.memberId)
+        assertEquals(member.id, collection2.owner.memberId)
+    }
+
+    @Test
+    fun `createCollection - success - validates cover image URL format`() {
+        val member = testMemberHelper.createActivatedMember()
+        val validUrls = listOf(
+            "https://example.com/image.jpg",
+            "http://test.org/photo.png",
+            "https://cdn.example.com/assets/image.webp"
+        )
+
+        validUrls.forEach { url ->
+            val command = createCollectionCommand(
+                ownerMemberId = member.requireId(),
+                coverImageUrl = url
+            )
+            val result = collectionCreator.createCollection(command)
+            assertEquals(url, result.info.coverImageUrl)
+        }
+    }
+
     private fun createCollectionCommand(
         ownerMemberId: Long,
+        ownerMemberName: String = "owner",
         name: String = "테스트 컬렉션",
         description: String = "테스트용 컬렉션 설명",
         coverImageUrl: String? = "https://example.com/cover.jpg",
         privacy: CollectionPrivacy = CollectionPrivacy.PUBLIC,
     ) = CollectionCreateCommand(
         ownerMemberId = ownerMemberId,
+        ownerName = ownerMemberName,
         name = name,
         description = description,
         coverImageUrl = coverImageUrl,
-        privacy = privacy
+        privacy = privacy,
     )
 }

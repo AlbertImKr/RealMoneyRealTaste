@@ -47,6 +47,29 @@ class MemberUpdaterTest(
     }
 
     @Test
+    fun `updateInfo - success - updates profileAddress`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val oldProfileAddress = ProfileAddress("oldAddress")
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = oldProfileAddress,
+            introduction = null,
+        )
+        memberUpdater.updateInfo(memberId, request)
+        val newProfileAddress = ProfileAddress("newAddress123")
+        val newRequest = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = newProfileAddress,
+            introduction = null,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, newRequest)
+
+        assertEquals(newProfileAddress, updatedMember.detail.profileAddress)
+    }
+
+    @Test
     fun `updateInfo - success - updates only nickname when other fields are null`() {
         val member = registerAndActivateMember()
         val originalProfileAddress = member.detail.profileAddress
@@ -137,6 +160,118 @@ class MemberUpdaterTest(
         }.let {
             assertEquals("회원 정보 업데이트 중 오류가 발생했습니다", it.message)
         }
+    }
+
+    @Test
+    fun `updateInfo - success - does not validate when profileAddress is null and member has null`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+
+        // member의 profileAddress가 이미 null인 상태에서 다시 null로 설정
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, request)
+
+        assertEquals(null, updatedMember.detail.profileAddress)
+    }
+
+    @Test
+    fun `updateInfo - success - does not validate when profileAddress is same as current`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val profileAddress = ProfileAddress("sameAddress")
+
+        // 먼저 profileAddress 설정
+        val setRequest = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = profileAddress,
+            introduction = null,
+        )
+        memberUpdater.updateInfo(memberId, setRequest)
+
+        // 동일한 profileAddress로 다시 설정 - 중복 검증을 하지 않아야 성공
+        val sameRequest = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = profileAddress,
+            introduction = null,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, sameRequest)
+
+        assertEquals(profileAddress, updatedMember.detail.profileAddress)
+    }
+
+    @Test
+    fun `updateInfo - success - validates only when profileAddress is different and not null`() {
+        val member1 = registerAndActivateMember()
+        val member2 = registerAndActivateMember(Email("member2@mail.com"), Nickname("member2"))
+        val member1Id = member1.id!!
+        val member2Id = member2.id!!
+        val profileAddress1 = ProfileAddress("address1")
+        val profileAddress2 = ProfileAddress("address2")
+
+        // member1에 첫 번째 주소 설정
+        val request1 = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = profileAddress1,
+            introduction = null,
+        )
+        memberUpdater.updateInfo(member1Id, request1)
+
+        // member2에 두 번째 주소 설정
+        val request2 = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = profileAddress2,
+            introduction = null,
+        )
+        memberUpdater.updateInfo(member2Id, request2)
+
+        // member2가 member1의 주소로 변경 시도 - 중복 검증 실패해야 함
+        val duplicateRequest = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = profileAddress1,
+            introduction = null,
+        )
+
+        assertFailsWith<MemberUpdateException> {
+            memberUpdater.updateInfo(member2Id, duplicateRequest)
+        }.let {
+            assertEquals("회원 정보 업데이트 중 오류가 발생했습니다", it.message)
+        }
+    }
+
+    @Test
+    fun `updateInfo - success - updates other fields when profileAddress validation is skipped`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val initialProfileAddress = ProfileAddress("initialAddress")
+        val newNickname = Nickname("newNickname")
+        val newIntroduction = Introduction("new introduction")
+
+        // 먼저 profileAddress 설정
+        val setRequest = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = initialProfileAddress,
+            introduction = null,
+        )
+        memberUpdater.updateInfo(memberId, setRequest)
+
+        // profileAddress를 null로 설정하면서 다른 필드도 업데이트
+        val updateRequest = AccountUpdateRequest(
+            nickname = newNickname,
+            profileAddress = null,
+            introduction = newIntroduction,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, updateRequest)
+
+        assertEquals(newNickname, updatedMember.nickname)
+        assertEquals(setRequest.profileAddress, updatedMember.detail.profileAddress)
+        assertEquals(newIntroduction, updatedMember.detail.introduction)
     }
 
     @Test

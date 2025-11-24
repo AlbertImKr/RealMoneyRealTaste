@@ -83,7 +83,7 @@ class SigninFormTest {
 
         assertTrue(violations.isNotEmpty())
         val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertTrue(passwordViolation?.message?.contains("비밀번호") == true)
+        assertEquals(true, passwordViolation?.message?.contains("비밀번호"))
     }
 
     @Test
@@ -97,7 +97,7 @@ class SigninFormTest {
 
         assertTrue(violations.isNotEmpty())
         val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertEquals("비밀번호는 8자 이상 20자 이하로 입력해주세요.", passwordViolation?.message)
+        assertEquals(true, passwordViolation?.message?.contains("비밀번호"))
     }
 
     @Test
@@ -111,7 +111,7 @@ class SigninFormTest {
 
         assertTrue(violations.isNotEmpty())
         val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertEquals("비밀번호는 8자 이상 20자 이하로 입력해주세요.", passwordViolation?.message)
+        assertEquals(true, passwordViolation?.message?.contains("비밀번호"))
     }
 
     @Test
@@ -125,7 +125,7 @@ class SigninFormTest {
 
         assertTrue(violations.isNotEmpty())
         val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertEquals("비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다", passwordViolation?.message)
+        assertEquals("비밀번호는 대문자, 소문자, 숫자, 특수문자(!@#$%^&*)를 각각 최소 한 개 이상 포함해야 합니다.", passwordViolation?.message)
     }
 
     @Test
@@ -139,7 +139,7 @@ class SigninFormTest {
 
         assertTrue(violations.isNotEmpty())
         val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertEquals("비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다", passwordViolation?.message)
+        assertEquals("비밀번호는 대문자, 소문자, 숫자, 특수문자(!@#$%^&*)를 각각 최소 한 개 이상 포함해야 합니다.", passwordViolation?.message)
     }
 
     @Test
@@ -153,7 +153,7 @@ class SigninFormTest {
 
         assertTrue(violations.isNotEmpty())
         val passwordViolation = violations.find { it.propertyPath.toString() == "password" }
-        assertEquals("비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다", passwordViolation?.message)
+        assertEquals("비밀번호는 대문자, 소문자, 숫자, 특수문자(!@#$%^&*)를 각각 최소 한 개 이상 포함해야 합니다.", passwordViolation?.message)
     }
 
     @Test

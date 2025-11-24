@@ -1,6 +1,9 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.webview.post.PostCreateForm
+import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
+import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
@@ -16,6 +19,7 @@ import org.springframework.ui.Model
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
@@ -27,7 +31,39 @@ class MemberView(
     private val memberUpdater: MemberUpdater,
     private val validator: PasswordUpdateFormValidator,
     private val passwordResetter: PasswordResetter,
+    private val followReader: FollowReader,
+    private val friendshipReader: FriendshipReader,
 ) {
+
+    @GetMapping(MemberUrls.PROFILE)
+    fun readProfile(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
+        model: Model,
+    ): String {
+        val profileMember = memberReader.readActiveMemberById(id)
+
+        model.addAttribute("author", profileMember) // 프로필 주인
+        model.addAttribute("member", principal) // 현재 로그인한 사용자
+        model.addAttribute("postCreateForm", PostCreateForm())
+
+        // 팔로우 및 친구 관계 상태 확인
+        if (principal != null && principal.id != id) {
+            val followingIds = followReader.findFollowings(principal.id, listOf(id))
+            model.addAttribute("isFollowing", followingIds.contains(id))
+
+            // 친구 관계 상태 확인
+            val isFriend = friendshipReader.isFriend(principal.id, id)
+            model.addAttribute("isFriend", isFriend)
+
+            // 친구 요청을 보냈는지 확인 (내가 보낸 요청이 대기 중인지)
+            val friendship = friendshipReader.sentedFriendRequest(principal.id, id)
+            val hasSentFriendRequest = friendship != null
+            model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
+        }
+
+        return MemberViews.PROFILE
+    }
 
     @GetMapping(MemberUrls.ACTIVATION)
     fun activate(
@@ -69,7 +105,7 @@ class MemberView(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         model: Model,
     ): String {
-        val member = memberReader.readMemberById(memberPrincipal.memberId)
+        val member = memberReader.readMemberById(memberPrincipal.id)
         model.addAttribute("member", member)
         return MemberViews.SETTING
     }
@@ -89,7 +125,7 @@ class MemberView(
             return "redirect:${MemberUrls.SETTING}#account"
         }
 
-        memberUpdater.updateInfo(memberPrincipal.memberId, form.toAccountUpdateRequest())
+        memberUpdater.updateInfo(memberPrincipal.id, form.toAccountUpdateRequest())
 
         redirectAttributes.addFlashAttribute("success", "계정 정보가 성공적으로 업데이트되었습니다.")
         return "redirect:${MemberUrls.SETTING}#account"
@@ -117,7 +153,7 @@ class MemberView(
         }
 
         memberUpdater.updatePassword(
-            memberPrincipal.memberId, RawPassword(request.currentPassword), RawPassword(request.newPassword)
+            memberPrincipal.id, RawPassword(request.currentPassword), RawPassword(request.newPassword)
         )
         redirectAttributes.addFlashAttribute("success", "비밀번호가 성공적으로 변경되었습니다.")
 
@@ -138,7 +174,7 @@ class MemberView(
             return "redirect:${MemberUrls.SETTING}#delete"
         }
 
-        memberUpdater.deactivate(memberPrincipal.memberId)
+        memberUpdater.deactivate(memberPrincipal.id)
 
         // 세션 무효화 및 로그아웃 처리
         request.session.invalidate()
@@ -207,5 +243,20 @@ class MemberView(
         redirectAttributes.addFlashAttribute("success", true)
         redirectAttributes.addFlashAttribute("message", "비밀번호가 성공적으로 재설정되었습니다. 새로운 비밀번호로 로그인해주세요.")
         return "redirect:/"
+    }
+
+    @GetMapping(MemberUrls.FRAGMENT_SUGGEST_USERS_SIDEBAR)
+    fun readSidebarFragment(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        model: Model,
+    ): String {
+        val suggestedUsers = memberReader.findSuggestedMembers(memberPrincipal.id, 5)
+        val targetIds = suggestedUsers.map { it.requireId() }
+        val followingIds = followReader.findFollowings(memberPrincipal.id, targetIds)
+
+        model.addAttribute("suggestedUsers", suggestedUsers)
+        model.addAttribute("followings", followingIds)
+        model.addAttribute("member", memberPrincipal)
+        return MemberViews.SUGGEST_USERS_SIDEBAR_CONTENT
     }
 }

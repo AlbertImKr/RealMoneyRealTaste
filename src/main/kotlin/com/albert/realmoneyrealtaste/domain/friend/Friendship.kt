@@ -31,6 +31,7 @@ import java.time.LocalDateTime
     indexes = [
         Index(name = "idx_friendship_member_id", columnList = "member_id"),
         Index(name = "idx_friendship_friend_member_id", columnList = "friend_member_id"),
+        Index(name = "idx_friendship_friend_nickname", columnList = "friend_nickname"),
         Index(name = "idx_friendship_status", columnList = "status"),
         Index(name = "idx_friendship_created_at", columnList = "created_at")
     ]
@@ -57,16 +58,20 @@ class Friendship protected constructor(
         const val ERROR_CANNOT_SEND_REQUEST_TO_SELF = "자기 자신에게는 친구 요청을 보낼 수 없습니다"
 
         /**
-         * 친구 요청 생성
+         * 친구 요청 생성 (기존 호환성용)
          *
-         * @throws IllegalArgumentException 자기 자신에게 친구 요청을 보낼 수 없는 경우
+         *  @throws IllegalArgumentException 자기 자신에게 친구 요청을 보낼 수 없는 경우
          */
         fun request(requestCommand: FriendRequestCommand): Friendship {
             require(requestCommand.fromMemberId != requestCommand.toMemberId) { ERROR_CANNOT_SEND_REQUEST_TO_SELF }
 
             val now = LocalDateTime.now()
             return Friendship(
-                relationShip = FriendRelationship.of(requestCommand),
+                relationShip = FriendRelationship.of(
+                    memberId = requestCommand.fromMemberId,
+                    friendMemberId = requestCommand.toMemberId,
+                    friendNickname = requestCommand.toMemberNickname
+                ),
                 status = FriendshipStatus.PENDING,
                 createdAt = now,
                 updatedAt = now

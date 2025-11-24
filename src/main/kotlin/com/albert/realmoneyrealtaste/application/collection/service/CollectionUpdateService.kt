@@ -2,8 +2,9 @@ package com.albert.realmoneyrealtaste.application.collection.service
 
 import com.albert.realmoneyrealtaste.application.collection.dto.CollectionUpdateRequest
 import com.albert.realmoneyrealtaste.application.collection.exception.CollectionUpdateException
+import com.albert.realmoneyrealtaste.application.collection.provided.CollectionReader
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionUpdater
-import com.albert.realmoneyrealtaste.application.collection.required.CollectionRepository
+import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service
 @Transactional
 @Service
 class CollectionUpdateService(
-    private val collectionRepository: CollectionRepository,
+    private val collectionReader: CollectionReader,
 ) : CollectionUpdater {
 
     companion object {
@@ -23,15 +24,57 @@ class CollectionUpdateService(
         request: CollectionUpdateRequest,
     ): PostCollection {
         try {
-            val collection = collectionRepository.findByIdAndOwnerMemberId(
-                collectionId = request.collectionId,
-                ownerMemberId = request.ownerMemberId,
-            ) ?: throw IllegalArgumentException(ERROR_READING_COLLECTION)
+            val collection = collectionReader.readById(request.collectionId)
 
             collection.updateInfo(
                 memberId = request.ownerMemberId,
                 newInfo = request.newInfo,
             )
+            return collection
+        } catch (e: IllegalArgumentException) {
+            throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
+        }
+    }
+
+    override fun addPost(collectionId: Long, postId: Long, ownerMemberId: Long) {
+        try {
+            val collection = collectionReader.readById(collectionId)
+
+            collection.addPost(
+                memberId = ownerMemberId,
+                postId = postId,
+            )
+        } catch (e: IllegalArgumentException) {
+            throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
+        }
+    }
+
+    override fun removePost(collectionId: Long, postId: Long, ownerMemberId: Long) {
+        try {
+            val collection = collectionReader.readById(collectionId)
+
+            collection.removePost(
+                memberId = ownerMemberId,
+                postId = postId,
+            )
+        } catch (e: IllegalArgumentException) {
+            throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)
+        }
+    }
+
+    override fun updatePrivacy(
+        collectionId: Long,
+        ownerMemberId: Long,
+        privacy: CollectionPrivacy,
+    ): PostCollection {
+        try {
+            val collection = collectionReader.readById(collectionId)
+
+            collection.updatePrivacy(
+                memberId = ownerMemberId,
+                newPrivacy = privacy,
+            )
+
             return collection
         } catch (e: IllegalArgumentException) {
             throw CollectionUpdateException(ERROR_UPDATING_COLLECTION, e)

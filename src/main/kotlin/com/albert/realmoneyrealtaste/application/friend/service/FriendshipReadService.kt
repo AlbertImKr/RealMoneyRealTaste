@@ -4,10 +4,8 @@ import com.albert.realmoneyrealtaste.application.friend.dto.FriendshipResponse
 import com.albert.realmoneyrealtaste.application.friend.exception.FriendshipNotFoundException
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
-import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
-import com.albert.realmoneyrealtaste.domain.friend.value.FriendRelationship
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -17,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class FriendshipReadService(
     private val friendshipRepository: FriendshipRepository,
-    private val memberReader: MemberReader,
 ) : FriendshipReader {
 
     companion object {
@@ -27,22 +24,27 @@ class FriendshipReadService(
     }
 
     override fun findActiveFriendship(memberId: Long, friendMemberId: Long): Friendship? {
-        return friendshipRepository.findByRelationShipAndStatus(
-            FriendRelationship(memberId, friendMemberId),
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+            memberId,
+            friendMemberId,
             FriendshipStatus.ACCEPTED
         )
     }
 
-    override fun findFriendshipBetweenMembers(
+    override fun sentedFriendRequest(
         memberId: Long,
         friendMemberId: Long,
     ): Friendship? {
-        return friendshipRepository.findByRelationShip(FriendRelationship(memberId, friendMemberId))
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+            memberId,
+            friendMemberId,
+            FriendshipStatus.PENDING
+        )
     }
 
     override fun findPendingFriendshipReceived(memberId: Long, fromMemberId: Long): Friendship? {
-        return friendshipRepository.findByRelationShipAndStatus(
-            FriendRelationship(fromMemberId, memberId),
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+            fromMemberId, memberId,
             FriendshipStatus.PENDING
         )
     }
@@ -53,9 +55,10 @@ class FriendshipReadService(
     }
 
     override fun findFriendsByMemberId(memberId: Long, pageable: Pageable): Page<FriendshipResponse> {
-        val friendships = friendshipRepository.findReceivedFriendships(
+        val friendships = friendshipRepository.findMutualFriendships(
             memberId, FriendshipStatus.ACCEPTED, pageable
         )
+
         return mapToFriendshipResponses(friendships)
     }
 
@@ -73,28 +76,57 @@ class FriendshipReadService(
         return mapToFriendshipResponses(requests)
     }
 
+    override fun isFriend(memberId: Long, friendMemberId: Long): Boolean {
+        return friendshipRepository.isFriend(memberId, friendMemberId, FriendshipStatus.ACCEPTED)
+    }
+
+    override fun findByMembersId(
+        memberId: Long,
+        friendMemberId: Long,
+    ): Friendship? {
+        return friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(
+            memberId, friendMemberId
+        )
+    }
+
+    override fun countFriendsByMemberId(memberId: Long): Long {
+        return friendshipRepository.countFriends(memberId, FriendshipStatus.ACCEPTED)
+    }
+
+    override fun searchFriends(memberId: Long, keyword: String, pageable: Pageable): Page<FriendshipResponse> {
+        val friendships = friendshipRepository.searchFriendsByKeyword(
+            memberId, keyword, FriendshipStatus.ACCEPTED, pageable
+        )
+
+        return mapToFriendshipResponses(friendships)
+    }
+
+    override fun findRecentFriends(memberId: Long, pageable: Pageable): Page<FriendshipResponse> {
+        val friendships = friendshipRepository.findRecentFriends(
+            memberId, FriendshipStatus.ACCEPTED, pageable
+        )
+
+        return mapToFriendshipResponses(friendships)
+    }
+
+    override fun countPendingRequests(memberId: Long): Long {
+        return friendshipRepository.countFriendshipsByRelationShipFriendMemberIdAndStatus(
+            memberId,
+            FriendshipStatus.PENDING
+        )
+    }
+
+    override fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship> {
+        return friendshipRepository.findReceivedFriendships(memberId, FriendshipStatus.PENDING, pageable)
+    }
+
     private fun mapToFriendshipResponses(friendships: Page<Friendship>): Page<FriendshipResponse> {
-        val memberIds = friendships.content.flatMap { friendship ->
-            listOf(
-                friendship.relationShip.memberId,
-                friendship.relationShip.friendMemberId
-            )
-        }.toSet()
-
-        val memberMap = memberReader.readAllActiveMembersByIds(memberIds.toList())
-            .associate { it.id to it.nickname.value }
-
         return friendships
             .map { friendship ->
                 FriendshipResponse.from(
                     friendship,
-                    memberMap[friendship.relationShip.friendMemberId] ?: UNKNOWN_NICKNAME,
-                    memberMap[friendship.relationShip.memberId] ?: UNKNOWN_NICKNAME,
+                    friendship.relationShip.friendNickname,
                 )
             }
-    }
-
-    override fun existsByMemberIds(memberId: Long, friendMemberId: Long): Boolean {
-        return friendshipRepository.existsByRelationShip(FriendRelationship(memberId, friendMemberId))
     }
 }

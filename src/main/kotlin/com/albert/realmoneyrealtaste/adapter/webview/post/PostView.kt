@@ -1,10 +1,14 @@
 package com.albert.realmoneyrealtaste.adapter.webview.post
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostCreator
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostUpdater
 import jakarta.validation.Valid
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
+import org.springframework.data.web.PageableDefault
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -12,32 +16,104 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
 
 @Controller
 class PostView(
     private val postCreator: PostCreator,
     private val postReader: PostReader,
     private val postUpdater: PostUpdater,
+    private val memberReader: MemberReader,
 ) {
     @PostMapping(PostUrls.CREATE)
     fun createPost(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         @Valid @ModelAttribute form: PostCreateForm,
     ): String {
-        val post = postCreator.createPost(memberPrincipal.memberId, form.toPostCreateRequest())
+        val post = postCreator.createPost(memberPrincipal.id, form.toPostCreateRequest())
         return PostUrls.REDIRECT_READ_DETAIL.format(post.requireId())
+    }
+
+    @GetMapping(PostUrls.READ_MY_LIST)
+    fun readMyPosts(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+        model: Model,
+    ): String {
+        val postsPage = postReader.readPostsByAuthor(
+            authorId = memberPrincipal.id,
+            pageable = pageable,
+        )
+        model.addAttribute("postCreateForm", PostCreateForm())
+        model.addAttribute("posts", postsPage)
+        // author: 프로필 페이지의 주인 (게시물 작성자)
+        model.addAttribute("author", memberPrincipal)
+        // member: 현재 로그인한 사용자 (뷰에서 권한 확인용)
+        model.addAttribute("member", memberPrincipal)
+        return PostViews.MY_LIST
+    }
+
+    @GetMapping("/members/{id}/posts/fragment")
+    fun readMemberPostsFragment(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+        model: Model,
+    ): String {
+        val postsPage = postReader.readPostsByAuthor(id, pageable)
+        val author = memberReader.readMemberById(id)
+
+        model.addAttribute("author", author)
+        model.addAttribute("posts", postsPage)
+        model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자
+
+        return PostViews.POSTS_CONTENT
+    }
+
+    @GetMapping(PostUrls.READ_MY_LIST_FRAGMENT)
+    fun readMyPostsFragment(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+        model: Model,
+    ): String {
+        val postsPage = postReader.readPostsByAuthor(
+            authorId = memberPrincipal.id,
+            pageable = pageable,
+        )
+        model.addAttribute("posts", postsPage)
+        model.addAttribute("member", memberPrincipal)
+        model.addAttribute("author", memberPrincipal)
+        return PostViews.POSTS_CONTENT
+    }
+
+    @GetMapping(PostUrls.READ_LIST_FRAGMENT)
+    fun readPosts(
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
+        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
+        model: Model,
+    ): String {
+        val postsPage = postReader.readPosts(pageable)
+        if (memberPrincipal == null) {
+            model.addAttribute("posts", postsPage)
+            return PostViews.POSTS_CONTENT
+        }
+        model.addAttribute("posts", postsPage)
+        model.addAttribute("member", memberPrincipal)
+        return PostViews.POSTS_CONTENT
     }
 
     @GetMapping(PostUrls.READ_DETAIL)
     fun readPost(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
         @PathVariable postId: Long,
         model: Model,
     ): String {
-        val currentUserId = memberPrincipal.memberId
-        val post = postReader.readPostById(currentUserId, postId)
-        model.addAttribute("post", post)
-        model.addAttribute("currentUserId", currentUserId)
+        if (memberPrincipal == null) {
+            val post = postReader.readPostById(postId)
+            model.addAttribute("post", post)
+            return PostViews.DETAIL
+        }
+        postDetailModelSetup(memberPrincipal, postId, model)
         return PostViews.DETAIL
     }
 
@@ -47,7 +123,7 @@ class PostView(
         @PathVariable postId: Long,
         model: Model,
     ): String {
-        val post = postReader.readPostByAuthorAndId(memberPrincipal.memberId, postId)
+        val post = postReader.readPostByAuthorAndId(memberPrincipal.id, postId)
         model.addAttribute("postEditForm", PostEditForm.fromPost(post))
         return PostViews.EDIT
     }
@@ -58,20 +134,63 @@ class PostView(
         @PathVariable postId: Long,
         @Valid @ModelAttribute postEditForm: PostEditForm,
     ): String {
-        postUpdater.updatePost(postId, memberPrincipal.memberId, postEditForm.toPostEditRequest())
+        postUpdater.updatePost(postId, memberPrincipal.id, postEditForm.toPostEditRequest())
         return PostUrls.REDIRECT_READ_DETAIL.format(postId)
     }
 
     @GetMapping(PostUrls.READ_DETAIL_MODAL)
     fun readPostDetailModal(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
         @PathVariable postId: Long,
         model: Model,
     ): String {
-        val currentUserId = memberPrincipal.memberId
-        val post = postReader.readPostById(currentUserId, postId)
-        model.addAttribute("post", post)
+        if (memberPrincipal == null) {
+            val post = postReader.readPostById(postId)
+            model.addAttribute("post", post)
+            return PostViews.DETAIL_MODAL
+        }
+        postDetailModelSetup(memberPrincipal, postId, model)
 
         return PostViews.DETAIL_MODAL
+    }
+
+    private fun postDetailModelSetup(
+        memberPrincipal: MemberPrincipal,
+        postId: Long,
+        model: Model,
+    ) {
+        val currentUserId = memberPrincipal.id
+        val post = postReader.readPostById(currentUserId, postId)
+        model.addAttribute("post", post)
+        model.addAttribute("currentUserId", currentUserId)
+        model.addAttribute("currentUserNickname", memberPrincipal.nickname.value)
+    }
+
+    /**
+     * 컬렉션 게시글 목록 프래그먼트 조회
+     */
+    @GetMapping("members/{authorId}/collections/{collectionId}/posts/fragment")
+    fun readPostListFragment(
+        @RequestParam postIds: List<Long>,
+        @PathVariable collectionId: Long,
+        @PathVariable authorId: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
+        model: Model,
+    ): String {
+        if (principal == null) {
+            val posts = postIds.map { postReader.readPostById(it) }
+            model.addAttribute("posts", posts)
+            model.addAttribute("authorId", authorId)
+            model.addAttribute("collectionId", collectionId)
+            return PostViews.POST_LIST_FRAGMENT
+        }
+        val posts = postIds.map { postReader.readPostById(principal.id, it) }
+
+        model.addAttribute("posts", posts)
+        model.addAttribute("authorId", authorId)
+        model.addAttribute("collectionId", collectionId)
+        model.addAttribute("member", principal)
+
+        return PostViews.POST_LIST_FRAGMENT
     }
 }

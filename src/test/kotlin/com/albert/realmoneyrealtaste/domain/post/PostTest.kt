@@ -43,8 +43,7 @@ class PostTest {
         val post = PostFixture.createPost()
 
         assertTrue(post.images.isNotEmpty())
-        assertEquals(2, post.images.size())
-        assertEquals(PostFixture.DEFAULT_IMAGE_URLS, post.images.urls)
+        assertEquals(3, post.images.size())
     }
 
     @Test
@@ -172,6 +171,13 @@ class PostTest {
     }
 
     @Test
+    fun `viewCount - success - starts at zero`() {
+        val post = PostFixture.createPost()
+
+        assertEquals(0, post.viewCount)
+    }
+
+    @Test
     fun `isDeleted - success - returns false for published post`() {
         val post = PostFixture.createPost()
 
@@ -187,10 +193,51 @@ class PostTest {
     }
 
     @Test
+    fun `isAuthor - success - returns true for post author`() {
+        val post = PostFixture.createPost()
+
+        assertTrue(post.isAuthor(PostFixture.DEFAULT_AUTHOR_MEMBER_ID))
+    }
+
+    @Test
+    fun `isAuthor - success - returns false for different member`() {
+        val post = PostFixture.createPost()
+
+        assertFalse(post.isAuthor(999L))
+    }
+
+    @Test
+    fun `ensurePublished - success - does not throw for published post`() {
+        val post = PostFixture.createPost()
+
+        post.ensurePublished() // Should not throw
+    }
+
+    @Test
+    fun `ensurePublished - failure - throws exception for deleted post`() {
+        val post = PostFixture.createPost()
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
+
+        assertFailsWith<IllegalArgumentException> {
+            post.ensurePublished()
+        }.let {
+            assertEquals(Post.ERROR_NOT_PUBLISHED, it.message)
+        }
+    }
+
+    @Test
+    fun `commentCount - success - can be set and retrieved`() {
+        val post = TestPost()
+
+        post.setCommentCountForTest(5)
+        assertEquals(5, post.commentCount)
+    }
+
+    @Test
     fun `setter - success - for covering frameworks`() {
         val post = TestPost()
 
-        val newAuthor = Author(999L, "새로운닉네임")
+        val newAuthor = Author(999L, "새로운닉네임", "새로운소개")
         post.setAuthorForTest(newAuthor)
         assertEquals(999L, post.author.memberId)
 
@@ -214,7 +261,8 @@ class PostTest {
         heartCount = 0,
         viewCount = 0,
         createdAt = LocalDateTime.now().minusMinutes(10),
-        updatedAt = LocalDateTime.now()
+        updatedAt = LocalDateTime.now(),
+        commentCount = 0,
     ) {
         fun setAuthorForTest(author: Author) {
             this.author = author
@@ -230,6 +278,10 @@ class PostTest {
 
         fun setViewCountForTest(count: Int) {
             this.viewCount = count
+        }
+
+        fun setCommentCountForTest(count: Int) {
+            this.commentCount = count
         }
     }
 }

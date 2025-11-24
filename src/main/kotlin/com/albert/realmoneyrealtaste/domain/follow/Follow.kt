@@ -63,7 +63,9 @@ class Follow protected constructor(
             return Follow(
                 relationship = FollowRelationship(
                     followerId = command.followerId,
+                    followerNickname = command.followerNickname,
                     followingId = command.followingId,
+                    followingNickname = command.followingNickname,
                 ),
                 status = FollowStatus.ACTIVE,
                 createdAt = now,

@@ -44,6 +44,22 @@ class PostReadService(
         }
     }
 
+    override fun readPostById(postId: Long): Post {
+        try {
+            val post = findPostByIdOrThrow(postId)
+
+            validatePostIsNotDeleted(post)
+
+            return post
+        } catch (e: IllegalArgumentException) {
+            throw PostNotFoundException(ERROR_POST_NOT_FOUND, e)
+        }
+    }
+
+    override fun readPosts(pageable: Pageable): Page<Post> {
+        return postRepository.findAllByStatusNot(PostStatus.DELETED, pageable)
+    }
+
     override fun readPostByAuthorAndId(authorId: Long, postId: Long): Post {
         try {
             memberReader.readMemberById(authorId)
@@ -84,6 +100,21 @@ class PostReadService(
 
     override fun existsPublishedPostById(postId: Long): Boolean {
         return postRepository.existsByIdAndStatus(postId, PostStatus.PUBLISHED)
+    }
+
+    override fun countPostsByMemberId(memberId: Long): Long {
+        return postRepository.countByAuthorMemberIdAndStatusNot(memberId, PostStatus.DELETED)
+    }
+
+    override fun readPostsByAuthor(
+        authorId: Long,
+        pageable: Pageable,
+    ): Page<Post> {
+        return postRepository.findByAuthorMemberIdAndStatusNot(authorId, pageable, PostStatus.DELETED)
+    }
+
+    override fun readPostsByIds(postIds: List<Long>): List<Post> {
+        return postRepository.findAllByStatusAndIdIn(PostStatus.PUBLISHED, postIds)
     }
 
     /**

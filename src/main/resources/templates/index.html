@@ -5,36 +5,12 @@
 
     <!-- Meta Tags -->
     <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
-    <!-- End Meta Tags -->
 
-    <!-- Dark mode -->
-    <th:block th:insert="~{fragments/darkmode :: darkmode-script}"></th:block>
-    <!-- End Dark mode -->
+    <!-- Styles -->
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
 
-    <!-- Favicon -->
-    <link href="/assets/images/favicon.ico" rel="shortcut icon">
-
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Plugins CSS -->
-    <link href="/assets/vendor/font-awesome/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/OverlayScrollbars-master/css/OverlayScrollbars.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/tiny-slider/dist/tiny-slider.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/choices.js/public/assets/styles/choices.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/glightbox-master/dist/css/glightbox.min.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/dropzone/dist/dropzone.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/flatpickr/dist/flatpickr.css" rel="stylesheet" type="text/css">
-    <link href="/assets/vendor/plyr/plyr.css" rel="stylesheet" type="text/css">
-
-    <!-- Theme CSS -->
-    <link href="/assets/css/style.css" rel="stylesheet" type="text/css">
-
-    <!-- HTMX -->
-    <script src="https://unpkg.com/htmx.org@1.9.8"></script>
-
+    <!-- Core Scripts -->
+    <th:block th:replace="~{fragments/head :: core-scripts}"></th:block>
 </head>
 <body>
 
@@ -44,7 +20,6 @@
 
 <!-- **************** MAIN CONTENT START **************** -->
 <main>
-
     <!-- Container START -->
     <div class="container">
         <div class="row g-4">
@@ -78,37 +53,49 @@
                             <div class="card overflow-hidden">
                                 <!-- Cover image -->
                                 <div class="h-50px"
-                                     style="background-image:url(/assets/images/bg/01.jpg); background-position: center; background-size: cover; background-repeat: no-repeat;"></div>
+                                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
                                 <!-- Card body START -->
                                 <div class="card-body pt-0">
                                     <!-- 로그인된 경우: 프로필 정보 표시 -->
                                     <div th:if="${member != null}">
                                         <div class="text-center">
+                                            <div class="avatar avatar-xs me-2">
+                                                <a href="#"> <img alt=""
+                                                                  class="avatar-img rounded-circle" src="#"> </a>
+                                            </div>
                                             <!-- Info -->
                                             <h5 class="mb-0">
                                                 <a href="#" th:text="${member.nickname.value}">회원 닉네임</a>
                                             </h5>
-                                            <p class="mt-3" th:text="${member.detail.introduction}"></p>
+                                            <p class="mt-3"
+                                               th:text="${member.detail.introduction != null ? member.detail.introduction.value : '회원 소개글이 없습니다.'}">
+                                                회원 소개글
+                                            </p>
 
                                             <!-- User stat START -->
                                             <div class="hstack gap-2 gap-xl-3 justify-content-center">
                                                 <!-- User stat item -->
                                                 <div>
-                                                    <h6 class="mb-0">256</h6>
+                                                    <h6 class="mb-0" th:text="${postCount != null ? postCount : 0}">
+                                                        0</h6>
                                                     <small>Post</small>
                                                 </div>
                                                 <!-- Divider -->
                                                 <div class="vr"></div>
                                                 <!-- User stat item -->
                                                 <div>
-                                                    <h6 class="mb-0">2.5K</h6>
+                                                    <h6 class="mb-0"
+                                                        th:text="${followStats != null ? followStats.followersCount : 0}">
+                                                        0</h6>
                                                     <small>Followers</small>
                                                 </div>
                                                 <!-- Divider -->
                                                 <div class="vr"></div>
                                                 <!-- User stat item -->
                                                 <div>
-                                                    <h6 class="mb-0">365</h6>
+                                                    <h6 class="mb-0"
+                                                        th:text="${followStats != null ? followStats.followingCount : 0}">
+                                                        0</h6>
                                                     <small>Following</small>
                                                 </div>
                                             </div>
@@ -121,17 +108,37 @@
                                         <!-- Side Nav START -->
                                         <ul class="nav nav-link-secondary flex-column fw-bold gap-2">
                                             <li class="nav-item">
-                                                <a class="nav-link" th:href="@{/posts/mime}">
+                                                <a class="nav-link" th:href="@{/posts/mine}">
                                                     <img alt=""
                                                          class="me-2 h-20px fa-fw"
-                                                         src="/assets/images/icon/home-outline-filled.svg"><span>My Posts</span>
+                                                         src="/assets/images/icon/home-outline-filled.svg">
+                                                    <span>My Posts </span>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="#"
+                                                   th:href="@{/members/connections}">
+                                                    <img alt=""
+                                                         class="me-2 h-20px fa-fw"
+                                                         src="/assets/images/icon/person-outline-filled.svg">
+                                                    <span>Connections </span>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="#"
+                                                   th:href="@{/notifications}">
+                                                    <img alt=""
+                                                         class="me-2 h-20px fa-fw"
+                                                         src="/assets/images/icon/notification-outlined-filled.svg">
+                                                    <span>Notifications </span>
                                                 </a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link" th:href="@{/members/setting}">
                                                     <img alt=""
                                                          class="me-2 h-20px fa-fw"
-                                                         src="/assets/images/icon/cog-outline-filled.svg"><span>Settings</span>
+                                                         src="/assets/images/icon/cog-outline-filled.svg">
+                                                    <span>Settings </span>
                                                 </a>
                                             </li>
                                         </ul>
@@ -170,7 +177,6 @@
                                 </li>
                             </ul>
                             <!-- Helper link END -->
-                            <!-- Copyright -->
                             <!-- Copyright START -->
                             <p class="text-center mb-0">
                                 ©2025 <a href="https://github.com/AlbertImKr/RealMoneyRealTaste"
@@ -189,203 +195,53 @@
 
             <!-- Main content START -->
             <div class="col-md-8 col-lg-6 vstack gap-4">
+                <!-- 공통 컨텐츠 영역 -->
+                <div class="card">
+                    <!-- 로딩 인디케이터 -->
+                    <div class="htmx-indicator" id="loading-indicator">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2 text-muted">불러오는 중...</p>
+                    </div>
 
-                <!-- Create post card START -->
-                <th:block th:insert="~{post/modal-create-post :: create-post-trigger}"></th:block>
-                <!-- Create post card END -->
-
-                <!-- 포스트가 없을 때 -->
-                <div class="card text-center py-5" th:if="${posts == null or posts.isEmpty()}">
-                    <div class="card-body">
-                        <i class="bi bi-inbox display-1 text-muted"></i>
-                        <h5 class="mt-3">아직 포스트가 없습니다</h5>
-                        <p class="text-muted">첫 번째 포스트를 작성해보세요!</p>
+                    <!-- 실제 컨텐츠가 교체될 영역 -->
+                    <div hx-get="/posts/fragment"
+                         hx-indicator="#loading-indicator"
+                         hx-swap="innerHTML"
+                         hx-target="#content-area"
+                         hx-trigger="load"
+                         id="content-area">
                     </div>
                 </div>
-
-                <!-- 포스트 리스트 -->
-                <div class="card" th:each="post : ${posts.content}">
-                    <!-- Card header START -->
-                    <div class="card-header border-0 pb-0">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <!-- Info -->
-                                <div>
-                                    <div class="nav nav-divider">
-                                        <h6 class="nav-item card-title mb-0">
-                                            <a th:href="@{/members/{id}(id=${post.author.memberId})}"
-                                               th:text="${post.author.nickname}">Lori Ferguson</a>
-                                        </h6>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Card feed action dropdown START -->
-                            <div class="dropdown">
-                                <a aria-expanded="false" class="text-secondary btn btn-secondary-soft-hover py-1 px-2"
-                                   data-bs-toggle="dropdown"
-                                   href="#"
-                                   th:id="'cardFeedAction' + ${post.id}">
-                                    <i class="bi bi-three-dots"></i>
-                                </a>
-                                <!-- Card feed action dropdown menu -->
-                                <ul class="dropdown-menu dropdown-menu-end"
-                                    th:attr="aria-labelledby='cardFeedAction' + ${post.id}">
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-bookmark fa-fw pe-2"></i>Save post</a>
-                                    </li>
-                                    <li th:if="${member != null and member.id != post.author.memberId}">
-                                        <a class="dropdown-item" href="#">
-                                            <i class="bi bi-person-x fa-fw pe-2"></i>Unfollow
-                                            <span th:text="${post.author.nickname}"></span>
-                                        </a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-x-circle fa-fw pe-2"></i>Hide post</a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-slash-circle fa-fw pe-2"></i>Block</a>
-                                    </li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-flag fa-fw pe-2"></i>Report post</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <!-- Card feed action dropdown END -->
-                        </div>
-                    </div>
-                    <!-- Card header END -->
-
-                    <!-- Card body START -->
-                    <div class="card-body">
-                        <p th:text="${post.content.text}">
-                            I'm thrilled to share that I've completed a graduate certificate course in project
-                            management
-                            with the president's honor roll.
-                        </p>
-
-                        <!-- Card img -->
-                        <div th:if="${post.images != null and !post.images.isEmpty()}">
-                            <img alt="Post"
-                                 class="card-img post-detail-trigger"
-                                 style="cursor: pointer;"
-                                 th:attr="hx-get='/posts/' + ${post.id} + '/modal',
-                                         hx-target='#post-detail-modal-content',
-                                         hx-trigger='click',
-                                         hx-swap='innerHTML',
-                                         hx-indicator='#post-detail-loading',
-                                         data-bs-toggle='modal',
-                                         data-bs-target='#postDetailModal'"
-                                 th:src="${post.images.urls[0]}">
-                        </div>
-
-                        <!-- Feed react START -->
-                        <ul class="nav nav-stack py-3 small">
-                            <li class="nav-item">
-                                <a class="nav-link"
-                                   data-bs-container="body"
-                                   data-bs-placement="top"
-                                   data-bs-toggle="tooltip"
-                                   href="#"
-                                   th:classappend="${hearts != null and hearts.contains(post.id)} ? 'active' : ''">
-                                    <i class="bi bi-hand-thumbs-up-fill pe-1"></i>
-                                    Liked (<span th:text="${post.heartCount}">56</span>)
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="bi bi-eye-fill pe-1"></i>
-                                    Views (<span th:text="${post.viewCount}">102</span>)
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link btn p-0 border-0 bg-transparent"
-                                        data-bs-toggle="modal"
-                                        th:attr="data-bs-target='#commentsModal' + ${post.id},
-                                                 data-post-id=${post.id}">
-                                    <i class="bi bi-chat-fill pe-1"></i>
-                                    Comments (<span th:id="'comment-count-' + ${post.id}">0</span>)
-                                </button>
-                            </li>
-                            <!-- Card share action START -->
-                            <li class="nav-item dropdown ms-sm-auto">
-                                <a aria-expanded="false"
-                                   class="nav-link mb-0"
-                                   data-bs-toggle="dropdown"
-                                   href="#"
-                                   th:id="'cardShareAction' + ${post.id}">
-                                    <i class="bi bi-reply-fill flip-horizontal ps-1"></i>
-                                    Share (<span>3</span>)
-                                </a>
-                                <!-- Card share action dropdown menu -->
-                                <ul class="dropdown-menu dropdown-menu-end"
-                                    th:attr="aria-labelledby='cardShareAction' + ${post.id}">
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-envelope fa-fw pe-2"></i>Send via Direct Message</a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-bookmark-check fa-fw pe-2"></i>Bookmark</a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-link fa-fw pe-2"></i>Copy link to post</a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-share fa-fw pe-2"></i>Share post via …</a>
-                                    </li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li><a class="dropdown-item" href="#">
-                                        <i class="bi bi-pencil-square fa-fw pe-2"></i>Share to News Feed</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <!-- Card share action END -->
-                        </ul>
-                        <!-- Feed react END -->
-                    </div>
-                    <!-- Card body END -->
-                </div>
-                <!-- Card post item END -->
-
-                <!-- Pagination START -->
-                <nav aria-label="Page navigation"
-                     th:if="${posts != null and !posts.isEmpty() and posts.totalPages > 1}">
-                    <ul class="pagination justify-content-center">
-                        <!-- Previous -->
-                        <li class="page-item" th:classappend="${posts.first} ? 'disabled'">
-                            <a class="page-link"
-                               tabindex="-1"
-                               th:href="@{/posts(page=${posts.number - 1})}">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-
-                        <!-- Page numbers -->
-                        <li class="page-item"
-                            th:classappend="${i == posts.number} ? 'active'"
-                            th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}">
-                            <a class="page-link"
-                               th:href="@{/posts(page=${i})}"
-                               th:text="${i + 1}">1</a>
-                        </li>
-
-                        <!-- Next -->
-                        <li class="page-item" th:classappend="${posts.last} ? 'disabled'">
-                            <a class="page-link" th:href="@{/posts(page=${posts.number + 1})}">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                <!-- Pagination END -->
 
             </div>
             <!-- Main content END -->
 
             <!-- Right sidebar START -->
+            <div class="col-lg-3">
+                <!-- HTMX로 동적 로딩될 사이드바 (로그인 상태) -->
+                <div hx-get="/fragments/members/suggest-users-sidebar"
+                     hx-indicator="#sidebar-content .htmx-indicator"
+                     hx-swap="innerHTML"
+                     hx-target="#sidebar-content"
+                     hx-trigger="load"
+                     id="sidebar-content"
+                     th:if="${member != null}">
+                    <!-- 로딩 인디케이터 -->
+                    <div class="text-center py-5 htmx-indicator">
+                        <div class="spinner-border text-primary mb-3"></div>
+                        <div class="text-muted">추천 푸디를 불러오는 중...</div>
+                    </div>
+                </div>
+
+                <!-- 비로그인 상태일 때 로그인 버튼 -->
+                <div class="card text-centerd" th:if="${member == null}">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">로그인이 필요합니다</h5>
+                        <p class="card-text text-muted">추천 푸디를 보려면 로그인해주세요</p>
+                        <a class="btn btn-primary" th:href="@{/signin}">로그인</a>
+                    </div>
+                </div>
+            </div>
             <!-- Right sidebar END -->
 
         </div> <!-- Row END -->
@@ -398,354 +254,7 @@
 <th:block th:insert="~{post/modal-create-post :: modal-create-post}"></th:block>
 <!-- Modal create post END -->
 
-<!-- Post Detail Modal START -->
-<div aria-hidden="true" aria-labelledby="postDetailModalLabel" class="modal fade" id="postDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-xl d-flex align-items-center justify-content-center min-vh-100">
-        <div class="modal-content mx-auto" style="max-height: 90vh; overflow-y: auto;">
-            <!-- Modal header START -->
-            <div class="modal-header border-0">
-                <h5 class="modal-title" id="postDetailModalLabel">
-                    <i class="bi bi-card-image text-primary me-2"></i>게시글 상세보기
-                </h5>
-                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
-            </div>
-            <!-- Modal header END -->
-
-            <!-- Modal body START -->
-            <div class="modal-body p-0">
-                <!-- 로딩 상태 -->
-                <div class="htmx-indicator" id="post-detail-loading">
-                    <div class="d-flex justify-content-center align-items-center py-5">
-                        <div class="spinner-border text-primary me-3">
-                            <output class="visually-hidden">Loading...</output>
-                        </div>
-                        <span class="text-muted">게시글을 불러오는 중...</span>
-                    </div>
-                </div>
-
-                <!-- 실제 Post 내용이 로드될 영역 -->
-                <div id="post-detail-modal-content">
-                    <!-- HTMX로 동적으로 로드됨 -->
-                </div>
-            </div>
-            <!-- Modal body END -->
-
-            <!-- Modal footer START -->
-            <div class="modal-footer border-0 bg-light">
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <div class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        ESC 키를 눌러 닫을 수 있습니다
-                    </div>
-                    <fieldset class="btn-group">
-                        <legend class="visually-hidden">Modal actions</legend>
-                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">
-                            <i class="bi bi-x-circle me-1"></i>닫기
-                        </button>
-                        <a class="btn btn-primary d-none" href="#" id="post-detail-link">
-                            <i class="bi bi-box-arrow-up-right me-1"></i>새 창에서 보기
-                        </a>
-                    </fieldset>
-                </div>
-            </div>
-            <!-- Modal footer END -->
-        </div>
-    </div>
-</div>
-<!-- Post Detail Modal END -->
-
-<!-- =======================
-JS libraries, plugins and custom scripts -->
-
-<!-- Bootstrap JS -->
-<script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Vendors -->
-<script src="/assets/vendor/tiny-slider/dist/tiny-slider.js"></script>
-<script src="/assets/vendor/OverlayScrollbars-master/js/OverlayScrollbars.min.js"></script>
-<script src="/assets/vendor/choices.js/public/assets/scripts/choices.min.js"></script>
-<script src="/assets/vendor/glightbox-master/dist/js/glightbox.min.js"></script>
-<script src="/assets/vendor/flatpickr/dist/flatpickr.min.js"></script>
-<script src="/assets/vendor/plyr/plyr.js"></script>
-<script src="/assets/vendor/dropzone/dist/min/dropzone.min.js"></script>
-
-<!-- Theme Functions -->
-<script src="/assets/js/functions.js"></script>
-
-<!-- HTMX 설정 스크립트 -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // HTMX 이벤트 리스너
-        document.body.addEventListener('htmx:configRequest', function (event) {
-            // CSRF 토큰이 필요한 경우 추가
-            const csrfToken = document.querySelector('meta[name="_csrf"]');
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
-
-            if (csrfToken && csrfHeader) {
-                event.detail.headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
-            }
-        });
-
-        // 댓글 작성 후 입력 필드 초기화 및 효과 추가
-        document.body.addEventListener('htmx:afterRequest', function (event) {
-            if (event.detail.xhr.status === 200 && event.target.querySelector('input[name="content"]')) {
-                const form = event.target;
-                const input = form.querySelector('input[name="content"]');
-                if (input) {
-                    input.value = '';
-                    // 성공 피드백
-                    input.placeholder = '댓글이 작성되었습니다!';
-                    input.style.borderColor = '#28a745';
-                    setTimeout(() => {
-                        input.placeholder = '댓글을 입력하세요...';
-                        input.style.borderColor = '';
-                    }, 2000);
-                }
-            }
-        });
-
-        // 댓글 로드 후 "댓글 보기" 버튼 숨기기 및 새 댓글 강조
-        document.body.addEventListener('htmx:afterSwap', function (event) {
-            if (event.target.id.startsWith('comments-container-')) {
-                const postId = event.target.id.replace('comments-container-', '');
-                const loadButton = document.getElementById('load-comments-' + postId);
-                if (loadButton) {
-                    loadButton.style.display = 'none';
-                }
-
-                // 새로 추가된 댓글 강조 효과
-                const newComment = event.target.querySelector('.comment-item:first-child .badge-success');
-                if (newComment) {
-                    const commentElement = newComment.closest('.comment-item');
-                    commentElement.style.backgroundColor = '#d4edda';
-                    commentElement.style.transform = 'scale(1.02)';
-                    commentElement.style.transition = 'all 0.3s ease';
-
-                    setTimeout(() => {
-                        commentElement.style.backgroundColor = '';
-                        commentElement.style.transform = '';
-                    }, 2000);
-
-                    // 새 댓글로 부드럽게 스크롤
-                    commentElement.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-                }
-            }
-        });
-
-        // 에러 처리
-        document.body.addEventListener('htmx:responseError', function (event) {
-            console.error('HTMX Error:', event.detail);
-            alert('요청 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-        });
-
-        // 모달 관련 이벤트 처리
-        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
-            button.addEventListener('click', function () {
-                const postId = this.getAttribute('data-post-id');
-                if (postId) {
-                    // 모달이 열릴 때 댓글 로드
-                    const modalElement = document.getElementById('commentsModal' + postId);
-                    if (modalElement) {
-                        modalElement.addEventListener('shown.bs.modal', function () {
-                            // 댓글 목록 로드
-                            const commentsContainer = document.getElementById('modal-comments-container-' + postId);
-                            const loadingElement = document.getElementById('modal-comments-loading-' + postId);
-
-                            if (commentsContainer && !commentsContainer.dataset.loaded) {
-                                // HTMX로 댓글 로드
-                                htmx.ajax('GET', '/comments/modal-fragments/list?postId=' + postId, {
-                                    target: '#modal-comments-container-' + postId,
-                                    swap: 'innerHTML'
-                                });
-                                commentsContainer.dataset.loaded = 'true';
-                            }
-                        }, {once: true});
-                    }
-                }
-            });
-        });
-
-        // 모달 내 댓글 작성 후 효과 추가
-        document.body.addEventListener('htmx:afterRequest', function (event) {
-            // 모달 내 댓글 작성 성공 처리
-            if (event.detail.xhr.status === 200 &&
-                event.target.closest('.modal') &&
-                event.target.querySelector('input[name="content"]')) {
-
-                const input = event.target.querySelector('input[name="content"]');
-                if (input) {
-                    input.value = '';
-                    input.placeholder = '댓글이 작성되었습니다!';
-                    input.style.borderColor = '#28a745';
-
-                    setTimeout(() => {
-                        input.placeholder = '댓글을 입력하세요...';
-                        input.style.borderColor = '';
-                    }, 2000);
-                }
-            }
-        });
-
-        // 모달 내 새 댓글 강조 효과
-        document.body.addEventListener('htmx:afterSwap', function (event) {
-            if (event.target.id.startsWith('modal-comments-container-')) {
-                // 새로 추가된 댓글 강조 효과
-                const newComment = event.target.querySelector('.comment-item:first-child .badge-success');
-                if (newComment) {
-                    const commentElement = newComment.closest('.comment-item');
-                    commentElement.style.backgroundColor = '#d4edda';
-                    commentElement.style.transform = 'scale(1.02)';
-                    commentElement.style.transition = 'all 0.3s ease';
-
-                    setTimeout(() => {
-                        commentElement.style.backgroundColor = '';
-                        commentElement.style.transform = '';
-                    }, 2000);
-
-                    // 새 댓글로 부드럽게 스크롤
-                    commentElement.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-                }
-            }
-        });
-    });
-</script>
-
-<!-- Post Detail Modal Script -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Post 모달 관련 이벤트 처리
-        const postDetailModal = document.getElementById('postDetailModal');
-
-        if (postDetailModal) {
-            // 모달이 열릴 때
-            postDetailModal.addEventListener('show.bs.modal', function (event) {
-                const trigger = event.relatedTarget;
-                if (trigger) {
-                    // 로딩 상태 초기화
-                    const loadingElement = document.getElementById('post-detail-loading');
-                    const contentElement = document.getElementById('post-detail-modal-content');
-
-                    if (loadingElement) loadingElement.style.display = 'block';
-                    if (contentElement) contentElement.innerHTML = '';
-
-                    // 새 창에서 보기 링크 업데이트
-                    const postId = trigger.getAttribute('hx-get')?.match(/\/posts\/(\d+)\/modal/)?.[1];
-                    const linkButton = document.getElementById('post-detail-link');
-                    if (linkButton && postId) {
-                        linkButton.href = `/posts/${postId}`;
-                        linkButton.classList.remove('d-none');
-                    }
-                }
-            });
-
-            // 모달이 완전히 열린 후
-            postDetailModal.addEventListener('shown.bs.modal', function (event) {
-                // 포커스를 모달 내용에 설정 (접근성)
-                const contentElement = document.getElementById('post-detail-modal-content');
-                if (contentElement) {
-                    contentElement.focus();
-                }
-            });
-
-            // 모달이 닫힐 때 정리
-            postDetailModal.addEventListener('hidden.bs.modal', function () {
-                const contentElement = document.getElementById('post-detail-modal-content');
-                const linkButton = document.getElementById('post-detail-link');
-
-                if (contentElement) {
-                    contentElement.innerHTML = '';
-                }
-                if (linkButton) {
-                    linkButton.classList.add('d-none');
-                }
-            });
-        }
-
-        // HTMX 이벤트 처리 (Post Detail 모달용)
-        document.body.addEventListener('htmx:beforeRequest', function (event) {
-            if (event.detail.target?.id === 'post-detail-modal-content') {
-                // 요청 시작 시 로딩 표시
-                const loadingElement = document.getElementById('post-detail-loading');
-                if (loadingElement) {
-                    loadingElement.style.display = 'block';
-                }
-            }
-        });
-
-        document.body.addEventListener('htmx:afterRequest', function (event) {
-            if (event.detail.target?.id === 'post-detail-modal-content') {
-                // 요청 완료 시 로딩 숨김
-                const loadingElement = document.getElementById('post-detail-loading');
-                if (loadingElement) {
-                    loadingElement.style.display = 'none';
-                }
-
-                // 성공적으로 로드되었으면 스크롤을 최상단으로
-                if (event.detail.xhr.status === 200) {
-                    const modalBody = document.querySelector('#postDetailModal .modal-body');
-                    if (modalBody) {
-                        modalBody.scrollTop = 0;
-                    }
-
-                    // 모달 내용이 로드된 후 스크립트 실행
-                    setTimeout(() => {
-                        // 모달 전용 스크립트들이 실행되도록 이벤트 발생
-                        const modalLoadedEvent = new CustomEvent('modalContentLoaded');
-                        document.dispatchEvent(modalLoadedEvent);
-                    }, 100);
-                }
-            }
-        });
-
-        document.body.addEventListener('htmx:responseError', function (event) {
-            if (event.detail.target?.id === 'post-detail-modal-content') {
-                const loadingElement = document.getElementById('post-detail-loading');
-                const contentElement = document.getElementById('post-detail-modal-content');
-
-                if (loadingElement) loadingElement.style.display = 'none';
-
-                if (contentElement) {
-                    contentElement.innerHTML = `
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
-                            </div>
-                            <h5 class="text-muted mb-2">게시글을 불러올 수 없습니다</h5>
-                            <p class="text-muted mb-3">네트워크 연결을 확인하고 다시 시도해주세요.</p>
-                            <button class="btn btn-primary" onclick="location.reload()">
-                                <i class="bi bi-arrow-clockwise me-1"></i>새로고침
-                            </button>
-                        </div>
-                    `;
-                }
-            }
-        });
-
-        // ESC 키로 모달 닫기 (추가 처리)
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                const modal = bootstrap.Modal.getInstance(postDetailModal);
-                if (modal) {
-                    modal.hide();
-                }
-            }
-        });
-
-        // 모달 외부 클릭으로 닫기 방지 (선택사항 - 필요에 따라 제거)
-        postDetailModal?.addEventListener('click', function (event) {
-            if (event.target === this) {
-                // 모달 배경 클릭 시에도 닫히도록 허용
-                const modal = bootstrap.Modal.getInstance(this);
-                if (modal) {
-                    modal.hide();
-                }
-            }
-        });
-    });
-</script>
-
-<!-- Modal Create Post Script -->
-<th:block th:insert="~{post/modal-create-post :: modal-create-post-script}"></th:block>
-
+<!-- Scripts -->
+<th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
 </body>
 </html>

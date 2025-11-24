@@ -216,6 +216,8 @@ class PostCollection protected constructor(
      */
     fun isEmpty(): Boolean = posts.isEmpty()
 
+    fun postCounts(): Int = posts.size()
+
     companion object {
         /**
          * 새로운 컬렉션을 생성합니다.
@@ -226,7 +228,7 @@ class PostCollection protected constructor(
         fun create(createCommand: CollectionCreateCommand): PostCollection {
             val now = LocalDateTime.now()
             return PostCollection(
-                owner = CollectionOwner(createCommand.ownerMemberId),
+                owner = CollectionOwner(createCommand.ownerMemberId, createCommand.ownerName),
                 info = CollectionInfo(
                     name = createCommand.name,
                     description = createCommand.description,

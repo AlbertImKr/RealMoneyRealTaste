@@ -27,9 +27,10 @@ data class CollectionCreateApiRequest(
     )
     val coverImageUrl: String? = null,
 ) {
-    fun toCommand(ownerMemberId: Long): CollectionCreateCommand {
+    fun toCommand(ownerMemberId: Long, ownerName: String): CollectionCreateCommand {
         return CollectionCreateCommand(
             ownerMemberId = ownerMemberId,
+            ownerName = ownerName,
             name = name.trim(),
             description = description.trim(),
             privacy = when (visibility.uppercase()) {

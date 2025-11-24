@@ -47,6 +47,10 @@ class Member protected constructor(
     roles: Roles,
 
     updatedAt: LocalDateTime,
+
+    followersCount: Long,
+
+    followingsCount: Long,
 ) : BaseEntity() {
 
     @Embedded
@@ -81,6 +85,14 @@ class Member protected constructor(
 
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime = updatedAt
+        protected set
+
+    @Column(name = "follower_count", nullable = false)
+    var followersCount: Long = followersCount
+        protected set
+
+    @Column(name = "following_count", nullable = false)
+    var followingsCount: Long = followingsCount
         protected set
 
     fun activate() {
@@ -120,13 +132,14 @@ class Member protected constructor(
         nickname: Nickname? = null,
         profileAddress: ProfileAddress? = null,
         introduction: Introduction? = null,
+        address: String? = null,
     ) {
-        if (nickname == null && profileAddress == null && introduction == null) return
+        if (nickname == null && profileAddress == null && introduction == null && address == null) return
 
         require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_INFO_UPDATE }
 
         nickname?.let { this.nickname = it }
-        detail.updateInfo(profileAddress, introduction)
+        detail.updateInfo(profileAddress, introduction, address)
         updatedAt = LocalDateTime.now()
     }
 
@@ -159,6 +172,16 @@ class Member protected constructor(
 
     fun hasAnyRole(vararg roleList: Role): Boolean = roles.hasAnyRole(*roleList)
 
+    fun updateFollowersCount(count: Long) {
+        followersCount = count
+        updatedAt = LocalDateTime.now()
+    }
+
+    fun updateFollowingsCount(count: Long) {
+        followingsCount = count
+        updatedAt = LocalDateTime.now()
+    }
+
     companion object {
         const val ERROR_INVALID_STATUS_FOR_ACTIVATION = "등록 대기 상태에서만 등록 완료가 가능합니다"
         const val ERROR_INVALID_STATUS_FOR_DEACTIVATION = "등록 완료 상태에서만 탈퇴가 가능합니다"
@@ -180,6 +203,8 @@ class Member protected constructor(
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
             roles = Roles.ofUser(),
+            followersCount = 0L,
+            followingsCount = 0L,
         )
 
         fun registerManager(
@@ -195,6 +220,8 @@ class Member protected constructor(
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
             roles = Roles.of(Role.USER, Role.MANAGER),
+            followersCount = 0L,
+            followingsCount = 0L,
         )
 
         fun registerAdmin(
@@ -210,6 +237,8 @@ class Member protected constructor(
             status = MemberStatus.PENDING,
             updatedAt = LocalDateTime.now(),
             roles = Roles.of(Role.USER, Role.ADMIN),
+            followersCount = 0L,
+            followingsCount = 0L,
         )
     }
 }

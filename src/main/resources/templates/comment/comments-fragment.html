@@ -6,19 +6,8 @@
 <body>
 
 <div th:fragment="comments-list">
-    <!-- 댓글 수 업데이트 스크립트 -->
-    <script th:inline="javascript">
-        // 댓글 수 업데이트
-        const commentCount = /*[[${comments.totalElements}]]*/ 0;
-        const postId = /*[[${postId}]]*/ 0;
-        const countElement = document.getElementById('comment-count-' + postId);
-        if (countElement) {
-            countElement.textContent = commentCount;
-        }
-    </script>
-
     <!-- 댓글 섹션 헤더 -->
-    <div class="border-bottom mb-3 pb-2">
+    <div class="border-bottom mb-3 pb-2 pt-3" th:if="${comments != null and comments.isFirst()}">
         <h6 class="mb-0">
             <i class="bi bi-chat-left-text text-primary me-2"></i>댓글
             <span class="badge bg-primary ms-2" th:text="${comments?.totalElements ?: 0}">0</span>
@@ -35,134 +24,168 @@
     </div>
 
     <!-- 댓글 목록 -->
-    <div class="comments-container" th:if="${comments != null and !comments.isEmpty()}">
-        <div class="comment-item border-bottom py-3" th:each="comment : ${comments.content}">
-            <div class="d-flex">
-                <!-- 프로필 이미지 섹션 -->
-                <div class="flex-shrink-0 me-3">
-                    <div class="position-relative">
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
-                             style="width: 42px; height: 42px;">
-                            <span class="text-white fw-bold"
+    <ul class="comment-wrap list-unstyled" th:if="${comments != null and !comments.isEmpty()}">
+        <!-- Comment item START -->
+        <li class="comment-item" th:each="comment : ${comments.content}">
+            <div class="d-flex position-relative">
+                <!-- Avatar -->
+                <div class="avatar avatar-xs">
+                    <a th:href="@{/profile/{id}(id=${comment.author.memberId})}">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center avatar-img"
+                             style="width: 32px; height: 32px;">
+                            <span class="text-white fw-bold small"
                                   th:text="${comment.author.nickname.substring(0, 1).toUpperCase()}">A</span>
                         </div>
-                        <!-- 온라인 상태 표시 (선택사항) -->
-                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle"
-                              style="width: 12px; height: 12px;"></span>
+                    </a>
+                </div>
+                <div class="ms-2">
+                    <!-- Comment by -->
+                    <div class="bg-light rounded-start-top-0 p-3 rounded">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-1">
+                                <a th:href="@{/profile/{id}(id=${comment.author.memberId})}"
+                                   th:text="${comment.author.nickname}">작성자</a>
+                            </h6>
+                            <small class="ms-2"
+                                   th:attr="data-created-at=${comment.createdAt}"
+                                   th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">5hr</small>
+                        </div>
+                        <p class="small mb-0" th:text="${comment.content.text}">댓글 내용입니다.</p>
+                    </div>
+                    <!-- Comment react -->
+                    <ul class="nav nav-divider py-2 small">
+                        <li class="nav-item">
+                            <button class="nav-link btn p-0 border-0 bg-transparent">
+                                <i class="bi bi-hand-thumbs-up me-1"></i>Like
+                                <span class="badge bg-light text-primary ms-1">0</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link btn p-0 border-0 bg-transparent reply-toggle-btn"
+                                    onclick="toggleReplies(this)"
+                                    th:attr="data-comment-id=${comment.id}">
+                                <i class="bi bi-chat-left-dots me-1"></i>
+                                <span class="reply-toggle-text">답글 보기</span>
+                                <span class="badge bg-light text-primary ms-1"
+                                      th:text="${comment.repliesCount}">5</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link btn p-0 border-0 bg-transparent"
+                                    onclick="showReplyForm(this)"
+                                    th:attr="data-comment-id=${comment.id}">
+                                <i class="bi bi-reply me-1"></i>Reply
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- 답글 로딩 인디케이터 -->
+                    <div class="htmx-indicator d-inline ms-2" th:id="'reply-loading-' + ${comment.id}">
+                        <div class="spinner-border spinner-border-sm text-primary">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 댓글 내용 섹션 -->
-                <div class="flex-grow-1">
-                    <!-- 작성자 정보 헤더 -->
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center">
-                            <h6 class="mb-0 me-2 fw-bold" th:text="${comment.author.nickname}">작성자</h6>
-                            <span class="badge bg-light text-dark me-2" style="font-size: 0.7rem;">댓글</span>
-                            <small class="text-muted">
-                                <i class="bi bi-clock me-1"></i>
-                                <span th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 12:00</span>
-                            </small>
-                        </div>
-
-                        <!-- 댓글 옵션 드롭다운 -->
-                        <div class="dropdown">
-                            <button aria-expanded="false"
-                                    class="btn btn-sm btn-link text-muted p-1"
-                                    data-bs-toggle="dropdown">
-                                <i class="bi bi-three-dots"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                <li>
-                                    <a class="dropdown-item" href="#">
-                                        <i class="bi bi-flag me-2"></i>신고
-                                    </a>
-                                </li>
-                                <li th:if="${comment.author.memberId == member?.id}">
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li th:if="${comment.author.memberId == member?.id}">
-                                    <a class="dropdown-item text-danger" href="#">
-                                        <i class="bi bi-trash me-2"></i>삭제
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- 댓글 텍스트 -->
-                    <div class="comment-content mb-3">
-                        <p class="mb-0 lh-base" th:text="${comment.content.text}">댓글 내용입니다.</p>
-                    </div>
-
-                    <!-- 댓글 액션 버튼 섹션 -->
-                    <div class="d-flex align-items-center gap-3 mb-2">
-                        <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center">
-                            <i class="bi bi-hand-thumbs-up me-1"></i>
-                            <span>좋아요</span>
-                            <span class="badge bg-light text-dark ms-1">0</span>
-                        </button>
-
-                        <!-- 답글 보기/작성 버튼 -->
-                        <div th:id="'reply-load-section-' + ${comment.id}">
-                            <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center"
-                                    th:attr="hx-get='/comments/replies-fragment?commentId=' + ${comment.id},
-                                             hx-target='#replies-' + ${comment.id},
-                                             hx-swap='innerHTML',
-                                             hx-indicator='#reply-loading-' + ${comment.id}">
-                                <i class="bi bi-reply me-1"></i>
-                                <span>답글</span>
-                            </button>
-
-                            <!-- 답글 로딩 인디케이터 -->
-                            <div class="htmx-indicator d-inline ms-2" th:id="'reply-loading-' + ${comment.id}">
-                                <div class="spinner-border spinner-border-sm text-primary">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 공유 버튼 (선택사항) -->
-                        <button class="btn btn-sm btn-link p-0 text-muted d-flex align-items-center">
-                            <i class="bi bi-share me-1"></i>
-                            <span>공유</span>
-                        </button>
-                    </div>
-
-                    <!-- 답글 목록 컨테이너 -->
-                    <div class="replies-container" th:id="'replies-' + ${comment.id}">
-                        <!-- 답글들이 HTMX로 로드됩니다 -->
-                    </div>
+                <!-- 댓글 옵션 드롭다운 -->
+                <div class="dropdown position-absolute top-0 end-0">
+                    <button aria-expanded="false"
+                            class="btn btn-sm btn-link text-muted p-1"
+                            data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li>
+                            <a class="dropdown-item" href="#">
+                                <i class="bi bi-flag me-2"></i>신고
+                            </a>
+                        </li>
+                        <li th:if="${comment.author.memberId == member?.memberId}">
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li th:if="${comment.author.memberId == member?.memberId}">
+                            <a class="dropdown-item text-danger" href="#">
+                                <i class="bi bi-trash me-2"></i>삭제
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-        </div>
-    </div>
+
+            <!-- 답글 작성 폼 (처음에는 숨김) -->
+            <div class="d-flex mb-3 ms-5 d-none" th:id="'reply-form-' + ${comment.id}">
+                <!-- Avatar -->
+                <div class="avatar avatar-xs me-2">
+                    <a href="#">
+                        <img alt=""
+                             class="avatar-img rounded-circle"
+                             src="#">
+                    </a>
+                </div>
+                <!-- Comment box -->
+                <form class="position-relative w-100"
+                      hx-on::after-request="handleReplySubmit(this, event)"
+                      th:attr="hx-post='/posts/' + ${postId} + '/comments?parentCommentId=' + ${comment.id},
+               hx-target='#replies-' + ${comment.id},
+               hx-swap='innerHTML'">
+                    <input name="parentCommentId" th:value="${comment.id}" type="hidden">
+                    <div class="input-group">
+                        <label class="visually-hidden" for="reply-content" th:for="'reply-content-' + ${comment.id}">답글
+                            입력</label>
+                        <textarea class="form-control pe-4 bg-light"
+                                  id="reply-content"
+                                  name="content"
+                                  placeholder="답글을 입력하세요..."
+                                  required
+                                  rows="1"
+                                  th:id="'reply-content-' + ${comment.id}"></textarea>
+                        <button class="btn btn-outline-primary btn-sm" type="submit">답글</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="hideReplyForm(this)"
+                                type="button">
+                            취소
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Comment item nested START (답글 목록) -->
+            <ul class="comment-item-nested list-unstyled" th:id="'replies-' + ${comment.id}">
+                <!-- 답글들이 HTMX로 동적으로 로드됩니다 -->
+            </ul>
+        </li>
+        <!-- Comment item END -->
+    </ul>
+    <!-- 댓글 목록 END -->
 
     <!-- 댓글 더보기 섹션 -->
-    <div class="text-center mt-4" th:if="${comments?.hasNext()}">
-        <div class="border-top pt-3">
-            <button class="btn btn-outline-primary btn-sm px-4"
-                    th:attr="hx-get='/comments/fragments/list?postId=' + ${postId} + '&page=' + ${comments.number + 1},
-                             hx-target='this',
-                             hx-swap='outerHTML',
-                             hx-indicator='#more-comments-loading'">
-                <i class="bi bi-arrow-down-circle me-2"></i>
-                <span>댓글 더보기</span>
-                <span class="badge bg-primary ms-2"
-                      th:text="${comments.totalElements - comments.numberOfElements}">0</span>
-            </button>
-
-            <!-- 더보기 로딩 인디케이터 -->
-            <div class="htmx-indicator mt-3" id="more-comments-loading">
-                <div class="d-flex justify-content-center">
-                    <div class="spinner-border spinner-border-sm text-primary me-2">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <span class="text-muted small">댓글을 불러오는 중...</span>
-                </div>
+    <div class="card-footer border-0 pb-0" id="load-more-comments-section"
+         th:if="${comments != null and comments.hasNext()}">
+        <button aria-pressed="true"
+                class="btn btn-link btn-link-loader btn-sm text-secondary d-flex align-items-center"
+                data-bs-toggle="button" href="#!"
+                onclick="this.closest('#load-more-comments-section').style.display='none'"
+                th:attr="hx-get='/posts/' + ${postId} + '/comments/fragments/list?page=' + ${comments.number + 1},
+                    hx-target='#comments-container-' + ${postId},
+                    hx-swap='beforeend',
+                    hx-indicator='#comments-loading'">
+            <div class="spinner-dots me-2">
+                <span class="spinner-dot"></span>
+                <span class="spinner-dot"></span>
+                <span class="spinner-dot"></span>
             </div>
+            더 많은 댓글 보기
+        </button>
+
+        <!-- 댓글 로딩 인디케이터 -->
+        <div class="htmx-indicator text-center py-4" id="comments-loading">
+            <div class="spinner-border text-primary mb-3"></div>
+            <div class="text-muted">댓글을 불러오는 중...</div>
         </div>
     </div>
+    <!-- 댓글 더보기 섹션 END -->
+
+    <!-- Comment Reply Form Script -->
+    <div th:replace="~{comment/comments-fragment :: reply-form-scripts}"></div>
 </div>
 
 <!-- 단일 댓글 프래그먼트 (새로 작성된 댓글용) -->
@@ -171,7 +194,7 @@
     <script th:inline="javascript">
         // 새 댓글이 추가되었으므로 댓글 수 +1
         const postId = /*[[${comment.postId}]]*/ 0;
-        const countElement = document.getElementById('comment-count-' + postId);
+        let countElement = document.getElementById('comment-count-' + postId);
         if (countElement) {
             const currentCount = parseInt(countElement.textContent) || 0;
             countElement.textContent = currentCount + 1;
@@ -354,7 +377,8 @@
 
                 <!-- 댓글 입력 필드 -->
                 <div class="mb-3">
-                    <textarea class="form-control border-0 bg-light"
+                    <label class="form-label visually-hidden" for="comment-content">댓글 입력</label>
+                    <textarea class="form-control border-0 bg-light" id="comment-content"
                               maxlength="500"
                               name="content"
                               placeholder="댓글을 입력하세요..."
@@ -395,6 +419,177 @@
         </div>
     </div>
 </div>
+
+<script th:fragment="reply-form-scripts">
+    var repliesToggleState = {};
+
+
+    function showReplyForm(button) {
+        const commentId = button.getAttribute('data-comment-id');
+        const replyForm = document.getElementById('reply-form-' + commentId);
+
+        if (replyForm) {
+            // 폼이 이미 보이는 상태라면 숨기기
+            if (replyForm.classList.contains('d-none')) {
+                // 다른 모든 답글 폼 숨기기
+                document.querySelectorAll('[id^="reply-form-"]').forEach(form => {
+                    if (form.id !== 'reply-form-' + commentId) {
+                        form.classList.add('d-none');
+                        // 텍스트 영역 초기화
+                        const textarea = form.querySelector('textarea');
+                        if (textarea) {
+                            textarea.value = '';
+                        }
+                    }
+                });
+
+                // 현재 폼 보이기
+                replyForm.classList.remove('d-none');
+
+                // 텍스트 영역에 포커스
+                const textarea = replyForm.querySelector('textarea');
+                if (textarea) {
+                    textarea.focus();
+                }
+            } else {
+                hideReplyForm(replyForm.querySelector('form'));
+            }
+        }
+    }
+
+    function hideReplyForm(form) {
+        const replyForm = form.closest('[id^="reply-form-"]');
+        if (replyForm) {
+            replyForm.classList.add('d-none');
+
+            // 텍스트 영역 초기화
+            const textarea = replyForm.querySelector('textarea');
+            if (textarea) {
+                textarea.value = '';
+            }
+        }
+    }
+
+    function handleReplySubmit(form, event) {
+        // 요청이 성공했을 때만 실행
+        if (event.detail.xhr.status === 200) {
+            // 1. 폼 숨기기
+            hideReplyForm(form);
+
+            // 2. 답글 목록 다시 로딩
+            const commentId = form.querySelector('input[name="parentCommentId"]').value;
+            const repliesContainer = document.getElementById('replies-' + commentId);
+            const toggleButton = document.querySelector(`[data-comment-id="${commentId}"]`);
+
+            if (repliesContainer) {
+                // HTMX를 사용하여 답글 목록 다시 로드
+                htmx.ajax('GET', '/comments/' + commentId + '/replies/fragments/list', {
+                    target: '#replies-' + commentId,
+                    swap: 'innerHTML'
+                });
+
+                // 토글 상태를 "보기" 상태로 설정 (답글이 추가되었으므로 보이는 상태로)
+                if (toggleButton) {
+                    toggleButton.setAttribute('data-replies-visible', 'true');
+                    const toggleText = toggleButton.querySelector('.reply-toggle-text');
+                    const icon = toggleButton.querySelector('i');
+
+                    if (toggleText) {
+                        toggleText.textContent = '답글 숨기기';
+                    }
+                    if (icon) {
+                        icon.className = 'bi bi-chevron-up me-1 transition-transform';
+                    }
+                }
+                repliesToggleState[commentId] = true;
+
+                // 답글 수 업데이트
+                updateRepliesCount(commentId);
+
+                // 답글 컨테이너 보이기 (혹시 숨겨져 있다면)
+                repliesContainer.style.display = 'block';
+            }
+
+            // 3. 성공 메시지 표시 (선택적)
+            showToast('답글이 작성되었습니다.');
+        }
+    }
+
+    function updateRepliesCount(commentId) {
+        const replyButton = document.querySelector(`[hx-target="#replies-${commentId}"]`);
+        if (replyButton) {
+            const countBadge = replyButton.querySelector('.badge');
+            if (countBadge) {
+                const currentCount = parseInt(countBadge.textContent) || 0;
+                countBadge.textContent = currentCount + 1;
+            }
+        }
+    }
+
+    function showToast(message) {
+        // Bootstrap Toast 사용
+        const toastHtml = `
+        <div class="toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+        document.body.insertAdjacentHTML('beforeend', toastHtml);
+        const toast = new bootstrap.Toast(document.querySelector('.toast:last-child'));
+        toast.show();
+    }
+
+    // 답글 토글 상태를 추적하는 객체
+
+    function toggleReplies(button) {
+        const commentId = button.getAttribute('data-comment-id');
+        const repliesContainer = document.getElementById('replies-' + commentId);
+        const toggleText = button.querySelector('.reply-toggle-text');
+        const loadingIndicator = document.getElementById('reply-loading-' + commentId);
+
+        // 현재 상태 확인
+        const isVisible = repliesToggleState[commentId] || false;
+
+        if (!isVisible) {
+            // 답글 보기
+            toggleText.textContent = '답글 숨기기';
+            button.querySelector('i').className = 'bi bi-chevron-up me-1';
+
+            // 로딩 인디케이터 표시
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('htmx-indicator');
+            }
+
+            // HTMX로 답글 로드
+            htmx.ajax('GET', '/comments/' + commentId + '/replies/fragments/list', {
+                target: '#replies-' + commentId,
+                swap: 'innerHTML',
+                indicator: '#reply-loading-' + commentId
+            }).then(() => {
+                // 로딩 완료 후 상태 업데이트
+                repliesToggleState[commentId] = true;
+                if (loadingIndicator) {
+                    loadingIndicator.classList.add('htmx-indicator');
+                }
+            });
+
+        } else {
+            // 답글 숨기기
+            toggleText.textContent = '답글 보기';
+            button.querySelector('i').className = 'bi bi-chat-left-dots me-1';
+
+            // 답글 컨테이너 비우기
+            if (repliesContainer) {
+                repliesContainer.innerHTML = '';
+            }
+
+            // 상태 업데이트
+            repliesToggleState[commentId] = false;
+        }
+    }
+</script>
 
 </body>
 </html>

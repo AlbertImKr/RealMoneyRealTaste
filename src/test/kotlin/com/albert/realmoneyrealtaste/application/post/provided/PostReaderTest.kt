@@ -573,4 +573,324 @@ class PostReaderTest(
 
         assertFalse(exists)
     }
+
+    @Test
+    fun `readPostById without memberId - success - reads post without incrementing view count`() {
+        val member = testMemberHelper.createActivatedMember()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = member.nickname.value,
+            )
+        )
+        val originalViewCount = post.viewCount
+        applicationEvents.clear()
+
+        val result = postReader.readPostById(post.requireId())
+
+        assertAll(
+            { assertEquals(post.requireId(), result.requireId()) },
+            { assertEquals(post.author.memberId, result.author.memberId) },
+            { assertEquals(post.author.nickname, result.author.nickname) },
+            { assertEquals(post.restaurant.name, result.restaurant.name) },
+            { assertEquals(post.content.text, result.content.text) },
+            { assertEquals(post.content.rating, result.content.rating) },
+            { assertEquals(post.images.urls, result.images.urls) },
+            { assertEquals(post.status, result.status) },
+            { assertEquals(post.heartCount, result.heartCount) },
+            { assertEquals(originalViewCount, result.viewCount) }, // view count 증가 안 함
+            { assertEquals(0, applicationEvents.stream().count()) } // 이벤트 발생 안 함
+        )
+    }
+
+    @Test
+    fun `readPostById without memberId - failure - post not found`() {
+        assertFailsWith<PostNotFoundException> {
+            postReader.readPostById(999L)
+        }.let {
+            assertEquals("게시글을 찾을 수 없습니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `readPostById without memberId - failure - post is deleted`() {
+        val member = testMemberHelper.createActivatedMember()
+        val post = postRepository.save(
+            PostFixture.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = member.nickname.value,
+            )
+        )
+        post.delete(member.requireId())
+        flushAndClear()
+
+        assertFailsWith<PostNotFoundException> {
+            postReader.readPostById(post.requireId())
+        }.let {
+            assertEquals("게시글을 찾을 수 없습니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `countPostsByMemberId - success - returns correct count for member with posts`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..5).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        flushAndClear()
+
+        val count = postReader.countPostsByMemberId(authorMemberId)
+
+        assertEquals(5L, count)
+    }
+
+    @Test
+    fun `countPostsByMemberId - success - returns zero for member with no posts`() {
+        val member = testMemberHelper.createActivatedMember()
+
+        val count = postReader.countPostsByMemberId(member.requireId())
+
+        assertEquals(0L, count)
+    }
+
+    @Test
+    fun `countPostsByMemberId - success - excludes deleted posts`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..3).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        posts[1].delete(authorMemberId)
+        flushAndClear()
+
+        val count = postReader.countPostsByMemberId(authorMemberId)
+
+        assertEquals(2L, count)
+    }
+
+    @Test
+    fun `readPostsByAuthor - success - reads posts by author with pagination`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..4).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        val pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "id"))
+        flushAndClear()
+
+        val result = postReader.readPostsByAuthor(authorMemberId, pageRequest)
+
+        assertAll(
+            { assertFalse(result.isEmpty) },
+            { assertEquals(4, result.totalElements) },
+            { assertEquals(2, result.totalPages) },
+            { assertEquals(3, result.numberOfElements) },
+            { assertEquals(posts[3].requireId(), result.content[0].requireId()) },
+            { assertEquals(posts[2].requireId(), result.content[1].requireId()) },
+            { assertEquals(posts[1].requireId(), result.content[2].requireId()) }
+        )
+    }
+
+    @Test
+    fun `readPostsByAuthor - success - returns empty for author with no posts`() {
+        val member = testMemberHelper.createActivatedMember()
+
+        val result = postReader.readPostsByAuthor(member.requireId(), PageRequest.of(0, 10))
+
+        assertTrue(result.isEmpty)
+    }
+
+    @Test
+    fun `readPostsByAuthor - success - excludes deleted posts`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..3).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        posts[1].delete(authorMemberId)
+        val pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"))
+        flushAndClear()
+
+        val result = postReader.readPostsByAuthor(authorMemberId, pageRequest)
+
+        assertAll(
+            { assertFalse(result.isEmpty) },
+            { assertEquals(2, result.totalElements) },
+            { assertEquals(posts[2].requireId(), result.content[0].requireId()) },
+            { assertEquals(posts[0].requireId(), result.content[1].requireId()) }
+        )
+    }
+
+    @Test
+    fun `readPostsByIds - success - reads posts by list of IDs`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..5).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        val targetIds = listOf(posts[0].requireId(), posts[2].requireId(), posts[4].requireId())
+        flushAndClear()
+
+        val result = postReader.readPostsByIds(targetIds)
+
+        assertEquals(3, result.size)
+        val resultIds = result.map { it.requireId() }.toSet()
+        assertAll(
+            { assertTrue(resultIds.contains(posts[0].requireId())) },
+            { assertTrue(resultIds.contains(posts[2].requireId())) },
+            { assertTrue(resultIds.contains(posts[4].requireId())) },
+            { assertFalse(resultIds.contains(posts[1].requireId())) },
+            { assertFalse(resultIds.contains(posts[3].requireId())) }
+        )
+    }
+
+    @Test
+    fun `readPostsByIds - success - returns empty list for empty input`() {
+        val result = postReader.readPostsByIds(emptyList())
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `readPostsByIds - success - returns empty list for non-existent IDs`() {
+        val result = postReader.readPostsByIds(listOf(999L, 1000L, 1001L))
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `readPostsByIds - success - excludes deleted posts`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..3).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        posts[1].delete(authorMemberId)
+        val targetIds = listOf(posts[0].requireId(), posts[1].requireId(), posts[2].requireId())
+        flushAndClear()
+
+        val result = postReader.readPostsByIds(targetIds)
+
+        assertEquals(2, result.size)
+        val resultIds = result.map { it.requireId() }.toSet()
+        assertAll(
+            { assertTrue(resultIds.contains(posts[0].requireId())) },
+            { assertTrue(resultIds.contains(posts[2].requireId())) },
+            { assertFalse(resultIds.contains(posts[1].requireId())) } // 삭제된 게시글 제외
+        )
+    }
+
+    @Test
+    fun `readPosts - success - reads posts with pagination`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..8).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        val pageRequest = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "id"))
+        flushAndClear()
+
+        val result = postReader.readPosts(pageRequest)
+
+        assertAll(
+            { assertFalse(result.isEmpty) },
+            { assertEquals(8, result.totalElements) },
+            { assertEquals(2, result.totalPages) },
+            { assertEquals(5, result.numberOfElements) },
+            { assertEquals(posts[7].requireId(), result.content[0].requireId()) },
+            { assertEquals(posts[6].requireId(), result.content[1].requireId()) },
+            { assertEquals(posts[5].requireId(), result.content[2].requireId()) },
+            { assertEquals(posts[4].requireId(), result.content[3].requireId()) },
+            { assertEquals(posts[3].requireId(), result.content[4].requireId()) }
+        )
+    }
+
+    @Test
+    fun `readPosts - success - excludes deleted posts`() {
+        val member = testMemberHelper.createActivatedMember()
+        val authorMemberId = member.requireId()
+        val posts = (1..6).map {
+            postRepository.save(
+                PostFixture.createPost(
+                    authorMemberId = authorMemberId,
+                    authorNickname = member.nickname.value,
+                    images = PostFixture.createImages(2)
+                )
+            )
+        }
+        posts[2].delete(authorMemberId)
+        posts[4].delete(authorMemberId)
+        val pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"))
+        flushAndClear()
+
+        val result = postReader.readPosts(pageRequest)
+
+        assertAll(
+            { assertFalse(result.isEmpty) },
+            { assertEquals(4, result.totalElements) },
+            { assertEquals(1, result.totalPages) },
+            { assertEquals(4, result.numberOfElements) }
+        )
+
+        val resultIds = result.content.map { it.requireId() }.toSet()
+        assertAll(
+            { assertTrue(resultIds.contains(posts[5].requireId())) },
+            { assertTrue(resultIds.contains(posts[3].requireId())) },
+            { assertTrue(resultIds.contains(posts[1].requireId())) },
+            { assertTrue(resultIds.contains(posts[0].requireId())) },
+            { assertFalse(resultIds.contains(posts[2].requireId())) }, // 삭제된 게시글 제외
+            { assertFalse(resultIds.contains(posts[4].requireId())) }  // 삭제된 게시글 제외
+        )
+    }
+
+    @Test
+    fun `readPosts - success - returns empty when no posts exist`() {
+        val result = postReader.readPosts(PageRequest.of(0, 10))
+
+        assertTrue(result.isEmpty)
+        assertEquals(0, result.totalElements)
+    }
 }

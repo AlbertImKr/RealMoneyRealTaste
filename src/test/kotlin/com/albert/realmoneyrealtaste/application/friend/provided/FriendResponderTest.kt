@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.application.friend.provided
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.friend.dto.FriendResponseRequest
 import com.albert.realmoneyrealtaste.application.friend.exception.FriendResponseException
+import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
@@ -15,7 +16,10 @@ import org.springframework.test.context.event.RecordApplicationEvents
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @RecordApplicationEvents
 class FriendResponderTest(
@@ -23,6 +27,7 @@ class FriendResponderTest(
     private val friendRequestor: FriendRequestor,
     private val friendshipReader: FriendshipReader,
     private val testMemberHelper: TestMemberHelper,
+    private val friendshipRepository: FriendshipRepository,
 ) : IntegrationTestBase() {
 
     @Autowired
@@ -40,7 +45,7 @@ class FriendResponderTest(
         )
 
         // 친구 요청 생성
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
         flushAndClear()
         applicationEvents.clear()
@@ -94,7 +99,7 @@ class FriendResponderTest(
         )
 
         // 친구 요청 생성
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
         flushAndClear()
         applicationEvents.clear()
@@ -143,7 +148,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         val nonExistentMemberId = 999999L
@@ -196,7 +201,7 @@ class FriendResponderTest(
             nickname = "unauthorized"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 요청을 받지 않은 사람이 응답 시도
@@ -224,7 +229,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 요청을 보낸 사람이 응답 시도
@@ -252,7 +257,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 첫 번째 응답 (수락)
@@ -288,7 +293,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 첫 번째 응답 (거절)
@@ -324,9 +329,8 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
-        val originalUpdatedAt = friendship.updatedAt
 
         val request = FriendResponseRequest(
             friendshipId = friendship.requireId(),
@@ -339,7 +343,6 @@ class FriendResponderTest(
         assertAll(
             { assertEquals(FriendshipStatus.ACCEPTED, result.status) },
             { assertEquals(friendship.createdAt, result.createdAt) }, // 생성일은 변경되지 않음
-            { kotlin.test.assertTrue(result.updatedAt > originalUpdatedAt) } // 수정일은 변경됨
         )
     }
 
@@ -354,7 +357,7 @@ class FriendResponderTest(
             nickname = "receiver"
         )
 
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId())
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
         val friendship = friendRequestor.sendFriendRequest(command)
 
         // 수신자를 비활성화 (실제로는 불가능하지만 테스트를 위해)
@@ -372,5 +375,171 @@ class FriendResponderTest(
         }.let {
             assertEquals("친구 요청 응답에 실패했습니다.", it.message)
         }
+    }
+
+    @Test
+    fun `respondToFriendRequest - success - persists response to database correctly`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "persist-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "persist-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
+        val friendship = friendRequestor.sendFriendRequest(command)
+        flushAndClear()
+
+        val request = FriendResponseRequest(
+            friendshipId = friendship.requireId(),
+            respondentMemberId = receiver.requireId(),
+            accept = true
+        )
+        val result = friendResponder.respondToFriendRequest(request)
+
+        flushAndClear()
+
+        val persisted = friendshipReader.findFriendshipById(result.requireId())
+        assertAll(
+            { assertNotNull(persisted) },
+            { assertEquals(FriendshipStatus.ACCEPTED, persisted?.status) },
+            { assertEquals(result.requireId(), persisted?.requireId()) },
+            { assertTrue(persisted?.updatedAt!! > persisted.createdAt) }
+        )
+    }
+
+    @Test
+    fun `respondToFriendRequest - success - creates bidirectional friendship on acceptance`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "bidirectional-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "bidirectional-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
+        val originalFriendship = friendRequestor.sendFriendRequest(command)
+
+        val request = FriendResponseRequest(
+            friendshipId = originalFriendship.requireId(),
+            respondentMemberId = receiver.requireId(),
+            accept = true
+        )
+        friendResponder.respondToFriendRequest(request)
+
+        flushAndClear()
+
+        // 양방향 친구 관계 확인
+        val forwardFriendship = friendshipReader.findActiveFriendship(sender.requireId(), receiver.requireId())!!
+        val reverseFriendship = friendshipReader.findActiveFriendship(receiver.requireId(), sender.requireId())!!
+
+        assertAll(
+            { assertNotNull(forwardFriendship) },
+            { assertNotNull(reverseFriendship) },
+            { assertEquals(FriendshipStatus.ACCEPTED, forwardFriendship.status) },
+            { assertEquals(FriendshipStatus.ACCEPTED, reverseFriendship.status) },
+            { assertNotEquals(forwardFriendship.requireId(), reverseFriendship.requireId()) }
+        )
+    }
+
+    @Test
+    fun `respondToFriendRequest - success - does not create reverse friendship on rejection`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "noreverse-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "noreverse-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
+        val originalFriendship = friendRequestor.sendFriendRequest(command)
+
+        val request = FriendResponseRequest(
+            friendshipId = originalFriendship.requireId(),
+            respondentMemberId = receiver.requireId(),
+            accept = false
+        )
+        friendResponder.respondToFriendRequest(request)
+
+        flushAndClear()
+
+        // 원래 관계는 거절 상태, 역방향 관계는 없음
+        val rejectedFriendship = friendshipReader.findFriendshipById(originalFriendship.requireId())
+        val reverseFriendship = friendshipReader.findActiveFriendship(receiver.requireId(), sender.requireId())
+
+        assertAll(
+            { assertNotNull(rejectedFriendship) },
+            { assertEquals(FriendshipStatus.REJECTED, rejectedFriendship.status) },
+            { assertNull(reverseFriendship) }
+        )
+    }
+
+    @Test
+    fun `respondToFriendRequest - failure - throws exception when friendship is already unfriended`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "unfriend-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "unfriend-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
+        val friendship = friendRequestor.sendFriendRequest(command)
+        friendship.status = FriendshipStatus.ACCEPTED
+
+        // 친구 관계를 UNFRIENDED 상태로 변경
+        friendship.unfriend()
+        friendshipRepository.save(friendship)
+
+        val request = FriendResponseRequest(
+            friendshipId = friendship.requireId(),
+            respondentMemberId = receiver.requireId(),
+            accept = true
+        )
+
+        assertFailsWith<FriendResponseException> {
+            friendResponder.respondToFriendRequest(request)
+        }.let {
+            assertEquals("친구 요청 응답에 실패했습니다.", it.message)
+        }
+    }
+
+    @Test
+    fun `respondToFriendRequest - success - updates timestamps correctly`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "timestamp-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "timestamp-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
+        val friendship = friendRequestor.sendFriendRequest(command)
+        val originalUpdatedAt = friendship.updatedAt
+
+        // 잠시 대기하여 시간 차이 보장
+        Thread.sleep(100)
+
+        val request = FriendResponseRequest(
+            friendshipId = friendship.requireId(),
+            respondentMemberId = receiver.requireId(),
+            accept = true
+        )
+        val result = friendResponder.respondToFriendRequest(request)
+
+        assertAll(
+            { assertEquals(friendship.createdAt, result.createdAt) }, // 생성일은 변경되지 않음
+            { assertTrue(result.updatedAt > originalUpdatedAt) } // 수정일은 업데이트됨
+        )
     }
 }

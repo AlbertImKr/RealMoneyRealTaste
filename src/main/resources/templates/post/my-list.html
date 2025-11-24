@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>RMRT - My Posts</title>
+
+    <!-- Meta Tags -->
+    <th:block th:replace="~{fragments/meta-tags :: default-meta}"></th:block>
+
+    <!-- Styles -->
+    <th:block th:replace="~{fragments/head :: styles}"></th:block>
+
+    <!-- Core Scripts -->
+    <th:block th:replace="~{fragments/head :: core-scripts}"></th:block>
+</head>
+<body>
+
+<!-- Header START -->
+<header th:replace="~{fragments/header :: header}"></header>
+<!-- Header END -->
+
+<!-- **************** MAIN CONTENT START **************** -->
+<main>
+
+    <!-- Container START -->
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- Main content START -->
+            <div class="col-lg-8 vstack gap-4">
+                <!-- My profile START -->
+                <div class="card">
+                    <!-- Cover image -->
+                    <div class="h-200px rounded-top"
+                         style="background-image:url(#); background-position: center; background-size: cover; background-repeat: no-repeat;"></div>
+
+                    <!-- Card body START -->
+                    <div class="card-body py-0">
+                        <div class="d-sm-flex align-items-start text-center text-sm-start">
+                            <div>
+                                <!-- Avatar -->
+                                <div class="avatar avatar-xxl mt-n5 mb-3">
+                                    <img alt=""
+                                         class="avatar-img rounded-circle border border-white border-3"
+                                         src="#">
+                                </div>
+                            </div>
+                            <div class="ms-sm-4 mt-sm-3">
+                                <!-- Info -->
+                                <h1 class="mb-0 h5">
+                                    <span th:text="${author?.nickname?.value ?: '사용자'}">Sam Lanson</span>
+                                    <i class="bi bi-patch-check-fill text-success small"></i>
+                                    <!-- 프로필 소유자 배지 -->
+                                    <span class="badge bg-primary ms-2" sec:authorize="isAuthenticated()"
+                                          th:if="${member?.email?.address == author?.email?.address}">나의 프로필</span>
+                                </h1>
+
+                                <!-- 팔로우 통계 -->
+                                <div class="d-flex gap-3 text-muted small">
+                                    <span th:id="followers-stat"
+                                          th:text="${author?.followersCount ?: 0} + ' followers'">0
+                                        followers</span>
+                                    <span th:id="following-stat"
+                                          th:text="${author?.followingsCount ?: 0} + ' following'">0
+                                        following</span>
+                                </div>
+                            </div>
+                            <!-- Button -->
+                            <div class="d-flex mt-3 justify-content-center ms-sm-auto">
+                                <!-- 프로필 소유자인 경우 -->
+                                <div sec:authorize="isAuthenticated()"
+                                     th:if="${member?.email?.address == author?.email?.address}">
+                                    <button class="btn btn-danger-soft me-2"
+                                            th:onclick="|location.href='@{/members/setting}'|"
+                                            type="button">
+                                        <i class="bi bi-pencil-fill pe-1"></i> Edit profile
+                                    </button>
+                                </div>
+
+                                <!-- 다른 사용자인 경우 -->
+                                <div sec:authorize="isAuthenticated()"
+                                     th:if="${member?.email?.address != author?.email?.address}">
+                                    <button class="btn btn-primary-soft me-2" id="follow-btn">
+                                        <i class="bi bi-person-plus pe-1"></i> Follow
+                                    </button>
+                                    <button class="btn btn-success-soft me-2" id="message-btn"
+                                            th:attr="onclick=|location.href='@{/messages/{id}(id=${author.memberId})}'|">
+                                        <i class="bi bi-chat-left-text pe-1"></i> Message
+                                    </button>
+                                </div>
+
+                                <!-- 비인증 사용자인 경우 -->
+                                <div sec:authorize="!isAuthenticated()">
+                                    <button class="btn btn-primary-soft me-2" onclick="location.href='/signin'">
+                                        <i class="bi bi-box-arrow-in-right pe-1"></i> Login to Follow
+                                    </button>
+                                </div>
+                                <div class="dropdown">
+                                    <!-- Card share action menu -->
+                                    <button aria-expanded="false" class="icon-md btn btn-light"
+                                            data-bs-toggle="dropdown"
+                                            id="profileAction2" type="button">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <!-- Card share action dropdown menu -->
+                                    <ul aria-labelledby="profileAction2" class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#"> <i class="bi bi-bookmark fa-fw pe-2"></i>Share
+                                            profile in a message</a></li>
+                                        <li><a class="dropdown-item" href="#"> <i
+                                                class="bi bi-file-earmark-pdf fa-fw pe-2"></i>Save your profile to
+                                            PDF</a></li>
+                                        <li><a class="dropdown-item" href="#"> <i class="bi bi-lock fa-fw pe-2"></i>Lock
+                                            profile</a></li>
+                                        <!-- 프로필 소유자에게만 표시 -->
+                                        <li sec:authorize="isAuthenticated()"
+                                            th:if="${member?.email?.address == author?.email?.address}">
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li sec:authorize="isAuthenticated()"
+                                            th:if="${member?.email?.address == author?.email?.address}">
+                                            <a class="dropdown-item" th:href="@{/members/setting}">
+                                                <i class="bi bi-gear fa-fw pe-2"></i>Profile settings
+                                            </a>
+                                        </li>
+                                        <!-- 다른 사용자에게만 표시 -->
+                                        <li sec:authorize="isAuthenticated()"
+                                            th:if="${member?.email?.address != author?.email?.address}">
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li sec:authorize="isAuthenticated()"
+                                            th:if="${member?.email?.address != author?.email?.address}">
+                                            <a class="dropdown-item" href="#">
+                                                <i class="bi bi-flag fa-fw pe-2"></i>Report profile
+                                            </a>
+                                        </li>
+                                        <li sec:authorize="isAuthenticated()"
+                                            th:if="${member?.email?.address != author?.email?.address}">
+                                            <a class="dropdown-item" href="#">
+                                                <i class="bi bi-person-x fa-fw pe-2"></i>Block user
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- List profile -->
+                        <ul class="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
+                            <li class="list-inline-item"><i class="bi bi-person-circle me-1"></i>
+                                <span th:text="${author?.introduction ?: '진짜 내돈내산 푸드 리뷰어'}">Food Reviewer at RMRT</span>
+                            </li>
+                            <li class="list-inline-item">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                <span th:text="${author?.address ?: 'Seoul, South Korea'}">Seoul, South Korea</span>
+                            </li>
+                            <li class="list-inline-item">
+                                <i class="bi bi-calendar2-plus me-1"></i>
+                                Joined on <span th:text="${#temporals.format(author?.createdAt, 'MMMM yyyy')}">Jan
+                                    2020</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Card body END -->
+
+                    <div class="card-footer mt-3 pt-2 pb-0">
+                        <!-- Nav profile pages -->
+                        <ul class="nav nav-bottom-line align-items-center justify-content-center justify-content-md-start mb-0 border-0">
+                            <li class="nav-item active">
+                                <button class="nav-link"
+                                        hx-get="/posts/mine/fragment"
+                                        hx-indicator="#loading-indicator"
+                                        hx-swap="innerHTML"
+                                        hx-target="#content-area"
+                                        id="posts-tab">
+                                    Posts
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link"
+                                        hx-get="/collections/my-list/fragment"
+                                        hx-indicator="#loading-indicator"
+                                        hx-swap="innerHTML"
+                                        hx-target="#content-area"
+                                        id="collections-tab">
+                                    Collections
+                                </button>
+                            <li class="nav-item">
+                            <button class="nav-link"
+                                    hx-get="/following/fragment"
+                                    hx-indicator="#loading-indicator"
+                                    hx-swap="innerHTML"
+                                    hx-target="#content-area"
+                                    id="following-tab">
+                                Following
+                            </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link"
+                                        hx-get="/followers/fragment"
+                                        hx-indicator="#loading-indicator"
+                                        hx-swap="innerHTML"
+                                        hx-target="#content-area"
+                                        id="followers-tab">
+                                    Followers
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link"
+                                        hx-get="/friends/fragment"
+                                        hx-indicator="#loading-indicator"
+                                        hx-swap="innerHTML"
+                                        hx-target="#content-area"
+                                        id="friends-tab">
+                                    Friends
+                                </button>
+                            </li>
+                            <li class="nav-item" sec:authorize="isAuthenticated()"
+                                th:if="${member?.email?.address == author?.email?.address}">
+                                <a class="nav-link" th:href="@{/members/{id}/events(id=${author.id})}">
+                                    Events</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- My profile END -->
+
+                <!-- 공통 컨텐츠 영역 -->
+                <div class="card">
+                    <!-- 로딩 인디케이터 -->
+                    <div class="htmx-indicator" id="loading-indicator">
+                        <div class="spinner-border text-primary"></div>
+                        <p class="mt-2 text-muted">불러오는 중...</p>
+                    </div>
+
+                    <!-- 실제 컨텐츠가 교체될 영역 -->
+                    <div id="content-area">
+                    </div>
+                </div>
+
+            </div>
+            <!-- Main content END -->
+
+            <!-- Right sidebar START -->
+            <div class="col-lg-4">
+                <div class="row g-4">
+                    <!-- Card follow START -->
+                    <div hx-swap="innerHTML"
+                         hx-trigger="load,refresh"
+                         id="friend-widget-container"
+                         th:attr="hx-get='/members/' + ${author.id} + '/friends/widget/fragment'">
+                    </div>
+                    <!-- Card follow END -->
+                </div>
+            </div>
+            <!-- Right sidebar END -->
+
+        </div> <!-- Row END -->
+    </div>
+    <!-- Container END -->
+</main>
+<!-- **************** MAIN CONTENT END **************** -->
+
+<!-- Modal create post START -->
+<th:block th:insert="~{post/modal-create-post :: modal-create-post}"></th:block>
+<!-- Modal create post END -->
+
+<!-- Post Detail Modal START -->
+<div aria-labelledby="postDetailModalLabel"
+     aria-modal="true"
+     class="modal fade"
+     id="postDetailModal"
+     tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl d-flex align-items-center justify-content-center min-vh-100">
+        <div class="modal-content mx-auto" style="max-height: 90vh; overflow-y: auto;">
+            <!-- Modal header START -->
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="postDetailModalLabel">
+                    <i class="bi bi-card-image text-primary me-2"></i>게시글 상세보기
+                </h5>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+            </div>
+            <!-- Modal header END -->
+
+            <!-- Modal body START -->
+            <div class="modal-body p-0">
+                <!-- 로딩 상태 -->
+                <div class="htmx-indicator" id="post-detail-loading">
+                    <div class="d-flex justify-content-center align-items-center py-5">
+                        <div class="spinner-border text-primary me-3">
+                            <output class="visually-hidden">Loading...</output>
+                        </div>
+                        <span class="text-muted">게시글을 불러오는 중...</span>
+                    </div>
+                </div>
+
+                <!-- 실제 Post 내용이 로드될 영역 -->
+                <div id="post-detail-modal-content">
+                    <!-- HTMX로 동적으로 로드됨 -->
+                </div>
+            </div>
+            <!-- Modal body END -->
+
+            <!-- Modal footer START -->
+            <div class="modal-footer border-0 bg-light">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div class="text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        ESC 키를 눌러 닫을 수 있습니다
+                    </div>
+                    <fieldset class="btn-group">
+                        <legend class="visually-hidden">Modal actions</legend>
+                        <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">
+                            <i class="bi bi-x-circle me-1"></i>닫기
+                        </button>
+                        <a class="btn btn-primary d-none" href="#" id="post-detail-link">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>새 창에서 보기
+                        </a>
+                    </fieldset>
+                </div>
+            </div>
+            <!-- Modal footer END -->
+        </div>
+    </div>
+</div>
+<!-- Post Detail Modal END -->
+
+<!-- Modal container for dynamic modals START -->
+<div id="modal-container"></div>
+<!-- Modal container for dynamic modals END -->
+
+<!-- Scripts Start -->
+<th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
+<!-- Scripts END -->
+
+</body>
+</html>

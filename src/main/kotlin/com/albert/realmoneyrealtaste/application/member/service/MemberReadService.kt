@@ -55,4 +55,11 @@ class MemberReadService(
         val findAllByIdInAndStatus = memberRepository.findAllByIdInAndStatus(memberIds, MemberStatus.ACTIVE)
         return findAllByIdInAndStatus
     }
+
+    override fun findSuggestedMembers(
+        memberId: Long,
+        limit: Long,
+    ): List<Member> {
+        return memberRepository.findSuggestedMembers(memberId, MemberStatus.ACTIVE, limit)
+    }
 }

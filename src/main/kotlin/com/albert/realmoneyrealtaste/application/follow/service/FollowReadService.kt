@@ -5,10 +5,8 @@ import com.albert.realmoneyrealtaste.application.follow.dto.FollowStatsResponse
 import com.albert.realmoneyrealtaste.application.follow.exception.FollowNotFoundException
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.follow.required.FollowRepository
-import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.follow.Follow
 import com.albert.realmoneyrealtaste.domain.follow.FollowStatus
-import com.albert.realmoneyrealtaste.domain.follow.value.FollowRelationship
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -18,24 +16,22 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class FollowReadService(
     private val followRepository: FollowRepository,
-    private val memberReader: MemberReader,
 ) : FollowReader {
 
     companion object {
         const val ERROR_FOLLOW_NOT_FOUND = "팔로우 관계를 찾을 수 없습니다."
-
-        const val UNKNOWN_NICKNAME = "Unknown"
     }
 
     override fun findActiveFollow(followerId: Long, followingId: Long): Follow {
         return followRepository.findFollowerByRelationshipAndStatus(
-            FollowRelationship(followerId, followingId),
+            followerId,
+            followingId,
             FollowStatus.ACTIVE
         ) ?: throw FollowNotFoundException(ERROR_FOLLOW_NOT_FOUND)
     }
 
     override fun findFollowByRelationship(followerId: Long, followingId: Long): Follow? {
-        return followRepository.findByRelationship(FollowRelationship(followerId, followingId))
+        return followRepository.findByRelationship(followerId, followingId)
     }
 
     override fun findFollowById(followId: Long): Follow {
@@ -57,9 +53,35 @@ class FollowReadService(
         return mapToFollowResponses(follows)
     }
 
+    override fun searchFollowers(memberId: Long, keyword: String, pageable: Pageable): Page<FollowResponse> {
+        val follows = followRepository.searchFollowersByFollowingIdAndStatus(
+            memberId, keyword, FollowStatus.ACTIVE, pageable
+        )
+        return mapToFollowResponses(follows)
+    }
+
+    override fun searchFollowings(memberId: Long, keyword: String, pageable: Pageable): Page<FollowResponse> {
+        val follows = followRepository.searchFollowingsByFollowerIdAndStatus(
+            memberId, keyword, FollowStatus.ACTIVE, pageable
+        )
+        return mapToFollowResponses(follows)
+    }
+
     override fun checkIsFollowing(followerId: Long, followingId: Long): Boolean {
         return followRepository.existsByRelationshipAndStatus(
-            FollowRelationship(followerId, followingId),
+            followerId,
+            followingId,
+            FollowStatus.ACTIVE
+        )
+    }
+
+    override fun findFollowings(
+        followerId: Long,
+        targetIds: List<Long>,
+    ): List<Long> {
+        return followRepository.findFollowingByIds(
+            followerId,
+            targetIds,
             FollowStatus.ACTIVE
         )
     }
@@ -72,7 +94,8 @@ class FollowReadService(
 
     override fun existsActiveFollow(followerId: Long, followingId: Long): Boolean {
         return followRepository.existsByRelationshipAndStatus(
-            FollowRelationship(followerId, followingId),
+            followerId,
+            followingId,
             FollowStatus.ACTIVE
         )
     }
@@ -92,20 +115,11 @@ class FollowReadService(
         )
     }
 
+    /**
+     * Follow 엔티티를 FollowResponse로 변환
+     * FollowRelationship에 닉네임이 포함되어 있으므로 직접 매핑
+     */
     private fun mapToFollowResponses(follows: Page<Follow>): Page<FollowResponse> {
-        return follows.map { follow ->
-            val memberIds = listOf(
-                follow.relationship.followerId,
-                follow.relationship.followingId
-            )
-            val members = memberReader.readAllActiveMembersByIds(memberIds)
-            val memberMap = members.associate { it.id to it.nickname.value }
-
-            FollowResponse.from(
-                follow,
-                memberMap[follow.relationship.followerId] ?: UNKNOWN_NICKNAME,
-                memberMap[follow.relationship.followingId] ?: UNKNOWN_NICKNAME,
-            )
-        }
+        return follows.map { follow -> FollowResponse.from(follow) }
     }
 }

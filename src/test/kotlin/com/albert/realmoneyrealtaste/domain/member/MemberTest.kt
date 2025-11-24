@@ -528,6 +528,8 @@ class MemberTest {
         trustScore = TrustScore.create(),
         updatedAt = LocalDateTime.now(),
         roles = Roles.ofUser(),
+        followersCount = 0,
+        followingsCount = 0,
     ) {
         fun setEmailForTest(email: Email) {
             this.email = email
@@ -540,5 +542,49 @@ class MemberTest {
         fun setRolesForTest(roles: Roles) {
             this.roles = roles
         }
+    }
+
+    @Test
+    fun `updateFollowersCount - success - updates followers count and timestamp`() {
+        val member = createMember()
+        member.activate()
+        val newFollowerCount = 5L
+
+        member.updateFollowersCount(newFollowerCount)
+
+        assertEquals(newFollowerCount, member.followersCount)
+    }
+
+    @Test
+    fun `updateFollowersCount - success - handles zero count`() {
+        val member = createMember()
+        member.activate()
+
+        member.updateFollowersCount(0)
+
+        assertEquals(0, member.followersCount)
+    }
+
+    @Test
+    fun `updateFollowingsCount - success - updates followings count and timestamp`() {
+        val member = createMember()
+        member.activate()
+        val beforeUpdateAt = member.updatedAt
+        val newFollowingCount = 3L
+
+        member.updateFollowingsCount(newFollowingCount)
+
+        assertEquals(newFollowingCount, member.followingsCount)
+        assertTrue(beforeUpdateAt < member.updatedAt, "updatedAt should be updated")
+    }
+
+    @Test
+    fun `updateFollowingsCount - success - handles zero count`() {
+        val member = createMember()
+        member.activate()
+
+        member.updateFollowingsCount(0)
+
+        assertEquals(0, member.followingsCount)
     }
 }

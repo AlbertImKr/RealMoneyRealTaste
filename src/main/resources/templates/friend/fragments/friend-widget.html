@@ -1,0 +1,106 @@
+<!-- 친구 위젯 Fragment -->
+<div class="col-md-6 col-lg-12" th:fragment="friend-widget">
+    <div class="card">
+        <!-- Card header START -->
+        <div class="card-header d-sm-flex justify-content-between border-0">
+            <h5 class="card-title">
+                Friends
+            </h5>
+        </div>
+        <!-- Card header END -->
+        <!-- Card body START -->
+        <div class="card-body position-relative pt-0">
+            <!-- 친구 요청 섹션 -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person-plus-fill text-warning me-2"></i>
+                        친구 요청
+                        <span class="badge bg-warning text-dark ms-2"
+                              th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}"
+                              th:text="${pendingRequestsCount ?: 0}">0</span>
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary"
+                            hx-get="/friends/requests/fragment"
+                            hx-swap="innerHTML"
+                            hx-trigger="click,refresh"
+                            id="friend-requests-button"
+                            hx-target="#friend-requests-list"
+                            th:if="${pendingRequestsCount != null and pendingRequestsCount > 0}">
+                        <i class="bi bi-eye"></i> 보기
+                    </button>
+                </div>
+                <!-- 친구 요청 리스트 (초기에는 숨김) -->
+                <div class="mb-3" id="friend-requests-list"></div>
+            </div>
+
+            <!-- 친구 리스트 섹션 -->
+            <div>
+                <h6 class="mb-3">
+                    <i class="bi bi-people-fill text-success me-2"></i>
+                    친구 리스트
+                </h6>
+                <div class="row g-3">
+                    <!-- Friend items would be populated here dynamically -->
+                    <div class="col-6" th:each="friend : ${recentFriends}"
+                         th:if="${recentFriends != null and !recentFriends.isEmpty()}">
+                        <!-- Friends item START -->
+                        <div class="card shadow-none text-center h-100">
+                            <!-- Card body -->
+                            <div class="card-body p-2 pb-0">
+                                <div class="avatar avatar-story avatar-xl">
+                                    <a th:href="@{/members/{id}(id=${friend.id})}">
+                                        <img alt=""
+                                             class="avatar-img rounded-circle"
+                                             src="#">
+                                    </a>
+                                </div>
+                                <h6 class="card-title mb-1 mt-3">
+                                    <a th:href="@{/members/{id}(id=${friend.id})}"
+                                       th:text="${friend.nickname}">Amanda Reed</a>
+                                </h6>
+                            </div>
+                            <!-- Card footer -->
+                            <div class="card-footer p-2 border-0">
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-sm btn-outline-primary"
+                                            data-bs-placement="top"
+                                            data-bs-toggle="tooltip"
+                                            th:attr="onclick=|location.href='@{/messages/{id}(id=${friend.id})}'|"
+                                            title="메시지">
+                                        <i class="bi bi-chat-left-text"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            data-bs-placement="top"
+                                            data-bs-toggle="tooltip"
+                                            hx-confirm="친구를 정말로 삭제하시겠습니까?"
+                                            hx-on::after-request="htmx.trigger('#friend-widget-container', 'refresh')"
+                                            th:attr="hx-delete='/friendships/' + ${friend.id}"
+                                            th:id="'friend-delete-' + ${friend.id}"
+                                            title="친구 삭제"
+                                    >
+                                        <i class="bi bi-person-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Friends item END -->
+                    </div>
+
+                    <!-- 친구가 없을 때 -->
+                    <div class="col-12 text-center py-4"
+                         th:if="${recentFriends == null or recentFriends.isEmpty()}">
+                        <i class="bi bi-people text-muted fs-1"></i>
+                        <p class="text-muted mt-2">아직 친구가 없습니다</p>
+                        <button class="btn btn-primary-soft btn-sm"
+                                data-bs-target="#addFriendModal"
+                                data-bs-toggle="modal">
+                            <i class="bi bi-person-plus me-1"></i>친구 추가하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Card body END -->
+    </div>
+</div>

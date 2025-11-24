@@ -43,11 +43,4 @@ class IntroductionTest {
             assertEquals("자기소개는 최대 500 자까지 작성할 수 있습니다", it.message)
         }
     }
-
-    @Test
-    fun `constructor - success - creates introduction with default empty value when no parameter`() {
-        val intro = Introduction()
-
-        assertEquals("", intro.value)
-    }
 }

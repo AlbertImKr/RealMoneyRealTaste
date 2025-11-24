@@ -14,7 +14,7 @@ class CommentReadService(
 ) : CommentReader {
 
     override fun getComments(postId: Long, pageable: Pageable): Page<Comment> {
-        return commentRepository.findByPostIdAndStatus(
+        return commentRepository.findByPostIdAndParentCommentIdIsNullAndStatus(
             postId = postId,
             status = CommentStatus.PUBLISHED,
             pageable = pageable
@@ -30,7 +30,7 @@ class CommentReadService(
     }
 
     override fun getCommentCount(postId: Long): Long {
-        return commentRepository.countByPostIdAndStatus(
+        return commentRepository.countByPostIdAndStatusAndParentCommentIdIsNull(
             postId = postId,
             status = CommentStatus.PUBLISHED
         )

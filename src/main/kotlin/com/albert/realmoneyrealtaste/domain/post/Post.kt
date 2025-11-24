@@ -35,6 +35,8 @@ class Post protected constructor(
 
     status: PostStatus,
 
+    commentCount: Int,
+
     heartCount: Int,
 
     viewCount: Int,
@@ -54,13 +56,15 @@ class Post protected constructor(
             restaurant: Restaurant,
             content: PostContent,
             images: PostImages,
+            authorIntroduction: String,
         ): Post {
             return Post(
-                author = Author(authorMemberId, authorNickname),
+                author = Author(authorMemberId, authorNickname, authorIntroduction),
                 restaurant = restaurant,
                 content = content,
                 images = images,
                 status = PostStatus.PUBLISHED,
+                commentCount = 0,
                 heartCount = 0,
                 viewCount = 0,
                 createdAt = LocalDateTime.now(),
@@ -88,6 +92,10 @@ class Post protected constructor(
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     var status: PostStatus = status
+        protected set
+
+    @Column(name = "comment_count", nullable = false)
+    var commentCount: Int = commentCount
         protected set
 
     @Column(name = "heart_count", nullable = false)

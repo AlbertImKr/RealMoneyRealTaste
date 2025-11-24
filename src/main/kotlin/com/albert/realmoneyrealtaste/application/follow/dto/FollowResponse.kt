@@ -18,13 +18,17 @@ data class FollowResponse(
     val updatedAt: LocalDateTime,
 ) {
     companion object {
-        fun from(follow: Follow, followerNickname: String, followingNickname: String): FollowResponse {
+        /**
+         * Follow 엔티티를 FollowResponse로 변환
+         * FollowRelationship에 닉네임이 포함되어 있으므로 직접 매핑
+         */
+        fun from(follow: Follow): FollowResponse {
             return FollowResponse(
                 followId = follow.requireId(),
                 followerId = follow.relationship.followerId,
-                followerNickname = followerNickname,
+                followerNickname = follow.relationship.followerNickname,
                 followingId = follow.relationship.followingId,
-                followingNickname = followingNickname,
+                followingNickname = follow.relationship.followingNickname,
                 status = follow.status,
                 createdAt = follow.createdAt,
                 updatedAt = follow.updatedAt

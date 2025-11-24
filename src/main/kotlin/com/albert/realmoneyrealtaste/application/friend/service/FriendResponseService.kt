@@ -10,6 +10,7 @@ import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestRejectedEvent
+import com.albert.realmoneyrealtaste.domain.member.Member
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -36,6 +37,8 @@ class FriendResponseService(
             // 친구 요청 조회
             val friendship = friendshipReader.findFriendshipById(request.friendshipId)
 
+            val member = memberReader.readActiveMemberById(friendship.relationShip.memberId)
+
             // 응답 권한 확인 (요청을 받은 사람만 응답 가능)
             require(friendship.isReceivedBy(request.respondentMemberId)) { ERROR_NOT_AUTHORIZED }
 
@@ -43,7 +46,7 @@ class FriendResponseService(
             if (request.accept) {
                 friendship.accept()
                 // 양방향 친구 관계 생성
-                createReverseFriendship(friendship)
+                createReverseFriendship(friendship.relationShip.friendMemberId, member)
             } else {
                 friendship.reject()
             }
@@ -77,11 +80,12 @@ class FriendResponseService(
         eventPublisher.publishEvent(event)
     }
 
-    private fun createReverseFriendship(originalFriendship: Friendship) {
+    private fun createReverseFriendship(fromMemberId: Long, toMember: Member) {
         val reverseFriendship = friendRequestor.sendFriendRequest(
             FriendRequestCommand(
-                fromMemberId = originalFriendship.relationShip.friendMemberId,
-                toMemberId = originalFriendship.relationShip.memberId
+                fromMemberId = fromMemberId,
+                toMemberId = toMember.requireId(),
+                toMemberNickname = toMember.nickname.value,
             )
         )
         reverseFriendship.accept() // 즉시 수락 상태로 설정

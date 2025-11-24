@@ -1,0 +1,46 @@
+<!-- 친구 요청 리스트 Fragment -->
+<div th:fragment="friend-requests">
+    <div class="list-group list-group-flush" th:if="${pendingRequests != null and !pendingRequests.isEmpty()}">
+        <button class="btn btn-sm btn-outline-primary"
+                hx-on:click="document.querySelector('#friend-requests-list').innerHTML = ''">
+            숨기기
+        </button>
+        <div class="list-group-item d-flex align-items-center"
+             th:each="request : ${pendingRequests}">
+            <!-- Avatar -->
+            <div class="avatar avatar-sm me-3">
+                <img class="avatar-img rounded-circle"
+                     src="#"
+                     th:alt="${request.relationShip.friendNickname}">
+            </div>
+
+            <!-- Content -->
+            <div class="flex-grow-1">
+                <h6 class="mb-1" th:text="${request.relationShip.friendNickname}">사용자 이름</h6>
+            </div>
+
+            <!-- Actions -->
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-success"
+                        hx-on::after-request="htmx.trigger('#friend-requests-button', 'refresh')"
+                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=true'"
+                >
+                    <i class="bi bi-check-lg"></i> 수락
+                </button>
+                <button class="btn btn-outline-danger"
+                        hx-on::after-request="htmx.trigger('#friend-requests-button', 'refresh')"
+                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=false'"
+                >
+                    <i class="bi bi-x-lg"></i> 거절
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 친구 요청이 없을 때 -->
+    <div class="text-center py-3"
+         th:if="${pendingRequests == null or pendingRequests.isEmpty()}">
+        <i class="bi bi-check-circle text-success fs-4"></i>
+        <p class="text-muted mb-0 mt-2">받은 친구 요청이 없습니다</p>
+    </div>
+</div>
