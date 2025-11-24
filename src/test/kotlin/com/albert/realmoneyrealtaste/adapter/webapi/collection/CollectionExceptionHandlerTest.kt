@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 
 class CollectionExceptionHandlerTest {
 
-    private val exceptionHandler = CollectionExceptionHandler()
+    private val exceptionHandler = RestCollectionExceptionHandler()
 
     @Test
     fun `handleCollectionUpdateException - returns 400 with error message`() {
