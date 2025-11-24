@@ -277,7 +277,7 @@ class FriendshipReaderTest(
         val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
         friendRequestor.sendFriendRequest(command)
 
-        val result = friendshipReader.existsByMemberIds(member1.requireId(), member2.requireId())
+        val result = friendshipReader.isFriend(member1.requireId(), member2.requireId())
 
         assertTrue(result)
     }
@@ -293,7 +293,7 @@ class FriendshipReaderTest(
             nickname = "notexists2"
         )
 
-        val result = friendshipReader.existsByMemberIds(member1.requireId(), member2.requireId())
+        val result = friendshipReader.isFriend(member1.requireId(), member2.requireId())
 
         assertFalse(result)
     }

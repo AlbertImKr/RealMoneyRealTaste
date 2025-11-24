@@ -63,7 +63,7 @@ class FriendWriteView(
         val friendship = friendResponder.respondToFriendRequest(request)
 
         // 상대방 ID를 찾아서 모델 업데이트
-        val targetMemberId = friendship.relationShip.friendMemberId
+        val targetMemberId = friendship.relationShip.memberId
 
         updateFriendButtonModel(principal, targetMemberId, model)
 
@@ -96,12 +96,12 @@ class FriendWriteView(
         model: Model,
     ) {
         // 친구 관계 상태 확인
-        val isFriend = friendshipReader.existsByMemberIds(principal.id, targetMemberId)
+        val isFriend = friendshipReader.isFriend(principal.id, targetMemberId)
         model.addAttribute("isFriend", isFriend)
 
         // 친구 요청을 보냈는지 확인
         val friendship = friendshipReader.sentedFriendRequest(principal.id, targetMemberId)
-        val hasSentFriendRequest = friendship != null && friendship.isSentBy(principal.id)
+        val hasSentFriendRequest = friendship != null
         model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
 
         // 템플릿에 필요한 author.id 설정

@@ -53,7 +53,7 @@ class MemberView(
             model.addAttribute("isFollowing", followingIds.contains(id))
 
             // 친구 관계 상태 확인
-            val isFriend = friendshipReader.existsByMemberIds(principal.id, id)
+            val isFriend = friendshipReader.isFriend(principal.id, id)
             model.addAttribute("isFriend", isFriend)
 
             // 친구 요청을 보냈는지 확인 (내가 보낸 요청이 대기 중인지)

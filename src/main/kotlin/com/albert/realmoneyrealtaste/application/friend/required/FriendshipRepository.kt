@@ -57,9 +57,16 @@ interface FriendshipRepository : Repository<Friendship, Long> {
         FROM Friendship f 
         WHERE f.relationShip.memberId = :memberId 
         AND f.relationShip.friendMemberId = :friendId
+        AND f.status = :status
+        AND EXISTS (
+            SELECT 1 FROM Friendship f2 
+            WHERE f2.relationShip.friendMemberId = :memberId 
+            AND f2.relationShip.memberId = :friendId
+            AND f2.status = :status
+        )
     """
     )
-    fun existsBy(memberId: Long, friendId: Long): Boolean
+    fun isFriend(memberId: Long, friendId: Long, status: FriendshipStatus): Boolean
 
     fun findByRelationShipMemberIdAndRelationShipFriendMemberId(memberId: Long, friendMemberId: Long): Friendship?
 

@@ -76,8 +76,8 @@ class FriendshipReadService(
         return mapToFriendshipResponses(requests)
     }
 
-    override fun existsByMemberIds(memberId: Long, friendMemberId: Long): Boolean {
-        return friendshipRepository.existsBy(memberId, friendMemberId)
+    override fun isFriend(memberId: Long, friendMemberId: Long): Boolean {
+        return friendshipRepository.isFriend(memberId, friendMemberId, FriendshipStatus.ACCEPTED)
     }
 
     override fun findByMembersId(
