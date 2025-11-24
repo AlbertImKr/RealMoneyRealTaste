@@ -98,6 +98,27 @@ class FriendWriteViewTest : IntegrationTestBase() {
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `unfriend - success - hasSentFriendRequest is false when no request sent`() {
+        val targetMember = testMemberHelper.createActivatedMember("target@example.com", "target")
+
+        // 친구 요청을 보내지 않고 unfriend를 호출하여 상태 확인
+        val result = mockMvc.perform(
+            delete(FriendUrls.UNFRIEND, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        // hasSentFriendRequest가 false로 설정되었는지 확인
+        val modelAndView = result.modelAndView!!
+        val hasSentFriendRequest = modelAndView.model["hasSentFriendRequest"] as Boolean
+        assertEquals(false, hasSentFriendRequest, "친구 요청을 보내지 않았으므로 hasSentFriendRequest는 false여야 함")
+
+        val isFriend = modelAndView.model["isFriend"] as Boolean
+        assertEquals(false, isFriend, "친구 관계가 아니므로 isFriend는 false여야 함")
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `respondToFriendRequest - success - accepts friend request`() {
         val receiver = testMemberHelper.getDefaultMember()
         val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
@@ -146,7 +167,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
 
     @Test
     fun `respondToFriendRequest - forbidden - when not authenticated`() {
-        val receiver = testMemberHelper.getDefaultMember()
+        val receiver = testMemberHelper.createActivatedMember()
         val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
         val friendship = friendRequestor.sendFriendRequest(
             FriendRequestCommand(

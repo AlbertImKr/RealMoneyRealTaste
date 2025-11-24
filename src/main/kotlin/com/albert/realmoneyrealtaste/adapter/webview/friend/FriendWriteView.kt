@@ -63,11 +63,7 @@ class FriendWriteView(
         val friendship = friendResponder.respondToFriendRequest(request)
 
         // 상대방 ID를 찾아서 모델 업데이트
-        val targetMemberId = if (friendship.relationShip.memberId == principal.id) {
-            friendship.relationShip.friendMemberId
-        } else {
-            friendship.relationShip.memberId
-        }
+        val targetMemberId = friendship.relationShip.friendMemberId
 
         updateFriendButtonModel(principal, targetMemberId, model)
 

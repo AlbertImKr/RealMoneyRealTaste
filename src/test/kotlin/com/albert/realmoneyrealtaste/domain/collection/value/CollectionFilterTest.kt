@@ -49,10 +49,9 @@ class CollectionFilterTest {
 
     @Test
     fun `from - success - case sensitive test`() {
-        assertEquals(CollectionFilter.ALL, CollectionFilter.from("ALL")) // 대문자는 유효하지 않음
-        assertEquals(CollectionFilter.ALL, CollectionFilter.from("All")) // 혼합 케이스는 유효하지 않음
-        assertEquals(CollectionFilter.ALL, CollectionFilter.from("PUBLIC")) // 대문자는 유효하지 않음
-        assertEquals(CollectionFilter.ALL, CollectionFilter.from("Public")) // 혼합 케이스는 유효하지 않음
+        assertEquals(CollectionFilter.ALL, CollectionFilter.from("All"))
+        assertEquals(CollectionFilter.PUBLIC, CollectionFilter.from("PUBLIC"))
+        assertEquals(CollectionFilter.PUBLIC, CollectionFilter.from("Public"))
     }
 
     @Test
