@@ -8,6 +8,7 @@ import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.follow.required.FollowRepository
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.follow.Follow
+import com.albert.realmoneyrealtaste.domain.follow.FollowStatus
 import com.albert.realmoneyrealtaste.domain.follow.command.FollowCreateCommand
 import jakarta.transaction.Transactional
 import org.springframework.context.ApplicationEventPublisher
@@ -35,7 +36,9 @@ class FollowCreationService(
             // 기존 팔로우 관계 확인
             val existingFollow = followReader.findFollowByRelationship(request.followerId, request.followingId)
 
-            if (existingFollow != null) {
+            if (existingFollow != null && existingFollow.status == FollowStatus.ACTIVE) {
+                return existingFollow
+            } else if (existingFollow != null) {
                 existingFollow.reactivate()
                 return existingFollow
             }

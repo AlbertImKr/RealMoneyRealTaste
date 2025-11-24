@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody
  * 팔로우 삭제 API
  */
 @Controller
-class FollowTerminator(
+class FollowTerminateView(
     private val followTerminator: FollowTerminator,
 ) {
 
