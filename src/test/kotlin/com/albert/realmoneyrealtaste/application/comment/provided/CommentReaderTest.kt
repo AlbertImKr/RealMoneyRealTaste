@@ -224,7 +224,7 @@ class CommentReaderTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `getCommentCount - success - includes replies in count`() {
+    fun `getCommentCount - success - exclude replies count`() {
         val postId = 1L
         val parentComment = createAndSaveComment(postId, "부모 댓글")
         val parentCommentId = parentComment.id!!
@@ -234,7 +234,7 @@ class CommentReaderTest : IntegrationTestBase() {
 
         val count = commentReadService.getCommentCount(postId)
 
-        assertEquals(3L, count) // 부모 댓글 1개 + 대댓글 2개
+        assertEquals(1L, count)
     }
 
     @Test
@@ -248,7 +248,7 @@ class CommentReaderTest : IntegrationTestBase() {
 
         val count = commentReadService.getCommentCount(postId)
 
-        assertEquals(2L, count) // 부모 댓글 1개 + 공개된 대댓글 1개
+        assertEquals(1L, count)
     }
 
     private fun createAndSaveComment(postId: Long, text: String, authorMemberId: Long = 100L): Comment {

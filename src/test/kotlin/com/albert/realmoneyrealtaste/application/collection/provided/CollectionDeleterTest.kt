@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.application.collection.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.application.collection.exception.CollectionNotFoundException
+import com.albert.realmoneyrealtaste.application.collection.exception.CollectionDeleteException
 import com.albert.realmoneyrealtaste.application.collection.required.CollectionRepository
 import com.albert.realmoneyrealtaste.domain.collection.CollectionPrivacy
 import com.albert.realmoneyrealtaste.domain.collection.CollectionStatus
@@ -81,10 +81,10 @@ class CollectionDeleterTest(
         val member = testMemberHelper.createActivatedMember()
         val nonExistentCollectionId = 999L
 
-        assertFailsWith<CollectionNotFoundException> {
+        assertFailsWith<CollectionDeleteException> {
             collectionDeleter.deleteCollection(nonExistentCollectionId, member.requireId())
         }.let {
-            assertEquals("컬렉션을 찾을 수 없습니다.", it.message)
+            assertEquals("컬렉션을 삭제할 수 없습니다.", it.message)
         }
     }
 
@@ -128,10 +128,10 @@ class CollectionDeleterTest(
         val collection = createTestCollection(member.requireId())
         collection.delete(member.requireId()) // 이미 삭제
 
-        assertFailsWith<CollectionNotFoundException> {
+        assertFailsWith<CollectionDeleteException> {
             collectionDeleter.deleteCollection(collection.requireId(), member.requireId())
         }.let {
-            assertEquals("컬렉션을 찾을 수 없습니다.", it.message)
+            assertEquals("컬렉션을 삭제할 수 없습니다.", it.message)
         }
     }
 
@@ -179,20 +179,6 @@ class CollectionDeleterTest(
         assertEquals(originalOwner.memberId, deletedCollection.owner.memberId)
         assertEquals(originalCreatedAt, deletedCollection.createdAt)
         assertEquals(CollectionStatus.DELETED, deletedCollection.status)
-    }
-
-    @Test
-    fun `deleteCollection - success - deletion is idempotent for same owner`() {
-        val member = testMemberHelper.createActivatedMember()
-        val collection = createTestCollection(member.requireId())
-
-        // 첫 번째 삭제
-        collectionDeleter.deleteCollection(collection.requireId(), member.requireId())
-
-        // 두 번째 삭제 시도는 실패해야 함 (이미 삭제된 컬렉션을 찾을 수 없음)
-        assertFailsWith<CollectionNotFoundException> {
-            collectionDeleter.deleteCollection(collection.requireId(), member.requireId())
-        }
     }
 
     @Test
