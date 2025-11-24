@@ -7,6 +7,7 @@ import com.albert.realmoneyrealtaste.application.friend.provided.FriendRequestor
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendResponder
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipTerminator
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
@@ -26,6 +27,7 @@ class FriendWriteView(
     private val friendResponder: FriendResponder,
     private val friendshipTerminator: FriendshipTerminator,
     private val friendshipReader: FriendshipReader,
+    private val memberReader: MemberReader,
 ) {
 
     @PostMapping(FriendUrls.SEND_FRIEND_REQUEST)
@@ -39,9 +41,10 @@ class FriendWriteView(
             toMemberId = request.toMemberId,
             toMemberNickname = request.toMemberNickname,
         )
-        friendRequestor.sendFriendRequest(command)
+        val friendship = friendRequestor.sendFriendRequest(command)
 
         // 상태 업데이트를 위해 모델에 데이터 추가
+        model.addAttribute("friendshipId", friendship.id)
         updateFriendButtonModel(principal, request.toMemberId, model)
 
         return FriendViews.FRIEND_BUTTON
@@ -65,6 +68,7 @@ class FriendWriteView(
         // 상대방 ID를 찾아서 모델 업데이트
         val targetMemberId = friendship.relationShip.memberId
 
+        model.addAttribute("friendshipId", friendshipId)
         updateFriendButtonModel(principal, targetMemberId, model)
 
         return FriendViews.FRIEND_BUTTON
@@ -73,19 +77,20 @@ class FriendWriteView(
     @DeleteMapping(FriendUrls.UNFRIEND)
     fun unfriend(
         @PathVariable friendshipId: Long,
+        @PathVariable friendMemberId: Long,
         @AuthenticationPrincipal principal: MemberPrincipal,
         model: Model,
     ): String {
-        // 임시로 friendshipId를 friendMemberId로 사용
         val request = UnfriendRequest(
             memberId = principal.id,
-            friendMemberId = friendshipId
+            friendMemberId = friendMemberId
         )
 
         friendshipTerminator.unfriend(request)
 
         // 상태 업데이트를 위해 모델에 데이터 추가
-        updateFriendButtonModel(principal, friendshipId, model)
+        model.addAttribute("friendshipId", friendshipId)
+        updateFriendButtonModel(principal, friendMemberId, model)
 
         return FriendViews.FRIEND_BUTTON
     }
@@ -105,6 +110,9 @@ class FriendWriteView(
         model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
 
         // 템플릿에 필요한 author.id 설정
-        model.addAttribute("author", mapOf("id" to targetMemberId))
+        model.addAttribute(
+            "author",
+            memberReader.readMemberById(targetMemberId)
+        )
     }
 }

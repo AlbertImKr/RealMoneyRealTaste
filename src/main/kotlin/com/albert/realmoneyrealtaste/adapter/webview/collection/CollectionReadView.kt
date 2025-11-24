@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.adapter.webview.collection
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
+import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionFilter
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam
 class CollectionReadView(
     private val collectionReader: CollectionReader,
     private val memberReader: MemberReader,
+    private val postReader: PostReader,
 ) {
 
     @GetMapping(CollectionUrls.MY_LIST_FRAGMENT)
@@ -42,6 +44,27 @@ class CollectionReadView(
         model.addAttribute("collections", collections)
         setCommonModelAttributes(model, principal, principal.id)
         return CollectionViews.MY_LIST
+    }
+
+    @GetMapping(CollectionUrls.COLLECTION_POSTS_FRAGMENT)
+    fun readCollectionPostsFragment(
+        @PathVariable collectionId: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal,
+        model: Model,
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC, size = 5) pageRequest: Pageable,
+    ): String {
+        val collection = collectionReader.readById(collectionId)
+
+        setCommonModelAttributes(model, principal)
+
+        model.addAttribute("collection", collection)
+
+        model.addAttribute("posts", postReader.readPostsByIds(collection.posts.postIds))
+        val myPosts = postReader.readPostsByAuthor(principal.id, pageRequest)
+        model.addAttribute("myPosts", myPosts)
+
+
+        return CollectionViews.COLLECTION_POSTS_FRAGMENT
     }
 
     @GetMapping(CollectionUrls.DETAIL_EDIT_FRAGMENT)

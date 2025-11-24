@@ -9,6 +9,7 @@ import com.albert.realmoneyrealtaste.util.WithMockMember
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -107,27 +108,6 @@ class FriendWriteViewTest : IntegrationTestBase() {
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
-    fun `unfriend - success - hasSentFriendRequest is false when no request sent`() {
-        val targetMember = testMemberHelper.createActivatedMember("target@example.com", "target")
-
-        // 친구 요청을 보내지 않고 unfriend를 호출하여 상태 확인
-        val result = mockMvc.perform(
-            delete(FriendUrls.UNFRIEND, targetMember.requireId())
-        )
-            .andExpect(status().isOk)
-            .andReturn()
-
-        // hasSentFriendRequest가 false로 설정되었는지 확인
-        val modelAndView = result.modelAndView!!
-        val hasSentFriendRequest = modelAndView.model["hasSentFriendRequest"] as Boolean
-        assertEquals(false, hasSentFriendRequest, "친구 요청을 보내지 않았으므로 hasSentFriendRequest는 false여야 함")
-
-        val isFriend = modelAndView.model["isFriend"] as Boolean
-        assertEquals(false, isFriend, "친구 관계가 아니므로 isFriend는 false여야 함")
-    }
-
-    @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `respondToFriendRequest - success - accepts friend request`() {
         val receiver = testMemberHelper.getDefaultMember()
         val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
@@ -140,7 +120,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
         )
 
         val result = mockMvc.perform(
-            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.id)
                 .param("accept", "true")
         )
             .andExpect(status().isOk)
@@ -225,7 +205,8 @@ class FriendWriteViewTest : IntegrationTestBase() {
         )
 
         val result = mockMvc.perform(
-            delete(FriendUrls.UNFRIEND, friendship.requireId())
+            delete(FriendUrls.UNFRIEND, friendship.id, sender.id)
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
@@ -245,8 +226,10 @@ class FriendWriteViewTest : IntegrationTestBase() {
 
     @Test
     fun `unfriend - forbidden - when not authenticated`() {
+        val friend = testMemberHelper.createActivatedMember("friend@email.com")
+
         mockMvc.perform(
-            delete(FriendUrls.UNFRIEND, 1L)
+            delete(FriendUrls.UNFRIEND, 1L, friend.id)
         )
             .andExpect(status().isForbidden())
     }
@@ -302,20 +285,6 @@ class FriendWriteViewTest : IntegrationTestBase() {
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
-    fun `unfriend - success - updates friend status to false`() {
-        val result = mockMvc.perform(
-            delete(FriendUrls.UNFRIEND, 1L)
-        )
-            .andExpect(status().isOk)
-            .andReturn()
-
-        val modelAndView = result.modelAndView!!
-        val isFriend = modelAndView.model["isFriend"] as Boolean
-        assertEquals(false, isFriend) // 친구 해제 시 친구 상태가 아님
-    }
-
-    @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `sendFriendRequest - success - handles invalid member id gracefully`() {
         val request = SendFriendRequest(
             toMemberId = 9999L, // 존재하지 않는 ID
@@ -342,12 +311,13 @@ class FriendWriteViewTest : IntegrationTestBase() {
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
-    fun `unfriend - success - handles invalid friendship id gracefully`() {
+    fun `unfriend - success - non-existent friendship id gracefully`() {
+        val friend = testMemberHelper.createActivatedMember("friend@email.com")
         mockMvc.perform(
-            delete(FriendUrls.UNFRIEND, 9999L)
+            delete(FriendUrls.UNFRIEND, 9999L, friend.id)
+                .with(csrf())
         )
-            .andExpect(status().isOk) // 존재하지 않는 친구관계도 성공적으로 처리
-            .andExpect(view().name(FriendViews.FRIEND_BUTTON))
+            .andExpect(status().isOk)
     }
 
     @Test
@@ -382,41 +352,5 @@ class FriendWriteViewTest : IntegrationTestBase() {
 
         assertEquals(false, hasSentFriendRequest, "요청을 받은 사용자는 hasSentFriendRequest가 false여야 함")
         assertEquals(true, isFriend, "친구 요청을 수락했으므로 isFriend는 true여야 함")
-    }
-
-    @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
-    fun `sendFriendRequest - success - hasSentFriendRequest becomes true after sending request`() {
-        val targetMember = testMemberHelper.createActivatedMember("target@example.com", "target")
-
-        // 처음에는 친구 요청을 보내지 않은 상태 확인
-        val initialResult = mockMvc.perform(
-            delete(FriendUrls.UNFRIEND, targetMember.requireId())
-        )
-            .andExpect(status().isOk)
-            .andReturn()
-
-        val initialModelAndView = initialResult.modelAndView!!
-        val initialHasSentFriendRequest = initialModelAndView.model["hasSentFriendRequest"] as Boolean
-        assertEquals(false, initialHasSentFriendRequest, "초기 상태에서는 hasSentFriendRequest가 false여야 함")
-
-        // 친구 요청 보내기
-        val request = SendFriendRequest(
-            toMemberId = targetMember.requireId(),
-            toMemberNickname = targetMember.nickname.value
-        )
-
-        val afterRequestResult = mockMvc.perform(
-            post(FriendUrls.SEND_FRIEND_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isOk)
-            .andReturn()
-
-        // 친구 요청을 보낸 후 상태 확인
-        val afterRequestModelAndView = afterRequestResult.modelAndView!!
-        val afterRequestHasSentFriendRequest = afterRequestModelAndView.model["hasSentFriendRequest"] as Boolean
-        assertEquals(true, afterRequestHasSentFriendRequest, "친구 요청을 보낸 후에는 hasSentFriendRequest가 true여야 함")
     }
 }

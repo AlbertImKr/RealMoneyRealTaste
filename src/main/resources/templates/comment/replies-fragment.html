@@ -66,7 +66,7 @@
                     <li><a class="dropdown-item small" href="#">
                         <i class="bi bi-flag fa-fw pe-2"></i>신고</a>
                     </li>
-                    <li th:if="${reply.author.memberId == member?.memberId}">
+                    <li th:if="${reply.author.memberId == member?.id}">
                         <a class="dropdown-item small text-danger" href="#">
                             <i class="bi bi-trash fa-fw pe-2"></i>삭제</a>
                     </li>

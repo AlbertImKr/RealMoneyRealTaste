@@ -443,9 +443,6 @@ class HomeViewTest : IntegrationTestBase() {
         val modelAndView = result.modelAndView!!
         val posts = modelAndView.model["posts"] as org.springframework.data.domain.Page<*>
         assertEquals(3, posts.content.size)
-
-        // 가장 최근 게시글이 먼저 나와야 함 (post3, post2, post1 순서)
-        // 실제 ID나 다른 속성으로 순서 확인 가능
     }
 
     @Test

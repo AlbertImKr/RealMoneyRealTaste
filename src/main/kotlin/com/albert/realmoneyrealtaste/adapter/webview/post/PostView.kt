@@ -82,6 +82,7 @@ class PostView(
         )
         model.addAttribute("posts", postsPage)
         model.addAttribute("member", memberPrincipal)
+        model.addAttribute("author", memberPrincipal)
         return PostViews.POSTS_CONTENT
     }
 

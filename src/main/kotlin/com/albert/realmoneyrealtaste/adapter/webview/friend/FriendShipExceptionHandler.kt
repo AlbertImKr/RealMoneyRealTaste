@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.adapter.webview.friend
 
-import com.albert.realmoneyrealtaste.adapter.webview.comment.CommentExceptionHandler.Companion.ERROR_VIEW_400
 import com.albert.realmoneyrealtaste.application.friend.exception.FriendResponseException
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
@@ -18,7 +17,8 @@ class FriendShipExceptionHandler {
         ex: FriendResponseException,
         model: Model,
     ): String {
+        model.addAttribute("success", false)
         model.addAttribute("error", ex.message)
-        return ERROR_VIEW_400
+        return "/error/400"
     }
 }
