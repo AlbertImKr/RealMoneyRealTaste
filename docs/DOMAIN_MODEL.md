@@ -7,10 +7,14 @@
 - [1. 도메인 설계 개요](#1-도메인-설계-개요)
 - [2. 회원 애그리거트](#2-회원-애그리거트)
 - [3. 게시글 애그리거트](#3-게시글-애그리거트)
-- [4. 토큰 애그리거트](#4-토큰-애그리거트)
-- [5. 공통 설계 요소](#5-공통-설계-요소)
-- [6. 애플리케이션 레이어](#6-애플리케이션-레이어)
-- [7. 설계 특징 및 패턴](#7-설계-특징-및-패턴)
+- [4. 컬렉션 애그리거트](#4-컬렉션-애그리거트)
+- [5. 친구 관계 애그리거트](#5-친구-관계-애그리거트)
+- [6. 팔로우 애그리거트](#6-팔로우-애그리거트)
+- [7. 댓글 애그리거트](#7-댓글-애그리거트)
+- [8. 토큰 애그리거트](#8-토큰-애그리거트)
+- [9. 공통 설계 요소](#9-공통-설계-요소)
+- [10. 애플리케이션 레이어](#10-애플리케이션-레이어)
+- [11. 설계 특징 및 패턴](#11-설계-특징-및-패턴)
 
 ---
 
@@ -39,6 +43,28 @@ Member Aggregate
 Post Aggregate  
 ├── Post (Root)
 └── PostImages (ElementCollection)
+
+PostCollection Aggregate
+├── PostCollection (Root)
+├── CollectionInfo
+├── CollectionOwner
+└── CollectionPosts
+
+Friendship Aggregate
+├── Friendship (Root)
+├── FriendRelationship
+└── FriendshipStatus
+
+Follow Aggregate
+├── Follow (Root)
+├── FollowRelationship
+└── FollowStatus
+
+Comment Aggregate
+├── Comment (Root)
+├── CommentContent
+├── CommentAuthor
+└── CommentMention
 
 PostHeart (독립 Entity, Post와 논리적 연관)
 
@@ -397,9 +423,230 @@ data class PostHeartRemovedEvent(
 
 ---
 
-## 4. 토큰 애그리거트
+## 4. 컬렉션 애그리거트
 
-### 4.1 활성화 토큰 (ActivationToken)
+### 4.1 컬렉션 (PostCollection)
+
+**_Aggregate Root, Entity_**
+
+#### 속성
+
+* `id: Long` - 컬렉션 식별자 (PK)
+* `owner: CollectionOwner` - 소유자 정보 (Embedded)
+* `info: CollectionInfo` - 컬렉션 정보 (Embedded)
+* `posts: CollectionPosts` - 포스트 목록 (Embedded)
+* `privacy: CollectionPrivacy` - 공개 여부 (Enum)
+* `status: CollectionStatus` - 컬렉션 상태 (Enum)
+* `createdAt: LocalDateTime` - 생성 일시
+* `updatedAt: LocalDateTime` - 수정 일시
+
+#### 주요 행위
+
+**생성**
+
+```kotlin
+static create (
+    owner: CollectionOwner,
+info: CollectionInfo,
+posts: CollectionPosts,
+privacy: CollectionPrivacy
+): PostCollection
+```
+
+**관리**
+
+- `updateInfo(info: CollectionInfo)` - 컬렉션 정보 수정
+- `addPost(postId: Long)` - 포스트 추가
+- `removePost(postId: Long)` - 포스트 제거
+- `changePrivacy(privacy: CollectionPrivacy)` - 공개 여부 변경
+- `delete()` - 컬렉션 삭제 (Soft Delete)
+
+#### 비즈니스 규칙
+
+* 초기 상태: ACTIVE
+* 소유자만 수정/삭제 권한 보유
+* Soft Delete: 상태만 DELETED로 변경
+* 공개/비공개 설정 가능
+
+---
+
+## 5. 친구 관계 애그리거트
+
+### 5.1 친구 관계 (Friendship)
+
+**_Aggregate Root, Entity_**
+
+#### 속성
+
+* `id: Long` - 친구 관계 식별자 (PK)
+* `relationship: FriendRelationship` - 관계 정보 (Embedded)
+* `status: FriendshipStatus` - 친구 상태 (Enum)
+* `createdAt: LocalDateTime` - 요청 일시
+* `acceptedAt: LocalDateTime?` - 수락 일시
+
+#### 주요 행위
+
+**생성**
+
+- `static request(fromMemberId: Long, toMemberId: Long): Friendship` - 친구 요청
+
+**상태 전이**
+
+- `accept()` - PENDING → ACCEPTED
+- `reject()` - PENDING → REJECTED
+- `terminate()` - ACCEPTED → TERMINATED
+
+#### 비즈니스 규칙
+
+* 초기 상태: PENDING
+* PENDING → ACCEPTED/REJECTED만 가능
+* ACCEPTED → TERMINATED만 가능
+* 양방향 관계 관리
+
+#### 도메인 이벤트
+
+```kotlin
+// 친구 요청
+data class FriendRequestSentEvent(
+    val fromMemberId: Long,
+    val toMemberId: Long
+)
+
+// 친구 수락
+data class FriendRequestAcceptedEvent(
+    val fromMemberId: Long,
+    val toMemberId: Long
+)
+
+// 친구 관계 종료
+data class FriendshipTerminatedEvent(
+    val fromMemberId: Long,
+    val toMemberId: Long
+)
+```
+
+---
+
+## 6. 팔로우 애그리거트
+
+### 6.1 팔로우 (Follow)
+
+**_Aggregate Root, Entity_**
+
+#### 속성
+
+* `id: Long` - 팔로우 식별자 (PK)
+* `relationship: FollowRelationship` - 관계 정보 (Embedded)
+* `status: FollowStatus` - 팔로우 상태 (Enum)
+* `createdAt: LocalDateTime` - 팔로우 일시
+* `terminatedAt: LocalDateTime?` - 팔로우 해제 일시
+
+#### 주요 행위
+
+**생성**
+
+- `static start(followerId: Long, followingId: Long): Follow` - 팔로우 시작
+
+**관리**
+
+- `terminate()` - ACTIVE → TERMINATED
+
+#### 비즈니스 규칙
+
+* 초기 상태: ACTIVE
+* ACTIVE → TERMINATED만 가능
+* 단방향 관계 (팔로워 → 팔로잉)
+* 자기 자신 팔로우 불가
+
+#### 도메인 이벤트
+
+```kotlin
+// 팔로우 시작
+data class FollowStartedEvent(
+    val followerId: Long,
+    val followingId: Long
+)
+
+// 팔로우 해제
+data class UnfollowedEvent(
+    val followerId: Long,
+    val followingId: Long
+)
+```
+
+---
+
+## 7. 댓글 애그리거트
+
+### 7.1 댓글 (Comment)
+
+**_Aggregate Root, Entity_**
+
+#### 속성
+
+* `id: Long` - 댓글 식별자 (PK)
+* `author: CommentAuthor` - 작성자 정보 (Embedded)
+* `content: CommentContent` - 댓글 내용 (Embedded)
+* `mention: CommentMention?` - 멘션 정보 (Embedded, 선택)
+* `status: CommentStatus` - 댓글 상태 (Enum)
+* `createdAt: LocalDateTime` - 생성 일시
+* `updatedAt: LocalDateTime` - 수정 일시
+
+#### 주요 행위
+
+**생성**
+
+```kotlin
+static create (
+    postId: Long,
+author: CommentAuthor,
+content: CommentContent,
+mention: CommentMention?
+): Comment
+```
+
+**관리**
+
+- `update(content: CommentContent)` - 댓글 수정
+- `delete()` - 댓글 삭제 (Soft Delete)
+
+#### 비즈니스 규칙
+
+* 초기 상태: ACTIVE
+* 작성자만 수정/삭제 권한 보유
+* Soft Delete: 상태만 DELETED로 변경
+* 멘션 기능 지원
+
+#### 도메인 이벤트
+
+```kotlin
+// 댓글 생성
+data class CommentCreatedEvent(
+    val commentId: Long,
+    val postId: Long,
+    val authorMemberId: Long
+)
+
+// 댓글 수정
+data class CommentUpdatedEvent(
+    val commentId: Long,
+    val postId: Long,
+    val authorMemberId: Long
+)
+
+// 댓글 삭제
+data class CommentDeletedEvent(
+    val commentId: Long,
+    val postId: Long,
+    val authorMemberId: Long
+)
+```
+
+---
+
+## 8. 토큰 애그리거트
+
+### 8.1 활성화 토큰 (ActivationToken)
 
 **_Aggregate Root, Entity_**
 
@@ -417,7 +664,7 @@ class ActivationToken(
 
 ---
 
-### 4.2 비밀번호 재설정 토큰 (PasswordResetToken)
+### 8.2 비밀번호 재설정 토큰 (PasswordResetToken)
 
 **_Aggregate Root, Entity_**
 
@@ -440,9 +687,9 @@ class PasswordResetToken(
 
 ---
 
-## 5. 공통 설계 요소
+## 9. 공통 설계 요소
 
-### 5.1 BaseEntity
+### 9.1 BaseEntity
 
 ```kotlin
 @MappedSuperclass
@@ -466,7 +713,7 @@ abstract class BaseEntity {
 
 ---
 
-### 5.2 예외 계층
+### 9.2 예외 계층
 
 ```
 RuntimeException
@@ -483,6 +730,15 @@ RuntimeException
 │  ├─ InvalidPostContentException
 │  ├─ InvalidPostStatusException
 │  └─ UnauthorizedPostOperationException
+├─ CollectionDomainException
+│  ├─ CollectionNotFoundException
+│  └─ CollectionUpdateException
+├─ FriendDomainException
+│  └─ FriendApplicationException
+├─ FollowDomainException
+│  └─ FollowApplicationException
+├─ CommentDomainException
+│  └─ CommentApplicationException
 └─ ApplicationException
    ├─ MemberApplicationException
    │  ├─ DuplicateEmailException
@@ -493,9 +749,9 @@ RuntimeException
 
 ---
 
-## 6. 애플리케이션 레이어
+## 10. 애플리케이션 레이어
 
-### 6.1 서비스 구조
+### 10.1 서비스 구조
 
 #### Provided 인터페이스 (Use Case)
 
@@ -516,6 +772,32 @@ RuntimeException
 - `PostHeartManager`: 좋아요 관리
 - `PostHeartReader`: 좋아요 조회
 
+**컬렉션 관리**
+
+- `CollectionCreator`: 컬렉션 생성
+- `CollectionReader`: 컬렉션 조회
+- `CollectionUpdater`: 컬렉션 수정
+- `CollectionDeleter`: 컬렉션 삭제
+
+**친구 관리**
+
+- `FriendRequestor`: 친구 요청
+- `FriendResponder`: 친구 응답
+- `FriendshipReader`: 친구 관계 조회
+- `FriendshipTerminator`: 친구 관계 종료
+
+**팔로우 관리**
+
+- `FollowCreator`: 팔로우 시작
+- `FollowReader`: 팔로우 조회
+- `FollowTerminator`: 팔로우 해제
+
+**댓글 관리**
+
+- `CommentCreator`: 댓글 생성
+- `CommentReader`: 댓글 조회
+- `CommentUpdater`: 댓글 수정
+
 **토큰 관리**
 
 - `ActivationTokenGenerator`: 활성화 토큰 생성
@@ -528,10 +810,14 @@ RuntimeException
 **리포지토리**
 
 - `MemberRepository`
-- `ActivationTokenRepository`
-- `PasswordResetTokenRepository`
 - `PostRepository`
 - `PostHeartRepository`
+- `CollectionRepository`
+- `FriendshipRepository`
+- `FollowRepository`
+- `CommentRepository`
+- `ActivationTokenRepository`
+- `PasswordResetTokenRepository`
 
 **외부 서비스**
 
@@ -540,7 +826,7 @@ RuntimeException
 
 ---
 
-### 6.2 주요 서비스 흐름
+### 10.2 주요 서비스 흐름
 
 #### 회원 등록
 
@@ -556,31 +842,30 @@ RuntimeException
 9. → 활성화 이메일 발송
 ```
 
-#### 게시글 생성
+#### 컬렉션 생성
 
 ```
-1. PostCreationService.createPost()
+1. CollectionCreationService.create()
 2. 회원 조회 (ACTIVE 확인)
-3. Post.create() 호출
-4. Post 저장
-5. PostCreatedEvent 발행
+3. PostCollection.create() 호출
+4. PostCollection 저장
+5. CollectionCreatedEvent 발행
 ```
 
-#### 좋아요 추가
+#### 친구 요청
 
 ```
-1. PostHeartService.addHeart()
-2. 게시글 존재 확인
-3. 중복 좋아요 확인
-4. PostHeart 생성 및 저장
-5. PostHeartAddedEvent 발행
-6. → PostEventListener (비동기)
-7. → 좋아요 수 증가 (DB 레벨 UPDATE)
+1. FriendRequestService.request()
+2. 대상 회원 조회
+3. 중복 요청 확인
+4. Friendship.request() 호출
+5. Friendship 저장
+6. FriendRequestSentEvent 발행
 ```
 
 ---
 
-### 6.3 이벤트 기반 처리
+### 10.3 이벤트 기반 처리
 
 #### 회원 이벤트 리스너
 
@@ -604,30 +889,22 @@ class MemberEventListener(
 }
 ```
 
-#### 게시글 이벤트 리스너
+#### 친구 이벤트 리스너
 
 ```kotlin
 @Component
-class PostEventListener(
-    private val postUpdater: PostUpdater
-) {
+class FriendEventListener {
     @Async
     @EventListener
-    fun handlePostHeartAdded(event: PostHeartAddedEvent) {
-        postUpdater.incrementHeartCount(event.postId)
-    }
+    fun handleFriendRequestSent(event: FriendRequestSentEvent)
 
     @Async
     @EventListener
-    fun handlePostHeartRemoved(event: PostHeartRemovedEvent) {
-        postUpdater.decrementHeartCount(event.postId)
-    }
+    fun handleFriendRequestAccepted(event: FriendRequestAcceptedEvent)
 
     @Async
     @EventListener
-    fun handlePostViewed(event: PostViewedEvent) {
-        postUpdater.incrementViewCount(event.postId)
-    }
+    fun handleFriendshipTerminated(event: FriendshipTerminatedEvent)
 }
 ```
 
@@ -639,9 +916,9 @@ class PostEventListener(
 
 ---
 
-## 7. 설계 특징 및 패턴
+## 11. 설계 특징 및 패턴
 
-### 7.1 Aggregate 설계 원칙
+### 11.1 Aggregate 설계 원칙
 
 #### Member Aggregate
 
@@ -655,6 +932,16 @@ class PostEventListener(
 - **특징**: Post가 Root, PostImages는 ElementCollection
 - **PostHeart 분리 이유**: 동시성 제어, 독립적 생명주기
 
+#### PostCollection Aggregate
+
+- **구성**: PostCollection, CollectionInfo, CollectionOwner, CollectionPosts
+- **특징**: 컬렉션 단위 일관성, 포스트 목록 관리
+
+#### Social Aggregates (Friendship, Follow, Comment)
+
+- **특징**: 독립적 생명주기, 별도 트랜잭션
+- **분리 이유**: 동시성 제어, 관계 관리 복잡성
+
 #### Token Aggregates
 
 - **특징**: Member와 논리적 연관만 존재
@@ -662,16 +949,17 @@ class PostEventListener(
 
 ---
 
-### 7.2 Value Object 활용
+### 11.2 Value Object 활용
 
 #### Embedded 방식
 
 - Author, Restaurant, PostContent → Post 테이블에 포함
+- CollectionInfo, CollectionOwner → PostCollection 테이블에 포함
 - 장점: 응집도 향상, 조회 성능 최적화
 
 #### ElementCollection 방식
 
-- Roles, PostImages → 별도 테이블
+- Roles, PostImages, CollectionPosts → 별도 테이블
 - 장점: 다중 값 관리, 순서 보장
 
 #### 일반 클래스
@@ -681,11 +969,11 @@ class PostEventListener(
 
 ---
 
-### 7.3 동시성 처리
+### 11.3 동시성 처리
 
 #### 문제 상황
 
-- 여러 사용자가 동시에 좋아요/조회
+- 여러 사용자가 동시에 좋아요/조회/팔로우
 - 카운트 업데이트 경합 상태
 
 #### 해결 방법
@@ -704,7 +992,7 @@ fun incrementHeartCount(postId: Long)
 
 ---
 
-### 7.4 Soft Delete 패턴
+### 11.4 Soft Delete 패턴
 
 **구현**
 
@@ -712,15 +1000,14 @@ fun incrementHeartCount(postId: Long)
 - 실제 데이터 보존
 - 조회 시 `status != DELETED` 필터링
 
-**장점**
+**적용 대상**
 
-- 데이터 복구 가능
-- 통계 분석 가능
-- 법적 요구사항 충족
+- Member, Post, PostCollection, Comment
+- 장점: 데이터 복구 가능, 통계 분석 가능
 
 ---
 
-### 7.5 아키텍처 패턴
+### 11.5 아키텍처 패턴
 
 #### 헥사고날 아키텍처
 
@@ -752,7 +1039,7 @@ fun incrementHeartCount(postId: Long)
 
 ---
 
-### 7.6 Kotlin 특성 활용
+### 11.6 Kotlin 특성 활용
 
 #### data class
 
@@ -799,6 +1086,17 @@ fun incrementHeartCount(postId: Long)
 - 이미지: 최대 5장
 - 이미지 URL: 최대 500자
 
+#### 컬렉션
+
+- 이름: 최대 50자
+- 설명: 최대 500자
+- 포스트: 최대 100개
+
+#### 댓글
+
+- 내용: 최대 1000자
+- 멘션: 최대 10개
+
 #### 신뢰도
 
 - 내돈내산 리뷰: +5점
@@ -820,6 +1118,31 @@ fun incrementHeartCount(postId: Long)
 - `idx_post_status`: status
 - `idx_post_created_at`: created_at
 - `idx_post_restaurant_name`: restaurant_name
+
+#### post_collections
+
+- `idx_collection_owner_member_id`: owner_member_id
+- `idx_collection_privacy_status`: privacy, status
+- `idx_collection_created_at`: created_at
+- `idx_collection_status`: status
+
+#### friendships
+
+- `idx_friendship_from_member_id`: from_member_id
+- `idx_friendship_to_member_id`: to_member_id
+- `idx_friendship_status`: status
+
+#### follows
+
+- `idx_follow_follower_id`: follower_id
+- `idx_follow_following_id`: following_id
+- `idx_follow_status`: status
+
+#### comments
+
+- `idx_comment_post_id`: post_id
+- `idx_comment_author_id`: author_member_id
+- `idx_comment_status`: status
 
 #### post_hearts
 

@@ -188,22 +188,70 @@ class JpaMemberRepository(
 ```
 src/main/kotlin/com/albert/realmoneyrealtaste/
 ├── adapter/                          # 어댑터 레이어
-│   ├── web/                          # 웹 어댑터
-│   │   ├── member/                   # 회원 관련 컨트롤러
+│   ├── webapi/                       # REST API 어댑터
+│   │   ├── collection/               # 컬렉션 API
+│   │   │   ├── CollectionCreateApi.kt
+│   │   │   ├── CollectionReadApi.kt
+│   │   │   ├── CollectionUpdateApi.kt
+│   │   │   ├── CollectionDeleteApi.kt
+│   │   │   └── request/
+│   │   ├── friend/                   # 친구 API
+│   │   │   └── FriendReadApi.kt
+│   │   ├── follow/                   # 팔로우 API
+│   │   │   └── FollowReadApi.kt
+│   │   ├── comment/                  # 댓글 API
+│   │   │   ├── CommentReadApi.kt
+│   │   │   └── CommentWriteApi.kt
+│   │   └── exception/                # API 예외 처리
+│   ├── webview/                      # WebView 어댑터 (MVC)
+│   │   ├── auth/                     # 인증 뷰
+│   │   │   ├── AuthView.kt
+│   │   │   ├── AuthUrls.kt
+│   │   │   ├── AuthViews.kt
+│   │   │   ├── SignupForm.kt
+│   │   │   └── SigninForm.kt
+│   │   ├── member/                   # 회원 뷰
 │   │   │   ├── MemberView.kt
-│   │   │   ├── MemberExceptionHandler.kt
-│   │   │   └── AuthView.kt
-│   │   └── post/                     # 게시글 관련 컨트롤러
-│   │       └── PostView.kt
+│   │   │   ├── MemberUrls.kt
+│   │   │   ├── MemberViews.kt
+│   │   │   └── forms/
+│   │   ├── post/                     # 게시글 뷰
+│   │   │   ├── PostView.kt
+│   │   │   ├── PostUrls.kt
+│   │   │   ├── PostViews.kt
+│   │   │   └── forms/
+│   │   ├── collection/               # 컬렉션 뷰
+│   │   │   ├── CollectionReadView.kt
+│   │   │   ├── CollectionUrls.kt
+│   │   │   └── CollectionViews.kt
+│   │   ├── friend/                   # 친구 뷰
+│   │   │   ├── FriendReadView.kt
+│   │   │   ├── FriendWriteView.kt
+│   │   │   ├── FriendUrls.kt
+│   │   │   └── FriendViews.kt
+│   │   ├── follow/                   # 팔로우 뷰
+│   │   │   ├── FollowView.kt
+│   │   │   ├── FollowCreateView.kt
+│   │   │   ├── FollowTerminateView.kt
+│   │   │   └── FollowUrls.kt
+│   │   └── comment/                  # 댓글 뷰
+│   │       ├── CommentReadView.kt
+│   │       ├── CommentWriteView.kt
+│   │       ├── CommentUrls.kt
+│   │       └── CommentViews.kt
 │   ├── infrastructure/               # 인프라 어댑터
 │   │   ├── persistence/              # 데이터베이스 어댑터
 │   │   │   ├── member/
-│   │   │   └── post/
+│   │   │   ├── post/
+│   │   │   ├── collection/
+│   │   │   ├── friend/
+│   │   │   ├── follow/
+│   │   │   └── comment/
 │   │   ├── email/                    # 이메일 어댑터
-│   │   │   └── EmailSenderImpl.kt
+│   │   │   └── EmailTemplateService.kt
 │   │   └── security/                 # 보안 설정
 │   │       ├── SecurityConfig.kt
-│   │       └── CustomAuthenticationProvider.kt
+│   │       └── MemberPrincipal.kt
 │   └── configuration/                # 설정 클래스
 ├── application/                      # 애플리케이션 레이어
 │   ├── member/                       # 회원 유스케이스
@@ -212,30 +260,87 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
 │   │   │   ├── MemberActivationService.kt
 │   │   │   └── MemberUpdateService.kt
 │   │   ├── dto/                      # 데이터 전송 객체
-│   │   │   ├── MemberRegisterRequest.kt
-│   │   │   └── AccountUpdateRequest.kt
 │   │   ├── event/                    # 도메인 이벤트
-│   │   │   ├── MemberRegisteredEvent.kt
-│   │   │   └── MemberEventListener.kt
 │   │   ├── provided/                 # 제공 포트 (인바운드)
 │   │   │   ├── MemberRegister.kt
 │   │   │   ├── MemberVerify.kt
 │   │   │   └── MemberReader.kt
 │   │   └── required/                 # 요구 포트 (아웃바운드)
 │   │       ├── MemberRepository.kt
-│   │       ├── ActivationTokenRepository.kt
-│   │       └── EmailSender.kt
-│   └── post/                         # 게시글 유스케이스
+│   │       └── ActivationTokenRepository.kt
+│   ├── post/                         # 게시글 유스케이스
+│   │   ├── service/
+│   │   │   ├── PostCreationService.kt
+│   │   │   ├── PostReadService.kt
+│   │   │   └── PostUpdateService.kt
+│   │   ├── dto/
+│   │   ├── provided/
+│   │   │   ├── PostCreator.kt
+│   │   │   ├── PostReader.kt
+│   │   │   └── PostUpdater.kt
+│   │   └── required/
+│   │       └── PostRepository.kt
+│   ├── collection/                   # 컬렉션 유스케이스
+│   │   ├── service/
+│   │   │   ├── CollectionCreationService.kt
+│   │   │   ├── CollectionReadService.kt
+│   │   │   ├── CollectionUpdateService.kt
+│   │   │   └── CollectionDeleteService.kt
+│   │   ├── dto/
+│   │   │   ├── CollectionCreateRequest.kt
+│   │   │   └── CollectionUpdateRequest.kt
+│   │   ├── provided/
+│   │   │   ├── CollectionCreator.kt
+│   │   │   ├── CollectionReader.kt
+│   │   │   ├── CollectionUpdater.kt
+│   │   │   └── CollectionDeleter.kt
+│   │   └── required/
+│   │       └── CollectionRepository.kt
+│   ├── friend/                       # 친구 유스케이스
+│   │   ├── service/
+│   │   │   ├── FriendRequestService.kt
+│   │   │   ├── FriendResponseService.kt
+│   │   │   ├── FriendshipReadService.kt
+│   │   │   └── FriendshipTerminationService.kt
+│   │   ├── dto/
+│   │   ├── provided/
+│   │   │   ├── FriendRequestor.kt
+│   │   │   ├── FriendResponder.kt
+│   │   │   ├── FriendshipReader.kt
+│   │   │   └── FriendshipTerminator.kt
+│   │   └── required/
+│   │       └── FriendshipRepository.kt
+│   ├── follow/                       # 팔로우 유스케이스
+│   │   ├── service/
+│   │   │   ├── FollowCreationService.kt
+│   │   │   ├── FollowReadService.kt
+│   │   │   └── FollowTerminationService.kt
+│   │   ├── dto/
+│   │   ├── provided/
+│   │   │   ├── FollowCreator.kt
+│   │   │   ├── FollowReader.kt
+│   │   │   └── FollowTerminator.kt
+│   │   └── required/
+│   │       └── FollowRepository.kt
+│   └── comment/                      # 댓글 유스케이스
 │       ├── service/
+│       │   ├── CommentCreationService.kt
+│       │   ├── CommentReadService.kt
+│       │   └── CommentUpdateService.kt
 │       ├── dto/
 │       ├── provided/
+│       │   ├── CommentCreator.kt
+│       │   ├── CommentReader.kt
+│       │   └── CommentUpdater.kt
 │       └── required/
+│           └── CommentRepository.kt
 └── domain/                           # 도메인 레이어
     ├── member/                       # 회원 도메인
     │   ├── Member.kt                 # 회원 애그리게이트 루트
     │   ├── MemberDetail.kt
     │   ├── TrustScore.kt
     │   ├── ActivationToken.kt
+    │   ├── PasswordResetToken.kt
     │   ├── value/                    # 값 객체
     │   │   ├── Email.kt
     │   │   ├── Nickname.kt
@@ -247,14 +352,72 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
     │       ├── EmailValidationException.kt
     │       └── InvalidMemberStatusException.kt
     ├── post/                         # 게시글 도메인
-    │   ├── Post.kt
+    │   ├── Post.kt                   # 게시글 애그리게이트 루트
     │   ├── PostHeart.kt
-    │   └── value/
-    │       ├── Author.kt
-    │       ├── Restaurant.kt
-    │       ├── PostContent.kt
-    │       └── PostImages.kt
+    │   ├── value/                    # 값 객체
+    │   │   ├── Author.kt
+    │   │   ├── Restaurant.kt
+    │   │   ├── PostContent.kt
+    │   │   └── PostImages.kt
+    │   └── exceptions/
+    │       └── PostNotFoundException.kt
+    ├── collection/                   # 컬렉션 도메인
+    │   ├── PostCollection.kt         # 컬렉션 애그리게이트 루트
+    │   ├── CollectionStatus.kt
+    │   ├── CollectionPrivacy.kt
+    │   ├── command/                  # 커맨드 객체
+    │   │   ├── CollectionCreateCommand.kt
+    │   │   └── CollectionUpdateCommand.kt
+    │   ├── value/                    # 값 객체
+    │   │   ├── CollectionInfo.kt
+    │   │   ├── CollectionOwner.kt
+    │   │   ├── CollectionPosts.kt
+    │   │   └── CollectionFilter.kt
+    │   └── exceptions/
+    │       ├── CollectionNotFoundException.kt
+    │       └── CollectionUpdateException.kt
+    ├── friend/                       # 친구 도메인
+    │   ├── Friendship.kt             # 친구 관계 애그리게이트 루트
+    │   ├── FriendshipStatus.kt
+    │   ├── command/
+    │   │   └── FriendRequestCommand.kt
+    │   ├── value/
+    │   │   └── FriendRelationship.kt
+    │   ├── event/                    # 도메인 이벤트
+    │   │   ├── FriendRequestSentEvent.kt
+    │   │   ├── FriendRequestAcceptedEvent.kt
+    │   │   ├── FriendRequestRejectedEvent.kt
+    │   │   └── FriendshipTerminatedEvent.kt
+    │   └── exceptions/
+    │       └── FriendApplicationException.kt
+    ├── follow/                       # 팔로우 도메인
+    │   ├── Follow.kt                 # 팔로우 애그리게이트 루트
+    │   ├── FollowStatus.kt
+    │   ├── command/
+    │   │   └── FollowCreateCommand.kt
+    │   ├── value/
+    │   │   └── FollowRelationship.kt
+    │   ├── event/
+    │   │   ├── FollowStartedEvent.kt
+    │   │   └── UnfollowedEvent.kt
+    │   └── exceptions/
+    │       └── FollowApplicationException.kt
+    ├── comment/                      # 댓글 도메인
+    │   ├── Comment.kt                # 댓글 애그리게이트 루트
+    │   ├── CommentStatus.kt
+    │   ├── value/
+    │   │   ├── CommentContent.kt
+    │   │   ├── CommentAuthor.kt
+    │   │   └── CommentMention.kt
+    │   ├── event/
+    │   │   ├── CommentCreatedEvent.kt
+    │   │   ├── CommentUpdatedEvent.kt
+    │   │   └── CommentDeletedEvent.kt
+    │   └── exceptions/
+    │       └── CommentApplicationException.kt
     └── common/                       # 공통 도메인 요소
-        └── BaseEntity.kt
+        ├── BaseEntity.kt
+        └── exceptions/
+            └── DomainException.kt
 ```
 
