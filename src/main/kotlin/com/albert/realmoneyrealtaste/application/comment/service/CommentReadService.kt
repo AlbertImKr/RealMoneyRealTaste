@@ -30,7 +30,7 @@ class CommentReadService(
     }
 
     override fun getCommentCount(postId: Long): Long {
-        return commentRepository.countByPostIdAndStatus(
+        return commentRepository.countByPostIdAndStatusAndParentCommentIdIsNull(
             postId = postId,
             status = CommentStatus.PUBLISHED
         )

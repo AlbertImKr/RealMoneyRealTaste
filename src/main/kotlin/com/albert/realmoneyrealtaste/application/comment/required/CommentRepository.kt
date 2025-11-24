@@ -62,6 +62,8 @@ interface CommentRepository : Repository<Comment, Long> {
      */
     fun countByPostIdAndStatus(postId: Long, status: CommentStatus): Long
 
+    fun countByPostIdAndStatusAndParentCommentIdIsNull(postId: Long, status: CommentStatus): Long
+
     /**
      * 회원이 작성한 댓글 목록을 조회합니다.
      *
