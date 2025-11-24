@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.adapter.webview
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.adapter.webview.post.PostCreateForm
-import com.albert.realmoneyrealtaste.application.follow.dto.FollowStatsResponse
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostHeartReader
@@ -86,39 +85,21 @@ class HomeView(
     }
 
     private fun addMemberStats(model: Model, memberId: Long) {
-        try {
-            val followStats = followReader.getFollowStats(memberId)
-            model.addAttribute("followStats", followStats)
+        val followStats = followReader.getFollowStats(memberId)
+        model.addAttribute("followStats", followStats)
 
-            val postCount = postReader.countPostsByMemberId(memberId)
-            model.addAttribute("postCount", postCount)
-        } catch (e: IllegalArgumentException) {
-            model.addAttribute("followStats", createDefaultFollowStats(memberId))
-            model.addAttribute("postCount", 0L)
-        }
+        val postCount = postReader.countPostsByMemberId(memberId)
+        model.addAttribute("postCount", postCount)
     }
 
     private fun addSuggestedMembers(model: Model, memberId: Long): List<Member> {
-        try {
-            val suggestedUsers = memberReader.findSuggestedMembers(memberId, 5)
-            model.addAttribute("suggestedUsers", suggestedUsers)
-            return suggestedUsers
-        } catch (e: IllegalArgumentException) {
-            model.addAttribute("suggestedUsers", emptyList<Member>())
-            return emptyList()
-        }
+        val suggestedUsers = memberReader.findSuggestedMembers(memberId, 5)
+        model.addAttribute("suggestedUsers", suggestedUsers)
+        return suggestedUsers
     }
 
     private fun addFollowingStatus(model: Model, followerId: Long, suggestedIds: List<Long>) {
         val followings = followReader.findFollowings(followerId, suggestedIds)
         model.addAttribute("followings", followings)
-    }
-
-    private fun createDefaultFollowStats(memberId: Long): FollowStatsResponse {
-        return FollowStatsResponse(
-            memberId = memberId,
-            followersCount = 0L,
-            followingCount = 0L
-        )
     }
 }
