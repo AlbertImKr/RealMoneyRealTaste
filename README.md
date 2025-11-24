@@ -33,6 +33,7 @@
 - [📋 도메인 요구사항](docs/DOMAIN_REQUIREMENTS.md)
 - [🏗 도메인 모델](docs/DOMAIN_MODEL.md)
 - [🏛 아키텍처](docs/ARCHITECTURE.md)
+- [📊 ERD 다이어그램](docs/erd.png)
 - [🚀 빠른 시작](docs/QUICK_START.md)
 - [📖 API 문서](docs/API_DOCUMENTATION.md)
 - [🧪 테스트 가이드](docs/TESTING_GUIDE.md)
