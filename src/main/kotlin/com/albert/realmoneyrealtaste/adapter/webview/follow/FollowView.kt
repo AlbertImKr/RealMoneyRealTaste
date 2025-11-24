@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam
 @Controller
 class FollowView(
     private val followReader: FollowReader,
-    private val memberReader: MemberReader, val id: Long? = null,
+    private val memberReader: MemberReader,
 ) {
     /**
      * 내 팔로잉 목록 조회
@@ -108,16 +108,9 @@ class FollowView(
             pageable = pageRequest
         )
 
-        val author = memberReader.readMemberById(memberId)
-        val followingIds = followings.content.map { it.followingId }
-        if (principal != null) {
-            val currentUserFollowingIds = followReader.findFollowings(principal.id, followingIds)
-            model.addAttribute("member", principal)
-            model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
-        }
+        setupFollowModelAttributes(memberId, followings.content.map { it.followingId }, model, principal)
 
         model.addAttribute("followings", followings)
-        model.addAttribute("author", author)
         return FollowViews.FOLLOWING_FRAGMENT
     }
 
@@ -136,16 +129,24 @@ class FollowView(
             pageable = pageRequest
         )
 
+        setupFollowModelAttributes(memberId, followers.content.map { it.followerId }, model, principal)
+
+        model.addAttribute("followers", followers)
+        return FollowViews.FOLLOWERS_FRAGMENT
+    }
+
+    private fun setupFollowModelAttributes(
+        memberId: Long,
+        followIds: List<Long>,
+        model: Model,
+        principal: MemberPrincipal?,
+    ) {
         val author = memberReader.readMemberById(memberId)
-        val followerIds = followers.content.map { it.followerId }
+        model.addAttribute("author", author)
         if (principal != null) {
-            val currentUserFollowingIds = followReader.findFollowings(principal.id, followerIds)
+            val currentUserFollowingIds = followReader.findFollowings(principal.id, followIds)
             model.addAttribute("member", principal)
             model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
         }
-
-        model.addAttribute("followers", followers)
-        model.addAttribute("author", author)
-        return FollowViews.FOLLOWERS_FRAGMENT
     }
 }

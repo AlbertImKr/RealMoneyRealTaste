@@ -1,46 +1,46 @@
 package com.albert.realmoneyrealtaste.adapter.webview.follow
 
 import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.application.follow.dto.UnfollowRequest
-import com.albert.realmoneyrealtaste.application.follow.provided.FollowTerminator
+import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
+import com.albert.realmoneyrealtaste.application.follow.provided.FollowCreator
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.ResponseBody
 
 /**
- * 팔로우 삭제 API
+ * 팔로우 생성 API
  */
 @Controller
-class FollowDeleteController(
-    private val followTerminator: FollowTerminator,
+class FollowCreateView(
+    private val followCreator: FollowCreator,
 ) {
 
     /**
-     * 사용자 언팔로우
+     * 사용자 팔로우
      */
-    @DeleteMapping("/members/{targetId}/follow")
+    @PostMapping("/members/{targetId}/follow")
     @ResponseBody
-    fun unfollow(
+    fun follow(
         @AuthenticationPrincipal principal: MemberPrincipal,
         @PathVariable targetId: Long,
     ): ResponseEntity<String> {
-        followTerminator.unfollow(
-            UnfollowRequest(
+        followCreator.follow(
+            FollowCreateRequest(
                 followerId = principal.id,
                 followingId = targetId,
             )
         )
 
-        // 팔로우 버튼 HTML 조각 반환
+        // 언팔로우 버튼 HTML 조각 반환
         val followButtonHtml = """
-            <button class="btn btn-primary-soft rounded-circle icon-md ms-auto"
-                    hx-post="/members/$targetId/follow"
+            <button class="btn btn-primary rounded-circle icon-md ms-auto"
+                    hx-delete="/members/$targetId/follow"
                     hx-target="#follow-button-$targetId"
                     hx-swap="innerHTML">
-                <i class="fa-solid fa-plus"></i>
+                <i class="bi bi-person-check-fill"></i>
             </button>
         """.trimIndent()
 
