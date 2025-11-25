@@ -3,9 +3,6 @@ spring:
   application:
     name: RealMoneyRealTaste
   
-  profiles:
-    active: prod
-  
   # 데이터베이스 설정 (프로덕션)
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -61,9 +58,6 @@ server:
   port: 8080
   servlet:
     context-path: /
-  tomcat:
-    max-threads: 200
-    min-spare-threads: 10
 
 # Actuator 설정 (프로덕션)
 management:
