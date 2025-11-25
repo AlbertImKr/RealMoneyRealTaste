@@ -44,7 +44,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 테스트 실행
-        run: ./gradlew test -Dspring.profiles.active=test --continue
+        run: ./gradlew test -Dspring.profiles.active=test --continue --info
   build:
     name: 애플리케이션 빌드
     runs-on: ubuntu-latest
