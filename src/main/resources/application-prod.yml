@@ -8,9 +8,9 @@ spring:
   
   # 데이터베이스 설정 (프로덕션)
   datasource:
-    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
@@ -47,7 +47,7 @@ spring:
   # 보안 설정
   security:
     user:
-      name: ${ADMIN_USERNAME:admin}
+      name: admin
       password: ${ADMIN_PASSWORD}
   
   # 성능 설정
@@ -74,9 +74,8 @@ management:
   endpoint:
     health:
       show-details: when-authorized
-  health:
-    probes:
-      enabled: true
+      probes:
+        enabled: true
 
 # 로깅 설정 (프로덕션)
 logging:
@@ -94,7 +93,7 @@ logging:
 
 # 애플리케이션 설정
 app:
-  base-url: ${APP_BASE_URL}
+  base-url: ${APP_BASE_URL:http://localhost:8080}
   member:
     activation-token:
       expiration-hours: 24
