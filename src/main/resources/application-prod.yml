@@ -58,9 +58,6 @@ server:
   port: 8080
   servlet:
     context-path: /
-  tomcat:
-    max-threads: 200
-    min-spare-threads: 10
 
 # Actuator 설정 (프로덕션)
 management:
