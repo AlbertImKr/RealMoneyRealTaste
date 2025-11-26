@@ -87,7 +87,7 @@ logging:
 
 # 애플리케이션 설정
 app:
-  base-url: ${APP_BASE_URL:http://localhost:8080}
+  base-url: ${APP_BASE_URL:https://rmrt.albert-im.com}
   member:
     activation-token:
       expiration-hours: 24
