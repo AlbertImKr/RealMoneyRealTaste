@@ -51,6 +51,15 @@ jobs:
 
       - name: 테스트 실행
         run: ./gradlew test --continue
+
+      - name: 테스트 결과물 저장
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: test-results
+          path: |
+            build/reports/
+            build/test-results/
   build:
     name: 애플리케이션 빌드
     runs-on: ubuntu-latest
@@ -119,6 +128,12 @@ jobs:
 
       - name: gradlew 실행 권한 부여
         run: chmod +x gradlew
+
+      - name: 테스트 결과물 다운로드
+        uses: actions/download-artifact@v5
+        with:
+          name: test-results
+          path: build/
 
       - name: SonarQube 분석 실행
         run: ./gradlew sonar --build-cache --info
