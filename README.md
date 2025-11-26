@@ -28,6 +28,10 @@
 **Testing**: JUnit5, MockK, Testcontainers  
 **DevOps**: Docker, GitHub Actions, SonarCloud
 
+## 🌐 배포
+
+- **프로덕션**: https://rmrt.albert-im.com/
+
 ## 📚 문서
 
 - [📋 도메인 요구사항](docs/DOMAIN_REQUIREMENTS.md)
