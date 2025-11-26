@@ -15,7 +15,7 @@ import kotlin.test.Test
 class EmailSenderImplTest {
 
     private val mailSender = mockk<JavaMailSender>()
-    private val emailSender = EmailSenderImpl(mailSender)
+    private val emailSender = EmailSenderImpl(mailSender, "test@example.com")
 
     @Test
     fun `send - success - send text email`() {
