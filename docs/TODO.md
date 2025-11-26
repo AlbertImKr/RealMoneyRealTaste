@@ -22,12 +22,12 @@
 
 | 작업 항목                | 상태 | 우선순위  | 상세 설명                         |
 |----------------------|----|-------|-------------------------------|
-| Dockerfile 생성        | ☐  | 🔴 P0 | Multi-stage 빌드 구성, 경량 이미지 최적화 |
-| Docker Compose 설정    | ☐  | 🔴 P0 | 개발 환경 구성 (앱 + DB + Redis)     |
-| GitHub Actions 확장    | ☐  | 🟡 P1 | 현재 SonarQube → 완전한 CI/CD로 확장  |
+| Dockerfile 생성        | ✅  | 🔴 P0 | Multi-stage 빌드 구성, 경량 이미지 최적화 |
+| Docker Compose 설정    | ✅  | 🔴 P0 | 개발 환경 구성 (앱 + DB + Redis)     |
+| GitHub Actions 확장    | ✅  | 🟡 P1 | 현재 SonarQube → 완전한 CI/CD로 확장  |
 | Blue-Green 배포 구현     | ☐  | 🟡 P1 | 롤백 자동화, 헬스체크                  |
-| ECS/EKS 컨테이너 오케스트레이션 | ☐  | 🟢 P2 | 서비스 디스커버리, 오토스케일링             |
-| RDS 데이터베이스 구성        | ☐  | 🟢 P2 | MySQL 8.0, 읽기 전용 복제본          |
+| ECS/EKS 컨테이너 오케스트레이션 | ✅  | 🟢 P2 | 서비스 디스커버리, 오토스케일링             |
+| RDS 데이터베이스 구성        | ✅  | 🟢 P2 | MySQL 8.0, 읽기 전용 복제본          |
 | ElastiCache Redis 구성 | ☐  | 🟢 P2 | 캐시 레이어, 세션 저장소                |
 
 ---
