@@ -360,4 +360,223 @@ class FriendWriteViewTest : IntegrationTestBase() {
         assertEquals(false, hasSentFriendRequest, "요청을 받은 사용자는 hasSentFriendRequest가 false여야 함")
         assertEquals(true, isFriend, "친구 요청을 수락했으므로 isFriend는 true여야 함")
     }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when friendshipId is negative`() {
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, -1L)
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when friendshipId is zero`() {
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, 0L)
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - forbidden - when CSRF token missing`() {
+        val receiver = testMemberHelper.getDefaultMember()
+        val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
+        val friendship = friendRequestor.sendFriendRequest(
+            FriendRequestCommand(
+                fromMemberId = sender.requireId(),
+                toMemberId = receiver.requireId(),
+                toMemberNickname = receiver.nickname.value,
+            )
+        )
+
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+                .param("accept", "true")
+            // CSRF 토큰 없음
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when accept parameter is missing`() {
+        val receiver = testMemberHelper.getDefaultMember()
+        val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
+        val friendship = friendRequestor.sendFriendRequest(
+            FriendRequestCommand(
+                fromMemberId = sender.requireId(),
+                toMemberId = receiver.requireId(),
+                toMemberNickname = receiver.nickname.value,
+            )
+        )
+
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+                // accept 파라미터 없음
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when accept parameter is invalid`() {
+        val receiver = testMemberHelper.getDefaultMember()
+        val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
+        val friendship = friendRequestor.sendFriendRequest(
+            FriendRequestCommand(
+                fromMemberId = sender.requireId(),
+                toMemberId = receiver.requireId(),
+                toMemberNickname = receiver.nickname.value,
+            )
+        )
+
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+                .param("accept", "invalid") // 유효하지 않은 값
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - forbidden - when responding to own request`() {
+        testMemberHelper.getDefaultMember()
+
+        // 자기 자신에게 친구 요청을 보내는 것은 비즈니스 로직상 불가능하지만,
+        // 만약 그런 시도가 있을 경우를 대비한 테스트
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, 1L)
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().is4xxClientError())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when friendship does not exist`() {
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, 99999L) // 존재하지 않는 ID
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when user is not the recipient`() {
+        val receiver = testMemberHelper.createActivatedMember("receiver@example.com", "receiver")
+        val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
+        testMemberHelper.createActivatedMember("third@example.com", "third")
+
+        val friendship = friendRequestor.sendFriendRequest(
+            FriendRequestCommand(
+                fromMemberId = sender.requireId(),
+                toMemberId = receiver.requireId(),
+                toMemberNickname = receiver.nickname.value,
+            )
+        )
+
+        // thirdUser가 receiver에게 온 요청에 응답하려고 시도
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when already responded`() {
+        val receiver = testMemberHelper.getDefaultMember()
+        val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
+        val friendship = friendRequestor.sendFriendRequest(
+            FriendRequestCommand(
+                fromMemberId = sender.requireId(),
+                toMemberId = receiver.requireId(),
+                toMemberNickname = receiver.nickname.value,
+            )
+        )
+
+        // 첫 번째 응답
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().isOk())
+
+        // 두 번째 응답 시도 (이미 처리된 요청)
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+                .param("accept", "false")
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when friendshipId is extremely large`() {
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, Long.MAX_VALUE)
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - bad request - when accept parameter is empty string`() {
+        val receiver = testMemberHelper.getDefaultMember()
+        val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
+        val friendship = friendRequestor.sendFriendRequest(
+            FriendRequestCommand(
+                fromMemberId = sender.requireId(),
+                toMemberId = receiver.requireId(),
+                toMemberNickname = receiver.nickname.value,
+            )
+        )
+
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
+                .param("accept", "") // 빈 문자열
+                .with(csrf())
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `respondToFriendRequest - success - when friendshipId is at boundary`() {
+        val receiver = testMemberHelper.getDefaultMember()
+        val sender = testMemberHelper.createActivatedMember("sender@example.com", "sender")
+        friendRequestor.sendFriendRequest(
+            FriendRequestCommand(
+                fromMemberId = sender.requireId(),
+                toMemberId = receiver.requireId(),
+                toMemberNickname = receiver.nickname.value,
+            )
+        )
+
+        // 경계값 테스트 - 유효한 최소 ID
+        mockMvc.perform(
+            put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, 1L)
+                .param("accept", "true")
+                .with(csrf())
+        )
+            .andExpect(status().is4xxClientError()) // 해당 ID의 friendship이 없으므로 에러
+    }
 }
