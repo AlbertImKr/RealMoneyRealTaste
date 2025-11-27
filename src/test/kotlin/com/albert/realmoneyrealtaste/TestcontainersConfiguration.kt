@@ -87,7 +87,7 @@ class TestcontainersConfiguration {
 
     @Bean
     @Primary
-    fun testS3Client(testS3Config: S3Config): S3Client {
+    fun testS3Client(testS3Config: S3Config, localStackContainer: LocalStackContainer): S3Client {
         val s3Client = S3Client.builder()
             .credentialsProvider(
                 StaticCredentialsProvider.create(
@@ -95,6 +95,7 @@ class TestcontainersConfiguration {
                 )
             )
             .region(Region.of(testS3Config.region))
+            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .build()
 
         // 테스트용 버킷 생성
@@ -105,7 +106,7 @@ class TestcontainersConfiguration {
 
     @Bean
     @Primary
-    fun testS3Presigner(testS3Config: S3Config): S3Presigner {
+    fun testS3Presigner(testS3Config: S3Config, localStackContainer: LocalStackContainer): S3Presigner {
         return S3Presigner.builder()
             .credentialsProvider(
                 StaticCredentialsProvider.create(
@@ -113,6 +114,7 @@ class TestcontainersConfiguration {
                 )
             )
             .region(Region.of(testS3Config.region))
+            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .build()
     }
 

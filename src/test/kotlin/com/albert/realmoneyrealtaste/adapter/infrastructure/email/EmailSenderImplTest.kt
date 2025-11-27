@@ -1,6 +1,5 @@
-package com.albert.realmoneyrealtaste.adapter.integration
+package com.albert.realmoneyrealtaste.adapter.infrastructure.email
 
-import com.albert.realmoneyrealtaste.adapter.integration.email.EmailSenderImpl
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import io.mockk.Runs
 import io.mockk.every

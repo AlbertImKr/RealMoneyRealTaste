@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.security
+package com.albert.realmoneyrealtaste.adapter.infrastructure.security
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -42,13 +42,7 @@ class SecurityConfig {
                     .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
             }
-            .csrf {
-                it.ignoringRequestMatchers(
-                    "/api/**",
-                    "/friendships",
-                    "/friendships/*",
-                )
-            }
+            .csrf { }
             .formLogin {
                 it.disable()
             }

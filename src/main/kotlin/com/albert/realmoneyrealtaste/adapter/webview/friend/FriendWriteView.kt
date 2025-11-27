@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.friend
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.friend.dto.FriendResponseRequest
 import com.albert.realmoneyrealtaste.application.friend.dto.UnfriendRequest
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendRequestor

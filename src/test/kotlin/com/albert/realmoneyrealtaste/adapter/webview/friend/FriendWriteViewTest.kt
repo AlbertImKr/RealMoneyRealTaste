@@ -49,6 +49,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
             post(FriendUrls.SEND_FRIEND_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
@@ -95,6 +96,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
             post(FriendUrls.SEND_FRIEND_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
@@ -122,6 +124,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
         val result = mockMvc.perform(
             put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.id)
                 .param("accept", "true")
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
@@ -155,6 +158,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
         val result = mockMvc.perform(
             put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
                 .param("accept", "false")
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
@@ -248,6 +252,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
             post(FriendUrls.SEND_FRIEND_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andReturn()
@@ -275,6 +280,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
         mockMvc.perform(
             put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
                 .param("accept", "true")
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
@@ -340,6 +346,7 @@ class FriendWriteViewTest : IntegrationTestBase() {
         val result = mockMvc.perform(
             put(FriendUrls.RESPOND_TO_FRIEND_REQUEST, friendship.requireId())
                 .param("accept", "true")
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))

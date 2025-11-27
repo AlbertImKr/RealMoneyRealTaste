@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.security
+package com.albert.realmoneyrealtaste.adapter.infrastructure.security
 
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.value.Email

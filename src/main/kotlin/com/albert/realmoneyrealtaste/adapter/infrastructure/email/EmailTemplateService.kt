@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.integration.email
+package com.albert.realmoneyrealtaste.adapter.infrastructure.email
 
 import com.albert.realmoneyrealtaste.adapter.webview.member.MemberViews
 import com.albert.realmoneyrealtaste.application.member.required.EmailTemplate

@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.security
+package com.albert.realmoneyrealtaste.adapter.infrastructure.security
 
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
 import com.albert.realmoneyrealtaste.domain.member.Member
@@ -347,16 +347,16 @@ class MemberPrincipalTest {
 
     fun createMemberWithId(
         id: Long,
-        email: Email = MemberFixture.DEFAULT_EMAIL,
-        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
-        password: RawPassword = MemberFixture.DEFAULT_RAW_PASSWORD,
+        email: Email = MemberFixture.Companion.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.Companion.DEFAULT_NICKNAME,
+        password: RawPassword = MemberFixture.Companion.DEFAULT_RAW_PASSWORD,
     ): Member {
-        val member = Member.register(
+        val member = Member.Companion.register(
             email = email,
             nickname = nickname,
-            password = PasswordHash.of(
+            password = PasswordHash.Companion.of(
                 password,
-                MemberFixture.TEST_ENCODER
+                MemberFixture.Companion.TEST_ENCODER
             ),
         )
         setId(member, id)

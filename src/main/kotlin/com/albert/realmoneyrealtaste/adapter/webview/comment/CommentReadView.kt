@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.comment
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.comment.provided.CommentReader
 import com.albert.realmoneyrealtaste.domain.comment.Comment
 import org.springframework.data.domain.Page

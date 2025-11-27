@@ -4,17 +4,14 @@ import com.albert.realmoneyrealtaste.application.collection.exception.Collection
 import com.albert.realmoneyrealtaste.application.collection.exception.CollectionDeleteException
 import com.albert.realmoneyrealtaste.application.collection.exception.CollectionNotFoundException
 import com.albert.realmoneyrealtaste.application.collection.exception.CollectionUpdateException
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice(annotations = [RestController::class])
 class RestCollectionExceptionHandler {
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CollectionUpdateException::class)
     fun handleCollectionUpdateException(ex: CollectionUpdateException): ResponseEntity<Map<String, Any>> {
         return ResponseEntity.badRequest().body(
@@ -25,7 +22,6 @@ class RestCollectionExceptionHandler {
         )
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CollectionCreateException::class)
     fun handleCollectionCreateException(ex: CollectionCreateException): ResponseEntity<Map<String, Any>> {
         return ResponseEntity.badRequest().body(
@@ -36,7 +32,6 @@ class RestCollectionExceptionHandler {
         )
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CollectionNotFoundException::class)
     fun handleCollectionNotFoundException(ex: CollectionNotFoundException): ResponseEntity<Map<String, Any>> {
         return ResponseEntity.badRequest().body(
@@ -47,7 +42,6 @@ class RestCollectionExceptionHandler {
         )
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CollectionDeleteException::class)
     fun handleCollectionDeleteException(ex: CollectionDeleteException): ResponseEntity<Map<String, Any>> {
         return ResponseEntity.badRequest().body(

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -48,6 +49,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -73,6 +75,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -105,6 +108,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
@@ -125,6 +129,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -155,6 +160,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -198,6 +204,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -214,6 +221,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -230,6 +238,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -247,6 +256,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -264,6 +274,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -279,6 +290,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
         mockMvc.perform(
             post("/api/collections")
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
             // .contentType 누락
         )
             .andExpect(status().isUnsupportedMediaType)
@@ -299,6 +311,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
 
@@ -318,6 +331,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
             .andExpect(jsonPath("$.success").value(false))
@@ -338,6 +352,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
             post("/api/collections")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -371,6 +386,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
                 post("/api/collections")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
+                    .with(csrf())
             )
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.success").value(true))
@@ -397,6 +413,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
                     post("/api/collections")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestWithNull))
+                        .with(csrf())
                 )
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.success").value(true))
@@ -406,6 +423,7 @@ class CollectionCreateApiTest : IntegrationTestBase() {
                     post("/api/collections")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestWithEmpty))
+                        .with(csrf())
                 )
                     .andExpect(status().isOk)
                     .andExpect(jsonPath("$.success").value(true))
