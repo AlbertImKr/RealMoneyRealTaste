@@ -71,6 +71,7 @@ dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'                  // Kotlin JUnit5 테스트
     testImplementation 'org.testcontainers:junit-jupiter'                          // Testcontainers JUnit5
     testImplementation 'org.testcontainers:mysql'                                  // Testcontainers MySQL
+    testImplementation 'org.testcontainers:localstack'                            // Testcontainers LocalStack
     testImplementation 'io.mockk:mockk:1.14.6'                                     // Mocking 라이브러리
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'      // 코루틴 테스트
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'                  // JUnit 플랫폼 런처
