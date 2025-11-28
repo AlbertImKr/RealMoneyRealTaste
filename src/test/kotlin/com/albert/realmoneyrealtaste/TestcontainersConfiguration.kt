@@ -71,6 +71,7 @@ class TestcontainersConfiguration {
             .apply {
                 withServices(LocalStackContainer.Service.S3)
                 withReuse(true)
+                withEnv("EXTRA_CORS_ALLOWED_ORIGINS", "http://localhost:8080")
             }
     }
 

@@ -38,9 +38,9 @@
                                    id="restaurantName"
                                    placeholder="맛집 이름 *"
                                    required
-                                   th:field="*{restaurantName}"
+                                   th:field="${postCreateForm.restaurantName}"
                                    type="text">
-                            <div class="invalid-feedback" th:errors="*{restaurantName}"
+                            <div class="invalid-feedback" th:errors="${postCreateForm.restaurantName}"
                                  th:if="${#fields.hasErrors('restaurantName')}"></div>
                         </div>
 
@@ -51,15 +51,15 @@
                                    id="restaurantAddress"
                                    placeholder="주소 *"
                                    required
-                                   th:field="*{restaurantAddress}"
+                                   th:field="${postCreateForm.restaurantAddress}"
                                    type="text">
-                            <div class="invalid-feedback" th:errors="*{restaurantAddress}"
+                            <div class="invalid-feedback" th:errors="${postCreateForm.restaurantAddress}"
                                  th:if="${#fields.hasErrors('restaurantAddress')}"></div>
                         </div>
 
                         <!-- 위도/경도 (숨김 필드) -->
-                        <input th:field="*{restaurantLatitude}" type="hidden">
-                        <input th:field="*{restaurantLongitude}" type="hidden">
+                        <input th:field="${postCreateForm.restaurantLatitude}" type="hidden">
+                        <input th:field="${postCreateForm.restaurantLongitude}" type="hidden">
                     </div>
 
                     <!-- 평점 -->
@@ -77,8 +77,9 @@
                             </div>
                             <span class="ms-2 text-muted small" id="modal-rating-text">평점을 선택하세요</span>
                         </div>
-                        <input id="modal-contentRating" required th:field="*{contentRating}" type="hidden">
-                        <div class="invalid-feedback d-block" th:errors="*{contentRating}"
+                        <input id="modal-contentRating" required th:field="${postCreateForm.contentRating}"
+                               type="hidden">
+                        <div class="invalid-feedback d-block" th:errors="${postCreateForm.contentRating}"
                              th:if="${#fields.hasErrors('contentRating')}"></div>
                     </div>
 
@@ -93,9 +94,9 @@
                                   placeholder="맛집에 대한 솔직한 리뷰를 작성해주세요. 음식의 맛, 분위기, 서비스 등을 자유롭게 공유해주세요."
                                   required
                                   rows="5"
-                                  th:field="*{contentText}"></textarea>
+                                  th:field="${postCreateForm.contentText}"></textarea>
                         <div class="form-text">최소 10자 이상 작성해주세요.</div>
-                        <div class="invalid-feedback" th:errors="*{contentText}"
+                        <div class="invalid-feedback" th:errors="${postCreateForm.contentText}"
                              th:if="${#fields.hasErrors('contentText')}"></div>
                     </div>
 
@@ -104,29 +105,36 @@
                         <h6 class="mb-2">
                             <i class="bi bi-image text-success me-2"></i>사진 추가
                         </h6>
-                        <div id="modal-image-url-container">
-                            <!-- 첫 번째 이미지 입력 필드 -->
-                            <div class="input-group mb-2" data-image-index="0">
-                                <label class="input-group-text visually-hidden" for="imageUrl0">이미지 URL</label>
-                                <input class="form-control image-url-input"
-                                       data-index="0"
-                                       id="imageUrl0"
-                                       name="imagesUrls[0]"
-                                       placeholder="이미지 URL을 입력하세요"
-                                       type="text">
-                                <button class="btn btn-outline-danger remove-image-btn"
-                                        style="display: none;"
-                                        type="button">
-                                    <i class="bi bi-x"></i>
-                                </button>
+
+                        <!-- 이미지 업로드 컨테이너 -->
+                        <div class="mb-2" id="modal-image-upload-container">
+                            <!-- 업로드된 이미지 미리보기 및 URL 저장 영역 -->
+                        </div>
+
+                        <!-- 파일 선택 버튼 -->
+                        <div class="d-flex gap-2 align-items-center">
+                            <label class="btn btn-sm btn-outline-primary mb-0" for="modal-image-file-input">
+                                <i class="bi bi-upload me-1"></i> 사진 선택
+                            </label>
+                            <input accept="image/jpeg,image/png,image/gif,image/webp"
+                                   class="d-none"
+                                   id="modal-image-file-input"
+                                   multiple
+                                   type="file">
+                            <small class="text-muted" id="modal-upload-count">0/5</small>
+                        </div>
+                        <div class="form-text">JPG, PNG, GIF, WebP 형식 지원 (최대 5MB, 5장)</div>
+
+                        <!-- 업로드 진행 상태 표시 -->
+                        <div class="mt-2" id="modal-upload-progress" style="display: none;">
+                            <div class="progress" style="height: 20px;">
+                                <progress class="progress-bar progress-bar-striped progress-bar-animated"
+                                          id="modal-upload-progress-bar" max="100"
+                                          value="0">
+                                    <span id="modal-upload-progress-text">0%</span>
+                                </progress>
                             </div>
                         </div>
-                        <button class="btn btn-sm btn-outline-primary"
-                                id="modal-add-image-btn"
-                                type="button">
-                            <i class="bi bi-plus-circle me-1"></i> 사진 추가
-                        </button>
-                        <div class="form-text">최대 5장까지 추가할 수 있습니다.</div>
                     </div>
 
                     <!-- 추가 옵션 아이콘 (선택사항) -->

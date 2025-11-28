@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.application.image.dto
 
 import com.albert.realmoneyrealtaste.domain.image.ImageType
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 
 /**
@@ -24,6 +23,5 @@ data class ImageUploadRequest(
     @field:Positive(message = "이미지 높이는 0보다 커야 합니다.")
     val height: Int,
 
-    @field:NotNull(message = "이미지 타입은 필수입니다.")
     val imageType: ImageType,
 )

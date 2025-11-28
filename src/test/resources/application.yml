@@ -5,11 +5,9 @@ spring:
     active: test
     group:
       test:
-        - secrets
-        - db
+        - testdb
       dev:
-        - secrets
-        - db
+        - devdb
   mail:
     host: ${SPRING_MAIL_HOST}
     port: ${SPRING_MAIL_PORT}
@@ -21,10 +19,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
 app:
   base-url: ${APP_BASE_URL}
   member:
