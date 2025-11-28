@@ -31,7 +31,7 @@
                     <div class="position-relative" th:if="${post.images != null && !post.images.isEmpty()}">
                         <div th:if="${post.images.size() == 1}">
                             <!-- Single image -->
-                            <img alt="맛집 사진" class="card-img rounded" th:src="${post.images.urls[0]}">
+                            <img alt="맛집 사진" class="card-img rounded" th:src="${post.images.imageIds[0]}">
                         </div>
                         <div class="carousel slide" data-bs-ride="carousel" id="postImageCarousel"
                              th:if="${post.images.size() > 1}">
@@ -41,7 +41,7 @@
                                         th:classappend="${iterStat.first} ? 'active' : ''"
                                         th:data-bs-slide-to="${iterStat.index}"
                                         th:data-bs-target="'#postImageCarousel'"
-                                        th:each="img, iterStat : ${post.images.urls}"
+                                        th:each="img, iterStat : ${post.images.imageIds}"
                                         type="button">
                                 </button>
                             </div>
@@ -49,7 +49,7 @@
                             <div class="carousel-inner rounded">
                                 <div class="carousel-item"
                                      th:classappend="${iterStat.first} ? 'active' : ''"
-                                     th:each="img, iterStat : ${post.images.urls}">
+                                     th:each="img, iterStat : ${post.images.imageIds}">
                                     <img alt="맛집 사진" class="d-block w-100 rounded" th:src="${img}">
                                 </div>
                             </div>

@@ -54,7 +54,7 @@ class PostReaderTest(
             { assertEquals(post.restaurant.name, result.restaurant.name) },
             { assertEquals(post.content.text, result.content.text) },
             { assertEquals(post.content.rating, result.content.rating) },
-            { assertEquals(post.images.urls, result.images.urls) },
+            { assertEquals(post.images.imageIds, result.images.imageIds) },
             { assertEquals(post.status, result.status) },
             { assertEquals(post.heartCount, result.heartCount) },
             { assertEquals(post.viewCount, result.viewCount) },
@@ -86,7 +86,7 @@ class PostReaderTest(
             { assertEquals(post.restaurant.name, result.restaurant.name) },
             { assertEquals(post.content.text, result.content.text) },
             { assertEquals(post.content.rating, result.content.rating) },
-            { assertEquals(post.images.urls, result.images.urls) },
+            { assertEquals(post.images.imageIds, result.images.imageIds) },
             { assertEquals(post.status, result.status) },
             { assertEquals(post.heartCount, result.heartCount) },
             { assertEquals(post.viewCount, result.viewCount) },
@@ -144,7 +144,7 @@ class PostReaderTest(
         assertEquals(post.restaurant.name, result.restaurant.name)
         assertEquals(post.content.text, result.content.text)
         assertEquals(post.content.rating, result.content.rating)
-        assertEquals(post.images.urls, result.images.urls)
+        assertEquals(post.images.imageIds, result.images.imageIds)
         assertEquals(post.status, result.status)
         assertEquals(post.heartCount, result.heartCount)
         assertEquals(post.viewCount, result.viewCount)
@@ -193,7 +193,7 @@ class PostReaderTest(
                 PostFixture.createPost(
                     authorMemberId = authorMemberId,
                     authorNickname = member.nickname.value,
-                    images = PostImages.of("https://example.com/${it}1.jpg", "https://example.com/${it}2.jpg")
+                    images = PostImages.of(1, 2)
                 )
             )
         }
@@ -211,7 +211,7 @@ class PostReaderTest(
             assertEquals(posts[2 - index].restaurant.name, post.restaurant.name)
             assertEquals(posts[2 - index].content.text, post.content.text)
             assertEquals(posts[2 - index].content.rating, post.content.rating)
-            assertEquals(posts[2 - index].images.urls, post.images.urls)
+            assertEquals(posts[2 - index].images.imageIds, post.images.imageIds)
             assertEquals(posts[2 - index].status, post.status)
             assertEquals(posts[2 - index].heartCount, post.heartCount)
             assertEquals(posts[2 - index].viewCount, post.viewCount)
@@ -236,14 +236,14 @@ class PostReaderTest(
             PostFixture.createPost(
                 authorMemberId = authorMemberId,
                 authorNickname = member.nickname.value,
-                images = PostImages.of("https://example.com/1.jpg", "https://example.com/2.jpg"),
+                images = PostImages.of(1, 2),
             )
         )
         val post2 = postRepository.save(
             PostFixture.createPost(
                 authorMemberId = authorMemberId,
                 authorNickname = member.nickname.value,
-                images = PostImages.of("https://example.com/1.jpg", "https://example.com/2.jpg"),
+                images = PostImages.of(1, 2),
             )
         )
         post2.delete(authorMemberId)
@@ -489,7 +489,7 @@ class PostReaderTest(
             assertEquals(posts[14 - index].restaurant.name, post.restaurant.name)
             assertEquals(posts[14 - index].content.text, post.content.text)
             assertEquals(posts[14 - index].content.rating, post.content.rating)
-            assertEquals(posts[14 - index].images.urls, post.images.urls)
+            assertEquals(posts[14 - index].images.imageIds, post.images.imageIds)
             assertEquals(posts[14 - index].status, post.status)
             assertEquals(posts[14 - index].heartCount, post.heartCount)
             assertEquals(posts[14 - index].viewCount, post.viewCount)
@@ -527,7 +527,7 @@ class PostReaderTest(
             assertEquals(posts[11 - index].restaurant.name, post.restaurant.name)
             assertEquals(posts[11 - index].content.text, post.content.text)
             assertEquals(posts[11 - index].content.rating, post.content.rating)
-            assertEquals(posts[11 - index].images.urls, post.images.urls)
+            assertEquals(posts[11 - index].images.imageIds, post.images.imageIds)
             assertEquals(posts[11 - index].status, post.status)
             assertEquals(posts[11 - index].heartCount, post.heartCount)
             assertEquals(posts[11 - index].viewCount, post.viewCount)
@@ -595,7 +595,7 @@ class PostReaderTest(
             { assertEquals(post.restaurant.name, result.restaurant.name) },
             { assertEquals(post.content.text, result.content.text) },
             { assertEquals(post.content.rating, result.content.rating) },
-            { assertEquals(post.images.urls, result.images.urls) },
+            { assertEquals(post.images.imageIds, result.images.imageIds) },
             { assertEquals(post.status, result.status) },
             { assertEquals(post.heartCount, result.heartCount) },
             { assertEquals(originalViewCount, result.viewCount) }, // view count 증가 안 함

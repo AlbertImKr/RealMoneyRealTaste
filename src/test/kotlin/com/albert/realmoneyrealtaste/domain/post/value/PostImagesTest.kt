@@ -10,11 +10,11 @@ class PostImagesTest {
 
     @Test
     fun `create - success - creates images with valid urls`() {
-        val urls = listOf("https://example.com/1.jpg", "https://example.com/2.jpg")
+        val urls = listOf(1L, 2)
         val images = PostImages(urls)
 
         assertEquals(2, images.size())
-        assertEquals(urls, images.urls)
+        assertEquals(urls, images.imageIds)
     }
 
     @Test
@@ -27,7 +27,7 @@ class PostImagesTest {
 
     @Test
     fun `create - failure - throws exception when exceeds max count`() {
-        val urls = (1..6).map { "https://example.com/$it.jpg" }
+        val urls: List<Long> = (1..6).map { it.toLong() }
 
         assertFailsWith<IllegalArgumentException> {
             PostImages(urls)
@@ -38,34 +38,11 @@ class PostImagesTest {
 
     @Test
     fun `create - success - accepts exactly max count`() {
-        val urls = (1..5).map { "https://example.com/$it.jpg" }
+        val urls = (1..5).map { it.toLong() }
 
         val images = PostImages(urls)
 
         assertEquals(5, images.size())
-    }
-
-    @Test
-    fun `create - failure - throws exception when url is blank`() {
-        val urls = listOf("https://example.com/1.jpg", "")
-
-        assertFailsWith<IllegalArgumentException> {
-            PostImages(urls)
-        }.let {
-            assertEquals("이미지 URL은 필수입니다.", it.message)
-        }
-    }
-
-    @Test
-    fun `create - failure - throws exception when url exceeds max length`() {
-        val longUrl = "https://example.com/" + "a".repeat(500)
-        val urls = listOf(longUrl)
-
-        assertFailsWith<IllegalArgumentException> {
-            PostImages(urls)
-        }.let {
-            assertEquals(PostImages.ERROR_URL_LENGTH, it.message)
-        }
     }
 
     @Test
@@ -78,7 +55,7 @@ class PostImagesTest {
 
     @Test
     fun `isEmpty - success - returns false for non-empty images`() {
-        val images = PostImages(listOf("https://example.com/1.jpg"))
+        val images = PostImages(listOf(1))
 
         assertFalse(images.isEmpty())
         assertTrue(images.isNotEmpty())
@@ -87,8 +64,7 @@ class PostImagesTest {
     @Test
     fun `of - success - creates images from varargs`() {
         val images = PostImages.of(
-            "https://example.com/1.jpg",
-            "https://example.com/2.jpg"
+            1, 2
         )
 
         assertEquals(2, images.size())
@@ -101,8 +77,8 @@ class PostImagesTest {
 
     @Test
     fun `getFirst - success - returns first url when not empty`() {
-        val firstUrl = "https://example.com/1.jpg"
-        val images = PostImages(listOf(firstUrl, "https://example.com/2.jpg"))
+        val firstUrl = 1L
+        val images = PostImages(listOf(1, 2))
 
         assertEquals(firstUrl, images.getFirst())
     }
@@ -112,13 +88,5 @@ class PostImagesTest {
         val images = PostImages.empty()
 
         assertEquals(null, images.getFirst())
-    }
-
-    @Test
-    fun `getFirst - success - returns first url for single item list`() {
-        val singleUrl = "https://example.com/only.jpg"
-        val images = PostImages(listOf(singleUrl))
-
-        assertEquals(singleUrl, images.getFirst())
     }
 }

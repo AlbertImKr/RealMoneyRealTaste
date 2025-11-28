@@ -27,12 +27,12 @@ data class PostEditForm(
     val contentRating: Int,
 
     @field:Size(min = 1, max = 5, message = "이미지는 최소 1장, 최대 5장까지 등록할 수 있습니다.")
-    val imagesUrls: List<String>,
+    val imageIds: List<Long>,
 ) {
     fun toPostEditRequest() = PostUpdateRequest(
         restaurant = Restaurant(restaurantName, restaurantAddress, restaurantLatitude, restaurantLongitude),
         content = PostContent(contentText, contentRating),
-        images = PostImages(urls = imagesUrls),
+        images = PostImages(imageIds = imageIds),
     )
 
     companion object {
@@ -44,7 +44,7 @@ data class PostEditForm(
             post.restaurant.longitude,
             post.content.text,
             post.content.rating,
-            post.images.urls,
+            post.images.imageIds,
         )
     }
 }

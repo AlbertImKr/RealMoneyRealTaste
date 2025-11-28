@@ -50,7 +50,7 @@ class PostTest {
     fun `update - success - updates content and images`() {
         val post = PostFixture.createPost()
         val newContent = PostContent("새로운 내용입니다!", 4)
-        val newImages = PostImages(listOf("https://example.com/new.jpg"))
+        val newImages = PostImages(listOf(1))
         val newRestaurant = Restaurant(
             name = "새로운 맛집",
             address = "서울시 마포구 새로운길 456",
