@@ -11,4 +11,5 @@ interface ImageReader {
     fun getTodayUploadCount(userId: Long): Int
     fun getUploadStatus(key: FileKey): ImageUploadResult
     fun getImage(imageId: Long, userId: Long): Image
+    fun readImagesByIds(imageIds: List<Long>): List<ImageInfo>
 }

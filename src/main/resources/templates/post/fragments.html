@@ -158,18 +158,20 @@
                 </p>
 
                 <!-- Card img -->
-                <div th:if="${post.images != null and !post.images.isEmpty()}">
-                    <img alt="Post"
-                         class="card-img post-detail-trigger"
-                         data-bs-target="#postDetailModal"
-                         data-bs-toggle="modal"
-                         style="cursor: pointer;"
-                         th:attr="hx-get='/posts/' + ${post.id} + '/modal',
-                                          hx-target='#post-detail-modal-content',
-                                          hx-swap='innerHTML',
-                                          hx-trigger='click',
-                                          hx-indicator='#post-detail-loading'"
-                         th:src="${post.images.imageids[0]}">
+
+                <div hx-get="/images/carousel"
+                     hx-swap="innerHTML"
+                     hx-target="this"
+                     hx-trigger="load"
+                     th:attr="hx-get='/images/carousel?imageIds=' + ${#strings.listJoin(post.images.imageIds, ',')}"
+                     th:if="${post.images != null and !post.images.imageIds.isEmpty()}">
+                    <!-- 이미지 캐러셀이 여기에 동적으로 로드됨 -->
+                    <div class="d-flex align-items-center justify-content-center bg-light"
+                         style="height: 150px;">
+                        <output class="spinner-border spinner-border-sm text-primary">
+                            <span class="visually-hidden">Loading...</span>
+                        </output>
+                    </div>
                 </div>
 
                 <!-- Feed react START -->
@@ -204,12 +206,11 @@
                                 data-bs-target="#postDetailModal"
                                 data-bs-toggle="modal"
                                 style="cursor: pointer;"
-                                th:attr="hx-get='/posts/' + ${post.id} + '/modal',
-                                          hx-target='#post-detail-modal-content',
-                                          hx-swap='innerHTML',
-                                          hx-trigger='click',
-                                          hx-indicator='#post-detail-loading'"
-                        >
+                                hx-indicator="#post-detail-loading"
+                                hx-swap="innerHTML"
+                                hx-target="#post-detail-modal-content"
+                                hx-trigger="click"
+                                th:attr="hx-get='/posts/' + ${post.id} + '/modal'">
                             <i class="bi bi-chat-fill pe-1"></i>
                             Comments (<span th:id="'comment-count-' + ${post.id}"
                                             th:text="${post.commentCount ?: 0}">0</span>)

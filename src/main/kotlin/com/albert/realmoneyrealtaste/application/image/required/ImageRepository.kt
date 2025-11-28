@@ -10,4 +10,5 @@ interface ImageRepository : Repository<Image, Long> {
     fun findByIdAndIsDeletedFalse(id: Long): Image?
     fun findByFileKeyAndIsDeletedFalse(fileKey: com.albert.realmoneyrealtaste.domain.image.value.FileKey): Image?
     fun countByUploadedByAndIsDeletedFalse(uploadedBy: Long): Int
+    fun findAllByIdInAndIsDeletedFalse(ids: List<Long>): List<Image>
 }

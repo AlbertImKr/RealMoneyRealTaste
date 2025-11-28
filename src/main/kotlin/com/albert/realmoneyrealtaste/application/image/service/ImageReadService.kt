@@ -53,4 +53,16 @@ class ImageReadService(
         return imageRepository.findByIdAndIsDeletedFalse(imageId)
             ?: throw IllegalArgumentException("이미지를 찾을 수 없습니다: $imageId")
     }
+
+    override fun readImagesByIds(imageIds: List<Long>): List<ImageInfo> {
+        val images = imageRepository.findAllByIdInAndIsDeletedFalse(imageIds)
+        return images.map { image ->
+            ImageInfo(
+                imageId = image.requireId(),
+                fileKey = image.fileKey.value,
+                imageType = image.imageType,
+                url = cloudStorage.generatePresignedUrl(image.fileKey.value)
+            )
+        }
+    }
 }

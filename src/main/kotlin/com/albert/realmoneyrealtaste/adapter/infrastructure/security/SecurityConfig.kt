@@ -17,6 +17,7 @@ class SecurityConfig {
         httpSecurity
             .authorizeHttpRequests {
                 it.requestMatchers("/").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/images/carousel").permitAll()
                     .requestMatchers(HttpMethod.GET, "/actuator/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/posts/mine", "/posts/mine/**").authenticated()
                     .requestMatchers(HttpMethod.GET, "/posts/*/edit").authenticated()
