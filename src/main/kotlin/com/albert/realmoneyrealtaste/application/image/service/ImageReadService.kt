@@ -45,11 +45,8 @@ class ImageReadService(
 
     override fun getUploadStatus(key: FileKey): ImageUploadResult {
         val image = imageRepository.findByFileKeyAndIsDeletedFalse(key)
-        return ImageUploadResult(
-            success = image != null,
-            key = key.value,
-            url = cloudStorage.generatePresignedUrl(key.value)
-        )
+        return image?.let { ImageUploadResult(true, it.requireId()) }
+            ?: ImageUploadResult(false, -1)
     }
 
     override fun getImage(imageId: Long, userId: Long): Image {

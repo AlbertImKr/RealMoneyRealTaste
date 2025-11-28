@@ -9,7 +9,6 @@ import com.albert.realmoneyrealtaste.application.image.provided.ImageReader
 import com.albert.realmoneyrealtaste.application.image.provided.ImageUploadRequester
 import com.albert.realmoneyrealtaste.application.image.provided.ImageUploadTracker
 import com.albert.realmoneyrealtaste.application.image.provided.ImageUploadValidator
-import com.albert.realmoneyrealtaste.application.image.provided.ImageUrlGenerator
 import com.albert.realmoneyrealtaste.application.image.required.ImageRepository
 import com.albert.realmoneyrealtaste.application.image.required.PresignedUrlGenerator
 import com.albert.realmoneyrealtaste.domain.image.Image
@@ -17,7 +16,6 @@ import com.albert.realmoneyrealtaste.domain.image.ImageType
 import com.albert.realmoneyrealtaste.domain.image.command.ImageCreateCommand
 import com.albert.realmoneyrealtaste.domain.image.value.FileKey
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -28,9 +26,7 @@ class ImageUploadService(
     private val imageRepository: ImageRepository,
     private val imageUploadValidator: ImageUploadValidator,
     private val imageReader: ImageReader,
-    private val imageUrlGenerator: ImageUrlGenerator,
     private val imageKeyGenerator: ImageKeyGenerator,
-    @Value("\${image.upload.expiration-minutes:15}") private val expirationMinutes: Long,
 ) : ImageUploadRequester, ImageUploadTracker {
 
     private val logger = LoggerFactory.getLogger(ImageUploadService::class.java)
@@ -48,7 +44,7 @@ class ImageUploadService(
             val imageKey = imageKeyGenerator.generateSecureImageKey(request.fileName)
 
             // 4. Presigned PUT URL 생성
-            val presignedPut = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+            val presignedPut = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
             logger.info("Generated presigned POST URL for user: $userId, key: $imageKey")
 
@@ -60,25 +56,19 @@ class ImageUploadService(
 
     override fun confirmUpload(key: String, userId: Long): ImageUploadResult {
         try {
-            createImageRecord(key, userId)
+            val imageCreateCommand = ImageCreateCommand(
+                fileKey = FileKey(key),
+                uploadedBy = userId,
+                imageType = ImageType.POST_IMAGE,
+            )
+            val image = imageRepository.save(Image.create(imageCreateCommand))
+
             return ImageUploadResult(
                 success = true,
-                key = key,
-                url = imageUrlGenerator.generateImageUrl(key),
+                imageId = image.requireId()
             )
         } catch (e: IllegalArgumentException) {
             throw IllegalArgumentException("이미지 업로드 실패: ${e.message}")
         }
-    }
-
-    private fun createImageRecord(key: String, userId: Long): Image {
-        val imageCreateCommand = ImageCreateCommand(
-            fileKey = FileKey(key),
-            uploadedBy = userId,
-            imageType = ImageType.POST_IMAGE,
-        )
-
-        val image = Image.create(imageCreateCommand)
-        return imageRepository.save(image)
     }
 }

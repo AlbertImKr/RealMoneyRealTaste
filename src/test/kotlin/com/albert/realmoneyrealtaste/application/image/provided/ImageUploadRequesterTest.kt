@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
 import com.albert.realmoneyrealtaste.application.image.exception.ImageGenerateException
 import com.albert.realmoneyrealtaste.domain.image.ImageType
+import org.springframework.beans.factory.annotation.Autowired
 import java.time.Duration
 import java.time.Instant
 import kotlin.test.Test
@@ -12,9 +13,10 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class ImageUploadRequesterTest(
-    val imageUploadRequester: ImageUploadRequester,
-) : IntegrationTestBase() {
+class ImageUploadRequesterTest : IntegrationTestBase() {
+
+    @Autowired
+    private lateinit var imageUploadRequester: ImageUploadRequester
 
     @Test
     fun `generatePresignedPostUrl - success - generates valid presigned URL for valid request`() {
@@ -501,112 +503,5 @@ class ImageUploadRequesterTest(
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
-    }
-
-    @Test
-    fun `confirmUpload - success - confirms upload and creates image record`() {
-        // Given
-        val userId = 123L
-        val imageKey = "images/2024/01/01/${java.util.UUID.randomUUID()}.jpg"
-
-        // When
-        val result = (imageUploadRequester as ImageUploadTracker).confirmUpload(imageKey, userId)
-
-        // Then
-        assertTrue(result.success)
-        assertEquals(imageKey, result.key)
-        assertNotNull(result.url)
-        assertTrue(result.url.isNotEmpty())
-    }
-
-    @Test
-    fun `confirmUpload - failure - throws IllegalArgumentException for invalid key format`() {
-        // Given
-        val userId = 123L
-        val invalidKey = "" // 빈 키
-
-        // When & Then
-        val exception = assertFailsWith<IllegalArgumentException> {
-            (imageUploadRequester as ImageUploadTracker).confirmUpload(invalidKey, userId)
-        }
-        assertTrue(exception.message!!.contains("이미지 업로드 실패"))
-    }
-
-    @Test
-    fun `confirmUpload - failure - throws IllegalArgumentException for negative user ID`() {
-        // Given
-        val negativeUserId = -1L
-        val imageKey = "images/2024/01/01/test.jpg"
-
-        // When & Then
-        val exception = assertFailsWith<IllegalArgumentException> {
-            (imageUploadRequester as ImageUploadTracker).confirmUpload(imageKey, negativeUserId)
-        }
-        assertTrue(exception.message!!.contains("이미지 업로드 실패"))
-    }
-
-    @Test
-    fun `confirmUpload - failure - throws IllegalArgumentException for zero user ID`() {
-        // Given
-        val zeroUserId = 0L
-        val imageKey = "images/2024/01/01/test.jpg"
-
-        // When & Then
-        val exception = assertFailsWith<IllegalArgumentException> {
-            (imageUploadRequester as ImageUploadTracker).confirmUpload(imageKey, zeroUserId)
-        }
-        assertTrue(exception.message!!.contains("이미지 업로드 실패"))
-    }
-
-    @Test
-    fun `confirmUpload - failure - throws IllegalArgumentException for malformed key`() {
-        // Given
-        val userId = 123L
-        val malformedKey = "invalid-key-format"
-
-        // When & Then
-        val exception = assertFailsWith<IllegalArgumentException> {
-            (imageUploadRequester as ImageUploadTracker).confirmUpload(malformedKey, userId)
-        }
-        assertTrue(exception.message!!.contains("이미지 업로드 실패"))
-    }
-
-    @Test
-    fun `confirmUpload - failure - throws IllegalArgumentException for path traversal in key`() {
-        // Given
-        val userId = 123L
-        val traversalKey = "../../../etc/passwd"
-
-        // When & Then
-        val exception = assertFailsWith<IllegalArgumentException> {
-            (imageUploadRequester as ImageUploadTracker).confirmUpload(traversalKey, userId)
-        }
-        assertTrue(exception.message!!.contains("이미지 업로드 실패"))
-    }
-
-    @Test
-    fun `confirmUpload - failure - throws IllegalArgumentException for extremely long key`() {
-        // Given
-        val userId = 123L
-        val longKey = "images/" + "a".repeat(1000) + ".jpg"
-
-        // When & Then
-        val exception = assertFailsWith<IllegalArgumentException> {
-            (imageUploadRequester as ImageUploadTracker).confirmUpload(longKey, userId)
-        }
-        assertTrue(exception.message!!.contains("이미지 업로드 실패"))
-    }
-
-    @Test
-    fun `confirmUpload - failure - throws IllegalArgumentException for key with special characters`() {
-        // Given
-        val userId = 123L
-        val specialKey = "images/test@image#$.jpg"
-
-        // When & Then
-        val exception = assertFailsWith<IllegalArgumentException> {
-            (imageUploadRequester as ImageUploadTracker).confirmUpload(specialKey, userId)
-        }
-        assertTrue(exception.message!!.contains("이미지 업로드 실패"))
     }
 }

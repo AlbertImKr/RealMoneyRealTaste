@@ -100,42 +100,8 @@
                              th:if="${#fields.hasErrors('contentText')}"></div>
                     </div>
 
-                    <!-- 사진 업로드 -->
-                    <div class="mb-3">
-                        <h6 class="mb-2">
-                            <i class="bi bi-image text-success me-2"></i>사진 추가
-                        </h6>
-
-                        <!-- 이미지 업로드 컨테이너 -->
-                        <div class="mb-2" id="modal-image-upload-container">
-                            <!-- 업로드된 이미지 미리보기 및 URL 저장 영역 -->
-                        </div>
-
-                        <!-- 파일 선택 버튼 -->
-                        <div class="d-flex gap-2 align-items-center">
-                            <label class="btn btn-sm btn-outline-primary mb-0" for="modal-image-file-input">
-                                <i class="bi bi-upload me-1"></i> 사진 선택
-                            </label>
-                            <input accept="image/jpeg,image/png,image/gif,image/webp"
-                                   class="d-none"
-                                   id="modal-image-file-input"
-                                   multiple
-                                   type="file">
-                            <small class="text-muted" id="modal-upload-count">0/5</small>
-                        </div>
-                        <div class="form-text">JPG, PNG, GIF, WebP 형식 지원 (최대 5MB, 5장)</div>
-
-                        <!-- 업로드 진행 상태 표시 -->
-                        <div class="mt-2" id="modal-upload-progress" style="display: none;">
-                            <div class="progress" style="height: 20px;">
-                                <progress class="progress-bar progress-bar-striped progress-bar-animated"
-                                          id="modal-upload-progress-bar" max="100"
-                                          value="0">
-                                    <span id="modal-upload-progress-text">0%</span>
-                                </progress>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- 사진 업로드 fragment -->
+                    <div th:replace="~{image/fragments/image-upload :: image-upload}"></div>
 
                     <!-- 추가 옵션 아이콘 (선택사항) -->
                     <div class="hstack gap-2 mb-3">

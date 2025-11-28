@@ -169,7 +169,7 @@ class ImageReaderTest(
             createTestImage(userId, ImageType.PROFILE_IMAGE)
         }
 
-        val savedActiveImages = activeImages.map { imageRepository.save(it) }
+        activeImages.map { imageRepository.save(it) }
         val savedDeletedImages = deletedImages.map { imageRepository.save(it) }
 
         // 삭제 처리
@@ -198,9 +198,7 @@ class ImageReaderTest(
 
         // Then
         assertTrue(uploadResult.success)
-        assertEquals(savedImage.fileKey.value, uploadResult.key)
-        assertNotNull(uploadResult.url)
-        assertTrue(uploadResult.url.isNotEmpty())
+        assertEquals(savedImage.requireId(), uploadResult.imageId)
     }
 
     @Test
@@ -213,9 +211,7 @@ class ImageReaderTest(
 
         // Then
         assertFalse(uploadResult.success)
-        assertEquals(nonExistentKey.value, uploadResult.key)
-        assertNotNull(uploadResult.url)
-        assertTrue(uploadResult.url.isNotEmpty())
+        assertEquals(-1, uploadResult.imageId)
     }
 
     @Test
@@ -235,8 +231,7 @@ class ImageReaderTest(
 
         // Then
         assertFalse(uploadResult.success)
-        assertEquals(savedImage.fileKey.value, uploadResult.key)
-        assertNotNull(uploadResult.url)
+        assertEquals(savedImage.requireId(), uploadResult.imageId)
     }
 
     @Test

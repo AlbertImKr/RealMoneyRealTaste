@@ -41,8 +41,6 @@ data class PostCreateForm(
             text = contentText,
             rating = contentRating,
         ),
-        images = PostImages(
-            urls = imagesUrls,
-        ),
+        images = PostImages(emptyList()),
     )
 }

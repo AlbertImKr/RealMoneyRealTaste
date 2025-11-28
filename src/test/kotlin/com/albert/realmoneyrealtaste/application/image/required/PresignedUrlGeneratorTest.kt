@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.application.image.required
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
-import com.albert.realmoneyrealtaste.application.image.dto.PresignedPostResponse
 import com.albert.realmoneyrealtaste.domain.image.ImageType
 import java.time.Duration
 import java.time.Instant
@@ -31,7 +30,7 @@ class PresignedUrlGeneratorTest(
         val expirationMinutes = 15L
 
         // When
-        val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+        val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
         // Then
         assertNotNull(response.uploadUrl)
@@ -64,8 +63,8 @@ class PresignedUrlGeneratorTest(
         val expirationMinutes = 15L
 
         // When
-        val response1 = presignedUrlGenerator.generatePresignedPutUrl(key1, request, expirationMinutes)
-        val response2 = presignedUrlGenerator.generatePresignedPutUrl(key2, request, expirationMinutes)
+        val response1 = presignedUrlGenerator.generatePresignedPutUrl(key1, request)
+        val response2 = presignedUrlGenerator.generatePresignedPutUrl(key2, request)
 
         // Then
         assertTrue(response1.uploadUrl != response2.uploadUrl)
@@ -99,7 +98,7 @@ class PresignedUrlGeneratorTest(
             )
             val imageKey = "images/$fileName"
 
-            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
             assertNotNull(response.uploadUrl)
             assertEquals(imageKey, response.key)
@@ -130,7 +129,7 @@ class PresignedUrlGeneratorTest(
             )
             val imageKey = "images/test.jpg"
 
-            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
             assertNotNull(response.uploadUrl)
             assertEquals(imageKey, response.key)
@@ -155,7 +154,7 @@ class PresignedUrlGeneratorTest(
 
         // When & Then
         expirationTimes.forEach { expirationMinutes ->
-            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
             assertNotNull(response.uploadUrl)
             assertEquals(imageKey, response.key)
@@ -189,7 +188,7 @@ class PresignedUrlGeneratorTest(
 
         // When & Then
         complexKeys.forEach { imageKey ->
-            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
             assertNotNull(response.uploadUrl)
             assertEquals(imageKey, response.key)
@@ -214,7 +213,7 @@ class PresignedUrlGeneratorTest(
         val minExpiration = 1L
 
         // When
-        val minResponse = presignedUrlGenerator.generatePresignedPutUrl(minImageKey, minRequest, minExpiration)
+        val minResponse = presignedUrlGenerator.generatePresignedPutUrl(minImageKey, minRequest)
 
         // Then
         assertNotNull(minResponse.uploadUrl)
@@ -234,7 +233,7 @@ class PresignedUrlGeneratorTest(
         val maxExpiration = 1440L // 24시간
 
         // When
-        val maxResponse = presignedUrlGenerator.generatePresignedPutUrl(maxImageKey, maxRequest, maxExpiration)
+        val maxResponse = presignedUrlGenerator.generatePresignedPutUrl(maxImageKey, maxRequest)
 
         // Then
         assertNotNull(maxResponse.uploadUrl)
@@ -257,7 +256,7 @@ class PresignedUrlGeneratorTest(
         val expirationMinutes = 15L
 
         // When
-        val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+        val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
         // Then
         // 필수 필드 검증
@@ -289,170 +288,12 @@ class PresignedUrlGeneratorTest(
         val expirationMinutes = 30L
 
         // When
-        val response1 = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
-        val response2 = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
+        val response1 = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
+        val response2 = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
         // Then
         // 만료 시간은 유사해야 함 (초 단위 차이는 허용)
         val timeDifference = Duration.between(response1.expiresAt, response2.expiresAt).abs()
         assertTrue(timeDifference.seconds < 10) // 10초 이내 차이
-    }
-
-    @Test
-    fun `PresignedUrlGenerator functional interface - lambda implementation`() {
-        // Given
-        val generatedResponses = mutableListOf<Triple<String, ImageUploadRequest, Long>>()
-        val lambdaGenerator: PresignedUrlGenerator = PresignedUrlGenerator { imageKey, request, expirationMinutes ->
-            generatedResponses.add(Triple(imageKey, request, expirationMinutes))
-            PresignedPostResponse(
-                uploadUrl = "https://lambda-generated.example.com/$imageKey",
-                key = imageKey,
-                fields = mapOf("X-Amz-Algorithm" to "AWS4-HMAC-SHA256"),
-                expiresAt = Instant.now().plus(Duration.ofMinutes(expirationMinutes))
-            )
-        }
-
-        val imageKey = "test/image.jpg"
-        val request = ImageUploadRequest(
-            fileName = "test.jpg",
-            fileSize = 1024L,
-            contentType = "image/jpeg",
-            width = 800,
-            height = 600,
-            imageType = ImageType.POST_IMAGE
-        )
-        val expirationMinutes = 15L
-
-        // When
-        val result = lambdaGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
-
-        // Then
-        assertEquals("https://lambda-generated.example.com/test/image.jpg", result.uploadUrl)
-        assertEquals(imageKey, result.key)
-        assertEquals("AWS4-HMAC-SHA256", result.fields["X-Amz-Algorithm"])
-        assertEquals(1, generatedResponses.size)
-        assertEquals(Triple(imageKey, request, expirationMinutes), generatedResponses[0])
-    }
-
-    @Test
-    fun `PresignedUrlGenerator functional interface - exception handling`() {
-        // Given
-        val exceptionGenerator = PresignedUrlGenerator { imageKey, request, expirationMinutes ->
-            if (imageKey.contains("invalid")) {
-                throw IllegalArgumentException("Invalid image key: $imageKey")
-            }
-            if (expirationMinutes > 60) {
-                throw IllegalArgumentException("Expiration too long: $expirationMinutes minutes")
-            }
-            PresignedPostResponse(
-                uploadUrl = "https://example.com/$imageKey",
-                key = imageKey,
-                fields = emptyMap(),
-                expiresAt = Instant.now().plus(Duration.ofMinutes(expirationMinutes))
-            )
-        }
-
-        val request = ImageUploadRequest(
-            fileName = "test.jpg",
-            fileSize = 1024L,
-            contentType = "image/jpeg",
-            width = 800,
-            height = 600,
-            imageType = ImageType.POST_IMAGE
-        )
-
-        // When & Then - 성공 케이스
-        val successResult = exceptionGenerator.generatePresignedPutUrl("valid/image.jpg", request, 30L)
-        assertEquals("https://example.com/valid/image.jpg", successResult.uploadUrl)
-
-        // When & Then - 실패 케이스 (잘못된 키)
-        try {
-            exceptionGenerator.generatePresignedPutUrl("invalid/image.jpg", request, 30L)
-            assertTrue(false, "예외가 발생해야 합니다")
-        } catch (e: IllegalArgumentException) {
-            assertEquals("Invalid image key: invalid/image.jpg", e.message)
-        }
-
-        // When & Then - 실패 케이스 (만료 시간 너무 김)
-        try {
-            exceptionGenerator.generatePresignedPutUrl("valid/image.jpg", request, 120L)
-            assertTrue(false, "예외가 발생해야 합니다")
-        } catch (e: IllegalArgumentException) {
-            assertEquals("Expiration too long: 120 minutes", e.message)
-        }
-    }
-
-    @Test
-    fun `PresignedUrlGenerator functional interface - multiple calls`() {
-        // Given
-        val callCount = mutableListOf<Triple<String, ImageUploadRequest, Long>>()
-        val countingGenerator: PresignedUrlGenerator = PresignedUrlGenerator { imageKey, request, expirationMinutes ->
-            callCount.add(Triple(imageKey, request, expirationMinutes))
-            PresignedPostResponse(
-                uploadUrl = "https://counting.example.com/$imageKey",
-                key = imageKey,
-                fields = emptyMap(),
-                expiresAt = Instant.now().plus(Duration.ofMinutes(expirationMinutes))
-            )
-        }
-
-        val testCases = listOf(
-            Triple(
-                "image1.jpg",
-                ImageUploadRequest("test1.jpg", 1024L, "image/jpeg", 800, 600, ImageType.POST_IMAGE),
-                15L
-            ),
-            Triple(
-                "image2.png",
-                ImageUploadRequest("test2.png", 2048L, "image/png", 400, 400, ImageType.PROFILE_IMAGE),
-                30L
-            ),
-            Triple(
-                "image3.webp",
-                ImageUploadRequest("test3.webp", 512L, "image/webp", 50, 50, ImageType.THUMBNAIL),
-                60L
-            )
-        )
-
-        // When
-        val results = testCases.map { (imageKey, request, expirationMinutes) ->
-            countingGenerator.generatePresignedPutUrl(imageKey, request, expirationMinutes)
-        }
-
-        // Then
-        assertEquals(3, results.size)
-        assertEquals(3, callCount.size)
-
-        results.zip(testCases) { result, testCase ->
-            val (imageKey, _, _) = testCase
-            assertEquals("https://counting.example.com/$imageKey", result.uploadUrl)
-            assertEquals(imageKey, result.key)
-            assertTrue(result.fields.isEmpty())
-        }
-
-        assertEquals(testCases, callCount)
-    }
-
-    // 테스트용 보조 클래스
-    private class TestPresignedUrlGenerator {
-        private val generatedRequests = mutableSetOf<Triple<String, ImageUploadRequest, Long>>()
-
-        fun generatePresignedPutUrl(
-            imageKey: String,
-            request: ImageUploadRequest,
-            expirationMinutes: Long,
-        ): PresignedPostResponse {
-            generatedRequests.add(Triple(imageKey, request, expirationMinutes))
-            return PresignedPostResponse(
-                uploadUrl = "method-ref-test/$imageKey",
-                key = imageKey,
-                fields = emptyMap(),
-                expiresAt = Instant.now().plus(Duration.ofMinutes(expirationMinutes))
-            )
-        }
-
-        fun isGenerated(imageKey: String, request: ImageUploadRequest, expirationMinutes: Long): Boolean {
-            return generatedRequests.contains(Triple(imageKey, request, expirationMinutes))
-        }
     }
 }

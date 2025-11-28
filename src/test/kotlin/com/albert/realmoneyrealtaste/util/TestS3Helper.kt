@@ -32,12 +32,4 @@ class TestS3Helper {
             )
         )
     }
-
-    fun generatePresignedUrl(key: String): String {
-        return s3CloudStorage.generatePresignedUrl(key)
-    }
-
-    fun deleteTestFile(key: String) {
-        s3CloudStorage.delete(key)
-    }
 }

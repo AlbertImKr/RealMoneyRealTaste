@@ -28,18 +28,14 @@ class ImageUploadTrackerTest(
         flushAndClear()
 
         // Then
+        val image = imageRepository.findByFileKeyAndIsDeletedFalse(imageKey)
+        assertNotNull(image)
         assertTrue(result.success)
-        assertEquals(imageKey.value, result.key)
-        assertNotNull(result.url)
-        assertTrue(result.url.isNotEmpty())
-
-        // 데이터베이스에 이미지 레코드가 생성되었는지 확인
-        val savedImage = imageRepository.findByFileKeyAndIsDeletedFalse(imageKey)
-        assertNotNull(savedImage)
-        assertEquals(userId, savedImage.uploadedBy)
-        assertEquals(imageKey.value, savedImage.fileKey.value)
-        assertEquals(ImageType.POST_IMAGE, savedImage.imageType)
-        assertFalse(savedImage.isDeleted)
+        assertEquals(image.requireId(), result.imageId)
+        assertEquals(userId, image.uploadedBy)
+        assertEquals(imageKey.value, image.fileKey.value)
+        assertEquals(ImageType.POST_IMAGE, image.imageType)
+        assertFalse(image.isDeleted)
     }
 
     @Test
@@ -53,13 +49,10 @@ class ImageUploadTrackerTest(
         // When
         val result1 = imageUploadTracker.confirmUpload(imageKey1.value, user1Id)
         val result2 = imageUploadTracker.confirmUpload(imageKey2.value, user2Id)
-        flushAndClear()
 
         // Then
         assertTrue(result1.success)
         assertTrue(result2.success)
-        assertEquals(imageKey1.value, result1.key)
-        assertEquals(imageKey2.value, result2.key)
 
         // 각 사용자의 이미지가 올바르게 생성되었는지 확인
         val savedImage1 = imageRepository.findByFileKeyAndIsDeletedFalse(imageKey1)
@@ -87,8 +80,6 @@ class ImageUploadTrackerTest(
             val result = imageUploadTracker.confirmUpload(key, userId)
 
             assertTrue(result.success)
-            assertEquals(key, result.key)
-            assertNotNull(result.url)
 
             // 데이터베이스 확인
             val fileKey = FileKey(key)
@@ -111,7 +102,6 @@ class ImageUploadTrackerTest(
 
         // Then
         assertTrue(minResult.success)
-        assertEquals(imageKey.value, minResult.key)
 
         val savedMinImage = imageRepository.findByFileKeyAndIsDeletedFalse(imageKey)
         assertNotNull(savedMinImage)
@@ -127,7 +117,6 @@ class ImageUploadTrackerTest(
 
         // Then
         assertTrue(maxResult.success)
-        assertEquals(maxImageKey.value, maxResult.key)
 
         val savedMaxImage = imageRepository.findByFileKeyAndIsDeletedFalse(maxImageKey)
         assertNotNull(savedMaxImage)
@@ -145,9 +134,6 @@ class ImageUploadTrackerTest(
 
         // Then
         assertTrue(result.success)
-        assertNotNull(result.url)
-        assertTrue(result.url.contains(imageKey.value))
-        assertTrue(result.url.startsWith("https://") || result.url.startsWith("http://"))
     }
 
     @Test
@@ -165,8 +151,6 @@ class ImageUploadTrackerTest(
             val result = imageUploadTracker.confirmUpload(key, userId)
 
             assertTrue(result.success)
-            assertEquals(key, result.key)
-            assertNotNull(result.url)
 
             // 데이터베이스 확인
             val fileKey = FileKey(key)
@@ -209,8 +193,7 @@ class ImageUploadTrackerTest(
             confirmedUploads.add(key to userId)
             ImageUploadResult(
                 success = true,
-                key = key,
-                url = "https://lambda-generated.example.com/$key"
+                imageId = 123L,
             )
         }
 
@@ -222,8 +205,6 @@ class ImageUploadTrackerTest(
 
         // Then
         assertTrue(result.success)
-        assertEquals(key, result.key)
-        assertEquals("https://lambda-generated.example.com/test/image.jpg", result.url)
         assertEquals(1, confirmedUploads.size)
         assertEquals(key to userId, confirmedUploads[0])
     }
@@ -237,8 +218,7 @@ class ImageUploadTrackerTest(
             }
             ImageUploadResult(
                 success = true,
-                key = key,
-                url = "https://example.com/$key"
+                imageId = 123L,
             )
         }
 
@@ -273,7 +253,6 @@ class ImageUploadTrackerTest(
         assertEquals(5, results.size)
         results.forEach { result ->
             assertTrue(result.success)
-            assertNotNull(result.url)
         }
 
         // 사용자의 모든 이미지 확인
@@ -282,24 +261,6 @@ class ImageUploadTrackerTest(
         userImages.forEach { image ->
             assertEquals(userId, image.uploadedBy)
             assertFalse(image.isDeleted)
-        }
-    }
-
-    // 테스트용 보조 클래스
-    private class TestImageUploadTracker {
-        private val confirmedUploads = mutableSetOf<Pair<String, Long>>()
-
-        fun confirmUpload(key: String, userId: Long): ImageUploadResult {
-            confirmedUploads.add(key to userId)
-            return ImageUploadResult(
-                success = true,
-                key = key,
-                url = "method-ref-test/$key"
-            )
-        }
-
-        fun isConfirmed(key: String, userId: Long): Boolean {
-            return confirmedUploads.contains(key to userId)
         }
     }
 }
