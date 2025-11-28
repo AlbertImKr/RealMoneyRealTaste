@@ -1,5 +1,5 @@
 <!-- 이미지 캐러셀 프래그먼트 -->
-<div class="carousel slide" data-bs-ride="carousel" id="carouselExampleAutoplaying" th:fragment="image-carousel">
+<div class="carousel slide" data-bs-ride="carousel" th:fragment="image-carousel" th:id="'carousel-' + ${carouselId}">
     <div class="carousel-inner">
         <div th:classappend="${iterStat.index == 0} ? 'carousel-item active' : 'carousel-item'"
              th:each="image, iterStat : ${images}">
@@ -11,12 +11,12 @@
 
     <!-- 이미지가 2개 이상일 때만 컨트롤 버튼 표시 -->
     <th:block th:if="${images != null and images.size() > 1}">
-        <button class="carousel-control-prev" data-bs-slide="prev" data-bs-target="#carouselExampleAutoplaying"
+        <button class="carousel-control-prev" data-bs-slide="prev" th:attr="data-bs-target='#carousel-' + ${carouselId}"
                 type="button">
             <span aria-hidden="true" class="carousel-control-prev-icon"></span>
             <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" data-bs-slide="next" data-bs-target="#carouselExampleAutoplaying"
+        <button class="carousel-control-next" data-bs-slide="next" th:attr="data-bs-target='#carousel-' + ${carouselId}"
                 type="button">
             <span aria-hidden="true" class="carousel-control-next-icon"></span>
             <span class="visually-hidden">Next</span>

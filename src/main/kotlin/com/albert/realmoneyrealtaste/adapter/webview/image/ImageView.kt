@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
+import java.util.UUID
 
 @Controller
 class ImageView(
@@ -24,6 +25,8 @@ class ImageView(
     ): String {
         val images = imageReader.readImagesByIds(imageIds)
         model.addAttribute("images", images.map { it.url })
+        // 고유한 carouselId 생성 (timestamp + random)
+        model.addAttribute("carouselId", "carousel-${UUID.randomUUID()}")
 
         return ImageViews.IMAGE_CAROUSEL_FRAGMENT
     }
