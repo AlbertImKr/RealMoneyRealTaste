@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Image Edit Fragment</title>
+</head>
+<body>
+
+<!-- Image edit fragment (for post editing) -->
+<th:block th:fragment="image-edit">
+    <!-- HTML 부분 -->
+    <div id="image-edit-section">
+        <!-- 이미지 관리 -->
+        <div class="mb-3">
+            <h6 class="mb-2">
+                <i class="bi bi-images text-info me-2"></i>이미지 관리
+            </h6>
+
+            <!-- 통합 이미지 컨테이너 -->
+            <div class="mb-2" id="image-container">
+                <!-- 기존 이미지들 (Thymeleaf로 렌더링) -->
+                <div class="image-preview-item position-relative d-inline-block me-2 mb-2"
+                     th:data-index="${iterStat.index}"
+                     th:each="img, iterStat : ${images}">
+                    <img class="rounded border"
+                         style="width: 100px; height: 100px; object-fit: cover;"
+                         th:alt="'이미지 ' + ${iterStat.index + 1}"
+                         th:src="${img.url}">
+                    <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-0"
+                            style="width: 24px; height: 24px;"
+                            th:onclick="'imageEditManager.removeImage(' + ${iterStat.index} + ')'"
+                            type="button">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <!-- 기존 이미지 ID를 hidden input으로 -->
+                    <input th:name="'imageIds[' + ${iterStat.index} + ']'"
+                           th:value="${img.imageId}"
+                           type="hidden">
+                </div>
+                <!-- 새 이미지는 JavaScript로 여기에 추가됨 -->
+            </div>
+
+            <!-- 파일 선택 -->
+            <div class="d-flex gap-2 align-items-center">
+                <label class="btn btn-sm btn-outline-primary mb-0" for="image-file-input">
+                    <i class="bi bi-upload me-1"></i> 사진 선택
+                </label>
+                <input accept="image/jpeg,image/png,image/gif,image/webp"
+                       class="d-none"
+                       id="image-file-input"
+                       multiple
+                       type="file">
+                <small class="text-muted" id="upload-count">0/5</small>
+            </div>
+            <div class="form-text">JPG, PNG, GIF, WebP 형식 지원 (최대 5MB, 총 5장)</div>
+
+            <!-- 업로드 진행 상태 -->
+            <div class="mt-2" id="upload-progress" style="display: none;">
+                <div class="progress" style="height: 20px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         id="upload-progress-bar"
+                         style="width: 0">
+                        <span id="upload-progress-text">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script th:inline="javascript">
+        (function () {
+            'use strict';
+
+            console.log('[ImageEdit] Script loaded');
+
+            class ImageEditManager {
+                constructor() {
+                    console.log('[ImageEdit] Constructor called');
+
+                    this.maxImages = 5;
+                    this.maxFileSize = 5 * 1024 * 1024;
+                    this.uploadQueue = [];
+                    this.isUploading = false;
+                    this.csrfToken = null;
+                    this.csrfHeader = null;
+
+                    this.init();
+                }
+
+                init() {
+                    console.log('[ImageEdit] Initializing...');
+
+                    this.initCsrfToken();
+                    this.attachFileInputListener();
+                    this.updateUploadCount();
+
+                    console.log('[ImageEdit] Initialization complete');
+                }
+
+                initCsrfToken() {
+                    const tokenMeta = document.querySelector('meta[name="_csrf"]');
+                    const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+
+                    if (tokenMeta && headerMeta) {
+                        this.csrfToken = tokenMeta.getAttribute('content');
+                        this.csrfHeader = headerMeta.getAttribute('content');
+                        console.log('[ImageEdit] CSRF token initialized');
+                    } else {
+                        console.warn('[ImageEdit] CSRF meta tags not found');
+                    }
+                }
+
+                getCsrfHeaders() {
+                    const headers = {
+                        'Content-Type': 'application/json',
+                    };
+
+                    if (this.csrfToken && this.csrfHeader) {
+                        headers[this.csrfHeader] = this.csrfToken;
+                    }
+
+                    return headers;
+                }
+
+                attachFileInputListener() {
+                    const fileInput = document.getElementById('image-file-input');
+
+                    if (!fileInput) {
+                        console.error('[ImageEdit] File input not found!');
+                        return;
+                    }
+
+                    fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                    console.log('[ImageEdit] File input listener attached');
+                }
+
+                getCurrentImageCount() {
+                    const container = document.getElementById('image-container');
+                    if (!container) return 0;
+
+                    return container.querySelectorAll('.image-preview-item').length;
+                }
+
+                removeImage(index) {
+                    const container = document.getElementById('image-container');
+                    if (!container) return;
+
+                    const item = container.querySelector(`[data-index="${index}"]`);
+                    if (!item) {
+                        console.warn('[ImageEdit] Image item not found:', index);
+                        return;
+                    }
+
+                    console.log('[ImageEdit] Removing image at index:', index);
+                    item.remove();
+
+                    this.reindexImages();
+                    this.updateUploadCount();
+                }
+
+                reindexImages() {
+                    const container = document.getElementById('image-container');
+                    if (!container) return;
+
+                    const items = container.querySelectorAll('.image-preview-item');
+                    console.log('[ImageEdit] Reindexing', items.length, 'images');
+
+                    items.forEach((item, newIndex) => {
+                        item.setAttribute('data-index', newIndex);
+
+                        const hiddenInput = item.querySelector('input[type="hidden"]');
+                        if (hiddenInput) {
+                            hiddenInput.name = `imageIds[${newIndex}]`;
+                        }
+
+                        const button = item.querySelector('button');
+                        if (button) {
+                            button.setAttribute('onclick', `imageEditManager.removeImage(${newIndex})`);
+                        }
+
+                        const img = item.querySelector('img');
+                        if (img) {
+                            img.alt = `이미지 ${newIndex + 1}`;
+                        }
+                    });
+                }
+
+                handleFileSelect(event) {
+                    const files = Array.from(event.target.files);
+                    console.log('[ImageEdit] Files selected:', files.length);
+
+                    const currentCount = this.getCurrentImageCount();
+
+                    if (currentCount + files.length > this.maxImages) {
+                        this.showError(`총 ${this.maxImages}장까지만 업로드할 수 있습니다. (현재: ${currentCount}장)`);
+                        event.target.value = '';
+                        return;
+                    }
+
+                    const validFiles = files.filter(file => this.validateFile(file));
+                    console.log('[ImageEdit] Valid files:', validFiles.length);
+
+                    if (validFiles.length > 0) {
+                        this.uploadQueue.push(...validFiles);
+                        this.processUploadQueue();
+                    }
+
+                    event.target.value = '';
+                }
+
+                validateFile(file) {
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!allowedTypes.includes(file.type)) {
+                        this.showError(`${file.name}: 지원하지 않는 파일 형식입니다.`);
+                        return false;
+                    }
+
+                    if (file.size > this.maxFileSize) {
+                        this.showError(`${file.name}: 파일 크기는 5MB를 초과할 수 없습니다.`);
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                async getImageDimensions(file) {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        const url = URL.createObjectURL(file);
+
+                        img.onload = () => {
+                            URL.revokeObjectURL(url);
+                            resolve({
+                                width: img.naturalWidth,
+                                height: img.naturalHeight
+                            });
+                        };
+
+                        img.onerror = () => {
+                            URL.revokeObjectURL(url);
+                            reject(new Error('이미지를 로드할 수 없습니다.'));
+                        };
+
+                        img.src = url;
+                    });
+                }
+
+                async processUploadQueue() {
+                    if (this.isUploading || this.uploadQueue.length === 0) return;
+
+                    this.isUploading = true;
+                    this.showProgress();
+
+                    const totalFiles = this.uploadQueue.length;
+                    let completed = 0;
+
+                    while (this.uploadQueue.length > 0) {
+                        const file = this.uploadQueue.shift();
+                        try {
+                            await this.uploadFile(file);
+                            completed++;
+                            this.updateProgress((completed / totalFiles) * 100);
+                        } catch (error) {
+                            console.error('[ImageEdit] Upload failed:', error);
+                            this.showError(`${file.name} 업로드 실패: ${error.message}`);
+                        }
+                    }
+
+                    this.hideProgress();
+                    this.isUploading = false;
+                }
+
+                async uploadFile(file) {
+                    console.log('[ImageEdit] Uploading file:', file.name);
+
+                    try {
+                        const dimensions = await this.getImageDimensions(file);
+                        const uploadRequest = await this.requestPresignedPost(file, dimensions);
+                        await this.uploadToS3(file, uploadRequest);
+                        const result = await this.confirmUpload(uploadRequest.key);
+
+                        this.addImagePreview(file, result);
+                        this.updateUploadCount();
+
+                        console.log('[ImageEdit] Upload successful:', result.imageId);
+                    } catch (error) {
+                        console.error('[ImageEdit] Upload error:', error);
+                        throw error;
+                    }
+                }
+
+                async requestPresignedPost(file, dimensions) {
+                    const response = await fetch('/api/images/upload-request', {
+                        method: 'POST',
+                        headers: this.getCsrfHeaders(),
+                        body: JSON.stringify({
+                            fileName: file.name,
+                            fileSize: file.size,
+                            contentType: file.type,
+                            width: dimensions.width,
+                            height: dimensions.height,
+                            imageType: "POST_IMAGE"
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.message || 'Presigned URL 요청 실패');
+                    }
+
+                    return await response.json();
+                }
+
+                async uploadToS3(file, uploadRequest) {
+                    const response = await fetch(uploadRequest.uploadUrl, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': file.type
+                        },
+                        body: file
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('[ImageEdit] S3 upload failed:', response.status, errorText);
+                        throw new Error(`S3 업로드 실패: ${response.status}`);
+                    }
+                }
+
+                async confirmUpload(key) {
+                    const response = await fetch(`/api/images/upload-confirm?key=${encodeURIComponent(key)}`, {
+                        method: 'POST',
+                        headers: this.getCsrfHeaders()
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.message || '업로드 확인 실패');
+                    }
+
+                    return await response.json();
+                }
+
+                addImagePreview(file, uploadResult) {
+                    const container = document.getElementById('image-container');
+                    const index = this.getCurrentImageCount();
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const previewHtml = `
+                        <div class="image-preview-item position-relative d-inline-block me-2 mb-2" data-index="${index}">
+                            <img src="${e.target.result}"
+                                 alt="이미지 ${index + 1}"
+                                 class="rounded border"
+                                 style="width: 100px; height: 100px; object-fit: cover;">
+                            <button type="button"
+                                    class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle p-0"
+                                    style="width: 24px; height: 24px;"
+                                    onclick="imageEditManager.removeImage(${index})">
+                                <i class="bi bi-x"></i>
+                            </button>
+                            <input type="hidden"
+                                   name="imageIds[${index}]"
+                                   value="${uploadResult.imageId}">
+                        </div>
+                    `;
+                        container.insertAdjacentHTML('beforeend', previewHtml);
+                        console.log('[ImageEdit] Image preview added:', uploadResult.imageId);
+                    };
+                    reader.readAsDataURL(file);
+                }
+
+                updateUploadCount() {
+                    const currentCount = this.getCurrentImageCount();
+                    const countElement = document.getElementById('upload-count');
+
+                    if (countElement) {
+                        countElement.textContent = `${currentCount}/${this.maxImages}`;
+                    }
+
+                    const fileInput = document.getElementById('image-file-input');
+                    const label = fileInput?.previousElementSibling;
+
+                    if (currentCount >= this.maxImages) {
+                        fileInput?.setAttribute('disabled', 'disabled');
+                        label?.classList.add('disabled');
+                    } else {
+                        fileInput?.removeAttribute('disabled');
+                        label?.classList.remove('disabled');
+                    }
+
+                    console.log('[ImageEdit] Total images:', currentCount);
+                }
+
+                showProgress() {
+                    const progressContainer = document.getElementById('upload-progress');
+                    if (progressContainer) {
+                        progressContainer.style.display = 'block';
+                        this.updateProgress(0);
+                    }
+                }
+
+                hideProgress() {
+                    const progressContainer = document.getElementById('upload-progress');
+                    if (progressContainer) {
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                            this.updateProgress(0);
+                        }, 500);
+                    }
+                }
+
+                updateProgress(percent) {
+                    const progressBar = document.getElementById('upload-progress-bar');
+                    const progressText = document.getElementById('upload-progress-text');
+
+                    if (progressBar) {
+                        progressBar.style.width = `${percent}%`;
+                    }
+                    if (progressText) {
+                        progressText.textContent = `${Math.round(percent)}%`;
+                    }
+                }
+
+                showError(message) {
+                    console.error('[ImageEdit] Error:', message);
+                    alert(message);
+                }
+            }
+
+            // 초기화
+            function initImageEditManager() {
+                console.log('[ImageEdit] Initializing manager...');
+
+                try {
+                    if (typeof window.imageEditManager !== 'undefined') {
+                        console.log('[ImageEdit] Manager already exists, skipping');
+                        return;
+                    }
+
+                    window.imageEditManager = new ImageEditManager();
+                    console.log('[ImageEdit] Manager created successfully');
+
+                } catch (error) {
+                    console.error('[ImageEdit] Initialization failed:', error);
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                console.log('[ImageEdit] Waiting for DOMContentLoaded...');
+                document.addEventListener('DOMContentLoaded', initImageEditManager);
+            } else {
+                console.log('[ImageEdit] DOM already loaded, initializing immediately');
+                initImageEditManager();
+            }
+        })();
+    </script>
+</th:block>
+
+
+</body>
+</html>

@@ -24,10 +24,26 @@ class ImageView(
         model: Model,
     ): String {
         val images = imageReader.readImagesByIds(imageIds)
-        model.addAttribute("images", images.map { it.url })
+        model.addAttribute("images", images)
         // 고유한 carouselId 생성 (timestamp + random)
         model.addAttribute("carouselId", "carousel-${UUID.randomUUID()}")
 
         return ImageViews.IMAGE_CAROUSEL_FRAGMENT
+    }
+
+    /**
+     * 이미지 편집 프래그먼트 조회
+     * 기존 이미지 ID들을 URL로 변환하여 전달
+     */
+    @GetMapping(ImageUrls.READ_EDIT_IMAGES)
+    fun getImageEdit(
+        @RequestParam imageIds: List<Long>,
+        @AuthenticationPrincipal principal: MemberPrincipal?,
+        model: Model,
+    ): String {
+        val images = imageReader.readImagesByIds(imageIds)
+        model.addAttribute("images", images)
+
+        return ImageViews.IMAGE_EDIT_FRAGMENT
     }
 }

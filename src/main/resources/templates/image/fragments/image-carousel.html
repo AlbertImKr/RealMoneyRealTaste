@@ -5,7 +5,8 @@
              th:each="image, iterStat : ${images}">
             <img class="d-block w-100"
                  th:alt="${'이미지 ' + (iterStat.index + 1)}"
-                 th:src="${image}">
+                 th:data-image-id="${image.imageId}"
+                 th:src="${image.url}">
         </div>
     </div>
 
