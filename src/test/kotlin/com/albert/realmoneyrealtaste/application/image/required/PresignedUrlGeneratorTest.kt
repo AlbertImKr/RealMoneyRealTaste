@@ -38,7 +38,6 @@ class PresignedUrlGeneratorTest(
         assertTrue(response.uploadUrl.contains(imageKey))
 
         assertEquals(imageKey, response.key)
-        assertTrue(response.fields.isEmpty()) // PUT 방식에서는 fields가 비어있음
 
         // 만료 시간 확인
         val expectedMinExpiry = Instant.now().plus(Duration.ofMinutes(14))
@@ -72,8 +71,6 @@ class PresignedUrlGeneratorTest(
         assertEquals(key2, response2.key)
         assertTrue(response1.uploadUrl.contains(key1))
         assertTrue(response2.uploadUrl.contains(key2))
-        assertTrue(response1.fields.isEmpty())
-        assertTrue(response2.fields.isEmpty())
     }
 
     @Test
@@ -102,7 +99,6 @@ class PresignedUrlGeneratorTest(
 
             assertNotNull(response.uploadUrl)
             assertEquals(imageKey, response.key)
-            assertTrue(response.fields.isEmpty())
             assertTrue(response.expiresAt.isAfter(Instant.now()))
         }
     }
@@ -133,7 +129,6 @@ class PresignedUrlGeneratorTest(
 
             assertNotNull(response.uploadUrl)
             assertEquals(imageKey, response.key)
-            assertTrue(response.fields.isEmpty())
             assertTrue(response.expiresAt.isAfter(Instant.now()))
         }
     }
@@ -163,7 +158,6 @@ class PresignedUrlGeneratorTest(
             assertNotNull(response.uploadUrl)
             assertEquals(imageKey, response.key)
             assertTrue(response.uploadUrl.contains(imageKey))
-            assertTrue(response.fields.isEmpty())
             assertTrue(response.expiresAt.isAfter(Instant.now()))
         }
     }
@@ -188,7 +182,6 @@ class PresignedUrlGeneratorTest(
         // Then
         assertNotNull(minResponse.uploadUrl)
         assertEquals(minImageKey, minResponse.key)
-        assertTrue(minResponse.fields.isEmpty())
 
         // Given - 최대값
         val maxRequest = ImageUploadRequest(
@@ -208,7 +201,6 @@ class PresignedUrlGeneratorTest(
         // Then
         assertNotNull(maxResponse.uploadUrl)
         assertEquals(maxImageKey, maxResponse.key)
-        assertTrue(maxResponse.fields.isEmpty())
     }
 
     @Test
@@ -236,8 +228,6 @@ class PresignedUrlGeneratorTest(
         assertNotNull(response.key)
         assertEquals(imageKey, response.key)
 
-        assertNotNull(response.fields)
-        assertTrue(response.fields.isEmpty()) // PUT 방식에서는 fields가 비어있음
 
         assertNotNull(response.expiresAt)
         assertTrue(response.expiresAt.isAfter(Instant.now()))
@@ -255,7 +245,6 @@ class PresignedUrlGeneratorTest(
             height = 600,
             imageType = ImageType.POST_IMAGE
         )
-        val expirationMinutes = 30L
 
         // When
         val response1 = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)

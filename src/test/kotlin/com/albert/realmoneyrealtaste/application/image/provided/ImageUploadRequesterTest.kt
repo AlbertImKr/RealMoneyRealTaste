@@ -44,9 +44,6 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         assertTrue(response.key.contains("images/"))
         assertTrue(response.key.endsWith(".jpg"))
 
-        assertNotNull(response.fields)
-        assertTrue(response.fields.isEmpty())
-
         // 만료 시간 확인 (기본 15분 후)
         val expectedMinExpiry = Instant.now().plus(Duration.ofMinutes(14))
         val expectedMaxExpiry = Instant.now().plus(Duration.ofMinutes(16))
@@ -106,7 +103,6 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
             assertNotNull(response.uploadUrl)
             assertNotNull(response.key)
-            assertTrue(response.fields.isEmpty())
             assertTrue(response.expiresAt.isAfter(Instant.now()))
         }
     }
@@ -265,9 +261,6 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         assertNotNull(response.key)
         assertTrue(response.key.isNotBlank())
-
-        assertNotNull(response.fields)
-        assertTrue(response.fields.isEmpty())
 
         // 만료 시간 검증
         assertTrue(response.expiresAt.isAfter(Instant.now()))

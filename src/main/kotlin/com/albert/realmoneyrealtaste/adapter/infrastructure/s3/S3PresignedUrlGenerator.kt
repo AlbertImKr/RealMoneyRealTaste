@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.infrastructure.s3
 
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
-import com.albert.realmoneyrealtaste.application.image.dto.PresignedPostResponse
+import com.albert.realmoneyrealtaste.application.image.dto.PresignedPutResponse
 import com.albert.realmoneyrealtaste.application.image.required.PresignedUrlGenerator
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -24,23 +24,22 @@ class S3PresignedUrlGenerator(
 
     private val logger = LoggerFactory.getLogger(S3PresignedUrlGenerator::class.java)
 
-    override fun generatePresignedPutUrl(imageKey: String, request: ImageUploadRequest): PresignedPostResponse {
+    override fun generatePresignedPutUrl(imageKey: String, request: ImageUploadRequest): PresignedPutResponse {
 
         val expiration = Instant.now().plus(Duration.ofMinutes(s3PutUrlExpirationMinutes))
 
+        val metadata = mapOf(
+            "original-name" to request.fileName,
+            "content-type" to request.contentType,
+            "file-size" to request.fileSize.toString(),
+            "width" to request.width.toString(),
+            "height" to request.height.toString()
+        )
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(s3Config.bucketName)
             .key(imageKey)
             .contentType(request.contentType)
-            .metadata(
-                mapOf(
-                    "original-name" to request.fileName,
-                    "content-type" to request.contentType,
-                    "file-size" to request.fileSize.toString(),
-                    "width" to request.width.toString(),
-                    "height" to request.height.toString()
-                )
-            )
+            .metadata(metadata)
             .build()
 
         val presignRequest = PutObjectPresignRequest.builder()
@@ -52,11 +51,11 @@ class S3PresignedUrlGenerator(
 
         logger.info("Generated presigned PUT URL for key: $imageKey")
 
-        return PresignedPostResponse(
+        return PresignedPutResponse(
             uploadUrl = presignedRequest.url().toString(),
             key = imageKey,
-            fields = emptyMap(), // PUT 방식에서는 fields가 필요 없음
-            expiresAt = expiration
+            expiresAt = expiration,
+            metadata = metadata,
         )
     }
 

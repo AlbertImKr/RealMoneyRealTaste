@@ -67,7 +67,7 @@ class ImageApiTest : IntegrationTestBase() {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.uploadUrl").isString)
             .andExpect(jsonPath("$.key").isString)
-            .andExpect(jsonPath("$.fields").isMap)
+            .andExpect(jsonPath("$.metadata").isMap)
             .andExpect(jsonPath("$.expiresAt").isString)
     }
 
