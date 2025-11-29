@@ -247,10 +247,16 @@
                 // Presigned PUT URL 방식 사용
                 console.log(uploadRequest)
                 console.log(uploadRequest.uploadUrl)
+                let metadata = uploadRequest.metadata
                 const response = await fetch(uploadRequest.uploadUrl, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': file.type
+                        'Content-Type': metadata['content-type'],
+                        'x-amz-meta-content-type': metadata['content-type'],
+                        'x-amz-meta-file-size': metadata['file-size'],
+                        'x-amz-meta-height': metadata['height'],
+                        'x-amz-meta-original-name': metadata['original-name'],
+                        'x-amz-meta-width': metadata['width']
                     },
                     body: file
                 });

@@ -4,7 +4,7 @@ import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrinc
 import com.albert.realmoneyrealtaste.application.image.dto.ImageInfo
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadResult
-import com.albert.realmoneyrealtaste.application.image.dto.PresignedPostResponse
+import com.albert.realmoneyrealtaste.application.image.dto.PresignedPutResponse
 import com.albert.realmoneyrealtaste.application.image.provided.ImageDeleter
 import com.albert.realmoneyrealtaste.application.image.provided.ImageReader
 import com.albert.realmoneyrealtaste.application.image.provided.ImageUploadRequester
@@ -38,7 +38,7 @@ class ImageApi(
     fun requestImageUpload(
         @RequestBody @Valid request: ImageUploadRequest,
         @AuthenticationPrincipal member: MemberPrincipal,
-    ): ResponseEntity<PresignedPostResponse> {
+    ): ResponseEntity<PresignedPutResponse> {
         val response = imageUploadRequester.generatePresignedPostUrl(request, member.id)
 
         return ResponseEntity.ok(response)

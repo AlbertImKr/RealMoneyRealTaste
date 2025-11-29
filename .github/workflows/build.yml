@@ -181,16 +181,16 @@ jobs:
           TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition rmrt-task --query 'taskDefinition.taskDefinitionArn' --output text)
           
           aws ecs update-service \
-            --cluster rmrt-cluster \
-            --service rmrt-service-1 \
+            --cluster rmrt-cluster-ec2version \
+            --service rmrt-task-service-o4qq7b02 \
             --task-definition $TASK_DEFINITION_ARN \
             --force-new-deployment
           
           # 배포 완료 대기
           echo "⏳ ECS 배포 완료 대기..."
           aws ecs wait services-stable \
-            --cluster rmrt-cluster \
-            --services rmrt-service-1
+            --cluster rmrt-cluster-ec2version \
+            --services rmrt-task-service-o4qq7b02
           
           echo "✅ ECS 배포 완료!"
 
@@ -198,8 +198,8 @@ jobs:
         run: |
           # 서비스 상태 확인
           aws ecs describe-services \
-            --cluster rmrt-cluster \
-            --services rmrt-service-1 \
+            --cluster rmrt-cluster-ec2version \
+            --services rmrt-task-service-o4qq7b02 \
             --query 'services[0].{status: status, runningCount: runningCount, desiredCount: desiredCount}'
           
           echo "🌐 실제 도메인: https://rmrt.albert-im.com"

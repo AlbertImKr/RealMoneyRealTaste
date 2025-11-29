@@ -2,7 +2,7 @@ package com.albert.realmoneyrealtaste.application.image.service
 
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadResult
-import com.albert.realmoneyrealtaste.application.image.dto.PresignedPostResponse
+import com.albert.realmoneyrealtaste.application.image.dto.PresignedPutResponse
 import com.albert.realmoneyrealtaste.application.image.exception.ImageConfirmUploadException
 import com.albert.realmoneyrealtaste.application.image.exception.ImageGenerateException
 import com.albert.realmoneyrealtaste.application.image.provided.ImageKeyGenerator
@@ -32,7 +32,7 @@ class ImageUploadService(
 
     private val logger = LoggerFactory.getLogger(ImageUploadService::class.java)
 
-    override fun generatePresignedPostUrl(request: ImageUploadRequest, userId: Long): PresignedPostResponse {
+    override fun generatePresignedPostUrl(request: ImageUploadRequest, userId: Long): PresignedPutResponse {
         try {
             // 1. 사용자 검증
             val todayUploadCount = imageReader.getTodayUploadCount(userId)
