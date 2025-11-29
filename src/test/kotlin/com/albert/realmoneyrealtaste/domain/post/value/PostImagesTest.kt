@@ -89,4 +89,77 @@ class PostImagesTest {
 
         assertEquals(null, images.getFirst())
     }
+
+    @Test
+    fun `create - failure - throws exception when image id is negative`() {
+        val urls = listOf(1L, -1L)
+
+        assertFailsWith<IllegalArgumentException> {
+            PostImages(urls)
+        }.let {
+            assertEquals(PostImages.ERROR_IMAGE_ID_NEGATIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when image id is zero`() {
+        val urls = listOf(1L, 0L)
+
+        assertFailsWith<IllegalArgumentException> {
+            PostImages(urls)
+        }.let {
+            assertEquals(PostImages.ERROR_IMAGE_ID_NEGATIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when single image id is negative`() {
+        assertFailsWith<IllegalArgumentException> {
+            PostImages(listOf(-5L))
+        }.let {
+            assertEquals(PostImages.ERROR_IMAGE_ID_NEGATIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `create - success - accepts single image`() {
+        val images = PostImages(listOf(1L))
+
+        assertEquals(1, images.size())
+        assertEquals(1L, images.getFirst())
+    }
+
+    @Test
+    fun `of - failure - throws exception with negative image id`() {
+        assertFailsWith<IllegalArgumentException> {
+            PostImages.of(1L, -2L, 3L)
+        }.let {
+            assertEquals(PostImages.ERROR_IMAGE_ID_NEGATIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `of - failure - throws exception with zero image id`() {
+        assertFailsWith<IllegalArgumentException> {
+            PostImages.of(1L, 0L)
+        }.let {
+            assertEquals(PostImages.ERROR_IMAGE_ID_NEGATIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `of - success - creates empty images with no arguments`() {
+        val images = PostImages.of()
+
+        assertTrue(images.isEmpty())
+        assertEquals(0, images.size())
+    }
+
+    @Test
+    fun `of - success - creates single image`() {
+        val images = PostImages.of(42L)
+
+        assertEquals(1, images.size())
+        assertEquals(42L, images.getFirst())
+    }
 }

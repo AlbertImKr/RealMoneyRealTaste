@@ -2,12 +2,14 @@ package com.albert.realmoneyrealtaste.application.image.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadResult
+import com.albert.realmoneyrealtaste.application.image.exception.ImageConfirmUploadException
 import com.albert.realmoneyrealtaste.application.image.required.ImageRepository
 import com.albert.realmoneyrealtaste.domain.image.ImageType
 import com.albert.realmoneyrealtaste.domain.image.value.FileKey
 import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -189,7 +191,7 @@ class ImageUploadTrackerTest(
     fun `ImageUploadTracker functional interface - lambda implementation`() {
         // Given
         val confirmedUploads = mutableListOf<Pair<String, Long>>()
-        val lambdaTracker: ImageUploadTracker = ImageUploadTracker { key, userId ->
+        val lambdaTracker = ImageUploadTracker { key, userId ->
             confirmedUploads.add(key to userId)
             ImageUploadResult(
                 success = true,
@@ -212,7 +214,7 @@ class ImageUploadTrackerTest(
     @Test
     fun `ImageUploadTracker functional interface - failure simulation`() {
         // Given
-        val failureTracker: ImageUploadTracker = ImageUploadTracker { key, userId ->
+        val failureTracker = ImageUploadTracker { key, _ ->
             if (key.contains("invalid")) {
                 throw IllegalArgumentException("Invalid key format: $key")
             }
@@ -263,4 +265,37 @@ class ImageUploadTrackerTest(
             assertFalse(image.isDeleted)
         }
     }
+
+    @Test
+    fun `confirmUpload - failure - throws ImageConfirmUploadException with null user ID`() {
+        // Given
+        val key = "test/image.jpg"
+        val invalidUserId = -1L
+
+        // When & Then
+        assertFailsWith<ImageConfirmUploadException> {
+            imageUploadTracker.confirmUpload(key, invalidUserId)
+        }.let { exception ->
+            assertEquals("이미지 업로드 실패", exception.message)
+            assertNotNull(exception.cause)
+            assertTrue(exception.cause is IllegalArgumentException)
+        }
+    }
+
+    @Test
+    fun `confirmUpload - failure - throws ImageConfirmUploadException with empty key`() {
+        // Given
+        val emptyKey = ""
+        val userId = 123L
+
+        // When & Then
+        assertFailsWith<ImageConfirmUploadException> {
+            imageUploadTracker.confirmUpload(emptyKey, userId)
+        }.let { exception ->
+            assertEquals("이미지 업로드 실패", exception.message)
+            assertNotNull(exception.cause)
+            assertTrue(exception.cause is IllegalArgumentException)
+        }
+    }
+
 }

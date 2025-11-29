@@ -180,8 +180,7 @@ class ImageApiTest : IntegrationTestBase() {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.success").isBoolean)
-            .andExpect(jsonPath("$.key").value(key))
-            .andExpect(jsonPath("$.url").isString)
+            .andExpect(jsonPath("$.imageId").isNumber)
     }
 
     @Test
@@ -199,7 +198,7 @@ class ImageApiTest : IntegrationTestBase() {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.success").isBoolean)
-            .andExpect(jsonPath("$.key").value(key))
+            .andExpect(jsonPath("$.imageId").isNumber)
     }
 
     @Test

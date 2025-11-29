@@ -120,7 +120,6 @@ class ImageReaderTest(
         // 삭제 처리
         savedDeletedImage.markAsDeleted()
         imageRepository.save(savedDeletedImage)
-        flushAndClear()
 
         // When
         val imageInfos = imageReader.getImagesByMember(userId)
@@ -177,7 +176,6 @@ class ImageReaderTest(
             deletedImage.markAsDeleted()
             imageRepository.save(deletedImage)
         }
-        flushAndClear()
 
         // When
         val uploadCount = imageReader.getTodayUploadCount(userId)
@@ -224,14 +222,13 @@ class ImageReaderTest(
         // 삭제 처리
         savedImage.markAsDeleted()
         imageRepository.save(savedImage)
-        flushAndClear()
 
         // When
         val uploadResult = imageReader.getUploadStatus(savedImage.fileKey)
 
         // Then
         assertFalse(uploadResult.success)
-        assertEquals(savedImage.requireId(), uploadResult.imageId)
+        assertEquals(-1, uploadResult.imageId)
     }
 
     @Test

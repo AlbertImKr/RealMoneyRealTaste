@@ -15,7 +15,7 @@
                         <div hx-get="/images/carousel"
                              hx-swap="innerHTML"
                              hx-trigger="load"
-                             th:attr="hx-get='/images/carousel?imageIds=' + ${#strings.join(post.images.imageIds, ',')}"
+                             th:attr="hx-get='/images/carousel?imageIds=' + ${#strings.listJoin(post.images.imageIds, ',')}"
                              th:hx-target="'#postImageCarousel'+${post.id}"
                              th:id="'postImageCarousel'+${post.id}"
                              th:if="${post.images != null and !post.images.imageIds.isEmpty()}">

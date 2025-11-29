@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.application.image.service
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadResult
 import com.albert.realmoneyrealtaste.application.image.dto.PresignedPostResponse
+import com.albert.realmoneyrealtaste.application.image.exception.ImageConfirmUploadException
 import com.albert.realmoneyrealtaste.application.image.exception.ImageGenerateException
 import com.albert.realmoneyrealtaste.application.image.provided.ImageKeyGenerator
 import com.albert.realmoneyrealtaste.application.image.provided.ImageReader
@@ -68,7 +69,7 @@ class ImageUploadService(
                 imageId = image.requireId()
             )
         } catch (e: IllegalArgumentException) {
-            throw IllegalArgumentException("이미지 업로드 실패: ${e.message}")
+            throw ImageConfirmUploadException("이미지 업로드 실패", e)
         }
     }
 }

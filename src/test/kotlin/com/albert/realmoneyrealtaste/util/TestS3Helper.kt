@@ -1,6 +1,5 @@
 package com.albert.realmoneyrealtaste.util
 
-import com.albert.realmoneyrealtaste.adapter.infrastructure.s3.S3CloudStorage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.core.sync.RequestBody
@@ -13,9 +12,6 @@ class TestS3Helper {
 
     @Autowired
     private lateinit var s3Client: S3Client
-
-    @Autowired
-    private lateinit var s3CloudStorage: S3CloudStorage
 
     fun uploadTestFile(key: String, content: String = "test content") {
         val putObjectRequest = PutObjectRequest.builder()

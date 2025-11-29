@@ -4,8 +4,8 @@ import com.albert.realmoneyrealtaste.application.image.dto.ImageInfo
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadResult
 import com.albert.realmoneyrealtaste.application.image.exception.ImageNotFoundException
 import com.albert.realmoneyrealtaste.application.image.provided.ImageReader
-import com.albert.realmoneyrealtaste.application.image.required.CloudStorage
 import com.albert.realmoneyrealtaste.application.image.required.ImageRepository
+import com.albert.realmoneyrealtaste.application.image.required.PresignedUrlGenerator
 import com.albert.realmoneyrealtaste.domain.image.Image
 import com.albert.realmoneyrealtaste.domain.image.value.FileKey
 import org.springframework.stereotype.Service
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class ImageReadService(
     private val imageRepository: ImageRepository,
-    private val cloudStorage: CloudStorage,
+    private val presignedUrlGenerator: PresignedUrlGenerator,
 ) : ImageReader {
 
     override fun getImageUrl(imageId: Long, userId: Long): String {
@@ -24,7 +24,7 @@ class ImageReadService(
 
         require(image.canAccess(userId)) { "이미지에 접근 권한이 없습니다" }
 
-        return cloudStorage.generatePresignedUrl(image.fileKey.value)
+        return presignedUrlGenerator.generatePresignedGetUrl(image.fileKey.value)
     }
 
     override fun getImagesByMember(userId: Long): List<ImageInfo> {
@@ -34,7 +34,7 @@ class ImageReadService(
                 imageId = image.requireId(),
                 fileKey = image.fileKey.value,
                 imageType = image.imageType,
-                url = cloudStorage.generatePresignedUrl(image.fileKey.value)
+                url = presignedUrlGenerator.generatePresignedGetUrl(image.fileKey.value)
             )
         }
     }
@@ -61,7 +61,7 @@ class ImageReadService(
                 imageId = image.requireId(),
                 fileKey = image.fileKey.value,
                 imageType = image.imageType,
-                url = cloudStorage.generatePresignedUrl(image.fileKey.value)
+                url = presignedUrlGenerator.generatePresignedGetUrl(image.fileKey.value)
             )
         }
     }

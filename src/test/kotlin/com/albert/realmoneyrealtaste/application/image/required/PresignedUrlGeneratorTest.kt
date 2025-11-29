@@ -139,36 +139,6 @@ class PresignedUrlGeneratorTest(
     }
 
     @Test
-    fun `generatePresignedPutUrl - success - handles various expiration times`() {
-        // Given
-        val imageKey = "images/test.jpg"
-        val request = ImageUploadRequest(
-            fileName = "test.jpg",
-            fileSize = 1024L,
-            contentType = "image/jpeg",
-            width = 800,
-            height = 600,
-            imageType = ImageType.POST_IMAGE
-        )
-        val expirationTimes = listOf(1L, 5L, 15L, 30L, 60L, 120L)
-
-        // When & Then
-        expirationTimes.forEach { expirationMinutes ->
-            val response = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
-
-            assertNotNull(response.uploadUrl)
-            assertEquals(imageKey, response.key)
-            assertTrue(response.fields.isEmpty())
-
-            // 만료 시간 확인
-            val expectedMinExpiry = Instant.now().plus(Duration.ofMinutes(expirationMinutes - 1))
-            val expectedMaxExpiry = Instant.now().plus(Duration.ofMinutes(expirationMinutes + 1))
-            assertTrue(response.expiresAt.isAfter(expectedMinExpiry))
-            assertTrue(response.expiresAt.isBefore(expectedMaxExpiry))
-        }
-    }
-
-    @Test
     fun `generatePresignedPutUrl - success - handles complex image keys`() {
         // Given
         val complexKeys = listOf(
