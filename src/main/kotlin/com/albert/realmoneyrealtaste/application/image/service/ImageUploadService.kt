@@ -47,8 +47,6 @@ class ImageUploadService(
             // 4. Presigned PUT URL 생성
             val presignedPut = presignedUrlGenerator.generatePresignedPutUrl(imageKey, request)
 
-            logger.info("Generated presigned POST URL for user: $userId, key: $imageKey")
-
             return presignedPut
         } catch (e: IllegalArgumentException) {
             throw ImageGenerateException("이미지 업로드 실패", e)
