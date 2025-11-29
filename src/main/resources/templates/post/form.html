@@ -112,31 +112,7 @@
                         </div>
 
                         <!-- 사진 업로드 섹션 -->
-                        <div class="mb-4">
-                            <h5 class="mb-3">사진 추가 (최소 1장, 최대 5장)</h5>
-                            <div class="mb-3">
-                                <label class="form-label" for="imageUrl0">사진 URL</label>
-                                <div id="image-url-container">
-                                    <!-- 첫 번째 이미지 입력 필드 -->
-                                    <div class="input-group mb-2" data-image-index="0">
-                                        <input class="form-control image-url-input"
-                                               data-index="0"
-                                               id="imageUrl0"
-                                               name="imagesUrls[0]"
-                                               placeholder="이미지 URL을 입력하세요 (최대 5장)"
-                                               type="text">
-                                        <button class="btn btn-outline-danger remove-image-btn" style="display: none;"
-                                                type="button">
-                                            <i class="bi bi-x"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <button class="btn btn-sm btn-outline-primary" id="add-image-btn" type="button">
-                                    <i class="bi bi-plus-circle me-1"></i> 사진 추가
-                                </button>
-                                <div class="form-text">최대 5장까지 추가할 수 있습니다.</div>
-                            </div>
-                        </div>
+                        <div th:replace="~{image/fragments/image-upload :: image-upload}"></div>
 
                         <!-- 버튼 -->
                         <div class="d-flex gap-2 justify-content-end">
@@ -200,35 +176,6 @@
                 s.style.opacity = '1';
             });
         });
-
-        // 이미지 URL 관리
-        let imageCount = 1;
-        const maxImages = 5;
-        const addImageBtn = document.getElementById('add-image-btn');
-        const imageUrlContainer = document.getElementById('image-url-container');
-
-        function updateImageIndices() {
-            const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
-            inputGroups.forEach((group, index) => {
-                const input = group.querySelector('.image-url-input');
-                input.setAttribute('data-index', index);
-                input.setAttribute('name', `imagesUrls[${index}]`);
-                input.setAttribute('id', `imageUrl${index}`);
-                group.setAttribute('data-image-index', index);
-            });
-            imageCount = inputGroups.length;
-
-            // 최대 개수 도달 시 추가 버튼 숨김
-            addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'block';
-
-            // 삭제 버튼 표시/숨김
-            inputGroups.forEach((group, index) => {
-                const removeBtn = group.querySelector('.remove-image-btn');
-                if (removeBtn) {
-                    removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
-                }
-            });
-        }
 
         addImageBtn.addEventListener('click', function () {
             if (imageCount >= maxImages) return;

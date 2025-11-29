@@ -13,7 +13,7 @@ spring:
   # JPA 설정
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate # Flyway와 함께 사용할 때는 validate로 설정
     show-sql: false
     properties:
       hibernate:
@@ -21,6 +21,12 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         jdbc:
           time_zone: Asia/Seoul
+
+  # Flyway 설정
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: true
 
   # 메일 설정 (Docker 환경용)
   mail:

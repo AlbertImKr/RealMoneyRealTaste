@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolation
 import jakarta.validation.Validation
 import jakarta.validation.Validator
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class PostCreateFormTest {
@@ -19,7 +20,7 @@ class PostCreateFormTest {
             restaurantLongitude = -122.4194,
             contentText = "This is a test post content.",
             contentRating = 5,
-            imagesUrls = listOf("http://example.com/image1.jpg", "http://example.com/image2.jpg"),
+            imageIds = listOf(1, 2),
         )
         assert(form.restaurantName == "Test Restaurant")
         assert(form.restaurantAddress == "123 Test St")
@@ -27,7 +28,7 @@ class PostCreateFormTest {
         assert(form.restaurantLongitude == -122.4194)
         assert(form.contentText == "This is a test post content.")
         assert(form.contentRating == 5)
-        assert(form.imagesUrls.size == 2)
+        assert(form.imageIds.size == 2)
     }
 
     @Test
@@ -39,7 +40,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -55,7 +56,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -72,7 +73,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -89,7 +90,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -106,7 +107,7 @@ class PostCreateFormTest {
             restaurantLongitude = 181.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -123,7 +124,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -140,7 +141,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 0,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -157,7 +158,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 6,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -174,13 +175,8 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf(
-                "http://example.com/image1.jpg",
-                "http://example.com/image2.jpg",
-                "http://example.com/image3.jpg",
-                "http://example.com/image4.jpg",
-                "http://example.com/image5.jpg",
-                "http://example.com/image6.jpg"
+            imageIds = listOf(
+                1, 2, 3, 4, 5, 6
             ),
         )
 
@@ -198,7 +194,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = emptyList(),
+            imageIds = emptyList(),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -215,7 +211,7 @@ class PostCreateFormTest {
             restaurantLongitude = -122.4194,
             contentText = "This is a test post content.",
             contentRating = 5,
-            imagesUrls = listOf("http://example.com/image1.jpg", "http://example.com/image2.jpg"),
+            imageIds = listOf(1, 2),
         )
 
         val request = form.toPostCreateRequest()
@@ -226,9 +222,9 @@ class PostCreateFormTest {
         assert(request.restaurant.longitude == -122.4194)
         assert(request.content.text == "This is a test post content.")
         assert(request.content.rating == 5)
-        assert(request.images.urls.size == 2)
-        assert(request.images.urls[0] == "http://example.com/image1.jpg")
-        assert(request.images.urls[1] == "http://example.com/image2.jpg")
+        assert(request.images.imageIds.size == 2)
+        assertEquals(1, request.images.imageIds[0])
+        assertEquals(2, request.images.imageIds[1])
     }
 
     @Test
@@ -240,7 +236,7 @@ class PostCreateFormTest {
             restaurantLongitude = -127.5678,
             contentText = "Single image test content.",
             contentRating = 3,
-            imagesUrls = listOf("http://example.com/single.jpg"),
+            imageIds = listOf(1),
         )
 
         val request = form.toPostCreateRequest()
@@ -248,8 +244,8 @@ class PostCreateFormTest {
         assert(request.restaurant.name == "Single Image Restaurant")
         assert(request.content.text == "Single image test content.")
         assert(request.content.rating == 3)
-        assert(request.images.urls.size == 1)
-        assert(request.images.urls[0] == "http://example.com/single.jpg")
+        assert(request.images.imageIds.size == 1)
+        assertEquals(1, request.images.imageIds[0])
     }
 
     @Test
@@ -262,7 +258,7 @@ class PostCreateFormTest {
         assert(form.restaurantLongitude == 0.0)
         assert(form.contentText == "")
         assert(form.contentRating == 0)
-        assert(form.imagesUrls.isEmpty())
+        assert(form.imageIds.isEmpty())
     }
 
     @Test
@@ -274,7 +270,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -293,7 +289,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -312,7 +308,7 @@ class PostCreateFormTest {
             restaurantLongitude = -180.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -331,7 +327,7 @@ class PostCreateFormTest {
             restaurantLongitude = 180.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -350,7 +346,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 1,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -369,7 +365,7 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 5,
-            imagesUrls = listOf("http://example.com/image1.jpg"),
+            imageIds = listOf(1),
         )
 
         val violations: Set<ConstraintViolation<PostCreateForm>> = validator.validate(form)
@@ -388,12 +384,8 @@ class PostCreateFormTest {
             restaurantLongitude = 127.0,
             contentText = "Valid content",
             contentRating = 4,
-            imagesUrls = listOf(
-                "http://example.com/image1.jpg",
-                "http://example.com/image2.jpg",
-                "http://example.com/image3.jpg",
-                "http://example.com/image4.jpg",
-                "http://example.com/image5.jpg"
+            imageIds = listOf(
+                1, 2, 3, 4, 5
             ),
         )
 

@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.util
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContext

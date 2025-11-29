@@ -202,11 +202,5 @@ jobs:
             --services rmrt-service-1 \
             --query 'services[0].{status: status, runningCount: runningCount, desiredCount: desiredCount}'
           
-          # ALB DNS 이름 출력
-          ALB_DNS=$(aws elbv2 describe-load-balancers \
-            --names rmrt-alb \
-            --query 'LoadBalancers[0].DNSName' \
-            --output text)
-          
-          echo "🌐 애플리케이션 URL: http://$ALB_DNS"
-          echo "🔍 헬스 체크: http://$ALB_DNS/actuator/health"
+          echo "🌐 실제 도메인: https://rmrt.albert-im.com"
+          echo "🔍 도메인 헬스 체크: https://rmrt.albert-im.com/actuator/health"

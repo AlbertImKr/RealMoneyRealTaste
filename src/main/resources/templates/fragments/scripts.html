@@ -318,7 +318,6 @@
                 // 모달이 열린 후
                 modalElement.addEventListener('shown.bs.modal', function () {
                     initModalRatingStars();
-                    initModalImageUpload();
                 });
 
                 // 모달이 닫히기 시작할 때 (중요!)
@@ -380,82 +379,6 @@
                         });
                     });
                 }
-            }
-
-            // 이미지 URL 관리
-            function initModalImageUpload() {
-                let imageCount = 1;
-                const maxImages = 5;
-                const addImageBtn = document.getElementById('modal-add-image-btn');
-                const imageUrlContainer = document.getElementById('modal-image-url-container');
-
-                if (!addImageBtn || !imageUrlContainer) return;
-
-                function updateImageIndices() {
-                    const inputGroups = imageUrlContainer.querySelectorAll('.input-group');
-                    inputGroups.forEach((group, index) => {
-                        const input = group.querySelector('.image-url-input');
-                        input.setAttribute('data-index', index);
-                        input.setAttribute('name', `imagesUrls[${index}]`);
-                        group.setAttribute('data-image-index', index);
-                    });
-                    imageCount = inputGroups.length;
-
-                    // 최대 개수 도달 시 추가 버튼 숨김
-                    addImageBtn.style.display = imageCount >= maxImages ? 'none' : 'inline-block';
-
-                    // 삭제 버튼 표시/숨김
-                    inputGroups.forEach((group, index) => {
-                        const removeBtn = group.querySelector('.remove-image-btn');
-                        if (removeBtn) {
-                            removeBtn.style.display = imageCount > 1 ? 'block' : 'none';
-                        }
-                    });
-                }
-
-                addImageBtn.addEventListener('click', function () {
-                    if (imageCount >= maxImages) return;
-
-                    const newIndex = imageCount;
-                    const newInputGroup = document.createElement('div');
-                    newInputGroup.className = 'input-group mb-2';
-                    newInputGroup.setAttribute('data-image-index', newIndex);
-                    newInputGroup.innerHTML = `
-                <input type="text"
-                       class="form-control image-url-input"
-                       name="imagesUrls[${newIndex}]"
-                       placeholder="이미지 URL을 입력하세요"
-                       data-index="${newIndex}">
-                <button class="btn btn-outline-danger remove-image-btn" type="button">
-                    <i class="bi bi-x"></i>
-                </button>
-            `;
-
-                    imageUrlContainer.appendChild(newInputGroup);
-
-                    // 삭제 버튼 이벤트
-                    const removeBtn = newInputGroup.querySelector('.remove-image-btn');
-                    removeBtn.addEventListener('click', function () {
-                        newInputGroup.remove();
-                        updateImageIndices();
-                    });
-
-                    updateImageIndices();
-                });
-
-                // 삭제 버튼 이벤트
-                imageUrlContainer.addEventListener('click', function (e) {
-                    if (e.target.closest('.remove-image-btn')) {
-                        const inputGroup = e.target.closest('.input-group');
-                        if (imageCount > 1) {
-                            inputGroup.remove();
-                            updateImageIndices();
-                        }
-                    }
-                });
-
-                // 초기 상태 설정
-                updateImageIndices();
             }
         });
     </script>

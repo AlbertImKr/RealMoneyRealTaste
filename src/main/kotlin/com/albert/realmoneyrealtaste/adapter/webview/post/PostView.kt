@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.post
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostCreator
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
@@ -99,6 +99,7 @@ class PostView(
         }
         model.addAttribute("posts", postsPage)
         model.addAttribute("member", memberPrincipal)
+        model.addAttribute("author", memberPrincipal)
         return PostViews.POSTS_CONTENT
     }
 

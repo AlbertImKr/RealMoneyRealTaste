@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -61,6 +62,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -85,6 +87,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -114,6 +117,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
@@ -136,6 +140,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -163,6 +168,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -200,6 +206,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", 999L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest) // CollectionUpdateException으로 인한 400
     }
@@ -222,6 +229,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest) // CollectionUpdateException으로 인한 400
     }
@@ -241,6 +249,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -260,6 +269,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -279,6 +289,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -299,6 +310,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -317,6 +329,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
         mockMvc.perform(
             put("/api/collections/{collectionId}", collection.requireId())
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
             // .contentType 누락
         )
             .andExpect(status().isUnsupportedMediaType)
@@ -339,6 +352,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
 
@@ -374,6 +388,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
                 put("/api/collections/{collectionId}", collection.requireId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
+                    .with(csrf())
             )
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("$.success").value(true))
@@ -396,6 +411,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -429,6 +445,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -482,6 +499,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
         mockMvc.perform(
             post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -509,6 +527,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
         mockMvc.perform(
             post("/api/collections/{collectionId}/posts/{postId}", 999L, post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -522,6 +541,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
         // 존재하지 않는 postId도 추가 시도 - 서비스 레벨에서는 postId 유효성 검증 안 함
         mockMvc.perform(
             post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), 999L)
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -538,6 +558,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
         mockMvc.perform(
             post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -552,12 +573,14 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
         // 첫 번째 추가
         mockMvc.perform(
             post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
         // 두 번째 추가 (중복) - 예외 발생
         mockMvc.perform(
             post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
 
@@ -577,12 +600,14 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
         // 먼저 게시글 추가
         mockMvc.perform(
             post("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
         // 게시글 제거
         mockMvc.perform(
             delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isNoContent)
 
@@ -610,6 +635,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
         mockMvc.perform(
             delete("/api/collections/{collectionId}/posts/{postId}", 999L, post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -622,6 +648,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
         mockMvc.perform(
             delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), 999L)
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -635,6 +662,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
 
         mockMvc.perform(
             delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }
@@ -649,6 +677,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
         // 컬렉션에 추가하지 않은 게시글 제거 시도 - 예외 발생
         mockMvc.perform(
             delete("/api/collections/{collectionId}/posts/{postId}", collection.requireId(), post.requireId())
+                .with(csrf())
         )
             .andExpect(status().isBadRequest) // 예외 발생으로 400 반환
     }
@@ -671,6 +700,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -697,6 +727,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request1))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -711,6 +742,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request2))
+                .with(csrf())
         )
             .andExpect(status().isOk)
 
@@ -732,6 +764,7 @@ class CollectionUpdateApiTest : IntegrationTestBase() {
             put("/api/collections/{collectionId}", collection.requireId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ malformed json }")
+                .with(csrf())
         )
             .andExpect(status().isBadRequest)
     }

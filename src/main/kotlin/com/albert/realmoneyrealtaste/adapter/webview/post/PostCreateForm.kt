@@ -28,7 +28,7 @@ data class PostCreateForm(
     val contentRating: Int = 0,
 
     @field:Size(min = 1, max = 5, message = "이미지는 최대 5장까지 업로드할 수 있습니다.")
-    val imagesUrls: List<String> = emptyList(),
+    val imageIds: List<Long> = emptyList(),
 ) {
     fun toPostCreateRequest() = PostCreateRequest(
         restaurant = Restaurant(
@@ -41,8 +41,6 @@ data class PostCreateForm(
             text = contentText,
             rating = contentRating,
         ),
-        images = PostImages(
-            urls = imagesUrls,
-        ),
+        images = PostImages(imageIds),
     )
 }

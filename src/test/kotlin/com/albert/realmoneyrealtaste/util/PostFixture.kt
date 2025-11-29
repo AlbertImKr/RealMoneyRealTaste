@@ -20,8 +20,7 @@ class PostFixture {
         const val DEFAULT_CONTENT_TEXT = "정말 맛있었어요! 강추합니다."
         const val DEFAULT_RATING = 5
         val DEFAULT_IMAGE_URLS = listOf(
-            "https://example.com/image1.jpg",
-            "https://example.com/image2.jpg"
+            1, 2L
         )
 
         val DEFAULT_AUTHOR = Author(
@@ -46,8 +45,7 @@ class PostFixture {
 
         fun createImages(count: Int): PostImages {
             return PostImages((1..count).map {
-                val randomId = (1000..9999).random() // 1000~9999 범위의 랜덤 숫자
-                "https://example.com/image$randomId.jpg"
+                it.toLong()
             })
         }
 

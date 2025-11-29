@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.friend
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import org.springframework.data.domain.Pageable

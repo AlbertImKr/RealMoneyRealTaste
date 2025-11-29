@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.follow
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowCreator
 import org.springframework.http.ResponseEntity

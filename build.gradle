@@ -5,6 +5,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.jetbrains.kotlin.plugin.jpa' version '2.1.21'
     id 'jacoco'
+    id 'org.flywaydb.flyway' version "11.18.0"
     id 'org.sonarqube' version '6.3.1.5724'
 }
 
@@ -30,27 +31,53 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
-    implementation 'io.github.wimdeblauwe:htmx-spring-boot:4.0.1'
-    implementation 'org.jetbrains.kotlin:kotlin-reflect'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:mysql'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'io.mockk:mockk:1.14.6'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+    // ==================== Spring Boot Core ====================
+    // Spring Boot 핵심 스타터들
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'         // JPA 및 데이터베이스 연동
+    implementation 'org.springframework.boot:spring-boot-starter-security'       // Spring Security 보안
+    implementation 'org.springframework.boot:spring-boot-starter-web'             // 웹 애플리케이션 (REST API)
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'       // Thymeleaf 템플릿 엔진
+    implementation 'org.springframework.boot:spring-boot-starter-validation'      // 입력값 검증
+    implementation 'org.springframework.boot:spring-boot-starter-mail'            // 이메일 발송
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'        // 애플리케이션 모니터링 및 헬스체크
+
+    // ==================== Security ====================
+    // Thymeleaf와 Spring Security 연동
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'         // Thymeleaf에서 Security 기능 사용
+
+    // ==================== Kotlin & JSON ====================
+    // Kotlin 관련 라이브러리
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'                          // Kotlin 리플렉션
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'           // JSON 직렬화/역직렬화
+
+    // ==================== Frontend Integration ====================
+    // 프론트엔드 연동 라이브러리
+    implementation 'io.github.wimdeblauwe:htmx-spring-boot:4.0.1'                  // HTMX Spring Boot 통합
+
+    // ==================== AWS Services ====================
+    // AWS 서비스 연동
+    implementation 'software.amazon.awssdk:s3:2.39.3'                              // AWS S3 스토리지
+    implementation 'software.amazon.awssdk:sts:2.39.3'                             // AWS STS (보안 토큰)
+    implementation 'software.amazon.awssdk:auth:2.39.3'                            // AWS 인증
+
+    // ==================== Database ====================
+    // 데이터베이스 드라이버 및 마이그레이션
+    implementation 'org.flywaydb:flyway-core'                                         // Flyway 데이터베이스 마이그레이션
+    implementation 'org.flywaydb:flyway-mysql'                                         // Flyway MySQL 지원
+    runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL JDBC 드라이버
+
+    // ==================== Testing ====================
+    // 테스트 관련 라이브러리
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'        // Spring Boot 테스트
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'      // Testcontainers
+    testImplementation 'org.springframework.security:spring-security-test'         // Spring Security 테스트
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'                  // Kotlin JUnit5 테스트
+    testImplementation 'org.testcontainers:junit-jupiter'                          // Testcontainers JUnit5
+    testImplementation 'org.testcontainers:mysql'                                  // Testcontainers MySQL
+    testImplementation 'org.testcontainers:localstack'                            // Testcontainers LocalStack
+    testImplementation 'io.mockk:mockk:1.14.6'                                     // Mocking 라이브러리
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'      // 코루틴 테스트
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'                  // JUnit 플랫폼 런처
 }
 
 kotlin {

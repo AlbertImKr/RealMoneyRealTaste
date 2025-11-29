@@ -1,14 +1,25 @@
 package com.albert.realmoneyrealtaste
 
+import com.albert.realmoneyrealtaste.adapter.infrastructure.s3.S3Config
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 import org.testcontainers.containers.MySQLContainer
+import org.testcontainers.containers.localstack.LocalStackContainer
 import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import java.time.Duration
 
 @TestConfiguration(proxyBeanMethods = false)
+@Testcontainers
 class TestcontainersConfiguration {
 
     @Bean
@@ -52,5 +63,67 @@ class TestcontainersConfiguration {
                         .withStartupTimeout(Duration.ofMinutes(3))
                 )
             }
+    }
+
+    @Bean
+    fun localStackContainer(): LocalStackContainer {
+        return LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
+            .apply {
+                withServices(LocalStackContainer.Service.S3)
+                withReuse(true)
+                withEnv("EXTRA_CORS_ALLOWED_ORIGINS", "http://localhost:8080")
+            }
+    }
+
+    @Bean
+    @Primary
+    fun testS3Config(localStackContainer: LocalStackContainer): S3Config {
+        return S3Config().apply {
+            accessKey = localStackContainer.accessKey
+            secretKey = localStackContainer.secretKey
+            region = localStackContainer.region
+            bucketName = "test-bucket"
+        }
+    }
+
+    @Bean
+    @Primary
+    fun testS3Client(testS3Config: S3Config, localStackContainer: LocalStackContainer): S3Client {
+        val s3Client = S3Client.builder()
+            .credentialsProvider(
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(testS3Config.accessKey, testS3Config.secretKey)
+                )
+            )
+            .region(Region.of(testS3Config.region))
+            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
+            .build()
+
+        // 테스트용 버킷 생성
+        createTestBucket(s3Client, testS3Config.bucketName)
+
+        return s3Client
+    }
+
+    @Bean
+    @Primary
+    fun testS3Presigner(testS3Config: S3Config, localStackContainer: LocalStackContainer): S3Presigner {
+        return S3Presigner.builder()
+            .credentialsProvider(
+                StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(testS3Config.accessKey, testS3Config.secretKey)
+                )
+            )
+            .region(Region.of(testS3Config.region))
+            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
+            .build()
+    }
+
+    private fun createTestBucket(s3Client: S3Client, bucketName: String) {
+        try {
+            s3Client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build())
+        } catch (e: Exception) {
+            // 버킷이 이미 존재하면 무시
+        }
     }
 }

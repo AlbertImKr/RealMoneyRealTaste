@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webapi.collection
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.adapter.webapi.collection.request.CollectionUpdateApiRequest
 import com.albert.realmoneyrealtaste.application.collection.provided.CollectionUpdater
 import jakarta.validation.Valid

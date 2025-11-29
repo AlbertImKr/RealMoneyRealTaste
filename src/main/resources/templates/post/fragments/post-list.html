@@ -12,17 +12,21 @@
                 <div class="card border h-100">
                     <!-- 게시글 이미지 -->
                     <div class="position-relative">
-                        <img class="card-img-top"
-                             style="height: 150px; object-fit: cover;"
-                             th:alt="${post.restaurant.name}"
-                             th:if="${post.images != null and !post.images.isEmpty()}"
-                             th:src="${post.images.getFirst()}">
-                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
-                             style="height: 150px;"
-                             th:unless="${post.images != null and !post.images.isEmpty()}">
-                            <i class="bi bi-image text-muted fa-2x"></i>
+                        <div hx-get="/images/carousel"
+                             hx-swap="innerHTML"
+                             hx-trigger="load"
+                             th:attr="hx-get='/images/carousel?imageIds=' + ${#strings.listJoin(post.images.imageIds, ',')}"
+                             th:hx-target="'#postImageCarousel'+${post.id}"
+                             th:id="'postImageCarousel'+${post.id}"
+                             th:if="${post.images != null and !post.images.imageIds.isEmpty()}">
+                            <!-- 이미지 캐러셀이 여기에 동적으로 로드됨 -->
+                            <div class="d-flex align-items-center justify-content-center bg-light"
+                                 style="height: 150px;">
+                                <output class="spinner-border spinner-border-sm text-primary">
+                                    <span class="visually-hidden">Loading...</span>
+                                </output>
+                            </div>
                         </div>
-
                         <!-- 평점 표시 -->
                         <div class="position-absolute top-0 start-0 m-2">
                             <span class="badge bg-dark bg-opacity-75">

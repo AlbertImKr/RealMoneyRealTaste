@@ -1,8 +1,9 @@
 package com.albert.realmoneyrealtaste.adapter.webview.friend
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.friend.dto.FriendResponseRequest
 import com.albert.realmoneyrealtaste.application.friend.dto.UnfriendRequest
+import com.albert.realmoneyrealtaste.application.friend.exception.FriendResponseException
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendRequestor
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendResponder
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
@@ -57,11 +58,15 @@ class FriendWriteView(
         @AuthenticationPrincipal principal: MemberPrincipal,
         model: Model,
     ): String {
-        val request = FriendResponseRequest(
-            friendshipId = friendshipId,
-            respondentMemberId = principal.id,
-            accept = accept
-        )
+        val request = try {
+            FriendResponseRequest(
+                friendshipId = friendshipId,
+                respondentMemberId = principal.id,
+                accept = accept
+            )
+        } catch (e: IllegalArgumentException) {
+            throw FriendResponseException("친구 요청을 수락할 수 없습니다.", e)
+        }
 
         val friendship = friendResponder.respondToFriendRequest(request)
 

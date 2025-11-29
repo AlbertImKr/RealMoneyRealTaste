@@ -45,7 +45,7 @@ class PostCreatorTest(
         assertEquals(request.restaurant.name, result.restaurant.name)
         assertEquals(request.content.text, result.content.text)
         assertEquals(request.content.rating, result.content.rating)
-        assertEquals(request.images.urls, result.images.urls)
+        assertEquals(request.images.imageIds, result.images.imageIds)
         assertEquals(PostStatus.PUBLISHED, result.status)
         assertEquals("안녕하세요!", result.author.introduction)
         assertEquals(0, result.heartCount)
@@ -79,17 +79,13 @@ class PostCreatorTest(
     @Test
     fun `createPost - success - creates post with multiple images`() {
         val member = testMemberHelper.createActivatedMember()
-        val imageUrls = listOf(
-            "https://example.com/image1.jpg",
-            "https://example.com/image2.jpg",
-            "https://example.com/image3.jpg"
-        )
+        val imageUrls = listOf(1L, 2, 3)
         val request = createPostRequest(images = PostImages(imageUrls))
 
         val result = postCreator.createPost(member.requireId(), request)
 
         assertEquals(3, result.images.size())
-        assertEquals(imageUrls, result.images.urls)
+        assertEquals(imageUrls, result.images.imageIds)
     }
 
     @Test
@@ -198,12 +194,7 @@ class PostCreatorTest(
             text = "정말 맛있는 맛집입니다!",
             rating = 5
         ),
-        images: PostImages = PostImages(
-            listOf(
-                "https://example.com/image1.jpg",
-                "https://example.com/image2.jpg"
-            )
-        ),
+        images: PostImages = PostImages(listOf(1, 2)),
     ): PostCreateRequest {
         return PostCreateRequest(
             restaurant = restaurant,

@@ -31,17 +31,60 @@
 ## 🌐 배포
 
 - **프로덕션**: https://rmrt.albert-im.com/
+- **인프라**: AWS 기반 컨테이너 오케스트레이션 (ECS, RDS, ALB)
+- **CI/CD**: GitHub Actions 기반 자동화 파이프라인
+
+### ☁️ 클라우드 아키텍처
+
+```
+┌─────────────────┐    ┌────────────────────┐    ┌────────────────────┐
+│   GitHub Actions│───▶│     AWS ECR        │───▶│   Amazon ECS       │
+│ (CI/CD Pipeline)│    │(Container Registry)│    │ (Container Service)│
+└─────────┬───────┘    └────────────────────┘    └────────┬───────────┘
+          │                                               │
+          │             ┌─────────────────┐               │
+          │             │  Amazon Route 53│ ◀─────────────┘
+          │             │ (DNS Management)│
+          │             └────────┬────────┘
+          │                      │
+          ▼                      ▼
+┌─────────────────┐     ┌─────────────────┐       ┌─────────────────┐
+│    SonarCloud   │     │   Application   │       │   Amazon RDS    │
+│  (Code Quality) │     │   Load Balancer │       │   (MySQL 8.0)   │
+└─────────────────┘     │      (ALB)      │       │   (Multi-AZ)    │
+                        └────────┬────────┘       └─────────────────┘
+                                 │                         │
+                                 ▼                         │
+                        ┌─────────────────┐                │
+                        │   ECS Cluster   │   ◀────────────┘
+                        │  (rmrt-cluster) │
+                        └────────┬────────┘
+                                 │
+                        ┌────────┴────────┐
+                        │    ECS Task     │
+                        │   (rmrt-task)   │
+                        └─────────────────┘
+                                 ▲
+                                 │
+                        ┌─────────────────┐
+                        │    CloudWatch   │
+                        │   (Monitoring)  │
+                        └─────────────────┘
+```
+
+### 📊 데이터베이스 구조
+
+![ERD 다이어그램](docs/erd.png)
 
 ## 📚 문서
 
 - [📋 도메인 요구사항](docs/DOMAIN_REQUIREMENTS.md)
 - [🏗 도메인 모델](docs/DOMAIN_MODEL.md)
 - [🏛 아키텍처](docs/ARCHITECTURE.md)
-- [📊 ERD 다이어그램](docs/erd.png)
 - [🚀 빠른 시작](docs/QUICK_START.md)
 - [📖 API 문서](docs/API_DOCUMENTATION.md)
 - [🧪 테스트 가이드](docs/TESTING_GUIDE.md)
-- [✅ TODO 로드맵](docs/TODO.md)
+- [✅ TODO 리스트](docs/TODO.md)
 
 ## 🚀 빠른 시작
 

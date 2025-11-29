@@ -1,6 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.follow
 
-import com.albert.realmoneyrealtaste.adapter.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import org.springframework.data.domain.Pageable
