@@ -101,69 +101,79 @@ RMRT 이미지 관리 시스템은 AWS S3 기반의 안전하고 확장 가능�
 
 ## 이미지 업로드 플로우
 
+### 전체 플로우
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Backend
+    participant S3 as AWS S3
+    Note over Client, S3: 1. Presigned URL 요청 단계
+    Client ->> Backend: POST /api/images/upload-request
+    Note right of Backend: 1. 사용자 검증<br/>2. 업로드 제한 확인<br/>3. 이미지 메타데이터 검증<br/>4. 파일 키 생성
+    Backend ->> S3: Presigned PUT URL 생성 요청
+    S3 -->> Backend: Presigned PUT URL
+    Backend -->> Client: PresignedPutResponse<br/>- uploadUrl<br/>- key<br/>- expiresAt<br/>- metadata
+    Note over Client, S3: 2. 이미지 업로드 단계
+    Client ->> S3: PUT {uploadUrl}<br/>with metadata headers
+    Note right of S3: 파일 저장
+    S3 -->> Client: 200 OK
+    Note over Client, S3: 3. 업로드 확인 단계
+    Client ->> Backend: POST /api/images/upload-confirm<br/>key={fileKey}
+    Note right of Backend: 1. Image 엔티티 생성<br/>2. DB 저장
+    Backend -->> Client: ImageUploadResult<br/>- success: true<br/>- imageId: 123
+```
+
 ### 1. Presigned URL 요청 단계
 
-```
-Client                    Backend                    AWS S3
-  │                          │                          │
-  │  POST /api/images/       │                          │
-  │  upload-request          │                          │
-  ├─────────────────────────▶│                          │
-  │                          │                          │
-  │                          │  1. 사용자 검증            │
-  │                          │  2. 업로드 제한 확인         │
-  │                          │  3. 이미지 메타데이터 검증    │
-  │                          │  4. 파일 키 생성            │
-  │                          │  5. Presigned PUT URL    │
-  │                          │     생성 요청              │
-  │                          ├─────────────────────────▶│
-  │                          │                          │
-  │                          │  Presigned PUT URL       │
-  │                          │◀─────────────────────────┤
-  │                          │                          │
-  │  PresignedPutResponse    │                          │
-  │  - uploadUrl             │                          │
-  │  - key                   │                          │
-  │  - expiresAt             │                          │
-  │  - metadata              │                          │
-  │◀─────────────────────────┤                          │
-  │                          │                          │
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Backend
+    participant S3 as AWS S3
+    Client ->> Backend: POST /api/images/upload-request
+    activate Backend
+    Note right of Backend: 사용자 검증
+    Note right of Backend: 업로드 제한 확인
+    Note right of Backend: 이미지 메타데이터 검증
+    Note right of Backend: 파일 키 생성
+    Backend ->> S3: Presigned PUT URL 생성 요청
+    activate S3
+    S3 -->> Backend: Presigned PUT URL
+    deactivate S3
+    Backend -->> Client: PresignedPutResponse<br/>- uploadUrl<br/>- key<br/>- expiresAt<br/>- metadata
+    deactivate Backend
 ```
 
 ### 2. 이미지 업로드 단계
 
-```
-Client                    Backend                    AWS S3
-  │                          │                          │
-  │  PUT {uploadUrl}         │                          │
-  │  with metadata headers   │                          │
-  ├────────────────────────────────────────────────────▶│
-  │                          │                          │
-  │                          │                          │  파일 저장
-  │                          │                          │
-  │  200 OK                  │                          │
-  │◀────────────────────────────────────────────────────┤
-  │                          │                          │
+```mermaid
+sequenceDiagram
+    participant Client
+    participant S3 as AWS S3
+    Client ->> S3: PUT {uploadUrl}<br/>with metadata headers
+    activate S3
+    Note right of S3: 파일 저장
+    S3 -->> Client: 200 OK
+    deactivate S3
 ```
 
 ### 3. 업로드 확인 단계
 
-```
-Client                    Backend                    AWS S3
-  │                          │                          │
-  │  POST /api/images/       │                          │
-  │  upload-confirm          │                          │
-  │  key={fileKey}           │                          │
-  ├─────────────────────────▶│                          │
-  │                          │                          │
-  │                          │  1. Image 엔티티 생성       │
-  │                          │  2. DB 저장               │
-  │                          │                          │
-  │  ImageUploadResult       │                          │
-  │  - success: true         │                          │
-  │  - imageId: 123          │                          │
-  │◀─────────────────────────┤                          │
-  │                          │                          │
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Backend
+    participant DB as Database
+    Client ->> Backend: POST /api/images/upload-confirm<br/>key={fileKey}
+    activate Backend
+    Backend ->> Backend: Image 엔티티 생성
+    Backend ->> DB: 이미지 메타데이터 저장
+    activate DB
+    DB -->> Backend: 저장 완료
+    deactivate DB
+    Backend -->> Client: ImageUploadResult<br/>- success: true<br/>- imageId: 123
+    deactivate Backend
 ```
 
 ## 데이터베이스 스키마
