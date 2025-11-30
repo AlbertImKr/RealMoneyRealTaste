@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
+import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
+import com.albert.realmoneyrealtaste.application.member.dto.SuggestedMembersResult
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class MemberReadService(
     private val memberRepository: MemberRepository,
+    private val followReader: FollowReader,
 ) : MemberReader {
 
     companion object {
@@ -61,5 +64,16 @@ class MemberReadService(
         limit: Long,
     ): List<Member> {
         return memberRepository.findSuggestedMembers(memberId, MemberStatus.ACTIVE, limit)
+    }
+
+    override fun findSuggestedMembersWithFollowStatus(
+        memberId: Long,
+        limit: Long,
+    ): SuggestedMembersResult {
+        val suggestedUsers = memberRepository.findSuggestedMembers(memberId, MemberStatus.ACTIVE, limit)
+        val targetIds = suggestedUsers.map { it.requireId() }
+        val followingIds = followReader.findFollowings(memberId, targetIds)
+
+        return SuggestedMembersResult(suggestedUsers, followingIds)
     }
 }

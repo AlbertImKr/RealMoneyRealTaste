@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.adapter.webview.post.form.PostCreateForm
-import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
@@ -30,7 +29,6 @@ class MemberView(
     private val memberUpdater: MemberUpdater,
     private val validator: PasswordUpdateFormValidator,
     private val passwordResetter: PasswordResetter,
-    private val followReader: FollowReader,
 ) {
 
     @GetMapping(MemberUrls.PROFILE)
@@ -232,12 +230,10 @@ class MemberView(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
         model: Model,
     ): String {
-        val suggestedUsers = memberReader.findSuggestedMembers(memberPrincipal.id, 5)
-        val targetIds = suggestedUsers.map { it.requireId() }
-        val followingIds = followReader.findFollowings(memberPrincipal.id, targetIds)
+        val result = memberReader.findSuggestedMembersWithFollowStatus(memberPrincipal.id, 5)
 
-        model.addAttribute("suggestedUsers", suggestedUsers)
-        model.addAttribute("followings", followingIds)
+        model.addAttribute("suggestedUsers", result.suggestedUsers)
+        model.addAttribute("followings", result.followingIds)
         model.addAttribute("member", memberPrincipal)
         return MemberViews.SUGGEST_USERS_SIDEBAR_CONTENT
     }
