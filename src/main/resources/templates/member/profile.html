@@ -90,23 +90,10 @@
                                     </div>
 
                                     <!-- 팔로우 버튼 -->
-                                    <div th:id="'follow-button-'+${author.id}">
-                                        <button class="btn btn-primary rounded-circle icon-md"
-                                                hx-swap="innerHTML"
-                                                th:attr="hx-delete='/members/' + ${author.id} + '/follow',
-                                                hx-target='#follow-button-'+${author.id}"
-                                                th:if="${isFollowing}"
-                                        >
-                                            <i class="bi bi-person-check-fill"></i>
-                                        </button>
-                                        <button class="btn btn-primary-soft rounded-circle icon-md"
-                                                hx-swap="innerHTML"
-                                                th:attr="hx-post='/members/' + ${author.id} + '/follow',
-                                                hx-target='#follow-button-'+${author.id}"
-                                                th:if="${!isFollowing}"
-                                        >
-                                            <i class="bi bi-person-plus-fill"></i>
-                                        </button>
+                                    <div hx-swap="innerHTML"
+                                         hx-trigger="load"
+                                         th:attr="hx-get=@{/follows/button/{id}(id=${author.id})}"
+                                         th:id="'follow-button-'+${author.id}">
                                     </div>
                                 </div>
 

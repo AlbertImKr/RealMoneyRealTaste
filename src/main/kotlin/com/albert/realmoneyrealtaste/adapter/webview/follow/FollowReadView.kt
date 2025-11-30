@@ -18,10 +18,31 @@ import org.springframework.web.bind.annotation.RequestParam
  * 팔로잉/팔로워 목록을 조회하는 웹 페이지를 제공합니다.
  */
 @Controller
-class FollowView(
+class FollowReadView(
     private val followReader: FollowReader,
     private val memberReader: MemberReader,
 ) {
+    /**
+     * 팔로우 버튼 Fragment
+     */
+    @GetMapping(FollowUrls.FOLLOW_BUTTON)
+    fun followButtonFragment(
+        @PathVariable authorId: Long,
+        @AuthenticationPrincipal principal: MemberPrincipal,
+        model: Model,
+    ): String {
+        // 현재 로그인한 사용자 정보
+        val currentMemberId = principal.id
+
+        // author 정보 조회
+        model.addAttribute("authorId", authorId)
+
+        val isFollowing = followReader.checkIsFollowing(currentMemberId, authorId)
+        model.addAttribute("isFollowing", isFollowing)
+
+        return FollowViews.FOLLOW_BUTTON
+    }
+
     /**
      * 내 팔로잉 목록 조회
      */

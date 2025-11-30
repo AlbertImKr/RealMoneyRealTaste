@@ -1,0 +1,13 @@
+<!-- 팔로우 버튼 Fragment -->
+<form class="d-flex flex-column align-items-center" th:attr="hx-target='#follow-button-'+${authorId},
+      hx-post='/members/'+${authorId}+'/follow',
+      hx-swap='innerHTML'"
+      th:fragment="create-button"
+>
+    <button class="btn btn-primary-soft rounded-circle icon-md" title="팔로우"
+            type="submit"
+    >
+        <i class="bi bi-person-plus-fill"></i>
+    </button>
+    <small class="text-muted d-block mt-1">팔로우</small>
+</form>
