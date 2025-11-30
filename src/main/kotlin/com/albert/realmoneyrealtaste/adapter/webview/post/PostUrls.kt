@@ -11,4 +11,6 @@ object PostUrls {
     const val REDIRECT_READ_DETAIL = "redirect:/posts/%d"
 
     const val READ_MY_LIST_FRAGMENT = "/posts/mine/fragment"
+    const val READ_MEMBER_POSTS_FRAGMENT = "/members/{id}/posts/fragment"
+    const val READ_COLLECTION_POSTS_FRAGMENT = "members/{authorId}/collections/{collectionId}/posts/fragment"
 }
