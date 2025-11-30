@@ -61,8 +61,7 @@ class FriendshipReaderTest(
         )
 
         // 친구 요청만 생성 (수락하지 않음)
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        friendRequestor.sendFriendRequest(command)
+        friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
 
         val result = friendshipReader.findActiveFriendship(member1.requireId(), member2.requireId())
 
@@ -97,8 +96,7 @@ class FriendshipReaderTest(
         )
 
         // 친구 요청 생성 (PENDING 상태)
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        val friendship = friendRequestor.sendFriendRequest(command)
+        val friendship = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
 
         val result = friendshipReader.sentedFriendRequest(member1.requireId(), member2.requireId())
 
@@ -121,8 +119,7 @@ class FriendshipReaderTest(
         )
 
         // 친구 요청 생성
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
-        val friendship = friendRequestor.sendFriendRequest(command)
+        val friendship = friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
 
         val result = friendshipReader.findPendingFriendshipReceived(receiver.requireId(), sender.requireId())
 
@@ -161,8 +158,7 @@ class FriendshipReaderTest(
             nickname = "byid2"
         )
 
-        val command = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        val friendship = friendRequestor.sendFriendRequest(command)
+        val friendship = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
 
         val result = friendshipReader.findFriendshipById(friendship.requireId())
 
@@ -216,10 +212,8 @@ class FriendshipReaderTest(
         )
 
         // 두 개의 친구 요청 생성
-        val command1 = FriendRequestCommand(sender1.requireId(), receiver.requireId(), receiver.nickname.value)
-        val command2 = FriendRequestCommand(sender2.requireId(), receiver.requireId(), receiver.nickname.value)
-        friendRequestor.sendFriendRequest(command1)
-        friendRequestor.sendFriendRequest(command2)
+        friendRequestor.sendFriendRequest(sender1.requireId(), receiver.requireId())
+        friendRequestor.sendFriendRequest(sender2.requireId(), receiver.requireId())
 
         val pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending())
         val result = friendshipReader.findPendingRequestsReceived(receiver.requireId(), pageable)
@@ -248,10 +242,8 @@ class FriendshipReaderTest(
         )
 
         // 두 개의 친구 요청 생성
-        val command1 = FriendRequestCommand(sender.requireId(), receiver1.requireId(), receiver1.nickname.value)
-        val command2 = FriendRequestCommand(sender.requireId(), receiver2.requireId(), receiver2.nickname.value)
-        friendRequestor.sendFriendRequest(command1)
-        friendRequestor.sendFriendRequest(command2)
+        friendRequestor.sendFriendRequest(sender.requireId(), receiver1.requireId())
+        friendRequestor.sendFriendRequest(sender.requireId(), receiver2.requireId())
 
         val pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending())
         val result = friendshipReader.findPendingRequestsSent(sender.requireId(), pageable)
@@ -274,9 +266,7 @@ class FriendshipReaderTest(
             nickname = "exists2"
         )
 
-        val friendRequestCommand =
-            FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        val friendship = friendRequestor.sendFriendRequest(friendRequestCommand)
+        val friendship = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
         val friendResponseRequest = FriendResponseRequest(friendship.requireId(), member2.requireId(), true)
         friendResponder.respondToFriendRequest(friendResponseRequest)
 
@@ -355,8 +345,7 @@ class FriendshipReaderTest(
 
         // 하나는 수락, 하나는 대기 상태로 유지
         createAcceptedFriendship(friend1.requireId(), member.requireId(), member.nickname.value)
-        val command2 = FriendRequestCommand(friend2.requireId(), member.requireId(), member.nickname.value)
-        friendRequestor.sendFriendRequest(command2)
+        friendRequestor.sendFriendRequest(friend2.requireId(), member.requireId())
 
         val pageable = PageRequest.of(0, 10)
         val result = friendshipReader.findFriendsByMemberId(member.requireId(), pageable)
@@ -368,8 +357,8 @@ class FriendshipReaderTest(
     }
 
     private fun createAcceptedFriendship(fromMemberId: Long, toMemberId: Long, toMemberNickname: String): Friendship {
-        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
-        val friendship = friendRequestor.sendFriendRequest(command)
+        FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
+        val friendship = friendRequestor.sendFriendRequest(fromMemberId, toMemberId)
 
         val response = FriendResponseRequest(
             friendshipId = friendship.requireId(),
@@ -470,8 +459,7 @@ class FriendshipReaderTest(
 
         // 하나는 수락, 하나는 대기 상태
         createAcceptedFriendship(friend1.requireId(), member.requireId(), member.nickname.value)
-        val command2 = FriendRequestCommand(friend2.requireId(), member.requireId(), member.nickname.value)
-        friendRequestor.sendFriendRequest(command2)
+        friendRequestor.sendFriendRequest(friend2.requireId(), member.requireId())
 
         val result = friendshipReader.countFriendsByMemberId(member.requireId())
 
@@ -500,7 +488,7 @@ class FriendshipReaderTest(
         createAcceptedFriendship(targetFriend1.requireId(), member.requireId(), member.nickname.value)
         createAcceptedFriendship(targetFriend2.requireId(), member.requireId(), member.nickname.value)
         createAcceptedFriendship(otherFriend.requireId(), member.requireId(), member.nickname.value)
-        val result1 = friendshipReader.findFriendsByMemberId(member.requireId(), PageRequest.of(0, 10))
+        friendshipReader.findFriendsByMemberId(member.requireId(), PageRequest.of(0, 10))
 
         val pageable = PageRequest.of(0, 10)
         val result = friendshipReader.searchFriends(member.requireId(), "search", pageable)
@@ -622,8 +610,7 @@ class FriendshipReaderTest(
 
         // 받은 친구 요청 생성
         senders.forEach { sender ->
-            val command = FriendRequestCommand(sender.requireId(), member.requireId(), member.nickname.value)
-            friendRequestor.sendFriendRequest(command)
+            friendRequestor.sendFriendRequest(sender.requireId(), member.requireId())
         }
 
         val result = friendshipReader.countPendingRequests(member.requireId())
@@ -659,8 +646,7 @@ class FriendshipReaderTest(
         )
 
         // 하나는 대기 상태, 하나는 수락
-        val command1 = FriendRequestCommand(sender1.requireId(), member.requireId(), member.nickname.value)
-        friendRequestor.sendFriendRequest(command1)
+        friendRequestor.sendFriendRequest(sender1.requireId(), member.requireId())
         createAcceptedFriendship(sender2.requireId(), member.requireId(), member.nickname.value)
 
         val result = friendshipReader.countPendingRequests(member.requireId())
@@ -682,8 +668,7 @@ class FriendshipReaderTest(
         }
 
         val friendships = senders.map { sender ->
-            val command = FriendRequestCommand(sender.requireId(), member.requireId(), member.nickname.value)
-            friendRequestor.sendFriendRequest(command)
+            friendRequestor.sendFriendRequest(sender.requireId(), member.requireId())
         }
 
         val pageable = PageRequest.of(0, 10)

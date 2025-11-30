@@ -129,4 +129,12 @@ class FriendshipReadService(
                 )
             }
     }
+
+    override fun isSent(memberId: Long, friendMemberId: Long): Boolean {
+        return friendshipRepository.existsByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+            memberId,
+            friendMemberId,
+            FriendshipStatus.PENDING
+        )
+    }
 }

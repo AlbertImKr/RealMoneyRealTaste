@@ -7,7 +7,6 @@ import com.albert.realmoneyrealtaste.application.friend.provided.FriendResponder
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
-import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestRejectedEvent
 import com.albert.realmoneyrealtaste.domain.member.Member
@@ -81,13 +80,8 @@ class FriendResponseService(
     }
 
     private fun createReverseFriendship(fromMemberId: Long, toMember: Member) {
-        val reverseFriendship = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(
-                fromMemberId = fromMemberId,
-                toMemberId = toMember.requireId(),
-                toMemberNickname = toMember.nickname.value,
-            )
-        )
+        val reverseFriendship =
+            friendRequestor.sendFriendRequest(fromMemberId = fromMemberId, toMemberId = toMember.requireId())
         reverseFriendship.accept() // 즉시 수락 상태로 설정
     }
 }

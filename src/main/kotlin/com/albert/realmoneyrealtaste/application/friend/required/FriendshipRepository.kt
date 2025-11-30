@@ -162,4 +162,10 @@ interface FriendshipRepository : Repository<Friendship, Long> {
         status: FriendshipStatus,
         pageable: Pageable,
     ): Page<Friendship>
+
+    fun existsByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+        memberId: Long,
+        friendMemberId: Long,
+        status: FriendshipStatus,
+    ): Boolean
 }

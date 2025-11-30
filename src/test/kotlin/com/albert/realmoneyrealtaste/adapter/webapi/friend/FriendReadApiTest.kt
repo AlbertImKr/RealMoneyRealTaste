@@ -4,7 +4,6 @@ import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.friend.dto.FriendResponseRequest
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendRequestor
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendResponder
-import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import com.albert.realmoneyrealtaste.util.WithMockMember
 import org.junit.jupiter.api.Test
@@ -37,15 +36,13 @@ class FriendReadApiTest : IntegrationTestBase() {
         val friend2 = testMemberHelper.createActivatedMember("friend2@example.com", "friend2")
 
         // 친구 관계 설정 (targetMember가 친구 요청을 보내고 수락받음)
-        val friendRequest1 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend1.requireId(), friend1.nickname.value)
-        )
+        val friendRequest1 = friendRequestor.sendFriendRequest(targetMember.requireId(), friend1.requireId())
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest1.requireId(), friend1.requireId(), true)
         )
 
         val friendRequest2 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend2.requireId(), friend2.nickname.value)
+            targetMember.requireId(), friend2.requireId()
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest2.requireId(), friend2.requireId(), true)
@@ -85,7 +82,7 @@ class FriendReadApiTest : IntegrationTestBase() {
         repeat(5) { index ->
             val friend = testMemberHelper.createActivatedMember("friend$index@example.com", "friend$index")
             val friendRequest = friendRequestor.sendFriendRequest(
-                FriendRequestCommand(targetMember.requireId(), friend.requireId(), friend.nickname.value)
+                targetMember.requireId(), friend.requireId()
             )
             friendResponder.respondToFriendRequest(
                 FriendResponseRequest(friendRequest.requireId(), friend.requireId(), true)
@@ -112,7 +109,7 @@ class FriendReadApiTest : IntegrationTestBase() {
 
         // 먼저 friend1과 친구 관계 설정
         val friendRequest1 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend1.requireId(), friend1.nickname.value)
+            targetMember.requireId(), friend1.requireId()
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest1.requireId(), friend1.requireId(), true)
@@ -121,7 +118,7 @@ class FriendReadApiTest : IntegrationTestBase() {
         // 잠시 후 friend2와 친구 관계 설정
         Thread.sleep(100) // 시간 차이를 위해
         val friendRequest2 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend2.requireId(), friend2.nickname.value)
+            targetMember.requireId(), friend2.requireId()
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest2.requireId(), friend2.requireId(), true)
@@ -157,14 +154,14 @@ class FriendReadApiTest : IntegrationTestBase() {
 
         // 친구 관계 설정
         val friendRequest1 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend1.requireId(), friend1.nickname.value)
+            targetMember.requireId(), friend1.requireId()
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest1.requireId(), friend1.requireId(), true)
         )
 
         val friendRequest2 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend2.requireId(), friend2.nickname.value)
+            targetMember.requireId(), friend2.requireId(),
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest2.requireId(), friend2.requireId(), true)
@@ -205,7 +202,7 @@ class FriendReadApiTest : IntegrationTestBase() {
 
         // friend1과는 친구 관계 완료
         val friendRequest1 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend1.requireId(), friend1.nickname.value)
+            targetMember.requireId(), friend1.requireId(),
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest1.requireId(), friend1.requireId(), true)
@@ -213,7 +210,7 @@ class FriendReadApiTest : IntegrationTestBase() {
 
         // friend2에게는 친구 요청만 보내고 수락받지 않음
         friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend2.requireId(), friend2.nickname.value)
+            targetMember.requireId(), friend2.requireId()
         )
 
         mockMvc.perform(get("/api/members/${targetMember.requireId()}/friends"))
@@ -234,7 +231,7 @@ class FriendReadApiTest : IntegrationTestBase() {
 
         // friend1과는 친구 관계 완료
         val friendRequest1 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend1.requireId(), friend1.nickname.value)
+            targetMember.requireId(), friend1.requireId(),
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest1.requireId(), friend1.requireId(), true)
@@ -242,7 +239,7 @@ class FriendReadApiTest : IntegrationTestBase() {
 
         // friend2의 요청은 거절됨
         val friendRequest2 = friendRequestor.sendFriendRequest(
-            FriendRequestCommand(targetMember.requireId(), friend2.requireId(), friend2.nickname.value)
+            targetMember.requireId(), friend2.requireId(),
         )
         friendResponder.respondToFriendRequest(
             FriendResponseRequest(friendRequest2.requireId(), friend2.requireId(), false)

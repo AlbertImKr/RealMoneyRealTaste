@@ -26,8 +26,15 @@ class FriendRequestService(
         const val ERROR_FRIEND_REQUEST_FAILED = "친구 요청에 실패했습니다."
     }
 
-    override fun sendFriendRequest(command: FriendRequestCommand): Friendship {
+    override fun sendFriendRequest(fromMemberId: Long, toMemberId: Long): Friendship {
         try {
+            val toMember = memberReader.readActiveMemberById(toMemberId)
+
+            val command = FriendRequestCommand(
+                fromMemberId = fromMemberId,
+                toMemberId = toMemberId,
+                toMemberNickname = toMember.nickname.value
+            )
             // 요청자와 대상자가 모두 활성 회원인지 확인
             validateMembersExist(command)
 

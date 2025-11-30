@@ -73,4 +73,19 @@ class FriendReadView(
 
         return FriendViews.FRIEND_REQUESTS
     }
+
+    @GetMapping(FriendUrls.FRIEND_BUTTON)
+    fun readFriendButton(
+        @AuthenticationPrincipal principal: MemberPrincipal,
+        @PathVariable authorId: Long,
+        model: Model,
+    ): String {
+        val isFriend = friendshipReader.isFriend(principal.id, authorId)
+        val hasSentFriendRequest = friendshipReader.isSent(principal.id, authorId)
+
+        model.addAttribute("authorId", authorId)
+        model.addAttribute("isFriend", isFriend)
+        model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
+        return FriendViews.FRIEND_BUTTON
+    }
 }

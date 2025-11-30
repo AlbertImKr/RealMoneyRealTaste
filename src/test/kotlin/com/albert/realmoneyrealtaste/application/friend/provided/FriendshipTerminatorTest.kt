@@ -7,7 +7,6 @@ import com.albert.realmoneyrealtaste.application.friend.exception.UnfriendExcept
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
-import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendshipTerminatedEvent
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import io.mockk.every
@@ -261,8 +260,7 @@ class FriendshipTerminatorTest(
         )
 
         // 친구 요청만 생성 (수락하지 않음)
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
-        friendRequestor.sendFriendRequest(command)
+        friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
 
         // PENDING 상태의 친구 요청에 대해 해제 시도
         val request = UnfriendRequest(
@@ -310,8 +308,7 @@ class FriendshipTerminatorTest(
         )
 
         // 친구 요청 생성 후 거절
-        val command = FriendRequestCommand(sender.requireId(), receiver.requireId(), receiver.nickname.value)
-        val friendship = friendRequestor.sendFriendRequest(command)
+        val friendship = friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
         val response = FriendResponseRequest(
             friendshipId = friendship.requireId(),
             respondentMemberId = receiver.requireId(),
@@ -478,8 +475,7 @@ class FriendshipTerminatorTest(
 
     private fun createAcceptedFriendship(fromMemberId: Long, toMemberId: Long): Friendship {
         // 친구 요청 생성
-        val command = FriendRequestCommand(fromMemberId, toMemberId, "testUser")
-        val friendship = friendRequestor.sendFriendRequest(command)
+        val friendship = friendRequestor.sendFriendRequest(fromMemberId, toMemberId)
 
         // 친구 요청 수락
         val response = FriendResponseRequest(

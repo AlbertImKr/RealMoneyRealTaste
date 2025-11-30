@@ -83,7 +83,11 @@
                                 <div class="d-flex ms-auto gap-2" sec:authorize="isAuthenticated()"
                                      th:if="${member?.email?.address != author?.email?.address}">
                                     <!-- 친구 버튼 -->
-                                    <div th:replace="~{friend/fragments/friend-button :: friend-button}"></div>
+                                    <div hx-swap="innerHTML"
+                                         hx-trigger="load"
+                                         th:attr="hx-get=@{/friendships/button/{id}(id=${author.id})}"
+                                         th:id="'friend-button-'+${author.id}">
+                                    </div>
 
                                     <!-- 팔로우 버튼 -->
                                     <div th:id="'follow-button-'+${author.id}">
