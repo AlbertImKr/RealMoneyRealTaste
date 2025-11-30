@@ -33,19 +33,15 @@ class HomeView(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
     ): String {
         model.addAttribute("postCreateForm", PostCreateForm())
+        model.addAttribute("member", memberPrincipal)
 
         val posts = addPosts(pageable, model)
 
         val postIds = posts.content.map { it.requireId() }
 
+
         if (memberPrincipal != null) {
             val memberId = memberPrincipal.id
-            // 사용자 정보 추가
-            addMemberInfo(memberId, model)
-
-            // 사용자 통계 정보 추가
-            addMemberStats(model, memberId)
-
             // 좋아요 정보 추가
             addHeartsStats(memberId, postIds, model)
 
@@ -69,11 +65,6 @@ class HomeView(
         return posts
     }
 
-    private fun addMemberInfo(memberId: Long, model: Model) {
-        val member = memberReader.readMemberById(memberId)
-        model.addAttribute("member", member)
-    }
-
     private fun addHeartsStats(
         memberId: Long,
         postIds: List<Long>,
@@ -82,14 +73,6 @@ class HomeView(
         val hearts = postHeartReader.findByMemberIdAndPostIds(memberId, postIds)
             .map(PostHeart::postId)
         model.addAttribute("hearts", hearts)
-    }
-
-    private fun addMemberStats(model: Model, memberId: Long) {
-        val followStats = followReader.getFollowStats(memberId)
-        model.addAttribute("followStats", followStats)
-
-        val postCount = postReader.countPostsByMemberId(memberId)
-        model.addAttribute("postCount", postCount)
     }
 
     private fun addSuggestedMembers(model: Model, memberId: Long): List<Member> {

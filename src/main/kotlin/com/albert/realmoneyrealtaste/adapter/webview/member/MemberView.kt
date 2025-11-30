@@ -8,6 +8,7 @@ import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetter
+import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import jakarta.servlet.http.HttpServletRequest
@@ -33,6 +34,7 @@ class MemberView(
     private val passwordResetter: PasswordResetter,
     private val followReader: FollowReader,
     private val friendshipReader: FriendshipReader,
+    private val postReader: PostReader,
 ) {
 
     @GetMapping(MemberUrls.PROFILE)
@@ -258,5 +260,34 @@ class MemberView(
         model.addAttribute("followings", followingIds)
         model.addAttribute("member", memberPrincipal)
         return MemberViews.SUGGEST_USERS_SIDEBAR_CONTENT
+    }
+
+    @GetMapping("/fragments/member-profile")
+    fun memberProfileFragment(
+        model: Model,
+        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
+    ): String {
+        val memberId = memberPrincipal.id
+
+        // 사용자 정보 추가
+        addMemberInfo(memberId, model)
+
+        // 사용자 통계 정보 추가
+        addMemberStats(model, memberId)
+
+        return "member/fragments/member-profile :: memberProfile"
+    }
+
+    private fun addMemberInfo(memberId: Long, model: Model) {
+        val member = memberReader.readMemberById(memberId)
+        model.addAttribute("member", member)
+    }
+
+    private fun addMemberStats(model: Model, memberId: Long) {
+        val followStats = followReader.getFollowStats(memberId)
+        model.addAttribute("followStats", followStats)
+
+        val postCount = postReader.countPostsByMemberId(memberId)
+        model.addAttribute("postCount", postCount)
     }
 }
