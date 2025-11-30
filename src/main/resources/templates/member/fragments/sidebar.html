@@ -17,8 +17,9 @@
                     <h5 class="card-title mb-0">추천 푸디</h5>
                 </div>
                 <!-- Card header END -->
-                <!-- Card body START -->
-                <div class="card-body">
+
+                <!-- 추천 푸디 START -->
+                <div class="card-body" th:unless="${suggestedUsers.isEmpty()}">
                     <!-- Connection items START -->
                     <th:block th:each="user : ${suggestedUsers}">
                         <div class="hstack gap-2 mb-3">
@@ -64,7 +65,20 @@
                     </th:block>
                     <!-- Connection items END -->
                 </div>
-                <!-- Card body END -->
+                <!-- 추천 푸디 END -->
+
+                <!-- 푸디가 없을 때 START -->
+                <div class="card-body" th:if="${suggestedUsers.isEmpty()}">
+                    <p class="text-center">아직 추천 푸디가 없습니다. <i class="fa-solid fa-sad-cry text-primary"></i></p>
+                </div>
+                <!-- 푸디가 없을 때 END -->
+
+
+                <!-- 더 많은 푸디 보러가기 START -->
+                <div class="card-footer" th:unless="${suggestedUsers.isEmpty()}">
+                    <a class="btn btn-primary btn-sm" th:href="@{/members/suggested}">See more</a>
+                </div>
+                <!-- 더 많은 푸디 보러가기 END -->
             </div>
         </div>
         <!-- Card follow END -->

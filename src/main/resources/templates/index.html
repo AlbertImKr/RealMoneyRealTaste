@@ -59,8 +59,12 @@
                                     <!-- 로그인된 경우: 프로필 정보 표시 -->
                                     <div th:if="${member != null}">
                                         <div class="card-body pt-0" hx-get="/fragments/member-profile" hx-swap="innerHTML"
-                                             hx-trigger="load">
+                                             hx-indicator="#member-profile-indicator" hx-trigger="load">
                                             <!-- htmx를 통해 member profile fragment가 동적으로 로드됩니다 -->
+                                        </div>
+                                        <div class="htmx-indicator" id="member-profile-indicator">
+                                            <div class="spinner-border text-primary"></div>
+                                            <p class="mt-2 text-muted">불러오는 중...</p>
                                         </div>
                                     </div>
 
