@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.adapter.webview.post.PostCreateForm
+import com.albert.realmoneyrealtaste.adapter.webview.post.form.PostCreateForm
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model

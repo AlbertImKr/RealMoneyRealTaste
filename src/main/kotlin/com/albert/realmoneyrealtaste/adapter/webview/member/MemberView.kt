@@ -1,7 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.adapter.webview.post.PostCreateForm
+import com.albert.realmoneyrealtaste.adapter.webview.post.form.PostCreateForm
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate

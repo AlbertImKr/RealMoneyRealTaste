@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.webview.post
+package com.albert.realmoneyrealtaste.adapter.webview.post.form
 
 import com.albert.realmoneyrealtaste.application.post.dto.PostCreateRequest
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
