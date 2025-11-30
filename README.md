@@ -24,9 +24,10 @@
 
 ## 🛠 기술 스택
 
-**Backend**: Kotlin, Spring Boot, JPA, MySQL  
-**Testing**: JUnit5, MockK, Testcontainers  
-**DevOps**: Docker, GitHub Actions, SonarCloud
+**Backend**: Kotlin, Spring Boot, JPA, MySQL \
+**Cloud**: AWS (S3, ECS, RDS, Route53, ALB) \
+**Testing**: JUnit5, MockK, Testcontainers, LocalStack \
+**DevOps**: Docker, GitHub Actions, SonarCloud, Flyway
 
 ## 🌐 배포
 
@@ -66,10 +67,13 @@
                         └─────────────────┘
                                  ▲
                                  │
-                        ┌─────────────────┐
-                        │    CloudWatch   │
-                        │   (Monitoring)  │
-                        └─────────────────┘
+                        ┌────────┴────────┐
+                        ▼                 ▼
+                ┌─────────────┐   ┌─────────────────┐
+                │  Amazon S3  │   │   CloudWatch    │
+                │   (Image    │   │  (Monitoring)   │
+                │   Storage)  │   └─────────────────┘
+                └─────────────┘
 ```
 
 ### 📊 데이터베이스 구조
@@ -83,6 +87,8 @@
 - [🏛 아키텍처](docs/ARCHITECTURE.md)
 - [🚀 빠른 시작](docs/QUICK_START.md)
 - [📖 API 문서](docs/API_DOCUMENTATION.md)
+-
+    - [📷 이미지 관리 시스템](docs/IMAGE_MANAGEMENT.md)
 - [🧪 테스트 가이드](docs/TESTING_GUIDE.md)
 - [✅ TODO 리스트](docs/TODO.md)
 
