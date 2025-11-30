@@ -3,12 +3,10 @@ package com.albert.realmoneyrealtaste.adapter.webview.member
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.adapter.webview.post.form.PostCreateForm
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
-import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberActivate
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberUpdater
 import com.albert.realmoneyrealtaste.application.member.provided.PasswordResetter
-import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 import jakarta.servlet.http.HttpServletRequest
@@ -33,8 +31,6 @@ class MemberView(
     private val validator: PasswordUpdateFormValidator,
     private val passwordResetter: PasswordResetter,
     private val followReader: FollowReader,
-    private val friendshipReader: FriendshipReader,
-    private val postReader: PostReader,
 ) {
 
     @GetMapping(MemberUrls.PROFILE)
@@ -48,22 +44,6 @@ class MemberView(
         model.addAttribute("author", profileMember) // 프로필 주인
         model.addAttribute("member", principal) // 현재 로그인한 사용자
         model.addAttribute("postCreateForm", PostCreateForm())
-
-        // 팔로우 및 친구 관계 상태 확인
-        if (principal != null && principal.id != id) {
-            val followingIds = followReader.findFollowings(principal.id, listOf(id))
-            model.addAttribute("isFollowing", followingIds.contains(id))
-
-            // 친구 관계 상태 확인
-            val isFriend = friendshipReader.isFriend(principal.id, id)
-            model.addAttribute("isFriend", isFriend)
-
-            // 친구 요청을 보냈는지 확인 (내가 보낸 요청이 대기 중인지)
-            val friendship = friendshipReader.sentedFriendRequest(principal.id, id)
-            val hasSentFriendRequest = friendship != null
-            model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
-        }
-
         return MemberViews.PROFILE
     }
 
@@ -270,24 +250,15 @@ class MemberView(
         val memberId = memberPrincipal.id
 
         // 사용자 정보 추가
-        addMemberInfo(memberId, model)
-
-        // 사용자 통계 정보 추가
-        addMemberStats(model, memberId)
-
-        return "member/fragments/member-profile :: memberProfile"
-    }
-
-    private fun addMemberInfo(memberId: Long, model: Model) {
         val member = memberReader.readMemberById(memberId)
         model.addAttribute("member", member)
-    }
 
-    private fun addMemberStats(model: Model, memberId: Long) {
-        val followStats = followReader.getFollowStats(memberId)
-        model.addAttribute("followStats", followStats)
+        // 사용자 통계 정보 추가
+        model.addAttribute("followersCount", member.followersCount)
+        model.addAttribute("followingCount", member.followingsCount)
 
-        val postCount = postReader.countPostsByMemberId(memberId)
-        model.addAttribute("postCount", postCount)
+        model.addAttribute("postCount", member.postCount)
+
+        return "member/fragments/member-profile :: memberProfile"
     }
 }

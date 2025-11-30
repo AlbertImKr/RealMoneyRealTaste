@@ -26,7 +26,7 @@
             <!-- User stat item -->
             <div>
                 <h6 class="mb-0"
-                    th:text="${followStats != null ? followStats.followersCount : 0}">
+                    th:text="${followersCount}">
                     0</h6>
                 <small>Followers</small>
             </div>
@@ -35,7 +35,7 @@
             <!-- User stat item -->
             <div>
                 <h6 class="mb-0"
-                    th:text="${followStats != null ? followStats.followingCount : 0}">
+                    th:text="${followingCount}">
                     0</h6>
                 <small>Following</small>
             </div>

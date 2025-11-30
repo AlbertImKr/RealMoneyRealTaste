@@ -51,6 +51,8 @@ class Member protected constructor(
     followersCount: Long,
 
     followingsCount: Long,
+
+    postCount: Long,
 ) : BaseEntity() {
 
     @Embedded
@@ -93,6 +95,10 @@ class Member protected constructor(
 
     @Column(name = "following_count", nullable = false)
     var followingsCount: Long = followingsCount
+        protected set
+
+    @Column(name = "post_count", nullable = false)
+    var postCount: Long = postCount
         protected set
 
     fun activate() {
@@ -205,6 +211,7 @@ class Member protected constructor(
             roles = Roles.ofUser(),
             followersCount = 0L,
             followingsCount = 0L,
+            postCount = 0L,
         )
 
         fun registerManager(
@@ -222,6 +229,7 @@ class Member protected constructor(
             roles = Roles.of(Role.USER, Role.MANAGER),
             followersCount = 0L,
             followingsCount = 0L,
+            postCount = 0L,
         )
 
         fun registerAdmin(
@@ -239,6 +247,7 @@ class Member protected constructor(
             roles = Roles.of(Role.USER, Role.ADMIN),
             followersCount = 0L,
             followingsCount = 0L,
+            postCount = 0L,
         )
     }
 }

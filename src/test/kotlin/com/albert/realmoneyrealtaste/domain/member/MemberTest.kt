@@ -530,6 +530,7 @@ class MemberTest {
         roles = Roles.ofUser(),
         followersCount = 0,
         followingsCount = 0,
+        postCount = 0,
     ) {
         fun setEmailForTest(email: Email) {
             this.email = email
