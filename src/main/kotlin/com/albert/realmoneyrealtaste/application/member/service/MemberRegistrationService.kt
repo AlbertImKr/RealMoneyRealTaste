@@ -44,7 +44,7 @@ class MemberRegistrationService(
 
             return savedMember
         } catch (e: IllegalArgumentException) {
-            throw MemberRegisterException(ERROR_MEMBER_REGISTRATION_FAILED, e)
+            throw MemberRegisterException(ERROR_MEMBER_REGISTRATION_FAILED)
         }
     }
 

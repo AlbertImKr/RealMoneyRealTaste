@@ -32,7 +32,7 @@ class MemberVerifyService(
 
             return MemberPrincipal.from(member)
         } catch (e: IllegalArgumentException) {
-            throw MemberVerifyException(ERROR_MEMBER_VERIFY, e)
+            throw MemberVerifyException(ERROR_MEMBER_VERIFY)
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
+import com.albert.realmoneyrealtaste.adapter.webview.member.form.PasswordUpdateForm
+import com.albert.realmoneyrealtaste.adapter.webview.member.validator.PasswordUpdateFormValidator
 import org.springframework.validation.BeanPropertyBindingResult
 import kotlin.test.Test
 import kotlin.test.assertEquals

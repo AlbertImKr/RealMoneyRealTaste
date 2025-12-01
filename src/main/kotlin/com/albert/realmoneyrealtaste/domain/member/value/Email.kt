@@ -2,10 +2,14 @@ package com.albert.realmoneyrealtaste.domain.member.value
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
 import org.hibernate.annotations.NaturalId
 
 @Embeddable
 data class Email(
+    @field:NotBlank(message = "이메일은 필수입니다")
+    @field:Email(message = "올바른 이메일 형식이 아닙니다")
     @NaturalId
     @Column(name = COLUMN_NAME, nullable = false, unique = true)
     val address: String,

@@ -25,6 +25,7 @@ class MemberUpdateService(
         private const val ERROR_MEMBER_INFO_UPDATE = "회원 정보 업데이트 중 오류가 발생했습니다"
         private const val ERROR_PASSWORD_UPDATE = "비밀번호 변경 중 오류가 발생했습니다"
         private const val ERROR_MEMBER_DEACTIVATE = "회원 탈퇴 중 오류가 발생했습니다"
+        private const val ERROR_DUPLICATE_PROFILE_ADDRESS = "프로필 주소가 중복되었습니다."
     }
 
     override fun updateInfo(
@@ -48,7 +49,7 @@ class MemberUpdateService(
 
             return member
         } catch (e: IllegalArgumentException) {
-            throw MemberUpdateException(ERROR_MEMBER_INFO_UPDATE, e)
+            throw MemberUpdateException(ERROR_MEMBER_INFO_UPDATE)
         }
     }
 
@@ -64,20 +65,19 @@ class MemberUpdateService(
 
             return member
         } catch (e: IllegalArgumentException) {
-            throw PasswordChangeException(ERROR_PASSWORD_UPDATE, e)
+            throw PasswordChangeException(ERROR_PASSWORD_UPDATE)
         }
     }
 
     override fun deactivate(memberId: Long): Member {
         try {
-
             val member = memberReader.readMemberById(memberId)
 
             member.deactivate()
 
             return member
         } catch (e: IllegalArgumentException) {
-            throw MemberDeactivateException(ERROR_MEMBER_DEACTIVATE, e)
+            throw MemberDeactivateException(ERROR_MEMBER_DEACTIVATE)
         }
     }
 
@@ -89,7 +89,7 @@ class MemberUpdateService(
     private fun validateProfileAddressNotDuplicated(profileAddress: ProfileAddress) {
         profileAddress.let {
             if (memberReader.existsByDetailProfileAddress(it)) {
-                throw DuplicateProfileAddressException()
+                throw DuplicateProfileAddressException(ERROR_DUPLICATE_PROFILE_ADDRESS)
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.webview.member
+package com.albert.realmoneyrealtaste.adapter.webview.member.form
 
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
@@ -7,6 +7,9 @@ import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
+/**
+ * 계정 정보 업데이트 폼
+ */
 data class AccountUpdateForm(
     @field:NotBlank(message = "닉네임을 입력해주세요.")
     @field:Size(min = 2, max = 20, message = "닉네임은 2자 이상 20자 이하로 입력해주세요.")
@@ -18,6 +21,9 @@ data class AccountUpdateForm(
     @field:Size(max = 500, message = "소개글은 최대 500자까지 입력 가능합니다.")
     val introduction: String?,
 ) {
+    /**
+     * AccountUpdateRequest로 변환
+     */
     fun toAccountUpdateRequest(): AccountUpdateRequest =
         AccountUpdateRequest(
             nickname = this.nickname?.let { Nickname(it) },
