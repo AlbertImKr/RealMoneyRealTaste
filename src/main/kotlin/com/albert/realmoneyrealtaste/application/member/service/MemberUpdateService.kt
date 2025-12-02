@@ -45,6 +45,8 @@ class MemberUpdateService(
                 nickname = request.nickname,
                 profileAddress = request.profileAddress,
                 introduction = request.introduction,
+                address = request.address,
+                imageId = request.imageId,
             )
 
             return member

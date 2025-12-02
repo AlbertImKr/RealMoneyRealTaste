@@ -44,6 +44,7 @@ class MemberFragmentView(
         model.addAttribute("followersCount", member.followersCount)
         model.addAttribute("followingCount", member.followingsCount)
         model.addAttribute("postCount", member.postCount)
+        model.addAttribute("memberUrl", memberPrincipal.profileImageUrl)
 
         return MemberViews.MEMBER_PROFILE_FRAGMENT
     }

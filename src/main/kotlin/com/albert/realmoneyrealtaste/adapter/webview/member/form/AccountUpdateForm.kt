@@ -20,6 +20,10 @@ data class AccountUpdateForm(
 
     @field:Size(max = 500, message = "소개글은 최대 500자까지 입력 가능합니다.")
     val introduction: String?,
+
+    val address: String?,
+
+    val imageId: Long?,
 ) {
     /**
      * AccountUpdateRequest로 변환
@@ -28,6 +32,8 @@ data class AccountUpdateForm(
         AccountUpdateRequest(
             nickname = this.nickname?.let { Nickname(it) },
             profileAddress = this.profileAddress?.let { ProfileAddress(it) },
-            introduction = this.introduction?.let { Introduction(it) }
+            introduction = this.introduction?.let { Introduction(it) },
+            address = this.address,
+            imageId = this.imageId
         )
 }

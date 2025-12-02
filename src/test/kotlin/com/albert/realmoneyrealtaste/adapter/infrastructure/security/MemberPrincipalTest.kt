@@ -31,6 +31,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = roles,
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -50,7 +53,10 @@ class MemberPrincipalTest {
             introduction = "",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            roles = emptySet()
+            roles = emptySet(),
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -68,7 +74,10 @@ class MemberPrincipalTest {
             introduction = "",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            roles = setOf(Role.MANAGER)
+            roles = setOf(Role.MANAGER),
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -220,7 +229,10 @@ class MemberPrincipalTest {
             introduction = "자기소개",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            roles = roles
+            roles = roles,
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
         )
 
         assertEquals(100L, principal.id)
@@ -228,25 +240,6 @@ class MemberPrincipalTest {
         assertEquals(nickname, principal.nickname)
         assertTrue(principal.active)
         assertEquals("자기소개", principal.introduction)
-    }
-
-    @Test
-    fun `constructor - success - uses default values for optional parameters`() {
-        val principal = MemberPrincipal(
-            id = 1L,
-            email = Email("test@example.com"),
-            nickname = Nickname("testUser"),
-            active = true,
-            introduction = "자기소개",
-            address = "서울시",
-            createdAt = LocalDateTime.now(),
-            roles = setOf(Role.USER)
-            // profileImageUrl, followersCount, followingsCount은 기본값 사용
-        )
-
-        assertEquals("#", principal.profileImageUrl) // 기본값
-        assertEquals(0L, principal.followersCount)   // 기본값
-        assertEquals(0L, principal.followingsCount) // 기본값
     }
 
     @Test
@@ -281,7 +274,10 @@ class MemberPrincipalTest {
             introduction = "",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            roles = allRoles
+            roles = allRoles,
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -302,7 +298,11 @@ class MemberPrincipalTest {
             introduction = "",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            roles = setOf(Role.USER, Role.ADMIN)
+            roles = setOf(Role.USER, Role.ADMIN),
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
+
         )
 
         assertTrue(principal.hasRole(Role.USER))
@@ -319,7 +319,10 @@ class MemberPrincipalTest {
             introduction = "",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            roles = setOf(Role.USER)
+            roles = setOf(Role.USER),
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
         )
 
         assertTrue(principal.hasRole(Role.USER))
@@ -337,7 +340,10 @@ class MemberPrincipalTest {
             introduction = "",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            roles = emptySet()
+            roles = emptySet(),
+            followersCount = 0L,
+            followingsCount = 0L,
+            profileImageUrl = "#",
         )
 
         assertFalse(principal.hasRole(Role.USER))
@@ -347,16 +353,16 @@ class MemberPrincipalTest {
 
     fun createMemberWithId(
         id: Long,
-        email: Email = MemberFixture.Companion.DEFAULT_EMAIL,
-        nickname: Nickname = MemberFixture.Companion.DEFAULT_NICKNAME,
-        password: RawPassword = MemberFixture.Companion.DEFAULT_RAW_PASSWORD,
+        email: Email = MemberFixture.DEFAULT_EMAIL,
+        nickname: Nickname = MemberFixture.DEFAULT_NICKNAME,
+        password: RawPassword = MemberFixture.DEFAULT_RAW_PASSWORD,
     ): Member {
-        val member = Member.Companion.register(
+        val member = Member.register(
             email = email,
             nickname = nickname,
-            password = PasswordHash.Companion.of(
+            password = PasswordHash.of(
                 password,
-                MemberFixture.Companion.TEST_ENCODER
+                MemberFixture.TEST_ENCODER
             ),
         )
         setId(member, id)

@@ -17,10 +17,10 @@ data class MemberPrincipal(
     val introduction: String,
     val address: String,
     val createdAt: LocalDateTime,
-    val profileImageUrl: String = "#",
+    val profileImageUrl: String,
     private val roles: Set<Role>,
-    val followersCount: Long = 0L,
-    val followingsCount: Long = 0L,
+    val followersCount: Long,
+    val followingsCount: Long,
 ) : Serializable {
 
     fun getAuthorities(): Collection<GrantedAuthority> {
@@ -32,7 +32,7 @@ data class MemberPrincipal(
     }
 
     companion object {
-        fun from(member: Member): MemberPrincipal {
+        fun from(member: Member, profileImageUrl: String? = null): MemberPrincipal {
             val introValue = member.detail.introduction?.value
             return MemberPrincipal(
                 id = member.requireId(),
@@ -43,6 +43,9 @@ data class MemberPrincipal(
                 introduction = introValue ?: "아직 자기소개가 없어요!",
                 address = member.detail.address ?: "아직 주소가 없어요!",
                 createdAt = member.detail.registeredAt,
+                profileImageUrl = profileImageUrl ?: "#",
+                followersCount = member.followersCount,
+                followingsCount = member.followingsCount,
             )
         }
     }

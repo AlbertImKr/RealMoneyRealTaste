@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
+import com.albert.realmoneyrealtaste.application.image.provided.ImageReader
 import com.albert.realmoneyrealtaste.application.member.exception.MemberVerifyException
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberVerify
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 class MemberVerifyService(
     private val passwordEncoder: PasswordEncoder,
     private val memberReader: MemberReader,
+    private val imageReader: ImageReader,
 ) : MemberVerify {
 
     companion object {
@@ -28,9 +30,13 @@ class MemberVerifyService(
         try {
             val member = memberReader.readMemberByEmail(email)
 
+            val imageUrl = member.detail.imageId?.let { imageId ->
+                imageReader.getImageUrl(imageId, member.requireId())
+            }
+
             require(member.verifyPassword(password, passwordEncoder)) {}
 
-            return MemberPrincipal.from(member)
+            return MemberPrincipal.from(member, imageUrl)
         } catch (e: IllegalArgumentException) {
             throw MemberVerifyException(ERROR_MEMBER_VERIFY)
         }

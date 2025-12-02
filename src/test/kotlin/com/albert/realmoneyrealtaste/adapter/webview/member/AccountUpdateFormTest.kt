@@ -26,13 +26,17 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = null,
             profileAddress = null,
-            introduction = null
+            introduction = null,
+            address = null,
+            imageId = null
         )
 
         assertAll(
             { assertNull(form.nickname) },
             { assertNull(form.profileAddress) },
-            { assertNull(form.introduction) }
+            { assertNull(form.introduction) },
+            { assertNull(form.address) },
+            { assertNull(form.imageId) }
         )
     }
 
@@ -41,17 +45,23 @@ class AccountUpdateFormTest {
         val nickname = "testNickname"
         val profileAddress = "testAddress"
         val introduction = "test introduction"
+        val address = "test address"
+        val imageId = 1L
 
         val form = AccountUpdateForm(
             nickname = nickname,
             profileAddress = profileAddress,
-            introduction = introduction
+            introduction = introduction,
+            address = address,
+            imageId = imageId
         )
 
         assertAll(
             { assertEquals(nickname, form.nickname) },
             { assertEquals(profileAddress, form.profileAddress) },
-            { assertEquals(introduction, form.introduction) }
+            { assertEquals(introduction, form.introduction) },
+            { assertEquals(address, form.address) },
+            { assertEquals(imageId, form.imageId) }
         )
     }
 
@@ -60,7 +70,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "",
             profileAddress = "address",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -75,7 +87,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "a",
             profileAddress = "address",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -90,7 +104,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "a".repeat(21),
             profileAddress = "address",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -105,7 +121,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "ab",
             profileAddress = "address",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -118,7 +136,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "a".repeat(20),
             profileAddress = "address",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -131,7 +151,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "ab",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -146,7 +168,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "a".repeat(16),
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -161,7 +185,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "abc",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -174,7 +200,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "a".repeat(15),
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -187,7 +215,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -202,7 +232,10 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "address",
-            introduction = "a".repeat(501)
+            introduction = "a".repeat(501),
+            address = "address",
+            imageId = 1L
+
         )
 
         val violations = validator.validate(form)
@@ -217,7 +250,10 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "address",
-            introduction = "a".repeat(500)
+            introduction = "a".repeat(500),
+            address = "address",
+            imageId = 1L
+
         )
 
         val violations = validator.validate(form)
@@ -230,7 +266,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "address",
-            introduction = ""
+            introduction = "",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -243,7 +281,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "a",
             profileAddress = "ab",
-            introduction = "a".repeat(501)
+            introduction = "a".repeat(501),
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -259,7 +299,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "validNickname",
             profileAddress = "validAddress",
-            introduction = "This is a valid introduction"
+            introduction = "This is a valid introduction",
+            address = "address",
+            imageId = 1L
         )
 
         val violations = validator.validate(form)
@@ -272,7 +314,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = null,
-            introduction = null
+            introduction = null,
+            address = null,
+            imageId = null
         )
 
         val violations = validator.validate(form)
@@ -285,7 +329,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = null,
             profileAddress = null,
-            introduction = null
+            introduction = null,
+            address = null,
+            imageId = null
         )
 
         val violations = validator.validate(form)
@@ -300,7 +346,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "testNickname",
             profileAddress = "testAddress",
-            introduction = "test introduction"
+            introduction = "test introduction",
+            address = "test address",
+            imageId = 1L,
         )
 
         val request = form.toAccountUpdateRequest()
@@ -320,7 +368,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = null,
             profileAddress = null,
-            introduction = null
+            introduction = null,
+            address = null,
+            imageId = null
         )
 
         val request = form.toAccountUpdateRequest()
@@ -337,7 +387,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "testNickname",
             profileAddress = null,
-            introduction = "test introduction"
+            introduction = "test introduction",
+            address = "test address",
+            imageId = null
         )
 
         val request = form.toAccountUpdateRequest()
@@ -356,7 +408,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "한글닉네임",
             profileAddress = "address",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = null
         )
 
         val violations = validator.validate(form)
@@ -369,7 +423,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "address",
-            introduction = "안녕하세요! @#$%^&*() 특수문자가 포함된 소개글입니다."
+            introduction = "안녕하세요! @#$%^&*() 특수문자가 포함된 소개글입니다.",
+            address = "address",
+            imageId = null
         )
 
         val violations = validator.validate(form)
@@ -382,7 +438,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "user123",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = null
         )
 
         val violations = validator.validate(form)
@@ -395,7 +453,9 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "   ",
             profileAddress = "address",
-            introduction = "intro"
+            introduction = "intro",
+            address = "address",
+            imageId = null
         )
 
         val violations = validator.validate(form)
@@ -410,11 +470,188 @@ class AccountUpdateFormTest {
         val form = AccountUpdateForm(
             nickname = "nickname",
             profileAddress = "address",
-            introduction = "첫 번째 줄\n두 번째 줄\n세 번째 줄"
+            introduction = "첫 번째 줄\n두 번째 줄\n세 번째 줄",
+            address = "address",
+            imageId = null
         )
 
         val violations = validator.validate(form)
 
         assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts valid address`() {
+        val form = AccountUpdateForm(
+            nickname = "nickname",
+            profileAddress = "address",
+            introduction = "intro",
+            address = "서울시 강남구 테헤란로 123",
+            imageId = null
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts empty address`() {
+        val form = AccountUpdateForm(
+            nickname = "nickname",
+            profileAddress = "address",
+            introduction = "intro",
+            address = "",
+            imageId = null
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts null address`() {
+        val form = AccountUpdateForm(
+            nickname = "nickname",
+            profileAddress = "address",
+            introduction = "intro",
+            address = null,
+            imageId = null
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts valid imageId`() {
+        val form = AccountUpdateForm(
+            nickname = "nickname",
+            profileAddress = "address",
+            introduction = "intro",
+            address = "address",
+            imageId = 123L
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts null imageId`() {
+        val form = AccountUpdateForm(
+            nickname = "nickname",
+            profileAddress = "address",
+            introduction = "intro",
+            address = "address",
+            imageId = null
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts zero imageId`() {
+        val form = AccountUpdateForm(
+            nickname = "nickname",
+            profileAddress = "address",
+            introduction = "intro",
+            address = "address",
+            imageId = 0L
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `validate - success - accepts negative imageId`() {
+        val form = AccountUpdateForm(
+            nickname = "nickname",
+            profileAddress = "address",
+            introduction = "intro",
+            address = "address",
+            imageId = -1L
+        )
+
+        val violations = validator.validate(form)
+
+        assertTrue(violations.isEmpty())
+    }
+
+    @Test
+    fun `toAccountUpdateRequest - success - converts form with address and imageId`() {
+        val form = AccountUpdateForm(
+            nickname = "testNickname",
+            profileAddress = "testAddress",
+            introduction = "test introduction",
+            address = "test address",
+            imageId = 123L
+        )
+
+        val request = form.toAccountUpdateRequest()
+
+        assertAll(
+            { assertNotNull(request.nickname) },
+            { assertEquals("testNickname", request.nickname?.value) },
+            { assertNotNull(request.profileAddress) },
+            { assertEquals("testAddress", request.profileAddress?.address) },
+            { assertNotNull(request.introduction) },
+            { assertEquals("test introduction", request.introduction?.value) },
+            { assertEquals("test address", request.address) },
+            { assertEquals(123L, request.imageId) }
+        )
+    }
+
+    @Test
+    fun `toAccountUpdateRequest - success - converts form with null address and imageId`() {
+        val form = AccountUpdateForm(
+            nickname = "testNickname",
+            profileAddress = "testAddress",
+            introduction = "test introduction",
+            address = null,
+            imageId = null
+        )
+
+        val request = form.toAccountUpdateRequest()
+
+        assertAll(
+            { assertNotNull(request.nickname) },
+            { assertEquals("testNickname", request.nickname?.value) },
+            { assertNotNull(request.profileAddress) },
+            { assertEquals("testAddress", request.profileAddress?.address) },
+            { assertNotNull(request.introduction) },
+            { assertEquals("test introduction", request.introduction?.value) },
+            { assertNull(request.address) },
+            { assertNull(request.imageId) }
+        )
+    }
+
+    @Test
+    fun `toAccountUpdateRequest - success - converts form with empty address`() {
+        val form = AccountUpdateForm(
+            nickname = "testNickname",
+            profileAddress = null,
+            introduction = null,
+            address = "",
+            imageId = null
+        )
+
+        val request = form.toAccountUpdateRequest()
+
+        assertAll(
+            { assertNotNull(request.nickname) },
+            { assertEquals("testNickname", request.nickname?.value) },
+            { assertNull(request.profileAddress) },
+            { assertNull(request.introduction) },
+            { assertEquals("", request.address) },
+            { assertNull(request.imageId) }
+        )
     }
 }
