@@ -29,7 +29,7 @@
                                     <img alt=""
                                          class="avatar-img rounded-circle"
                                          th:alt="${user.nickname.value}"
-                                         th:src="'#'">
+                                         th:src="@{'/api/images/' + ${user.imageId}}">
                                 </a>
                             </div>
                             <!-- Title -->

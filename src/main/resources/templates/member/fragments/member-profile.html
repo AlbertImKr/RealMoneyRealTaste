@@ -1,12 +1,14 @@
 <th:block th:fragment="memberProfile">
     <div class="text-center">
         <div class="avatar avatar-xs me-2">
-            <a href="#"> <img alt=""
-                              class="avatar-img rounded-circle" th:src="${memberUrl}"> </a>
+            <img alt="member profile"
+                 class="avatar-img rounded-circle"
+                 th:if="${member.detail.imageId != null}"
+                 th:src="@{'/api/images/' + ${member.detail.imageId}}">
         </div>
         <!-- Info -->
-        <h5 class="mb-0">
-            <a href="#" th:text="${member.nickname.value}">회원 닉네임</a>
+        <h5 class="mb-0" th:text="${member.nickname.value}">
+            회원 닉네임
         </h5>
         <p class="mt-3"
            th:text="${member.detail.introduction != null ? member.detail.introduction.value : '회원 소개글이 없습니다.'}">

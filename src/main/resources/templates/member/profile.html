@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="${author?.nickname?.value ?: '사용자'} + '의 프로필'">
+    <title th:text="${author.nickname.value ?: '사용자'} + '의 프로필'">
         사용자의 프로필
     </title>
 
@@ -44,26 +44,27 @@
                                 <div class="avatar avatar-xxl mt-n5 mb-3">
                                     <img alt=""
                                          class="avatar-img rounded-circle border border-white border-3"
-                                         th:src="${memberUrl}">
+                                         th:if="${author.detail.imageId != null}"
+                                         th:src="@{'/api/images/' + ${author.detail.imageId}}">
                                 </div>
                             </div>
                             <div class="ms-sm-4 mt-sm-3">
                                 <!-- Info -->
                                 <h1 class="mb-0 h5">
-                                    <span th:text="${author?.nickname?.value ?: '사용자'}">Sam Lanson</span>
+                                    <span th:text="${author.nickname.value ?: '사용자'}">Sam Lanson</span>
                                     <i class="bi bi-patch-check-fill text-success small"></i>
                                     <!-- 프로필 소유자 배지 -->
                                     <span class="badge bg-primary ms-2" sec:authorize="isAuthenticated()"
-                                          th:if="${member?.email?.address == author?.email?.address}">나의 프로필</span>
+                                          th:if="${member.id == author.id}">나의 프로필</span>
                                 </h1>
 
                                 <!-- 팔로우 통계 -->
                                 <div class="d-flex gap-3 text-muted small">
                                     <span th:id="followers-stat"
-                                          th:text="${author?.followersCount ?: 0} + ' followers'">0
+                                          th:text="${author.followersCount ?: 0} + ' followers'">0
                                         followers</span>
                                     <span th:id="following-stat"
-                                          th:text="${author?.followingsCount ?: 0} + ' following'">0
+                                          th:text="${author.followingsCount ?: 0} + ' following'">0
                                         following</span>
                                 </div>
                             </div>
@@ -71,7 +72,7 @@
                             <div class="d-flex mt-3 justify-content-center ms-sm-auto">
                                 <!-- 프로필 소유자인 경우 -->
                                 <div sec:authorize="isAuthenticated()"
-                                     th:if="${member?.email?.address == author?.email?.address}">
+                                     th:if="${member.id == author.id}">
                                     <button class="btn btn-danger-soft me-2"
                                             th:onclick="|location.href='@{/members/setting}'|"
                                             type="button">
@@ -81,7 +82,7 @@
 
                                 <!-- 다른 사용자인 경우 -->
                                 <div class="d-flex ms-auto gap-2" sec:authorize="isAuthenticated()"
-                                     th:if="${member?.email?.address != author?.email?.address}">
+                                     th:if="${member.id == author.id}">
                                     <!-- 친구 버튼 -->
                                     <div hx-swap="innerHTML"
                                          hx-trigger="load"
@@ -109,11 +110,11 @@
                         <!-- List profile -->
                         <ul class="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
                             <li class="list-inline-item"><i class="bi bi-person-circle me-1"></i>
-                                <span th:text="${author?.detail.introduction ?: '진짜 내돈내산 푸드 리뷰어'}">Food Reviewer at RMRT</span>
+                                <span th:text="${author.detail.introduction ?: '진짜 내돈내산 푸드 리뷰어'}">Food Reviewer at RMRT</span>
                             </li>
                             <li class="list-inline-item">
                                 <i class="bi bi-geo-alt me-1"></i>
-                                <span th:text="${author?.detail.address ?: 'Seoul, South Korea'}">Seoul, South Korea</span>
+                                <span th:text="${author.detail.address ?: 'Seoul, South Korea'}">Seoul, South Korea</span>
                             </li>
                             <li class="list-inline-item">
                                 <i class="bi bi-calendar2-plus me-1"></i>
@@ -168,7 +169,7 @@
                                 </button>
                             </li>
                             <li class="nav-item" sec:authorize="isAuthenticated()"
-                                th:if="${member?.email?.address == author?.email?.address}">
+                                th:if="${member.id == author.id}">
                                 <button class="nav-link"
                                         hx-get="/friends/fragment"
                                         hx-indicator="#loading-indicator"
@@ -179,7 +180,7 @@
                                 </button>
                             </li>
                             <li class="nav-item" sec:authorize="isAuthenticated()"
-                                th:if="${member?.email?.address == author?.email?.address}">
+                                th:if="${member.id == author.id}">
                                 <a class="nav-link" th:href="@{/members/{id}/events(id=${author.id})}">
                                     Events</a>
                             </li>
@@ -206,7 +207,7 @@
 
             <!-- Right sidebar START -->
             <div class="col-lg-4" sec:authorize="isAuthenticated()"
-                 th:if="${member?.email?.address == author?.email?.address}">
+                 th:if="${member.id == author.id}">
                 <div class="row g-4">
                     <!-- Card follow START -->
                     <div hx-swap="innerHTML"

@@ -31,9 +31,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = roles,
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -54,9 +54,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = emptySet(),
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -75,9 +75,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = setOf(Role.MANAGER),
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -195,16 +195,6 @@ class MemberPrincipalTest {
     }
 
     @Test
-    fun `from - success - sets default profileImageUrl`() {
-        val member = createMemberWithId(42L)
-        member.activate()
-
-        val principal = MemberPrincipal.from(member)
-
-        assertEquals("#", principal.profileImageUrl)
-    }
-
-    @Test
     fun `from - success - sets default followersCount and followingsCount`() {
         val member = createMemberWithId(42L)
         member.activate()
@@ -230,9 +220,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = roles,
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
         )
 
         assertEquals(100L, principal.id)
@@ -252,13 +242,12 @@ class MemberPrincipalTest {
             introduction = "자기소개",
             address = "서울시",
             createdAt = LocalDateTime.now(),
-            profileImageUrl = "https://example.com/profile.jpg",
             roles = setOf(Role.USER),
+            imageId = 0L,
             followersCount = 100L,
             followingsCount = 50L
         )
 
-        assertEquals("https://example.com/profile.jpg", principal.profileImageUrl)
         assertEquals(100L, principal.followersCount)
         assertEquals(50L, principal.followingsCount)
     }
@@ -275,9 +264,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = allRoles,
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
         )
 
         val authorities = principal.getAuthorities()
@@ -299,10 +288,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = setOf(Role.USER, Role.ADMIN),
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
-
         )
 
         assertTrue(principal.hasRole(Role.USER))
@@ -320,9 +308,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = setOf(Role.USER),
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
         )
 
         assertTrue(principal.hasRole(Role.USER))
@@ -341,9 +329,9 @@ class MemberPrincipalTest {
             address = "서울시",
             createdAt = LocalDateTime.now(),
             roles = emptySet(),
+            imageId = 0L,
             followersCount = 0L,
             followingsCount = 0L,
-            profileImageUrl = "#",
         )
 
         assertFalse(principal.hasRole(Role.USER))

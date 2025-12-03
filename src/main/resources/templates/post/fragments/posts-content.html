@@ -8,15 +8,13 @@
     <!-- Posts 헤더 -->
     <!-- Share feed START -->
     <div class="card card-body m-3" sec:authorize="isAuthenticated()"
-         th:if="${member?.id == authorId}">
+         th:if="${member.id == author.id}">
         <div class="d-flex mb-3">
             <!-- Avatar -->
             <div class="avatar avatar-xs me-2">
-                <a href="#">
-                    <img alt=""
-                         class="avatar-img rounded-circle"
-                         src="#">
-                </a>
+                <img alt="profile"
+                     class="avatar-img rounded-circle"
+                     th:src="@{'/api/images/' + ${member.imageId}}">
             </div>
             <!-- Post input -->
             <form class="w-100">
@@ -24,7 +22,7 @@
                 <input class="form-control pe-4 border-0" data-bs-target="#modalCreateFeed"
                        data-bs-toggle="modal"
                        id="postInput"
-                       th:placeholder="${member?.nickname?.value ?: '사용자'} + '님, 어떤 맛집을 다녀오셨나요?'"
+                       th:placeholder="${member.nickname.value ?: '사용자'} + '님, 어떤 맛집을 다녀오셨나요?'"
                        type="text">
             </form>
         </div>

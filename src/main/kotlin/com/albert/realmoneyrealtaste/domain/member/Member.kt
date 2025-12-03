@@ -101,6 +101,9 @@ class Member protected constructor(
     var postCount: Long = postCount
         protected set
 
+    val imageId: Long?
+        get() = detail.imageId
+
     fun activate() {
         require(status == MemberStatus.PENDING) { ERROR_INVALID_STATUS_FOR_ACTIVATION }
 

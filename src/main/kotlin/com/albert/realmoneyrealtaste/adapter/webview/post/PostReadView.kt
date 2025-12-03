@@ -46,7 +46,6 @@ class PostReadView(
         model.addAttribute("author", memberPrincipal)
         // member: 현재 로그인한 사용자 (뷰에서 권한 확인용)
         model.addAttribute("member", memberPrincipal)
-        model.addAttribute("memberProfileUrl", memberPrincipal.profileImageUrl)
         return PostViews.MY_LIST
     }
 
