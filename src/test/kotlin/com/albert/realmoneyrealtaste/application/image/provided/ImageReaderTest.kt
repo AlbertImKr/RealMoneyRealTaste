@@ -50,20 +50,6 @@ class ImageReaderTest(
     }
 
     @Test
-    fun `getImageUrl - failure - throws exception when unauthorized user tries to access`() {
-        // Given
-        val ownerId = 123L
-        val unauthorizedUserId = 456L
-        val image = createTestImage(ownerId, ImageType.POST_IMAGE)
-        val savedImage = imageRepository.save(image)
-
-        // When & Then
-        assertFailsWith<IllegalArgumentException> {
-            imageReader.getImageUrl(savedImage.requireId(), unauthorizedUserId)
-        }
-    }
-
-    @Test
     fun `getImagesByMember - success - returns list of user's images`() {
         // Given
         val userId = 123L

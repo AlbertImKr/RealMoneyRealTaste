@@ -38,23 +38,18 @@ class FriendWriteViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `sendFriendRequest - success - sends friend request and returns friend button fragment`() {
         val targetMember = testMemberHelper.createActivatedMember("target@example.com", "target")
-
-        val request = SendFriendRequest(
-            toMemberId = targetMember.requireId(),
-            toMemberNickname = targetMember.nickname.value
-        )
+        val authorId = targetMember.requireId()
 
         val result = mockMvc.perform(
             post(FriendUrls.SEND_FRIEND_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .param("authorId", authorId.toString())
                 .with(csrf())
         )
             .andExpect(status().isOk)
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
             .andExpect(model().attributeExists("isFriend"))
             .andExpect(model().attributeExists("hasSentFriendRequest"))
-            .andExpect(model().attributeExists("author"))
             .andReturn()
 
         // hasSentFriendRequest가 true로 설정되었는지 확인
@@ -85,16 +80,12 @@ class FriendWriteViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `sendFriendRequest - success - handles empty friend list initially`() {
         val targetMember = testMemberHelper.createActivatedMember("target@example.com", "target")
-
-        val request = SendFriendRequest(
-            toMemberId = targetMember.requireId(),
-            toMemberNickname = targetMember.nickname.value
-        )
+        val authorId = targetMember.requireId()
 
         val result = mockMvc.perform(
             post(FriendUrls.SEND_FRIEND_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .param("authorId", authorId.toString())
                 .with(csrf())
         )
             .andExpect(status().isOk)
@@ -126,7 +117,6 @@ class FriendWriteViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
             .andExpect(model().attributeExists("isFriend"))
             .andExpect(model().attributeExists("hasSentFriendRequest"))
-            .andExpect(model().attributeExists("author"))
             .andReturn()
 
         // 친구 요청을 수락한 후 상태 확인
@@ -157,7 +147,6 @@ class FriendWriteViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
             .andExpect(model().attributeExists("isFriend"))
             .andExpect(model().attributeExists("hasSentFriendRequest"))
-            .andExpect(model().attributeExists("author"))
             .andReturn()
 
         // 친구 요청을 거절한 후 상태 확인
@@ -203,7 +192,6 @@ class FriendWriteViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
             .andExpect(model().attributeExists("isFriend"))
             .andExpect(model().attributeExists("hasSentFriendRequest"))
-            .andExpect(model().attributeExists("author"))
             .andReturn()
 
         // 친구 해제 후 상태 확인
@@ -229,16 +217,12 @@ class FriendWriteViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `sendFriendRequest - success - validates request data`() {
         val targetMember = testMemberHelper.createActivatedMember("target@example.com", "target")
-
-        val request = SendFriendRequest(
-            toMemberId = targetMember.requireId(),
-            toMemberNickname = targetMember.nickname.value
-        )
+        val authorId = targetMember.requireId()
 
         val result = mockMvc.perform(
             post(FriendUrls.SEND_FRIEND_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
+                .param("authorId", authorId.toString())
                 .with(csrf())
         )
             .andExpect(status().isOk)
@@ -248,7 +232,6 @@ class FriendWriteViewTest : IntegrationTestBase() {
         val modelAndView = result.modelAndView!!
         assertTrue(modelAndView.model.containsKey("isFriend"))
         assertTrue(modelAndView.model.containsKey("hasSentFriendRequest"))
-        assertTrue(modelAndView.model.containsKey("author"))
     }
 
     @Test
@@ -270,7 +253,6 @@ class FriendWriteViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_BUTTON))
             .andExpect(model().attributeExists("isFriend"))
             .andExpect(model().attributeExists("hasSentFriendRequest"))
-            .andExpect(model().attributeExists("author"))
     }
 
     @Test

@@ -10,26 +10,26 @@
             <!-- Avatar -->
             <div class="avatar avatar-sm me-3">
                 <img class="avatar-img rounded-circle"
-                     src="#"
-                     th:alt="${request.relationShip.memberId}">
+                     th:alt="${request.memberId}"
+                     th:src="@{'/api/images/' + ${request.memberProfileImageId}}">
             </div>
 
             <!-- Content -->
             <div class="flex-grow-1">
-                <h6 class="mb-1" th:text="${request.relationShip.memberNickname}">사용자 이름</h6>
+                <h6 class="mb-1" th:text="${request.memberNickname}">사용자 이름</h6>
             </div>
 
             <!-- Actions -->
             <div class="btn-group btn-group-sm">
                 <button class="btn btn-success"
                         hx-on::after-request="htmx.trigger('#friend-requests-button', 'refresh')"
-                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=true'"
+                        th:attr="hx-put='/friendships/' + ${request.friendshipId} + '?accept=true'"
                 >
                     <i class="bi bi-check-lg"></i> 수락
                 </button>
                 <button class="btn btn-outline-danger"
                         hx-on::after-request="htmx.trigger('#friend-requests-button', 'refresh')"
-                        th:attr="hx-put='/friendships/' + ${request.id} + '?accept=false'"
+                        th:attr="hx-put='/friendships/' + ${request.friendshipId} + '?accept=false'"
                 >
                     <i class="bi bi-x-lg"></i> 거절
                 </button>

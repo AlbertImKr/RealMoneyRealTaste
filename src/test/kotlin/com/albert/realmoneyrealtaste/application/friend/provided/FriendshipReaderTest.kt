@@ -384,61 +384,6 @@ class FriendshipReaderTest(
     }
 
     @Test
-    fun `mapToFriendshipResponses - success - handles all unknown members gracefully`() {
-        val member = testMemberHelper.createActivatedMember(
-            email = "known-member@test.com",
-            nickname = "member"
-        )
-        val activeFriend = testMemberHelper.createActivatedMember(
-            email = "activeFriend@test.com",
-            nickname = "activeFriend"
-        )
-        val deactivateFriend1 = testMemberHelper.createActivatedMember(
-            email = "deactivateFriend1@test.com",
-            nickname = "deactivate1",
-        )
-        val deactivateFriend2 = testMemberHelper.createActivatedMember(
-            email = "deactivateFriend2@test.com",
-            nickname = "deactivate2",
-        )
-
-        createAcceptedFriendship(
-            activeFriend.requireId(),
-            activeFriend.nickname.value,
-            member.requireId(),
-            member.nickname.value
-        )
-        createAcceptedFriendship(
-            deactivateFriend1.requireId(),
-            deactivateFriend1.nickname.value,
-            member.requireId(),
-            member.nickname.value
-        )
-        createAcceptedFriendship(
-            deactivateFriend2.requireId(),
-            deactivateFriend2.nickname.value,
-            member.requireId(),
-            member.nickname.value
-        )
-
-        // 친구들을 비활성화
-        deactivateFriend1.deactivate()
-        deactivateFriend2.deactivate()
-        member.deactivate()
-
-        val pageable = PageRequest.of(0, 10)
-        val result = friendshipReader.findFriendsByMemberId(member.requireId(), pageable)
-
-        assertAll(
-            { assertEquals(3, result.totalElements) },
-            { assertEquals(3, result.content.size) },
-            { assertEquals(result.content.count { it.friendMemberId == activeFriend.requireId() }, 1) },
-            { assertEquals(result.content.count { it.friendMemberId == deactivateFriend1.requireId() }, 1) },
-            { assertEquals(result.content.count { it.friendMemberId == deactivateFriend2.requireId() }, 1) },
-        )
-    }
-
-    @Test
     fun `countFriendsByMemberId - success - returns correct friend count`() {
         val member = testMemberHelper.createActivatedMember(
             email = "count-member@test.com",
@@ -735,7 +680,7 @@ class FriendshipReaderTest(
             { assertTrue(result.content.all { it.status == FriendshipStatus.PENDING }) },
             {
                 assertTrue(result.content.all { friendship ->
-                    friendships.any { it.requireId() == friendship.requireId() }
+                    friendships.any { it.requireId() == friendship.friendshipId }
                 })
             }
         )

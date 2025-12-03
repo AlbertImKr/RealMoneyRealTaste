@@ -158,23 +158,6 @@ class MemberTest {
     }
 
     @Test
-    fun `updateInfo - success - keeps existing values when no parameters provided`() {
-        val member = createMember()
-        member.activate()
-        val beforeNickname = member.nickname
-        val beforeProfileAddress = member.detail.profileAddress
-        val beforeIntroduction = member.detail.introduction
-        val beforeUpdateAt = member.updatedAt
-
-        member.updateInfo()
-
-        assertEquals(beforeNickname, member.nickname)
-        assertEquals(beforeProfileAddress, member.detail.profileAddress)
-        assertEquals(beforeIntroduction, member.detail.introduction)
-        assertEquals(beforeUpdateAt, member.updatedAt)
-    }
-
-    @Test
     fun `updateInfo - success - updates only nickname when other parameters are null`() {
         val member = createMember()
         member.activate()

@@ -116,7 +116,7 @@ interface FriendshipReader {
      */
     fun countPendingRequests(memberId: Long): Long
 
-    fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship>
+    fun findPendingRequests(memberId: Long, pageable: Pageable): Page<FriendshipResponse>
 
     fun findByMembersId(memberId: Long, friendMemberId: Long): Friendship?
 

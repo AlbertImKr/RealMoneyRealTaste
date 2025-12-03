@@ -49,15 +49,15 @@
                             <!-- Card body -->
                             <div class="card-body p-2 pb-0">
                                 <div class="avatar avatar-story avatar-xl">
-                                    <a th:href="@{/members/{id}(id=${friend.id})}">
-                                        <img alt=""
+                                    <a th:href="@{/members/{id}(id=${friend.friendshipId})}">
+                                        <img alt="profile"
                                              class="avatar-img rounded-circle"
-                                             src="#">
+                                             th:src="@{'/api/images/' + ${friend.friendProfileImageId}}">
                                     </a>
                                 </div>
                                 <h6 class="card-title mb-1 mt-3">
-                                    <a th:href="@{/members/{id}(id=${friend.id})}"
-                                       th:text="${friend.nickname}">Amanda Reed</a>
+                                    <a th:href="@{/members/{id}(id=${friend.friendshipId})}"
+                                       th:text="${friend.friendNickname}">Amanda Reed</a>
                                 </h6>
                             </div>
                             <!-- Card footer -->
@@ -66,7 +66,7 @@
                                     <button class="btn btn-sm btn-outline-primary"
                                             data-bs-placement="top"
                                             data-bs-toggle="tooltip"
-                                            th:attr="onclick=|location.href='@{/messages/{id}(id=${friend.id})}'|"
+                                            th:attr="onclick=|location.href='@{/messages/{id}(id=${friend.friendshipId})}'|"
                                             title="메시지">
                                         <i class="bi bi-chat-left-text"></i>
                                     </button>
@@ -75,8 +75,8 @@
                                             data-bs-toggle="tooltip"
                                             hx-confirm="친구를 정말로 삭제하시겠습니까?"
                                             hx-on::after-request="htmx.trigger('#friend-widget-container', 'refresh')"
-                                            th:attr="hx-delete='/friendships/' + ${friend.id}"
-                                            th:id="'friend-delete-' + ${friend.id}"
+                                            th:attr="hx-delete='/friendships/' + ${friend.friendshipId}"
+                                            th:id="'friend-delete-' + ${friend.friendshipid}"
                                             title="친구 삭제"
                                     >
                                         <i class="bi bi-person-x"></i>

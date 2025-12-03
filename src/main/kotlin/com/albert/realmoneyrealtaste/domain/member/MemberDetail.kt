@@ -55,11 +55,19 @@ class MemberDetail protected constructor(
         introduction: Introduction? = null,
         address: String? = null,
         imageId: Long? = null,
-    ) {
+    ): Boolean {
+        if (profileAddress == this.profileAddress
+            && introduction == this.introduction
+            && address == this.address
+            && imageId == this.imageId
+        ) {
+            return false
+        }
         if (profileAddress != null) this.profileAddress = profileAddress
         if (introduction != null) this.introduction = introduction
         if (address != null) this.address = address
         if (imageId != null) this.imageId = imageId
+        return true
     }
 
     companion object {

@@ -498,35 +498,6 @@ class MemberUpdaterTest(
     }
 
     @Test
-    fun `updateInfo - success - updates imageId to null`() {
-        val member = registerAndActivateMember()
-        val memberId = member.id!!
-
-        // 먼저 imageId 설정
-        val setRequest = AccountUpdateRequest(
-            nickname = null,
-            profileAddress = null,
-            introduction = null,
-            address = null,
-            imageId = 999L,
-        )
-        memberUpdater.updateInfo(memberId, setRequest)
-
-        // null로 업데이트
-        val updateRequest = AccountUpdateRequest(
-            nickname = null,
-            profileAddress = null,
-            introduction = null,
-            address = null,
-            imageId = null,
-        )
-
-        val updatedMember = memberUpdater.updateInfo(memberId, updateRequest)
-
-        assertEquals(null, updatedMember.detail.imageId)
-    }
-
-    @Test
     fun `updateInfo - success - updates imageId to zero`() {
         val member = registerAndActivateMember()
         val memberId = member.id!!

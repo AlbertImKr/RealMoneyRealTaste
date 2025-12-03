@@ -40,7 +40,6 @@ class FriendReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_WIDGET))
             .andExpect(model().attributeExists("recentFriends"))
             .andExpect(model().attributeExists("pendingRequestsCount"))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeExists("member"))
     }
 
@@ -55,7 +54,6 @@ class FriendReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_WIDGET))
             .andExpect(model().attributeExists("recentFriends"))
             .andExpect(model().attributeExists("pendingRequestsCount"))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeDoesNotExist("member"))
     }
 
@@ -71,7 +69,6 @@ class FriendReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_WIDGET))
             .andExpect(model().attributeExists("recentFriends"))
             .andExpect(model().attributeExists("pendingRequestsCount"))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeExists("member"))
     }
 

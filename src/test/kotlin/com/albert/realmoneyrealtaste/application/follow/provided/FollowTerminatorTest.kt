@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.application.follow.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
-import com.albert.realmoneyrealtaste.application.follow.dto.UnfollowRequest
 import com.albert.realmoneyrealtaste.application.follow.event.UnfollowedEvent
 import com.albert.realmoneyrealtaste.application.follow.exception.UnfollowException
 import com.albert.realmoneyrealtaste.application.follow.required.FollowRepository
@@ -45,11 +44,10 @@ class FollowTerminatorTest(
         applicationEvents.clear()
 
         // 언팔로우
-        val request = UnfollowRequest(
+        followTerminator.unfollow(
             followerId = follower.requireId(),
             followingId = following.requireId()
         )
-        followTerminator.unfollow(request)
 
         // 팔로우 관계 상태 확인
         val updatedFollow = followRepository.findById(follow.requireId())
@@ -78,13 +76,12 @@ class FollowTerminatorTest(
             nickname = "existing"
         )
 
-        val request = UnfollowRequest(
-            followerId = nonExistentFollowerId,
-            followingId = following.requireId()
-        )
 
         assertFailsWith<UnfollowException> {
-            followTerminator.unfollow(request)
+            followTerminator.unfollow(
+                followerId = nonExistentFollowerId,
+                followingId = following.requireId()
+            )
         }.let {
             assertEquals("언팔로우에 실패했습니다.", it.message)
         }
@@ -101,13 +98,11 @@ class FollowTerminatorTest(
             nickname = "following"
         )
 
-        val request = UnfollowRequest(
-            followerId = follower.requireId(),
-            followingId = following.requireId()
-        )
-
         assertFailsWith<UnfollowException> {
-            followTerminator.unfollow(request)
+            followTerminator.unfollow(
+                followerId = follower.requireId(),
+                followingId = following.requireId()
+            )
         }.let {
             assertEquals("언팔로우에 실패했습니다.", it.message)
         }
@@ -129,13 +124,11 @@ class FollowTerminatorTest(
         follow.unfollow()
         followRepository.save(follow)
 
-        val request = UnfollowRequest(
-            followerId = follower.requireId(),
-            followingId = following.requireId()
-        )
-
         assertFailsWith<UnfollowException> {
-            followTerminator.unfollow(request)
+            followTerminator.unfollow(
+                followerId = follower.requireId(),
+                followingId = following.requireId()
+            )
         }.let {
             assertEquals("언팔로우에 실패했습니다.", it.message)
         }
@@ -157,13 +150,11 @@ class FollowTerminatorTest(
         follow.block()
         followRepository.save(follow)
 
-        val request = UnfollowRequest(
-            followerId = follower.requireId(),
-            followingId = following.requireId()
-        )
-
         assertFailsWith<UnfollowException> {
-            followTerminator.unfollow(request)
+            followTerminator.unfollow(
+                followerId = follower.requireId(),
+                followingId = following.requireId()
+            )
         }.let {
             assertEquals("언팔로우에 실패했습니다.", it.message)
         }
@@ -179,15 +170,12 @@ class FollowTerminatorTest(
             email = "inactive-follower@test.com",
             nickname = "follower"
         )
-        // 활성화하지 않음
-
-        val request = UnfollowRequest(
-            followerId = inactiveFollower.requireId(),
-            followingId = activeFollowing.requireId()
-        )
 
         assertFailsWith<UnfollowException> {
-            followTerminator.unfollow(request)
+            followTerminator.unfollow(
+                followerId = inactiveFollower.requireId(),
+                followingId = activeFollowing.requireId()
+            )
         }.let {
             assertEquals("언팔로우에 실패했습니다.", it.message)
         }
@@ -207,11 +195,10 @@ class FollowTerminatorTest(
         val follow = createActiveFollow(follower.requireId(), following.requireId())
         val originalUpdatedAt = follow.updatedAt
 
-        val request = UnfollowRequest(
+        followTerminator.unfollow(
             followerId = follower.requireId(),
             followingId = following.requireId()
         )
-        followTerminator.unfollow(request)
 
         val updatedFollow = followRepository.findById(follow.requireId())!!
         assertAll(
@@ -242,18 +229,16 @@ class FollowTerminatorTest(
         applicationEvents.clear()
 
         // 첫 번째 언팔로우
-        val request1 = UnfollowRequest(
+        followTerminator.unfollow(
             followerId = follower.requireId(),
-            followingId = following1.requireId()
+            followingId = following1.requireId(),
         )
-        followTerminator.unfollow(request1)
 
         // 두 번째 언팔로우
-        val request2 = UnfollowRequest(
+        followTerminator.unfollow(
             followerId = follower.requireId(),
-            followingId = following2.requireId()
+            followingId = following2.requireId(),
         )
-        followTerminator.unfollow(request2)
 
         // 두 팔로우 모두 언팔로우 상태 확인
         val updatedFollow1 = followRepository.findById(follow1.requireId())!!
@@ -288,11 +273,10 @@ class FollowTerminatorTest(
         val follow2 = createActiveFollow(follower2.requireId(), following.requireId())
 
         // 첫 번째 팔로워만 언팔로우
-        val request = UnfollowRequest(
+        followTerminator.unfollow(
             followerId = follower1.requireId(),
-            followingId = following.requireId()
+            followingId = following.requireId(),
         )
-        followTerminator.unfollow(request)
 
         // 첫 번째는 언팔로우, 두 번째는 여전히 활성 상태
         val updatedFollow1 = followRepository.findById(follow1.requireId())!!
@@ -319,11 +303,10 @@ class FollowTerminatorTest(
         val follow2to1 = createActiveFollow(member2.requireId(), member1.requireId())
 
         // member1이 member2를 언팔로우
-        val request = UnfollowRequest(
+        followTerminator.unfollow(
             followerId = member1.requireId(),
-            followingId = member2.requireId()
+            followingId = member2.requireId(),
         )
-        followTerminator.unfollow(request)
 
         // member1->member2는 언팔로우, member2->member1은 여전히 활성
         val updatedFollow1to2 = followRepository.findById(follow1to2.requireId())!!

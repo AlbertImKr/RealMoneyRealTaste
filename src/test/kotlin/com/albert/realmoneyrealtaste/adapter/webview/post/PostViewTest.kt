@@ -526,7 +526,7 @@ class PostViewTest : IntegrationTestBase() {
             get("/posts/{postId}/modal", post.requireId())
         )
             .andExpect(status().isOk)
-            .andExpect(view().name("post/modal-detail :: post-detail-modal"))
+            .andExpect(view().name("post/fragments/modal-detail :: post-detail-modal"))
             .andExpect(model().attributeExists("post"))
     }
 
@@ -629,7 +629,6 @@ class PostViewTest : IntegrationTestBase() {
         )
             .andExpect(status().isOk)
             .andExpect(view().name(PostViews.POSTS_CONTENT))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeExists("posts"))
             .andExpect(model().attributeExists("member"))
     }
@@ -652,17 +651,16 @@ class PostViewTest : IntegrationTestBase() {
         )
             .andExpect(status().isOk)
             .andExpect(view().name(PostViews.POSTS_CONTENT))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeExists("posts"))
     }
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
-    fun `readMemberPostsFragment - failure - returns error when member not found`() {
+    fun `readMemberPostsFragment - success - returns empty list when member not exist`() {
         mockMvc.perform(
             get("/members/{id}/posts/fragment", 99999L)
         )
-            .andExpect(status().is4xxClientError)
+            .andExpect(status().isOk)
     }
 
     @Test

@@ -146,9 +146,10 @@ class Member protected constructor(
     ) {
         require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_INFO_UPDATE }
 
+        val sameNickname = nickname == this.nickname
         nickname?.let { this.nickname = it }
-        detail.updateInfo(profileAddress, introduction, address, imageId)
-        updatedAt = LocalDateTime.now()
+        val updated = detail.updateInfo(profileAddress, introduction, address, imageId)
+        if (!sameNickname || updated) updatedAt = LocalDateTime.now()
     }
 
     fun updateTrustScore(newTrustScore: TrustScore) {

@@ -40,7 +40,7 @@ class FriendWriteView(
         // 상태 업데이트를 위해 모델에 데이터 추가
         model.addAttribute("isFriend", false)
         model.addAttribute("hasSentFriendRequest", true)
-        model.addAttribute("authorId", authorId)
+        updateFriendButtonModel(principal, authorId, model)
 
         return FriendViews.FRIEND_BUTTON
     }
