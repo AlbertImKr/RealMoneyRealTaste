@@ -162,7 +162,7 @@ class FriendRequestorTest(
         )
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(member.requireId(), member.requireId(), member.nickname.value)
+            FriendRequestCommand(member.requireId(), member.nickname.value, member.requireId(), member.nickname.value)
         }
     }
 
@@ -303,7 +303,7 @@ class FriendRequestorTest(
         )
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(member.requireId(), member.requireId(), member.nickname.value)
+            FriendRequestCommand(member.requireId(), member.nickname.value, member.requireId(), member.nickname.value)
         }
     }
 
@@ -324,7 +324,12 @@ class FriendRequestorTest(
         friendshipRepository.save(firstFriendship)
 
         // 거절된 후 동일 방향으로 다시 요청 (허용되어야 함)
-        val secondCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
+        val secondCommand = FriendRequestCommand(
+            member1.requireId(),
+            member1.nickname.value,
+            member2.requireId(),
+            member2.nickname.value
+        )
         val result = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
 
         assertAll(

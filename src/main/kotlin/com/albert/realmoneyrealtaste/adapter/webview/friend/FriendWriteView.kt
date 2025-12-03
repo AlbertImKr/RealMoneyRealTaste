@@ -8,7 +8,6 @@ import com.albert.realmoneyrealtaste.application.friend.provided.FriendRequestor
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendResponder
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipTerminator
-import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -26,7 +25,6 @@ class FriendWriteView(
     private val friendResponder: FriendResponder,
     private val friendshipTerminator: FriendshipTerminator,
     private val friendshipReader: FriendshipReader,
-    private val memberReader: MemberReader,
 ) {
     @PostMapping(FriendUrls.SEND_FRIEND_REQUEST)
     fun sendFriendRequestNew(
@@ -109,11 +107,5 @@ class FriendWriteView(
         val friendship = friendshipReader.sentedFriendRequest(principal.id, targetMemberId)
         val hasSentFriendRequest = friendship != null
         model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
-
-        // 템플릿에 필요한 author.id 설정
-        model.addAttribute(
-            "author",
-            memberReader.readMemberById(targetMemberId)
-        )
     }
 }

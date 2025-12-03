@@ -82,7 +82,7 @@
 
                                 <!-- 다른 사용자인 경우 -->
                                 <div class="d-flex ms-auto gap-2" sec:authorize="isAuthenticated()"
-                                     th:if="${member.id == author.id}">
+                                     th:if="${member.id != author.id}">
                                     <!-- 친구 버튼 -->
                                     <div hx-swap="innerHTML"
                                          hx-trigger="load"

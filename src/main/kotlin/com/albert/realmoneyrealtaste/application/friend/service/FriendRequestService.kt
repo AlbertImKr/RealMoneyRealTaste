@@ -28,10 +28,12 @@ class FriendRequestService(
 
     override fun sendFriendRequest(fromMemberId: Long, toMemberId: Long): Friendship {
         try {
+            val fromMember = memberReader.readActiveMemberById(fromMemberId)
             val toMember = memberReader.readActiveMemberById(toMemberId)
 
             val command = FriendRequestCommand(
                 fromMemberId = fromMemberId,
+                fromMemberNickName = fromMember.nickname.value,
                 toMemberId = toMemberId,
                 toMemberNickname = toMember.nickname.value
             )

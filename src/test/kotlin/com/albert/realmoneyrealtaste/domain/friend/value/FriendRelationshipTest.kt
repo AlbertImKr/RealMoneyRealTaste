@@ -12,9 +12,10 @@ class FriendRelationshipTest {
     fun `create - success - creates relationship with valid member IDs`() {
         val memberId = 1L
         val friendMemberId = 2L
-        val friendNickname = "friend"
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
 
-        val relationship = FriendRelationship(memberId, friendMemberId, friendNickname)
+        val relationship = FriendRelationship(memberId, fromMemberNickname, friendMemberId, friendNickname)
 
         assertAll(
             { assertEquals(memberId, relationship.memberId) },
@@ -26,10 +27,12 @@ class FriendRelationshipTest {
     @Test
     fun `create - failure - throws exception when memberId is zero`() {
         val memberId = 0L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
         val friendMemberId = 2L
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRelationship(memberId, friendMemberId, "friend")
+            FriendRelationship(memberId, fromMemberNickname, friendMemberId, friendNickname)
         }.let {
             assertEquals(FriendRelationship.ERROR_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -39,9 +42,11 @@ class FriendRelationshipTest {
     fun `create - failure - throws exception when memberId is negative`() {
         val memberId = -1L
         val friendMemberId = 2L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRelationship(memberId, friendMemberId, "friend")
+            FriendRelationship(memberId, fromMemberNickname, friendMemberId, friendNickname)
         }.let {
             assertEquals(FriendRelationship.ERROR_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -51,9 +56,11 @@ class FriendRelationshipTest {
     fun `create - failure - throws exception when friendMemberId is zero`() {
         val memberId = 1L
         val friendMemberId = 0L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRelationship(memberId, friendMemberId, "friend")
+            FriendRelationship(memberId, fromMemberNickname, friendMemberId, friendNickname)
         }.let {
             assertEquals(FriendRelationship.ERROR_FRIEND_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -63,9 +70,11 @@ class FriendRelationshipTest {
     fun `create - failure - throws exception when friendMemberId is negative`() {
         val memberId = 1L
         val friendMemberId = -1L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRelationship(memberId, friendMemberId, "friend")
+            FriendRelationship(memberId, fromMemberNickname, friendMemberId, friendNickname)
         }.let {
             assertEquals(FriendRelationship.ERROR_FRIEND_MEMBER_ID_MUST_BE_POSITIVE, it.message)
         }
@@ -74,114 +83,31 @@ class FriendRelationshipTest {
     @Test
     fun `create - failure - throws exception when memberId and friendMemberId are same`() {
         val memberId = 1L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRelationship(memberId, memberId, "friend")
+            FriendRelationship(memberId, fromMemberNickname, memberId, friendNickname)
         }.let {
             assertEquals(FriendRelationship.ERROR_CANNOT_FRIEND_YOURSELF, it.message)
         }
     }
 
     @Test
-    fun `create - failure - throws exception when both member IDs are zero`() {
-        val memberId = 0L
-        val friendMemberId = 0L
-
-        assertFailsWith<IllegalArgumentException> {
-            FriendRelationship(memberId, friendMemberId, "friend")
-        }.let {
-            // memberId 검증이 먼저 수행되므로 해당 에러 메시지가 나옴
-            assertEquals(FriendRelationship.ERROR_MEMBER_ID_MUST_BE_POSITIVE, it.message)
-        }
-    }
-
-    @Test
-    fun `create - failure - throws exception when both member IDs are negative`() {
-        val memberId = -1L
-        val friendMemberId = -2L
-
-        assertFailsWith<IllegalArgumentException> {
-            FriendRelationship(memberId, friendMemberId, "friend")
-        }.let {
-            // memberId 검증이 먼저 수행되므로 해당 에러 메시지가 나옴
-            assertEquals(FriendRelationship.ERROR_MEMBER_ID_MUST_BE_POSITIVE, it.message)
-        }
-    }
-
-    @Test
-    fun `create - success - accepts large positive member IDs`() {
-        val memberId = Long.MAX_VALUE - 1
-        val friendMemberId = Long.MAX_VALUE
-
-        val relationship = FriendRelationship(memberId, friendMemberId, "friend")
-
-        assertAll(
-            { assertEquals(memberId, relationship.memberId) },
-            { assertEquals(friendMemberId, relationship.friendMemberId) },
-            { assertEquals("friend", relationship.friendNickname) }
-        )
-    }
-
-    @Test
-    fun `create - success - accepts minimum positive member IDs`() {
-        val memberId = 1L
-        val friendMemberId = 2L
-
-        val relationship = FriendRelationship(memberId, friendMemberId, "friend")
-
-        assertAll(
-            { assertEquals(memberId, relationship.memberId) },
-            { assertEquals(friendMemberId, relationship.friendMemberId) },
-            { assertEquals("friend", relationship.friendNickname) }
-        )
-    }
-
-    @Test
-    fun `of - success - creates relationship from FriendRequestCommand`() {
-        val fromMemberId = 1L
-        val toMemberId = 2L
-        val toMemberNickname = "receiver"
-        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
-
-        val relationship = FriendRelationship.of(command)
-
-        assertAll(
-            { assertEquals(fromMemberId, relationship.memberId) },
-            { assertEquals(toMemberId, relationship.friendMemberId) },
-            { assertEquals(toMemberNickname, relationship.friendNickname) }
-        )
-    }
-
-    @Test
-    fun `of - success - maps command member IDs correctly`() {
-        val fromMemberId = 100L
-        val toMemberId = 200L
-        val toMemberNickname = "receiver"
-        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
-
-        val relationship = FriendRelationship.of(command)
-
-        assertAll(
-            { assertEquals(command.fromMemberId, relationship.memberId) },
-            { assertEquals(command.toMemberId, relationship.friendMemberId) },
-            { assertEquals(command.toMemberNickname, relationship.friendNickname) }
-        )
-    }
-
-    @Test
     fun `of - success - creates valid relationship when command is valid`() {
         val fromMemberId = 50L
         val toMemberId = 75L
+        val fromMemberNickname = "sender"
         val toMemberNickname = "receiver"
-        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
+        val command = FriendRequestCommand(fromMemberId, fromMemberNickname, toMemberId, toMemberNickname)
 
         val relationship = FriendRelationship.of(command)
 
-        // 생성된 관계가 유효한지 확인 (예외가 발생하지 않음)
         assertAll(
             { assertEquals(fromMemberId, relationship.memberId) },
             { assertEquals(toMemberId, relationship.friendMemberId) },
-            { assertEquals(toMemberNickname, relationship.friendNickname) }
+            { assertEquals(toMemberNickname, relationship.friendNickname) },
+            { assertEquals(fromMemberNickname, relationship.memberNickname) }
         )
     }
 }

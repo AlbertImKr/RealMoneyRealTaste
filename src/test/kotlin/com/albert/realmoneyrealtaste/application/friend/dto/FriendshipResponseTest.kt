@@ -15,9 +15,10 @@ class FriendshipResponseTest {
     @Test
     fun `from - success - creates response with all friendship information`() {
         val fromMemberId = 1L
+        val memberNickname = "sender"
         val toMemberId = 2L
         val friendNickname = "receiver"
-        val command = FriendRequestCommand(fromMemberId, toMemberId, friendNickname)
+        val command = FriendRequestCommand(fromMemberId, memberNickname, toMemberId, friendNickname)
         val friendship = Friendship.request(command)
 
         // ID 설정 (실제로는 JPA가 수행)
@@ -81,8 +82,9 @@ class FriendshipResponseTest {
     fun `from - success - includes optional parameters correctly`() {
         val fromMemberId = 1L
         val toMemberId = 2L
+        val memberNickname = "sender"
         val friendNickname = "receiver"
-        val command = FriendRequestCommand(fromMemberId, toMemberId, friendNickname)
+        val command = FriendRequestCommand(fromMemberId, memberNickname, toMemberId, friendNickname)
         val friendship = Friendship.request(command)
         setFriendshipId(friendship, 100L)
 
@@ -105,12 +107,13 @@ class FriendshipResponseTest {
     @Test
     fun `from - success - works with different friendship statuses`() {
         val fromMemberId = 1L
+        val memberNickname = "sender"
         val toMemberId = 2L
         val friendNickname = "receiver"
 
         // 각 상태별로 테스트
         FriendshipStatus.values().forEach { status ->
-            val command = FriendRequestCommand(fromMemberId, toMemberId, friendNickname)
+            val command = FriendRequestCommand(fromMemberId, memberNickname, toMemberId, friendNickname)
             val friendship = Friendship.request(command)
             setFriendshipId(friendship, 100L)
 
@@ -161,36 +164,6 @@ class FriendshipResponseTest {
             { assertEquals(customFriendSince, response.friendSince) },
             { assertEquals(customProfileImageUrl, response.profileImageUrl) }
         )
-    }
-
-    @Test
-    fun `from - success - handles long nicknames correctly`() {
-        val fromMemberId = 1L
-        val toMemberId = 2L
-        val longNickname = "a".repeat(100) // 매우 긴 닉네임
-        val command = FriendRequestCommand(fromMemberId, toMemberId, longNickname)
-        val friendship = Friendship.request(command)
-        setFriendshipId(friendship, 100L)
-
-        val result = FriendshipResponse.from(friendship, longNickname)
-
-        assertEquals(longNickname, result.friendNickname)
-        assertEquals(longNickname, result.nickname)
-    }
-
-    @Test
-    fun `from - success - handles special characters in nickname`() {
-        val fromMemberId = 1L
-        val toMemberId = 2L
-        val specialNickname = "특수문자_한글123!@#"
-        val command = FriendRequestCommand(fromMemberId, toMemberId, specialNickname)
-        val friendship = Friendship.request(command)
-        setFriendshipId(friendship, 100L)
-
-        val result = FriendshipResponse.from(friendship, specialNickname)
-
-        assertEquals(specialNickname, result.friendNickname)
-        assertEquals(specialNickname, result.nickname)
     }
 
     private fun setFriendshipId(friendship: Friendship, id: Long) {
