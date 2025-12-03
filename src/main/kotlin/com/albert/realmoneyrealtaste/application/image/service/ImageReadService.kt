@@ -22,8 +22,6 @@ class ImageReadService(
         val image = imageRepository.findByIdAndIsDeletedFalse(imageId)
             ?: throw ImageNotFoundException("이미지를 찾을 수 없습니다: $imageId")
 
-        require(image.canAccess(userId)) { "이미지에 접근 권한이 없습니다" }
-
         return presignedUrlGenerator.generatePresignedGetUrl(image.fileKey.value)
     }
 
