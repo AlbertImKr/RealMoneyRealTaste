@@ -33,6 +33,14 @@ vim .env
 docker-compose up -d mysql
 ```
 
+#### Flyway 마이그레이션
+
+애플리케이션 시작 시 Flyway가 자동으로 데이터베이스 스키마를 설정합니다:
+
+- 마이그레이션 파일 위치: `src/main/resources/db/migration/`
+- 자동 실행: 애플리케이션 부트 시
+- 버전 관리: V1, V2, V3... 순차적 적용
+
 ### 4. 애플리케이션 실행
 
 ```bash
@@ -89,9 +97,10 @@ docker-compose up -d mysql
 
 ### Testcontainers
 
-프로젝트는 Testcontainers를 사용하여 테스트용 데이터베이스를 자동으로 관리합니다:
+프로젝트는 Testcontainers를 사용하여 테스트용 데이터베이스 및 AWS 서비스를 자동으로 관리합니다:
 
 - **MySQL 8.0** 컨테이너 자동 시작
+- **LocalStack** S3 컨테이너 자동 시작 (이미지 업로드 테스트)
 - **CI 환경** 최적화 설정
 - **성능 튜닝** 적용 (메모리 64MB, 시작 타임아웃 5분)
 
@@ -160,9 +169,11 @@ export GRADLE_OPTS="-Xmx2g -XX:MaxMetaspaceSize=512m"
 
 ## 🔄 다음 단계
 
+- [이미지 관리 시스템](IMAGE_MANAGEMENT.md) 이해
 - [API 문서](API_DOCUMENTATION.md) 확인
 - [도메인 모델](DOMAIN_MODEL.md) 이해
 - [테스트 가이드](TESTING_GUIDE.md) 참고
+- [아키텍처](ARCHITECTURE.md) 학습
 
 ---
 

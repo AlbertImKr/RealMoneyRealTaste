@@ -481,3 +481,4 @@ S3_BUCKET_NAME=your-bucket-name
 - [AWS S3 Presigned URL 가이드](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html)
 - [Testcontainers LocalStack 모듈](https://www.testcontainers.org/modules/localstack/)
 - [헥사고날 아키텍처](https://alistair.cockburn.us/hexagonal-architecture/)
+- [Spring Boot S3 통합](https://docs.awspring.io/spring-cloud-aws/docs/current/reference/html/index.html)
