@@ -247,11 +247,18 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
 │   │   │   ├── AuthViews.kt
 │   │   │   ├── SignupForm.kt
 │   │   │   └── SigninForm.kt
-│   │   ├── member/                   # 회원 뷰
-│   │   │   ├── MemberView.kt
+│   │   ├── member/                   # 회원 뷰 (리팩토링 완료)
+│   │   │   ├── MemberAuthView.kt     # 인증 컨트롤러
+│   │   │   ├── MemberProfileView.kt  # 프로필 컨트롤러
+│   │   │   ├── MemberSettingsView.kt # 설정 컨트롤러
+│   │   │   ├── MemberFragmentView.kt # 프래그먼트 컨트롤러
 │   │   │   ├── MemberUrls.kt
 │   │   │   ├── MemberViews.kt
-│   │   │   └── forms/
+│   │   │   ├── form/                 # 폼 클래스
+│   │   │   ├── validator/            # 검증 로직
+│   │   │   ├── converter/            # 데이터 변환
+│   │   │   ├── util/                 # 유틸리티
+│   │   │   └── message/              # 메시지 상수
 │   │   ├── post/                     # 게시글 뷰
 │   │   │   ├── PostView.kt
 │   │   │   ├── PostUrls.kt
@@ -266,11 +273,14 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
 │   │   │   ├── FriendWriteView.kt
 │   │   │   ├── FriendUrls.kt
 │   │   │   └── FriendViews.kt
-│   │   ├── follow/                   # 팔로우 뷰
-│   │   │   ├── FollowView.kt
-│   │   │   ├── FollowCreateView.kt
-│   │   │   ├── FollowTerminateView.kt
-│   │   │   └── FollowUrls.kt
+│   │   ├── follow/                   # 팔로우 뷰 (리팩토링 완료)
+│   │   │   ├── FollowReadView.kt     # 조회 컨트롤러
+│   │   │   ├── FollowCreateView.kt   # 생성 컨트롤러
+│   │   │   ├── FollowTerminateView.kt # 삭제 컨트롤러
+│   │   │   ├── FollowUrls.kt
+│   │   │   └── fragments/            # 프래그먼트 분리
+│   │   │       ├── followers.html    # 팔로워 목록
+│   │   │       └── following.html    # 팔로잉 목록
 │   │   └── comment/                  # 댓글 뷰
 │   │       ├── CommentReadView.kt
 │   │       ├── CommentWriteView.kt

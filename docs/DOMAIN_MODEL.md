@@ -503,7 +503,6 @@ data class FileKey(
 ```
 
 **특징**
-
 - 경로 탐색 공격 (`../`) 방지
 - 절대 경로 사용 금지
 - S3 객체 키 직접 매핑
@@ -589,9 +588,25 @@ privacy: CollectionPrivacy
 
 #### 주요 행위
 
-**생성**
+**생성 (feature36 개선)**
 
-- `static request(fromMemberId: Long, toMemberId: Long): Friendship` - 친구 요청
+```kotlin
+companion object {
+    fun request(command: FriendRequestCommand): Friendship {
+        // 친구 요청 시 양방향 닉네임 정보 저장
+        val relationship = FriendRelationship(
+            fromMemberId = command.fromMemberId,
+            fromMemberNickname = command.fromMemberNickname,  // 추가
+            toMemberId = command.toMemberId,
+            toMemberNickname = command.toMemberNickname  // 추가
+        )
+        return Friendship(
+            relationship = relationship,
+            status = FriendshipStatus.PENDING
+        )
+    }
+}
+```
 
 **상태 전이**
 
@@ -605,6 +620,7 @@ privacy: CollectionPrivacy
 * PENDING → ACCEPTED/REJECTED만 가능
 * ACCEPTED → TERMINATED만 가능
 * 양방향 관계 관리
+* **데이터 완전성 확보 (feature36)**: 친구 요청 시 양방향 닉네임 저장으로 조회 성능 개선
 
 #### 도메인 이벤트
 
@@ -646,9 +662,22 @@ data class FriendshipTerminatedEvent(
 
 #### 주요 행위
 
-**생성**
+**생성 (feature36 개선)**
 
-- `static start(followerId: Long, followingId: Long): Follow` - 팔로우 시작
+```kotlin
+companion object {
+    fun start(command: FollowCreateCommand): Follow {
+        // 팔로우 관계 생성 시 닉네임 정보 저장
+        val relationship = FollowRelationship(
+            followerId = command.followerId,
+            followerNickname = command.followerNickname,  // 추가
+            followingId = command.followingId,
+            followingNickname = command.followingNickname  // 추가
+        )
+        return Follow(relationship = relationship, status = FollowStatus.ACTIVE)
+    }
+}
+```
 
 **관리**
 
@@ -660,6 +689,7 @@ data class FriendshipTerminatedEvent(
 * ACTIVE → TERMINATED만 가능
 * 단방향 관계 (팔로워 → 팔로잉)
 * 자기 자신 팔로우 불가
+* **데이터 완전성 확보 (feature36)**: 팔로우 관계 생성 시 닉네임 저장으로 조회 성능 개선
 
 #### 도메인 이벤트
 

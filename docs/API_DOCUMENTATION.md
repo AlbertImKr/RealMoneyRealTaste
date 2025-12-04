@@ -4,7 +4,7 @@
 
 RMRT는 RESTful API와 WebView 기반의 하이브리드 구조를 제공합니다.
 
-- **Base URL**: `http://localhost:8080`
+- **Base URL**: `http://localhost:8080`,`https://rmrt.albert-im.com/`
 - **인증**: Spring Security 기반 Session 인증
 - **Content-Type**: `application/json` (API) / `application/x-www-form-urlencoded` (Form)
 
@@ -14,6 +14,9 @@ RMRT는 RESTful API와 WebView 기반의 하이브리드 구조를 제공합니�
 
 - [멤버 프로필 조회](#멤버-프로필-조회)
 - [추천 사용자 목록](#추천-사용자-목록)
+- [멤버 인증](#멤버-인증)
+- [멤버 설정](#멤버-설정)
+- [멤버 프래그먼트](#멤버-프래그먼트)
 
 ### 🍽️ 포스트 관련 API
 
@@ -53,6 +56,7 @@ RMRT는 RESTful API와 WebView 기반의 하이브리드 구조를 제공합니�
 - [팔로워 목록](#팔로워-목록)
 - [팔로우 생성](#팔로우-생성)
 - [팔로우 삭제](#팔로우-삭제)
+- [팔로우 프래그먼트](#팔로우-프래그먼트)
 
 ### 📚 컬렉션 관련 API
 
@@ -60,6 +64,7 @@ RMRT는 RESTful API와 WebView 기반의 하이브리드 구조를 제공합니�
 - [컬렉션 수정](#컬렉션-수정)
 - [컬렉션 삭제](#컬렉션-삭제)
 - [컬렉션 게시글 추가/제거](#컬렉션-게시글-추가제거)
+- [컬렉션 상세 조회](#컬렉션-상세-조회)
 
 ---
 
@@ -82,6 +87,61 @@ GET /members/fragment/suggest-users-sidebar
 **인증 필요**
 
 **응답:** HTML 프래그먼트
+
+### 멤버 인증
+
+**컨트롤러 리팩토링 (feature36):**
+
+```kotlin
+@Controller
+class MemberAuthView  // 인증 전담 컨트롤러
+```
+
+**담당 기능:**
+
+- 로그인/로그아웃
+- 회원가입
+- 이메일 인증
+- 비밀번호 재설정 (이메일 토큰)
+- 커스텀 PasswordResetFormValidator 적용
+
+### 멤버 설정
+
+**컨트롤러 리팩토링 (feature36):**
+
+```kotlin
+@Controller
+class MemberSettingsView  // 설정 전담 컨트롤러
+```
+
+**담당 기능:**
+
+- 계정 정보 수정
+- 비밀번호 변경
+- 프로필 이미지 변경
+- 회원 탈퇴
+
+### 멤버 프래그먼트
+
+**컨트롤러 리팩토링 (feature36):**
+
+```kotlin
+@Controller
+class MemberFragmentView  // 프래그먼트 전담 컨트롤러
+```
+
+**담당 기능:**
+
+- 추천 사용자 사이드바 프래그먼트
+- 프로필 프래그먼트
+- 동적 컨텐츠 로딩
+
+**아키텍처 개선:**
+
+- MemberView (700줄+) → 4개 전문 컨트롤러 분리
+- 단일 책임 원칙 적용
+- 패키지 구조 체계화: form, validator, converter, util, message
+- 테스트 클래스 분리 (MemberAuthViewTest, MemberSettingsViewTest 등)
 
 ---
 
@@ -152,24 +212,6 @@ Content-Type: application/x-www-form-urlencoded
 ## 📷 이미지 관련 API
 
 > **AWS S3 Presigned URL 방식**을 사용하여 서버 부하를 최소화하고 안전한 이미지 업로드를 제공합니다.
-
-### 전체 업로드 플로우
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Backend
-    participant S3 as AWS S3
-    Note over Client, S3: 1. Presigned URL 요청
-    Client ->> Backend: POST /api/images/upload-request
-    Backend -->> Client: PresignedPutResponse
-    Note over Client, S3: 2. S3 직접 업로드
-    Client ->> S3: PUT {uploadUrl}
-    S3 -->> Client: 200 OK
-    Note over Client, S3: 3. 업로드 확인
-    Client ->> Backend: POST /api/images/upload-confirm
-    Backend -->> Client: ImageUploadResult
-```
 
 ### Presigned URL 요청
 
@@ -376,52 +418,6 @@ DELETE /api/images/{imageId}
 3. **파일 키 안전성**: UUID 기반 고유 파일명, 경로 탐색 공격 방지
 4. **시간 제한**: Presigned URL 15분 유효
 5. **CSRF 보호**: 모든 POST/PUT/DELETE 요청에 CSRF 토큰 필요
-
-### 클라이언트 구현 예시
-
-```javascript
-// 1. Presigned URL 요청
-const response = await fetch("/api/images/upload-request", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": csrfToken,
-    },
-    body: JSON.stringify({
-        fileName: file.name,
-        contentType: file.type,
-        fileSize: file.size,
-        imageType: "POST_IMAGE",
-        width: 1920,
-        height: 1080,
-    }),
-});
-
-const {uploadUrl, key, metadata} = await response.json();
-
-// 2. S3에 직접 업로드
-await fetch(uploadUrl, {
-    method: "PUT",
-    headers: {
-        "Content-Type": metadata["content-type"],
-        "x-amz-meta-original-name": metadata["original-name"],
-        "x-amz-meta-file-size": metadata["file-size"],
-        "x-amz-meta-width": metadata["width"],
-        "x-amz-meta-height": metadata["height"],
-    },
-    body: file,
-});
-
-// 3. 업로드 확인
-const confirmResponse = await fetch(`/api/images/upload-confirm?key=${key}`, {
-    method: "POST",
-    headers: {
-        "X-CSRF-TOKEN": csrfToken,
-    },
-});
-
-const {imageId} = await confirmResponse.json();
-```
 
 ### 에러 응답
 
@@ -642,6 +638,36 @@ DELETE /members/{targetId}/follow
 
 **응답:** HTML 버튼 프래그먼트
 
+### 팔로우 프래그먼트
+
+**팔로워 목록 프래그먼트:**
+
+```http
+GET /follow/followers?memberId={memberId}
+```
+
+**응답:** HTML 프래그먼트 (followers.html)
+
+**기술적 특징:**
+
+- HTMX 기반 동적 로딩
+- 팔로우 상태 실시간 업데이트
+- 페이지 새로고침 없는 UX
+
+**팔로잉 목록 프래그먼트:**
+
+```http
+GET /follow/following?memberId={memberId}
+```
+
+**응답:** HTML 프래그먼트 (following.html)
+
+**리팩토링 내역 (feature36):**
+
+- `fragment.html` (275줄) → `followers.html` (133줄) + `following.html` (135줄) 분리
+- 기능별 프래그먼트 분리로 유지보수성 향상
+- 팔로우 관계 생성 시 닉네임 정보 저장으로 데이터 완전성 확보
+
 ---
 
 ## 📚 컬렉션 관련 API
@@ -723,6 +749,34 @@ DELETE /api/collections/{collectionId}/posts/{postId}
 ```
 
 **인증 필요**
+
+### 컬렉션 상세 조회
+
+```http
+GET /collections/{collectionId}
+```
+
+**응답:** HTML 페이지 (컬렉션 상세)
+
+**Backend 개선사항 (feature36):**
+
+```kotlin
+// DTO 표준화
+data class PostCollectionDetailResponse(
+    val collection: PostCollectionResponse,
+    val posts: List<PostResponse>,
+    val authorPosts: List<PostResponse>,
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+    val timestamp: Instant = Instant.now()
+)
+```
+
+**개선 내용:**
+
+- 단일 API 호출로 컬렉션 정보 + 포스트 목록 + 작성자 포스트 통합 제공
+- 뷰 컨트롤러에서 서비스 계층으로 데이터 집계 책임 이관
+- @JsonFormat으로 타임존 형식 표준화 (클라이언트 호환성 확보)
+- CollectionReadService.readDetail() 메서드 추가
 
 **응답:** 추가는 HTTP 200, 제거는 HTTP 204
 
