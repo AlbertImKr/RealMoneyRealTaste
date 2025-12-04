@@ -32,7 +32,7 @@ class ImageUploadService(
 
     private val logger = LoggerFactory.getLogger(ImageUploadService::class.java)
 
-    override fun generatePresignedPostUrl(request: ImageUploadRequest, userId: Long): PresignedPutResponse {
+    override fun generatePresignedUploadUrl(request: ImageUploadRequest, userId: Long): PresignedPutResponse {
         try {
             // 1. 사용자 검증
             val todayUploadCount = imageReader.getTodayUploadCount(userId)

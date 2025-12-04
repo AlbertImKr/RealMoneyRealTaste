@@ -32,7 +32,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         )
 
         // When
-        val response = imageUploadRequester.generatePresignedPostUrl(request, userId)
+        val response = imageUploadRequester.generatePresignedUploadUrl(request, userId)
 
         // Then
         assertNotNull(response.uploadUrl)
@@ -65,8 +65,8 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         )
 
         // When
-        val response1 = imageUploadRequester.generatePresignedPostUrl(request, userId)
-        val response2 = imageUploadRequester.generatePresignedPostUrl(request, userId)
+        val response1 = imageUploadRequester.generatePresignedUploadUrl(request, userId)
+        val response2 = imageUploadRequester.generatePresignedUploadUrl(request, userId)
 
         // Then
         // URL은 다르지만 키 형식은 유사해야 함
@@ -99,7 +99,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
                 imageType = imageType
             )
 
-            val response = imageUploadRequester.generatePresignedPostUrl(request, userId)
+            val response = imageUploadRequester.generatePresignedUploadUrl(request, userId)
 
             assertNotNull(response.uploadUrl)
             assertNotNull(response.key)
@@ -128,7 +128,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
                 imageType = ImageType.POST_IMAGE
             )
 
-            val response = imageUploadRequester.generatePresignedPostUrl(request, userId)
+            val response = imageUploadRequester.generatePresignedUploadUrl(request, userId)
 
             assertNotNull(response.uploadUrl)
             assertTrue(response.key.endsWith(fileName.substringAfterLast(".")))
@@ -151,7 +151,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         )
 
         // When
-        val minResponse = imageUploadRequester.generatePresignedPostUrl(minRequest, userId)
+        val minResponse = imageUploadRequester.generatePresignedUploadUrl(minRequest, userId)
 
         // Then
         assertNotNull(minResponse.uploadUrl)
@@ -169,7 +169,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         )
 
         // When
-        val maxResponse = imageUploadRequester.generatePresignedPostUrl(maxRequest, userId)
+        val maxResponse = imageUploadRequester.generatePresignedUploadUrl(maxRequest, userId)
 
         // Then
         assertNotNull(maxResponse.uploadUrl)
@@ -191,7 +191,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         )
 
         // When
-        val response = imageUploadRequester.generatePresignedPostUrl(request, userId)
+        val response = imageUploadRequester.generatePresignedUploadUrl(request, userId)
 
         // Then
         // 키 형식: images/yyyy/MM/dd/uuid.extension
@@ -225,7 +225,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         )
 
         // When
-        val minResponse = imageUploadRequester.generatePresignedPostUrl(request, minUserId)
+        val minResponse = imageUploadRequester.generatePresignedUploadUrl(request, minUserId)
 
         // Then
         assertNotNull(minResponse.uploadUrl)
@@ -233,7 +233,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // Given - 최대 사용자 ID
         val maxUserId = Long.MAX_VALUE
-        val maxResponse = imageUploadRequester.generatePresignedPostUrl(request, maxUserId)
+        val maxResponse = imageUploadRequester.generatePresignedUploadUrl(request, maxUserId)
 
         // Then
         assertNotNull(maxResponse.uploadUrl)
@@ -254,7 +254,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         )
 
         // When
-        val response = imageUploadRequester.generatePresignedPostUrl(request, userId)
+        val response = imageUploadRequester.generatePresignedUploadUrl(request, userId)
 
         // Then - 필수 필드 검증
         assertNotNull(response.uploadUrl)
@@ -282,7 +282,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -303,7 +303,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -324,7 +324,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -345,7 +345,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -366,7 +366,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -387,7 +387,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -408,7 +408,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -429,7 +429,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -450,7 +450,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -471,7 +471,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(invalidRequest, userId)
+            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)
@@ -492,7 +492,7 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
 
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedPostUrl(request, userId)
+            imageUploadRequester.generatePresignedUploadUrl(request, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)

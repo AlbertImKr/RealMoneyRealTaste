@@ -96,10 +96,5 @@ class ImageUploadValidateService(
         require(extension in ALLOWED_EXTENSIONS) {
             "허용되지 않는 파일 확장자: $extension"
         }
-
-        // 파일명 형식 검증 (영문, 숫자, 언더스코어, 하이픈, 점)
-        require(fileName.matches(Regex("^[a-zA-Z0-9._-]+\\.[a-zA-Z0-9]+$"))) {
-            "파일명은 영문, 숫자, 언더스코어(_), 하이픈(-), 점(.)만 사용할 수 있습니다"
-        }
     }
 }
