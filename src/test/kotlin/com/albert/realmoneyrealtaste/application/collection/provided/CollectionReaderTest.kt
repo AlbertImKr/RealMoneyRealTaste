@@ -8,6 +8,7 @@ import com.albert.realmoneyrealtaste.domain.collection.CollectionStatus
 import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import com.albert.realmoneyrealtaste.domain.collection.command.CollectionCreateCommand
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
+import com.albert.realmoneyrealtaste.util.TestPostHelper
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import kotlin.test.Test
@@ -18,6 +19,7 @@ import kotlin.test.assertTrue
 class CollectionReaderTest(
     private val collectionReader: CollectionReader,
     private val testMemberHelper: TestMemberHelper,
+    private val testPostHelper: TestPostHelper,
     private val collectionRepository: CollectionRepository,
 ) : IntegrationTestBase() {
 
@@ -69,7 +71,7 @@ class CollectionReaderTest(
     @Test
     fun `readMyCollections - success - respects pagination`() {
         val member = testMemberHelper.createActivatedMember()
-        val collections = (1..15).map { i ->
+        (1..15).map { i ->
             createTestCollection(member.requireId(), name = "컬렉션 $i")
         }
 
@@ -84,17 +86,17 @@ class CollectionReaderTest(
     @Test
     fun `readMyPublicCollections - success - returns only public collections`() {
         val member = testMemberHelper.createActivatedMember()
-        val publicCollection1 = createTestCollection(
+        createTestCollection(
             member.requireId(),
             name = "공개 컬렉션 1",
             privacy = CollectionPrivacy.PUBLIC
         )
-        val privateCollection = createTestCollection(
+        createTestCollection(
             member.requireId(),
             name = "비공개 컬렉션",
             privacy = CollectionPrivacy.PRIVATE
         )
-        val publicCollection2 = createTestCollection(
+        createTestCollection(
             member.requireId(),
             name = "공개 컬렉션 2",
             privacy = CollectionPrivacy.PUBLIC
@@ -234,6 +236,138 @@ class CollectionReaderTest(
         assertEquals(5, result.content.size)
         assertEquals(publicCollections.size.toLong(), result.totalElements)
         assertTrue(result.content.all { it.privacy == CollectionPrivacy.PUBLIC })
+    }
+
+    @Test
+    fun `readDetail - success - returns collection with posts and author posts`() {
+        // Given
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId(), name = "맛집 컬렉션")
+
+        // 컬렉션에 추가할 게시글들 생성
+        val collectionPosts = (1..3).map { _ ->
+            testPostHelper.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = "테스트유저"
+            )
+        }
+
+        // 컬렉션에 게시글 추가
+        collectionPosts.forEach { post ->
+            collection.addPost(member.requireId(), post.requireId())
+        }
+
+        // 추가적인 게시글들 생성 (myPosts에 포함될)
+        (1..2).map {
+            testPostHelper.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = "테스트유저"
+            )
+        }
+
+        val pageRequest = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "id"))
+
+        // When
+        val result = collectionReader.readDetail(member.requireId(), collection.requireId(), pageRequest)
+
+        // Then
+        assertEquals(collection.requireId(), result.collection.requireId())
+        assertEquals("맛집 컬렉션", result.collection.info.name)
+
+        // 컬렉션에 포함된 게시글들 확인
+        assertEquals(3, result.posts.size)
+        val collectionPostIds = result.posts.map { it.requireId() }
+        assertTrue(collectionPostIds.containsAll(collectionPosts.map { it.requireId() }))
+
+        // 작성자의 모든 게시글들 확인 (페이징)
+        assertEquals(5, result.myPosts.totalElements) // 총 5개 게시글
+        assertEquals(5, result.myPosts.content.size) // 페이지 크기가 10이므로 모두 반환
+    }
+
+    @Test
+    fun `readDetail - success - handles empty collection`() {
+        // Given
+        val member = testMemberHelper.createActivatedMember()
+        val emptyCollection = createTestCollection(member.requireId(), name = "빈 컬렉션")
+
+        // 작성자 게시글들만 생성
+        (1..2).map {
+            testPostHelper.createPost(
+                authorMemberId = member.requireId(),
+                authorNickname = "테스트유저"
+            )
+        }
+
+        val pageRequest = PageRequest.of(0, 10)
+
+        // When
+        val result = collectionReader.readDetail(member.requireId(), emptyCollection.requireId(), pageRequest)
+
+        // Then
+        assertEquals(emptyCollection.requireId(), result.collection.requireId())
+        assertEquals(0, result.posts.size) // 컬렉션에는 게시글이 없음
+        assertEquals(2, result.myPosts.totalElements) // 작성자 게시글은 2개
+        assertEquals(2, result.myPosts.content.size)
+    }
+
+    @Test
+    fun `readDetail - failure - throws exception when collection not found`() {
+        // Given
+        val member = testMemberHelper.createActivatedMember()
+        val nonExistentCollectionId = 999L
+        val pageRequest = PageRequest.of(0, 10)
+
+        // When & Then
+        assertFailsWith<CollectionNotFoundException> {
+            collectionReader.readDetail(member.requireId(), nonExistentCollectionId, pageRequest)
+        }.let { exception ->
+            assertEquals("컬렉션을 찾을 수 없습니다.", exception.message)
+        }
+    }
+
+    @Test
+    fun `readDetail - failure - throws exception when collection is deleted`() {
+        // Given
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+        collection.delete(member.requireId())
+
+        val pageRequest = PageRequest.of(0, 10)
+
+        // When & Then
+        assertFailsWith<CollectionNotFoundException> {
+            collectionReader.readDetail(member.requireId(), collection.requireId(), pageRequest)
+        }.let { exception ->
+            assertEquals("컬렉션을 찾을 수 없습니다.", exception.message)
+        }
+    }
+
+    @Test
+    fun `readDetail - success - respects pagination for author posts`() {
+        // Given
+        val member = testMemberHelper.createActivatedMember()
+        val collection = createTestCollection(member.requireId())
+
+        // 컬렉션에 게시글 추가
+        val collectionPost = testPostHelper.createPost(authorMemberId = member.requireId())
+        collection.addPost(member.requireId(), collectionPost.requireId())
+
+        // 작성자 게시글 15개 생성
+        (1..15).map {
+            testPostHelper.createPost(authorMemberId = member.requireId())
+        }
+
+        // 페이지 크기 5로 요청
+        val pageRequest = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "id"))
+
+        // When
+        val result = collectionReader.readDetail(member.requireId(), collection.requireId(), pageRequest)
+
+        // Then
+        assertEquals(1, result.posts.size) // 컬렉션 게시글 1개
+        assertEquals(16, result.myPosts.totalElements) // 총 16개 게시글 (컬렉션 포함)
+        assertEquals(5, result.myPosts.content.size) // 첫 페이지 5개
+        assertEquals(4, result.myPosts.totalPages) // 총 4 페이지 (16/5 = 3.2 -> 4)
     }
 
     private fun createTestCollection(

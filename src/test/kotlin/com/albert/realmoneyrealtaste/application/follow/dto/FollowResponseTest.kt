@@ -40,7 +40,9 @@ class FollowResponseTest {
             { assertEquals(followingNickname, result.followingNickname) },
             { assertEquals(FollowStatus.ACTIVE, result.status) },
             { assertEquals(follow.createdAt, result.createdAt) },
-            { assertEquals(follow.updatedAt, result.updatedAt) }
+            { assertEquals(follow.updatedAt, result.updatedAt) },
+            { assertEquals(followerProfileImageId, result.followerProfileImageId) },
+            { assertEquals(followingProfileImageId, result.followingProfileImageId) },
         )
     }
 
