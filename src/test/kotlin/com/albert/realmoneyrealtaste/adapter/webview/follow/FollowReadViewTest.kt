@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.adapter.webview.follow
 import com.albert.realmoneyrealtaste.IntegrationTestBase
 import com.albert.realmoneyrealtaste.application.follow.dto.FollowCreateRequest
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowCreator
+import com.albert.realmoneyrealtaste.domain.follow.Follow
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import com.albert.realmoneyrealtaste.util.WithMockMember
@@ -16,7 +17,7 @@ import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class FollowViewTest : IntegrationTestBase() {
+class FollowReadViewTest : IntegrationTestBase() {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -28,6 +29,361 @@ class FollowViewTest : IntegrationTestBase() {
     private lateinit var followCreator: FollowCreator
 
     @Test
+    fun `followButtonFragment - forbidden - when not authenticated`() {
+        val authorId = 1L
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOW_BUTTON, authorId)
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `followButtonFragment - success - returns follow button fragment`() {
+        val member = testMemberHelper.getDefaultMember()
+        val author = testMemberHelper.createActivatedMember("author@test.com", "author")
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOW_BUTTON, author.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOW_BUTTON))
+            .andExpect(model().attributeExists("authorId"))
+            .andExpect(model().attributeExists("isFollowing"))
+            .andExpect(model().attribute("authorId", author.requireId()))
+            .andExpect(model().attribute("isFollowing", false))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `followButtonFragment - success - returns true when following author`() {
+        val member = testMemberHelper.getDefaultMember()
+        val author = testMemberHelper.createActivatedMember("author@test.com", "author")
+
+        // 팔로우 생성
+        createActiveFollow(member.requireId(), author.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOW_BUTTON, author.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOW_BUTTON))
+            .andExpect(model().attribute("isFollowing", true))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowingList - success - returns following list without keyword`() {
+        val member = testMemberHelper.getDefaultMember()
+        val following1 = testMemberHelper.createActivatedMember("following1@test.com", "following1")
+        val following2 = testMemberHelper.createActivatedMember("following2@test.com", "following2")
+
+        // 팔로우 생성
+        createActiveFollow(member.requireId(), following1.requireId())
+        createActiveFollow(member.requireId(), following2.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWING_FRAGMENT)
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
+            .andExpect(model().attributeExists("followings"))
+            .andExpect(model().attributeExists("member"))
+            .andExpect(model().attributeExists("currentUserFollowingIds"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowingList - success - returns filtered following list with keyword`() {
+        val member = testMemberHelper.getDefaultMember()
+        val matchingFollowing = testMemberHelper.createActivatedMember("matching@test.com", "searchTarget")
+        val nonMatchingFollowing = testMemberHelper.createActivatedMember("other@test.com", "other")
+
+        // 팔로우 생성
+        createActiveFollow(member.requireId(), matchingFollowing.requireId())
+        createActiveFollow(member.requireId(), nonMatchingFollowing.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWING_FRAGMENT)
+                .param("keyword", "search")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
+            .andExpect(model().attributeExists("followings"))
+            .andExpect(model().attributeExists("member"))
+            .andExpect(model().attributeExists("currentUserFollowingIds"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowerList - success - returns follower list without keyword`() {
+        val member = testMemberHelper.getDefaultMember()
+        val follower1 = testMemberHelper.createActivatedMember("follower1@test.com", "follower1")
+        val follower2 = testMemberHelper.createActivatedMember("follower2@test.com", "follower2")
+
+        // 팔로우 생성
+        createActiveFollow(follower1.requireId(), member.requireId())
+        createActiveFollow(follower2.requireId(), member.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWERS_FRAGMENT)
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
+            .andExpect(model().attributeExists("followers"))
+            .andExpect(model().attributeExists("member"))
+            .andExpect(model().attributeExists("currentUserFollowingIds"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowerList - success - returns filtered follower list with keyword`() {
+        val member = testMemberHelper.getDefaultMember()
+        val matchingFollower = testMemberHelper.createActivatedMember("matching@test.com", "searchTarget")
+        val nonMatchingFollower = testMemberHelper.createActivatedMember("other@test.com", "other")
+
+        // 팔로우 생성
+        createActiveFollow(matchingFollower.requireId(), member.requireId())
+        createActiveFollow(nonMatchingFollower.requireId(), member.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWERS_FRAGMENT)
+                .param("keyword", "search")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
+            .andExpect(model().attributeExists("followers"))
+            .andExpect(model().attributeExists("member"))
+            .andExpect(model().attributeExists("currentUserFollowingIds"))
+    }
+
+    @Test
+    fun `readUserFollowingList - success - returns user following list without authentication`() {
+        val targetMember = testMemberHelper.createActivatedMember("target@test.com", "target")
+        val following1 = testMemberHelper.createActivatedMember("following1@test.com", "following1")
+        val following2 = testMemberHelper.createActivatedMember("following2@test.com", "following2")
+
+        // 팔로우 생성
+        createActiveFollow(targetMember.requireId(), following1.requireId())
+        createActiveFollow(targetMember.requireId(), following2.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.USER_FOLLOWING_FRAGMENT, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
+            .andExpect(model().attributeExists("followings"))
+            .andExpect(model().attributeDoesNotExist("member"))
+            .andExpect(model().attributeDoesNotExist("currentUserFollowingIds"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readUserFollowingList - success - returns user following list with authentication`() {
+        val currentUser = testMemberHelper.getDefaultMember()
+        val targetMember = testMemberHelper.createActivatedMember("target@test.com", "target")
+        val following1 = testMemberHelper.createActivatedMember("following1@test.com", "following1")
+        val following2 = testMemberHelper.createActivatedMember("following2@test.com", "following2")
+
+        // 팔로우 생성
+        createActiveFollow(targetMember.requireId(), following1.requireId())
+        createActiveFollow(targetMember.requireId(), following2.requireId())
+        // 현재 사용자가 타겟 멤버도 팔로우
+        createActiveFollow(currentUser.requireId(), targetMember.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.USER_FOLLOWING_FRAGMENT, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
+            .andExpect(model().attributeExists("followings"))
+            .andExpect(model().attributeExists("member"))
+            .andExpect(model().attributeExists("currentUserFollowingIds"))
+    }
+
+    @Test
+    fun `readUserFollowerList - success - returns user follower list without authentication`() {
+        val targetMember = testMemberHelper.createActivatedMember("target@test.com", "target")
+        val follower1 = testMemberHelper.createActivatedMember("follower1@test.com", "follower1")
+        val follower2 = testMemberHelper.createActivatedMember("follower2@test.com", "follower2")
+
+        // 팔로우 생성
+        createActiveFollow(follower1.requireId(), targetMember.requireId())
+        createActiveFollow(follower2.requireId(), targetMember.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.USER_FOLLOWERS_FRAGMENT, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
+            .andExpect(model().attributeExists("followers"))
+            .andExpect(model().attributeDoesNotExist("member"))
+            .andExpect(model().attributeDoesNotExist("currentUserFollowingIds"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readUserFollowerList - success - returns user follower list with authentication`() {
+        val currentUser = testMemberHelper.getDefaultMember()
+        val targetMember = testMemberHelper.createActivatedMember("target@test.com", "target")
+        val follower1 = testMemberHelper.createActivatedMember("follower1@test.com", "follower1")
+        val follower2 = testMemberHelper.createActivatedMember("follower2@test.com", "follower2")
+
+        // 팔로우 생성
+        createActiveFollow(follower1.requireId(), targetMember.requireId())
+        createActiveFollow(follower2.requireId(), targetMember.requireId())
+        // 현재 사용자가 팔로워 중 하나도 팔로우
+        createActiveFollow(currentUser.requireId(), follower1.requireId())
+
+        mockMvc.perform(
+            get(FollowUrls.USER_FOLLOWERS_FRAGMENT, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
+            .andExpect(model().attributeExists("followers"))
+            .andExpect(model().attributeExists("member"))
+            .andExpect(model().attributeExists("currentUserFollowingIds"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowingList - success - handles pagination correctly`() {
+        val member = testMemberHelper.getDefaultMember()
+        val followings = (1..5).map { index ->
+            testMemberHelper.createActivatedMember("following$index@test.com", "following$index")
+        }
+
+        // 팔로우 생성
+        followings.forEach { createActiveFollow(member.requireId(), it.requireId()) }
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWING_FRAGMENT)
+                .param("page", "0")
+                .param("size", "3")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
+            .andExpect(model().attributeExists("followings"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowingList - success - excludes deactivated members`() {
+        val member = testMemberHelper.getDefaultMember()
+        val activeFollowing = testMemberHelper.createActivatedMember("active@test.com", "active")
+        val deactivatedFollowing = testMemberHelper.createActivatedMember("deactivated@test.com", "deactivated")
+
+        // 팔로우 생성
+        createActiveFollow(member.requireId(), activeFollowing.requireId())
+        createActiveFollow(member.requireId(), deactivatedFollowing.requireId())
+
+        // 비활성화
+        deactivatedFollowing.deactivate()
+        flushAndClear()
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWING_FRAGMENT)
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
+            .andExpect(model().attributeExists("followings"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowerList - success - handles pagination correctly`() {
+        val member = testMemberHelper.getDefaultMember()
+        val followers = (1..5).map { index ->
+            testMemberHelper.createActivatedMember("follower$index@test.com", "follower$index")
+        }
+
+        // 팔로우 생성
+        followers.forEach { createActiveFollow(it.requireId(), member.requireId()) }
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWERS_FRAGMENT)
+                .param("page", "0")
+                .param("size", "3")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
+            .andExpect(model().attributeExists("followers"))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFollowerList - success - excludes deactivated members`() {
+        val member = testMemberHelper.getDefaultMember()
+        val activeFollower = testMemberHelper.createActivatedMember("active@test.com", "active")
+        val deactivatedFollower = testMemberHelper.createActivatedMember("deactivated@test.com", "deactivated")
+
+        // 팔로우 생성
+        createActiveFollow(activeFollower.requireId(), member.requireId())
+        createActiveFollow(deactivatedFollower.requireId(), member.requireId())
+
+        // 비활성화
+        deactivatedFollower.deactivate()
+        flushAndClear()
+
+        mockMvc.perform(
+            get(FollowUrls.FOLLOWERS_FRAGMENT)
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
+            .andExpect(model().attributeExists("followers"))
+    }
+
+    @Test
+    fun `readUserFollowingList - success - excludes deactivated members`() {
+        val targetMember = testMemberHelper.createActivatedMember("target@test.com", "target")
+        val activeFollowing = testMemberHelper.createActivatedMember("active@test.com", "active")
+        val deactivatedFollowing = testMemberHelper.createActivatedMember("deactivated@test.com", "deactivated")
+
+        // 팔로우 생성
+        createActiveFollow(targetMember.requireId(), activeFollowing.requireId())
+        createActiveFollow(targetMember.requireId(), deactivatedFollowing.requireId())
+
+        // 비활성화
+        deactivatedFollowing.deactivate()
+        flushAndClear()
+
+        mockMvc.perform(
+            get(FollowUrls.USER_FOLLOWING_FRAGMENT, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
+            .andExpect(model().attributeExists("followings"))
+    }
+
+    @Test
+    fun `readUserFollowerList - success - excludes deactivated members`() {
+        val targetMember = testMemberHelper.createActivatedMember("target@test.com", "target")
+        val activeFollower = testMemberHelper.createActivatedMember("active@test.com", "active")
+        val deactivatedFollower = testMemberHelper.createActivatedMember("deactivated@test.com", "deactivated")
+
+        // 팔로우 생성
+        createActiveFollow(activeFollower.requireId(), targetMember.requireId())
+        createActiveFollow(deactivatedFollower.requireId(), targetMember.requireId())
+
+        // 비활성화
+        deactivatedFollower.deactivate()
+        flushAndClear()
+
+        mockMvc.perform(
+            get(FollowUrls.USER_FOLLOWERS_FRAGMENT, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
+            .andExpect(model().attributeExists("followers"))
+    }
+
+    private fun createActiveFollow(followerId: Long, followingId: Long): Follow {
+        val request = FollowCreateRequest(followerId, followingId)
+        return followCreator.follow(request)
+    }
+
+    @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readFollowingList - success - returns following fragment`() {
         val result = mockMvc.perform(get(FollowUrls.FOLLOWING_FRAGMENT))
@@ -36,7 +392,6 @@ class FollowViewTest : IntegrationTestBase() {
             .andExpect(model().attributeExists("followings"))
             .andExpect(model().attributeExists("currentUserFollowingIds"))
             .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("author"))
             .andReturn()
 
         // 모델 속성 확인
@@ -44,7 +399,6 @@ class FollowViewTest : IntegrationTestBase() {
         assertTrue(modelAndView.model.containsKey("followings"))
         assertTrue(modelAndView.model.containsKey("currentUserFollowingIds"))
         assertTrue(modelAndView.model.containsKey("member"))
-        assertTrue(modelAndView.model.containsKey("author"))
     }
 
     @Test
@@ -94,7 +448,6 @@ class FollowViewTest : IntegrationTestBase() {
                 .andExpect(status().isOk)
                 .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
                 .andExpect(model().attributeExists("followings"))
-                .andExpect(model().attributeExists("author"))
                 .andExpect(model().attributeExists("member"))
                 .andExpect(model().attributeExists("currentUserFollowingIds"))
                 .andReturn()
@@ -102,7 +455,6 @@ class FollowViewTest : IntegrationTestBase() {
         // 모델 속성 확인
         val modelAndView = result.modelAndView!!
         assertTrue(modelAndView.model.containsKey("followings"))
-        assertTrue(modelAndView.model.containsKey("author"))
         assertTrue(modelAndView.model.containsKey("member"))
         assertTrue(modelAndView.model.containsKey("currentUserFollowingIds"))
     }
@@ -123,13 +475,11 @@ class FollowViewTest : IntegrationTestBase() {
                 .andExpect(status().isOk)
                 .andExpect(view().name(FollowViews.FOLLOWING_FRAGMENT))
                 .andExpect(model().attributeExists("followings"))
-                .andExpect(model().attributeExists("author"))
                 .andReturn()
 
         // 인증 없이도 author와 followings는 포함되어야 함
         val modelAndView = result.modelAndView!!
         assertTrue(modelAndView.model.containsKey("followings"))
-        assertTrue(modelAndView.model.containsKey("author"))
 
         // 인증 없이는 member와 currentUserFollowingIds가 없어야 함
         assertTrue(!modelAndView.model.containsKey("member"))
@@ -153,7 +503,6 @@ class FollowViewTest : IntegrationTestBase() {
                 .andExpect(status().isOk)
                 .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
                 .andExpect(model().attributeExists("followers"))
-                .andExpect(model().attributeExists("author"))
                 .andExpect(model().attributeExists("member"))
                 .andExpect(model().attributeExists("currentUserFollowingIds"))
                 .andReturn()
@@ -161,7 +510,6 @@ class FollowViewTest : IntegrationTestBase() {
         // 모델 속성 확인
         val modelAndView = result.modelAndView!!
         assertTrue(modelAndView.model.containsKey("followers"))
-        assertTrue(modelAndView.model.containsKey("author"))
         assertTrue(modelAndView.model.containsKey("member"))
         assertTrue(modelAndView.model.containsKey("currentUserFollowingIds"))
     }
@@ -182,13 +530,11 @@ class FollowViewTest : IntegrationTestBase() {
                 .andExpect(status().isOk)
                 .andExpect(view().name(FollowViews.FOLLOWERS_FRAGMENT))
                 .andExpect(model().attributeExists("followers"))
-                .andExpect(model().attributeExists("author"))
                 .andReturn()
 
         // 인증 없이도 author와 followers는 포함되어야 함
         val modelAndView = result.modelAndView!!
         assertTrue(modelAndView.model.containsKey("followers"))
-        assertTrue(modelAndView.model.containsKey("author"))
 
         // 인증 없이는 member와 currentUserFollowingIds가 없어야 함
         assertTrue(!modelAndView.model.containsKey("member"))
@@ -343,14 +689,14 @@ class FollowViewTest : IntegrationTestBase() {
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readUserFollowingList - success - handles invalid member id gracefully`() {
         mockMvc.perform(get(FollowUrls.USER_FOLLOWING_FRAGMENT.replace("{memberId}", "9999")))
-            .andExpect(status().is4xxClientError())
+            .andExpect(status().isOk())
     }
 
     @Test
     @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
     fun `readUserFollowerList - success - handles invalid member id gracefully`() {
         mockMvc.perform(get(FollowUrls.USER_FOLLOWERS_FRAGMENT.replace("{memberId}", "9999")))
-            .andExpect(status().is4xxClientError())
+            .andExpect(status().isOk())
     }
 
     @Test

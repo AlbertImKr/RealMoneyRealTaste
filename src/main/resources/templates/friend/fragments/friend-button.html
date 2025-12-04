@@ -5,15 +5,15 @@
 </head>
 <!-- 친구 버튼 Fragment -->
 <div class="d-flex ms-auto gap-2 justify-content-center" th:fragment="friend-button"
-     th:id="'friend-button-'+${author.id}">
+     th:id="'friend-button-'+${authorId}">
     <!-- 친구 관계가 있는 경우 (친구 해제) -->
     <form class="d-flex flex-column align-items-center"
-          th:attr="hx-target='#friend-button-'+${author.id},
-          hx-delete='/api/friendships/'+${friendshipId}+'/'+${author.id}"
+          th:attr="hx-target='#friend-button-'+${authorId},
+          hx-delete='/api/friendships/'+${authorId}"
           hx-swap="innerHTML"
           th:if="${isFriend}"
     >
-        <input name="friendMemberId" th:value="${author.id}" type="hidden">
+        <input name="friendMemberId" th:value="${authorId}" type="hidden">
         <button class="btn btn-success rounded-circle icon-md" title="친구 해제"
                 type="submit"
         >
@@ -35,13 +35,12 @@
 
     <!-- 친구 요청을 보낼 수 있는 경우 -->
     <form class="d-flex flex-column align-items-center" hx-ext="json-enc"
-          hx-post="/friendships"
+          method="post"
           hx-swap="innerHTML"
-          method="post" th:attr="hx-target='#friend-button-'+${author.id}"
+          th:attr="hx-target='#friend-button-'+${authorId}" th:hx-post="@{/friendships(authorId=${authorId})}"
           th:if="${!isFriend and !hasSentFriendRequest}"
     >
-        <input name="toMemberId" th:value="${author.id}" type="hidden">
-        <input name="toMemberNickname" th:value="${author.nickname.value}" type="hidden">
+        <input name="toMemberId" th:value="${authorId}" type="hidden">
         <button class="btn btn-success-soft rounded-circle icon-md" title="친구 요청"
                 type="submit"
         >

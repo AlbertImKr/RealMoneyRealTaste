@@ -46,7 +46,7 @@ class MemberActivationService(
 
             return member
         } catch (e: IllegalArgumentException) {
-            throw MemberActivateException(ERROR_MEMBER_ACTIVATE_FAILED, e)
+            throw MemberActivateException(ERROR_MEMBER_ACTIVATE_FAILED)
         }
     }
 
@@ -60,7 +60,7 @@ class MemberActivationService(
 
             publishResendActivationEmailEvent(member, newToken)
         } catch (e: IllegalArgumentException) {
-            throw MemberResendActivationEmailException(ERROR_ACTIVATION_TOKEN_RESEND_EMAIL_FAILED, e)
+            throw MemberResendActivationEmailException(ERROR_ACTIVATION_TOKEN_RESEND_EMAIL_FAILED)
         }
     }
 

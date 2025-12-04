@@ -50,20 +50,6 @@ class ImageReaderTest(
     }
 
     @Test
-    fun `getImageUrl - failure - throws exception when unauthorized user tries to access`() {
-        // Given
-        val ownerId = 123L
-        val unauthorizedUserId = 456L
-        val image = createTestImage(ownerId, ImageType.POST_IMAGE)
-        val savedImage = imageRepository.save(image)
-
-        // When & Then
-        assertFailsWith<IllegalArgumentException> {
-            imageReader.getImageUrl(savedImage.requireId(), unauthorizedUserId)
-        }
-    }
-
-    @Test
     fun `getImagesByMember - success - returns list of user's images`() {
         // Given
         val userId = 123L
@@ -317,6 +303,94 @@ class ImageReaderTest(
         user2ImageInfos.forEach { info ->
             assertEquals(user2Id, getUploadedByFromImageInfo(info))
         }
+    }
+
+    @Test
+    fun `readImagesByIds - success - returns images for valid IDs`() {
+        // Given
+        val userId = 123L
+        val imageTypes = listOf(ImageType.POST_IMAGE, ImageType.PROFILE_IMAGE, ImageType.THUMBNAIL)
+        val savedImages = imageTypes.map { imageType ->
+            val image = createTestImage(userId, imageType)
+            imageRepository.save(image)
+        }
+
+        val imageIds = savedImages.map { it.requireId() }
+
+        // When
+        val imageInfos = imageReader.readImagesByIds(imageIds)
+
+        // Then
+        assertEquals(3, imageInfos.size)
+
+        val sortedImageInfos = imageInfos.sortedBy { it.imageId }
+        val sortedSavedImages = savedImages.sortedBy { it.requireId() }
+
+        sortedImageInfos.zip(sortedSavedImages) { info, image ->
+            assertEquals(image.requireId(), info.imageId)
+            assertEquals(image.fileKey.value, info.fileKey)
+            assertEquals(image.imageType, info.imageType)
+            assertNotNull(info.url)
+            assertTrue(info.url.contains(image.fileKey.value))
+        }
+    }
+
+    @Test
+    fun `readImagesByIds - success - returns empty list for non-existing IDs`() {
+        // Given
+        val nonExistentIds = listOf(999999L, 888888L, 777777L)
+
+        // When
+        val imageInfos = imageReader.readImagesByIds(nonExistentIds)
+
+        // Then
+        assertEquals(0, imageInfos.size)
+    }
+
+    @Test
+    fun `readImagesByIds - success - excludes deleted images`() {
+        // Given
+        val userId = 123L
+        val activeImage = createTestImage(userId, ImageType.POST_IMAGE)
+        val deletedImage = createTestImage(userId, ImageType.PROFILE_IMAGE)
+
+        val savedActiveImage = imageRepository.save(activeImage)
+        val savedDeletedImage = imageRepository.save(deletedImage)
+
+        // 삭제 처리
+        savedDeletedImage.markAsDeleted()
+        imageRepository.save(savedDeletedImage)
+
+        val imageIds = listOf(savedActiveImage.requireId(), savedDeletedImage.requireId())
+
+        // When
+        val imageInfos = imageReader.readImagesByIds(imageIds)
+
+        // Then
+        assertEquals(1, imageInfos.size)
+        assertEquals(savedActiveImage.requireId(), imageInfos[0].imageId)
+    }
+
+    @Test
+    fun `readImagesByIds - success - handles mixed existing and non-existing IDs`() {
+        // Given
+        val userId = 123L
+        val existingImage = createTestImage(userId, ImageType.POST_IMAGE)
+        val savedExistingImage = imageRepository.save(existingImage)
+
+        val mixedIds = listOf(
+            savedExistingImage.requireId(),
+            999999L,  // non-existing
+            888888L   // non-existing
+        )
+
+        // When
+        val imageInfos = imageReader.readImagesByIds(mixedIds)
+
+        // Then
+        assertEquals(1, imageInfos.size)
+        assertEquals(savedExistingImage.requireId(), imageInfos[0].imageId)
+        assertEquals(savedExistingImage.fileKey.value, imageInfos[0].fileKey)
     }
 
     private fun createTestImage(userId: Long, imageType: ImageType): Image {

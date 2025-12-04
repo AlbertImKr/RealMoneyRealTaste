@@ -16,6 +16,7 @@ class MemberDetail protected constructor(
     val registeredAt: LocalDateTime,
     activatedAt: LocalDateTime?,
     deactivatedAt: LocalDateTime?,
+    imageId: Long?,
 ) : BaseEntity() {
     @Embedded
     var profileAddress: ProfileAddress? = profileAddress
@@ -37,6 +38,10 @@ class MemberDetail protected constructor(
     var deactivatedAt: LocalDateTime? = deactivatedAt
         protected set
 
+    @Column
+    var imageId: Long? = imageId
+        protected set
+
     fun activate() {
         activatedAt = LocalDateTime.now()
     }
@@ -49,10 +54,20 @@ class MemberDetail protected constructor(
         profileAddress: ProfileAddress? = null,
         introduction: Introduction? = null,
         address: String? = null,
-    ) {
+        imageId: Long? = null,
+    ): Boolean {
+        if (profileAddress == this.profileAddress
+            && introduction == this.introduction
+            && address == this.address
+            && imageId == this.imageId
+        ) {
+            return false
+        }
         if (profileAddress != null) this.profileAddress = profileAddress
         if (introduction != null) this.introduction = introduction
         if (address != null) this.address = address
+        if (imageId != null) this.imageId = imageId
+        return true
     }
 
     companion object {
@@ -67,7 +82,8 @@ class MemberDetail protected constructor(
                 activatedAt = null,
                 deactivatedAt = null,
                 registeredAt = LocalDateTime.now(),
-                address = address
+                address = address,
+                imageId = null,
             )
     }
 }

@@ -1,4 +1,4 @@
-package com.albert.realmoneyrealtaste.adapter.webview.post
+package com.albert.realmoneyrealtaste.adapter.webview.post.form
 
 import jakarta.validation.ConstraintViolation
 import jakarta.validation.Validation

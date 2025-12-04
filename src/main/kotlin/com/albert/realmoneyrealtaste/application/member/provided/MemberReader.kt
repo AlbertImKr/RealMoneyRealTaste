@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
+import com.albert.realmoneyrealtaste.application.member.dto.SuggestedMembersResult
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.value.Email
@@ -86,4 +87,13 @@ interface MemberReader {
      * @return 추천 회원 목록
      */
     fun findSuggestedMembers(memberId: Long, limit: Long): List<Member>
+
+    /**
+     * 주어진 회원 ID에 대한 추천 회원 목록과 팔로잉 상태를 함께 조회합니다.
+     *
+     * @param memberId 추천 회원 목록을 조회할 회원 ID
+     * @param limit 추천 회원 목록의 개수
+     * @return 추천 회원 목록과 팔로잉 상태
+     */
+    fun findSuggestedMembersWithFollowStatus(memberId: Long, limit: Long): SuggestedMembersResult
 }

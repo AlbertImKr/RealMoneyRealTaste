@@ -1,11 +1,8 @@
 package com.albert.realmoneyrealtaste.adapter.webview.post
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
-import com.albert.realmoneyrealtaste.application.post.provided.PostCreator
+import com.albert.realmoneyrealtaste.adapter.webview.post.form.PostCreateForm
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
-import com.albert.realmoneyrealtaste.application.post.provided.PostUpdater
-import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
@@ -13,27 +10,26 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 
+/**
+ * 게시글 조회를 담당하는 뷰 컨트롤러
+ * 단일 책임 원칙에 따라 게시글 조회 관련 기능만 처리합니다.
+ */
 @Controller
-class PostView(
-    private val postCreator: PostCreator,
+class PostReadView(
     private val postReader: PostReader,
-    private val postUpdater: PostUpdater,
-    private val memberReader: MemberReader,
 ) {
-    @PostMapping(PostUrls.CREATE)
-    fun createPost(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
-        @Valid @ModelAttribute form: PostCreateForm,
-    ): String {
-        val post = postCreator.createPost(memberPrincipal.id, form.toPostCreateRequest())
-        return PostUrls.REDIRECT_READ_DETAIL.format(post.requireId())
-    }
 
+    /**
+     * 현재 로그인한 사용자의 게시글 목록 페이지를 조회합니다.
+     *
+     * @param memberPrincipal 현재 인증된 사용자 정보
+     * @param pageable 페이징 정보 (기본: 생성일 내림차순, 10개씩)
+     * @param model 뷰에 전달할 데이터 모델
+     * @return 내 게시글 목록 뷰
+     */
     @GetMapping(PostUrls.READ_MY_LIST)
     fun readMyPosts(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
@@ -53,7 +49,17 @@ class PostView(
         return PostViews.MY_LIST
     }
 
-    @GetMapping("/members/{id}/posts/fragment")
+    /**
+     * 특정 멤버의 게시글 목록 프래그먼트를 조회합니다.
+     * 비동기 AJAX 요청에 사용됩니다.
+     *
+     * @param id 게시글 작성자 ID
+     * @param memberPrincipal 현재 인증된 사용자 정보 (선택사항)
+     * @param pageable 페이징 정보 (기본: 생성일 내림차순, 10개씩)
+     * @param model 뷰에 전달할 데이터 모델
+     * @return 게시글 목록 프래그먼트 뷰
+     */
+    @GetMapping(PostUrls.READ_MEMBER_POSTS_FRAGMENT)
     fun readMemberPostsFragment(
         @PathVariable id: Long,
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
@@ -61,15 +67,23 @@ class PostView(
         model: Model,
     ): String {
         val postsPage = postReader.readPostsByAuthor(id, pageable)
-        val author = memberReader.readMemberById(id)
 
-        model.addAttribute("author", author)
+        model.addAttribute("authorId", id)
         model.addAttribute("posts", postsPage)
         model.addAttribute("member", memberPrincipal) // 현재 로그인한 사용자
 
         return PostViews.POSTS_CONTENT
     }
 
+    /**
+     * 현재 로그인한 사용자의 게시글 목록 프래그먼트를 조회합니다.
+     * 비동기 AJAX 요청에 사용됩니다.
+     *
+     * @param memberPrincipal 현재 인증된 사용자 정보
+     * @param pageable 페이징 정보 (기본: 생성일 내림차순, 10개씩)
+     * @param model 뷰에 전달할 데이터 모델
+     * @return 게시글 목록 프래그먼트 뷰
+     */
     @GetMapping(PostUrls.READ_MY_LIST_FRAGMENT)
     fun readMyPostsFragment(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
@@ -86,6 +100,15 @@ class PostView(
         return PostViews.POSTS_CONTENT
     }
 
+    /**
+     * 전체 게시글 목록 프래그먼트를 조회합니다.
+     * 인증된 사용자와 비인증 사용자 모두 접근 가능합니다.
+     *
+     * @param memberPrincipal 현재 인증된 사용자 정보 (선택사항)
+     * @param pageable 페이징 정보 (기본: 생성일 내림차순, 10개씩)
+     * @param model 뷰에 전달할 데이터 모델
+     * @return 게시글 목록 프래그먼트 뷰
+     */
     @GetMapping(PostUrls.READ_LIST_FRAGMENT)
     fun readPosts(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
@@ -103,6 +126,15 @@ class PostView(
         return PostViews.POSTS_CONTENT
     }
 
+    /**
+     * 특정 게시글의 상세 페이지를 조회합니다.
+     * 인증된 사용자와 비인증 사용자 모두 접근 가능합니다.
+     *
+     * @param memberPrincipal 현재 인증된 사용자 정보 (선택사항)
+     * @param postId 조회할 게시글 ID
+     * @param model 뷰에 전달할 데이터 모델
+     * @return 게시글 상세 뷰
+     */
     @GetMapping(PostUrls.READ_DETAIL)
     fun readPost(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
@@ -118,27 +150,15 @@ class PostView(
         return PostViews.DETAIL
     }
 
-    @GetMapping(PostUrls.UPDATE)
-    fun editPost(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
-        @PathVariable postId: Long,
-        model: Model,
-    ): String {
-        val post = postReader.readPostByAuthorAndId(memberPrincipal.id, postId)
-        model.addAttribute("postEditForm", PostEditForm.fromPost(post))
-        return PostViews.EDIT
-    }
-
-    @PostMapping(PostUrls.UPDATE)
-    fun updatePost(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
-        @PathVariable postId: Long,
-        @Valid @ModelAttribute postEditForm: PostEditForm,
-    ): String {
-        postUpdater.updatePost(postId, memberPrincipal.id, postEditForm.toPostEditRequest())
-        return PostUrls.REDIRECT_READ_DETAIL.format(postId)
-    }
-
+    /**
+     * 게시글 상세 정보를 모달 형태로 조회합니다.
+     * 인증된 사용자와 비인증 사용자 모두 접근 가능합니다.
+     *
+     * @param memberPrincipal 현재 인증된 사용자 정보 (선택사항)
+     * @param postId 조회할 게시글 ID
+     * @param model 뷰에 전달할 데이터 모델
+     * @return 게시글 상세 모달 뷰
+     */
     @GetMapping(PostUrls.READ_DETAIL_MODAL)
     fun readPostDetailModal(
         @AuthenticationPrincipal memberPrincipal: MemberPrincipal?,
@@ -155,22 +175,18 @@ class PostView(
         return PostViews.DETAIL_MODAL
     }
 
-    private fun postDetailModelSetup(
-        memberPrincipal: MemberPrincipal,
-        postId: Long,
-        model: Model,
-    ) {
-        val currentUserId = memberPrincipal.id
-        val post = postReader.readPostById(currentUserId, postId)
-        model.addAttribute("post", post)
-        model.addAttribute("currentUserId", currentUserId)
-        model.addAttribute("currentUserNickname", memberPrincipal.nickname.value)
-    }
-
     /**
-     * 컬렉션 게시글 목록 프래그먼트 조회
+     * 컬렉션에 속한 게시글 목록 프래그먼트를 조회합니다.
+     * 특정 컬렉션의 게시글들을 ID 목록으로 조회하여 표시합니다.
+     *
+     * @param postIds 조회할 게시글 ID 목록
+     * @param collectionId 컬렉션 ID
+     * @param authorId 게시글 작성자 ID
+     * @param principal 현재 인증된 사용자 정보 (선택사항)
+     * @param model 뷰에 전달할 데이터 모델
+     * @return 컬렉션 게시글 목록 프래그먼트 뷰
      */
-    @GetMapping("members/{authorId}/collections/{collectionId}/posts/fragment")
+    @GetMapping(PostUrls.READ_COLLECTION_POSTS_FRAGMENT)
     fun readPostListFragment(
         @RequestParam postIds: List<Long>,
         @PathVariable collectionId: Long,
@@ -193,5 +209,25 @@ class PostView(
         model.addAttribute("member", principal)
 
         return PostViews.POST_LIST_FRAGMENT
+    }
+
+    /**
+     * 인증된 사용자를 위한 게시글 상세 페이지 모델 설정을 수행합니다.
+     * 사용자 권한에 따른 접근 제어와 추가 정보를 설정합니다.
+     *
+     * @param memberPrincipal 현재 인증된 사용자 정보
+     * @param postId 조회할 게시글 ID
+     * @param model 뷰에 전달할 데이터 모델
+     */
+    private fun postDetailModelSetup(
+        memberPrincipal: MemberPrincipal,
+        postId: Long,
+        model: Model,
+    ) {
+        val currentUserId = memberPrincipal.id
+        val post = postReader.readPostById(currentUserId, postId)
+        model.addAttribute("post", post)
+        model.addAttribute("currentUserId", currentUserId)
+        model.addAttribute("currentUserNickname", memberPrincipal.nickname.value)
     }
 }

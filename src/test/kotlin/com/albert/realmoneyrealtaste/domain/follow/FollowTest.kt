@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.follow
 
 import com.albert.realmoneyrealtaste.domain.follow.command.FollowCreateCommand
+import com.albert.realmoneyrealtaste.domain.follow.value.FollowRelationship
 import org.junit.jupiter.api.assertAll
 import java.time.LocalDateTime
 import kotlin.test.Test
@@ -15,9 +16,19 @@ class FollowTest {
     fun `create - success - creates active follow with valid command`() {
         val followerId = 1L
         val followerNickname = "follower"
+        val followerProfileImageId = 1L
         val followingId = 2L
         val followingNickname = "following"
-        val command = FollowCreateCommand(followerId, followerNickname, followingId, followingNickname)
+        val followingProfileImageId = 2L
+        val command =
+            FollowCreateCommand(
+                followerId,
+                followerNickname,
+                followerProfileImageId,
+                followingId,
+                followingNickname,
+                followingProfileImageId
+            )
         val before = LocalDateTime.now()
 
         val follow = Follow.create(command)
@@ -254,13 +265,41 @@ class FollowTest {
         )
     }
 
+    @Test
+    fun `setter - success - for coverage`() {
+        val follow = TestFollow()
+        val updatedRelationship = FollowRelationship.of(FollowCreateCommand(1L, "follower", 1, 2L, "following", 2))
+        val updatedCreatedAt = LocalDateTime.now()
+
+        follow.setRelationshipForTest(updatedRelationship)
+        follow.setCreatedAtForTest(updatedCreatedAt)
+
+        assertEquals(updatedRelationship, follow.relationship)
+        assertEquals(updatedCreatedAt, follow.createdAt)
+    }
+
     private fun createActiveFollow(): Follow {
-        val command = FollowCreateCommand(1L, "follower", 2L, "following")
+        val command = FollowCreateCommand(1L, "follower", 1, 2L, "following", 2)
         return Follow.create(command)
     }
 
     private fun createFollow(followerId: Long, followingId: Long): Follow {
-        val command = FollowCreateCommand(followerId, "follower", followingId, "following")
+        val command = FollowCreateCommand(followerId, "follower", 1, followingId, "following", 2)
         return Follow.create(command)
+    }
+
+    class TestFollow : Follow(
+        relationship = FollowRelationship.of(FollowCreateCommand(1L, "follower", 1, 2L, "following", 2)),
+        status = FollowStatus.ACTIVE,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now()
+    ) {
+        fun setRelationshipForTest(relationship: FollowRelationship) {
+            this.relationship = relationship
+        }
+
+        fun setCreatedAtForTest(createdAt: LocalDateTime) {
+            this.createdAt = createdAt
+        }
     }
 }

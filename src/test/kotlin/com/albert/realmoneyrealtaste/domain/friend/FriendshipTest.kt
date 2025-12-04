@@ -16,9 +16,10 @@ class FriendshipTest {
     @Test
     fun `request - success - creates pending friendship with valid command`() {
         val fromMemberId = 1L
+        val fromMemberNickname = "sender"
         val toMemberId = 2L
         val toMemberNickname = "receiver"
-        val command = FriendRequestCommand(fromMemberId, toMemberId, toMemberNickname)
+        val command = FriendRequestCommand(fromMemberId, fromMemberNickname, toMemberId, toMemberNickname)
         val before = LocalDateTime.now()
 
         val friendship = Friendship.request(command)
@@ -286,7 +287,7 @@ class FriendshipTest {
 
     @Test
     fun `friendship lifecycle - success - complete workflow from request to unfriend`() {
-        val command = FriendRequestCommand(1L, 2L, "receiver")
+        val command = FriendRequestCommand(1L, "sender", 2L, "receiver")
 
         // 1. 친구 요청 생성
         val friendship = Friendship.request(command)
@@ -303,7 +304,7 @@ class FriendshipTest {
 
     @Test
     fun `friendship lifecycle - success - complete workflow from request to reject`() {
-        val command = FriendRequestCommand(1L, 2L, "receiver")
+        val command = FriendRequestCommand(1L, "sender", 2L, "receiver")
 
         // 1. 친구 요청 생성
         val friendship = Friendship.request(command)
@@ -315,7 +316,7 @@ class FriendshipTest {
     }
 
     private fun createPendingFriendship(): Friendship {
-        val command = FriendRequestCommand(1L, 2L, "receiver")
+        val command = FriendRequestCommand(1L, "sender", 2L, "receiver")
         return Friendship.request(command)
     }
 
@@ -326,7 +327,7 @@ class FriendshipTest {
     }
 
     private fun createFriendship(fromMemberId: Long, toMemberId: Long): Friendship {
-        val command = FriendRequestCommand(fromMemberId, toMemberId, "receiver")
+        val command = FriendRequestCommand(fromMemberId, "sender", toMemberId, "receiver")
         return Friendship.request(command)
     }
 }

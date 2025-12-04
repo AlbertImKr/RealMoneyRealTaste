@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.member
 
+import com.albert.realmoneyrealtaste.adapter.webview.member.form.PasswordUpdateForm
 import jakarta.validation.Validation
 import jakarta.validation.Validator
 import org.junit.jupiter.api.Assertions.assertAll

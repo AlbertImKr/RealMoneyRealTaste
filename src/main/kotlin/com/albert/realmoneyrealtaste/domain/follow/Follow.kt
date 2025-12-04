@@ -26,29 +26,20 @@ import java.time.LocalDateTime
 @Entity
 @Table(
     name = "follows",
-    uniqueConstraints = [
-        UniqueConstraint(columnNames = ["follower_id", "following_id"])
-    ],
-    indexes = [
-        Index(name = "idx_follow_follower_id", columnList = "follower_id"),
-        Index(name = "idx_follow_following_id", columnList = "following_id"),
-        Index(name = "idx_follow_status", columnList = "status"),
-        Index(name = "idx_follow_created_at", columnList = "created_at")
-    ]
+    uniqueConstraints = [UniqueConstraint(columnNames = ["follower_id", "following_id"])],
+    indexes = [Index(
+        name = "idx_follow_follower_id",
+        columnList = "follower_id"
+    ), Index(name = "idx_follow_following_id", columnList = "following_id"), Index(
+        name = "idx_follow_status",
+        columnList = "status"
+    ), Index(name = "idx_follow_created_at", columnList = "created_at")]
 )
 class Follow protected constructor(
-    @Embedded
-    val relationship: FollowRelationship,
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20, nullable = false)
-    var status: FollowStatus,
-
-    @Column(nullable = false)
-    val createdAt: LocalDateTime,
-
-    @Column(nullable = false)
-    var updatedAt: LocalDateTime,
+    relationship: FollowRelationship,
+    status: FollowStatus,
+    createdAt: LocalDateTime,
+    updatedAt: LocalDateTime,
 ) : BaseEntity() {
 
     companion object {
@@ -61,18 +52,30 @@ class Follow protected constructor(
         fun create(command: FollowCreateCommand): Follow {
             val now = LocalDateTime.now()
             return Follow(
-                relationship = FollowRelationship(
-                    followerId = command.followerId,
-                    followerNickname = command.followerNickname,
-                    followingId = command.followingId,
-                    followingNickname = command.followingNickname,
-                ),
+                relationship = FollowRelationship.of(command),
                 status = FollowStatus.ACTIVE,
                 createdAt = now,
                 updatedAt = now
             )
         }
     }
+
+    @Embedded
+    var relationship: FollowRelationship = relationship
+        protected set
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    var status: FollowStatus = status
+        protected set
+
+    @Column(name = "created_at", nullable = false)
+    var createdAt: LocalDateTime = createdAt
+        protected set
+
+    @Column(name = "updated_at")
+    var updatedAt: LocalDateTime = updatedAt
+        protected set
 
     /**
      * 팔로우 해제 (언팔로우)

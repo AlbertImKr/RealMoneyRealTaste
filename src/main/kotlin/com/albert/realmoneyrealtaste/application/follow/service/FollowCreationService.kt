@@ -47,8 +47,10 @@ class FollowCreationService(
             val command = FollowCreateCommand(
                 followerId = follower.requireId(),
                 followerNickname = follower.nickname.value,
+                followerProfileImageId = follower.imageId,
                 followingId = following.requireId(),
                 followingNickname = following.nickname.value,
+                followingProfileImageId = following.imageId,
             )
             val follow = Follow.create(command)
             val savedFollow = followRepository.save(follow)

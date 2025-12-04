@@ -1,13 +1,17 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
+import com.albert.realmoneyrealtaste.application.follow.required.FollowRepository
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
 import com.albert.realmoneyrealtaste.application.member.exception.MemberNotFoundException
+import com.albert.realmoneyrealtaste.domain.follow.Follow
+import com.albert.realmoneyrealtaste.domain.follow.command.FollowCreateCommand
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import org.junit.jupiter.api.Assertions.assertAll
+import org.springframework.beans.factory.annotation.Autowired
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -18,6 +22,9 @@ class MemberReaderTest(
     private val memberReader: MemberReader,
     private val memberRegister: MemberRegister,
 ) : IntegrationTestBase() {
+
+    @Autowired
+    private lateinit var followRepository: FollowRepository
 
     @Test
     fun `readMemberById - success - returns member when member exists`() {
@@ -390,6 +397,147 @@ class MemberReaderTest(
         )
     }
 
+    @Test
+    fun `findSuggestedMembersWithFollowStatus - success - returns suggested members with following status`() {
+        // given
+        val targetMember = createActiveMember(email = Email("target@example.com"))
+        val suggestedMember1 = createActiveMember(email = Email("suggested1@example.com"))
+        val suggestedMember2 = createActiveMember(email = Email("suggested2@example.com"))
+        val suggestedMember3 = createActiveMember(email = Email("suggested3@example.com"))
+
+        // targetMember가 suggestedMember1과 suggestedMember3을 팔로우
+        createFollowRelationship(targetMember, suggestedMember1)
+        createFollowRelationship(targetMember, suggestedMember3)
+
+        val limit = 5L
+
+        // when
+        val result = memberReader.findSuggestedMembersWithFollowStatus(targetMember.id!!, limit)
+
+        // then
+        assertAll(
+            { assertTrue(result.suggestedUsers.isNotEmpty()) },
+            { assertFalse(result.suggestedUsers.any { it.id == targetMember.id }) }, // 자기 자신 제외
+            { result.suggestedUsers.all { it.status == MemberStatus.ACTIVE } }, // 모두 활성화된 회원
+            { assertEquals(2, result.followingIds.size) }, // 2명을 팔로우
+            { assertTrue(result.followingIds.contains(suggestedMember1.id!!)) }, // 팔로우한 회원 포함
+            { assertTrue(result.followingIds.contains(suggestedMember3.id!!)) }, // 팔로우한 회원 포함
+            { assertFalse(result.followingIds.contains(suggestedMember2.id!!)) }, // 팔로우하지 않은 회원 제외
+            { assertFalse(result.followingIds.contains(targetMember.id!!)) } // 자기 자신 제외
+        )
+    }
+
+    @Test
+    fun `findSuggestedMembersWithFollowStatus - success - returns empty following list when not following anyone`() {
+        // given
+        val targetMember = createActiveMember(email = Email("target@example.com"))
+        (1..3).map { i ->
+            createActiveMember(email = Email("suggested$i@example.com"))
+        }
+        val limit = 5L
+
+        // when
+        val result = memberReader.findSuggestedMembersWithFollowStatus(targetMember.id!!, limit)
+
+        // then
+        assertAll(
+            { assertTrue(result.suggestedUsers.isNotEmpty()) },
+            { assertTrue(result.followingIds.isEmpty()) }, // 아무도 팔로우하지 않음
+            { result.suggestedUsers.all { it.status == MemberStatus.ACTIVE } },
+            { assertFalse(result.suggestedUsers.any { it.id == targetMember.id }) }
+        )
+    }
+
+    @Test
+    fun `findSuggestedMembersWithFollowStatus - success - respects limit parameter with following status`() {
+        // given
+        val targetMember = createActiveMember(email = Email("target@example.com"))
+        val suggestedMembers = (1..5).map { i ->
+            createActiveMember(email = Email("suggested$i@example.com"))
+        }
+        // targetMember가 첫 3명만 팔로우
+        suggestedMembers.take(3).forEach { suggested ->
+            createFollowRelationship(targetMember, suggested)
+        }
+        val limit = 5L
+
+        // when
+        val result = memberReader.findSuggestedMembersWithFollowStatus(targetMember.id!!, limit)
+
+        // then
+        assertAll(
+            { assertEquals(limit, result.suggestedUsers.size.toLong()) },
+            { assertEquals(3, result.followingIds.size) }, // 3명을 팔로우
+            { result.suggestedUsers.all { it.status == MemberStatus.ACTIVE } },
+            { assertFalse(result.suggestedUsers.any { it.id == targetMember.id }) }
+        )
+    }
+
+    @Test
+    fun `findSuggestedMembersWithFollowStatus - success - excludes inactive members with following status`() {
+        // given
+        val targetMember = createActiveMember(email = Email("target@example.com"))
+        val activeMember1 = createActiveMember(email = Email("active1@example.com"))
+        val inactiveMember2 = createMember(email = Email("inactive2@example.com")) // 비활성화
+        val activeMember3 = createActiveMember(email = Email("active3@example.com"))
+
+        // targetMember가 activeMember1과 inactiveMember2를 팔로우
+        createFollowRelationship(targetMember, activeMember1)
+        createFollowRelationship(targetMember, inactiveMember2)
+
+        val limit = 10L
+
+        // when
+        val result = memberReader.findSuggestedMembersWithFollowStatus(targetMember.id!!, limit)
+
+        // then
+        assertAll(
+            { assertTrue(result.suggestedUsers.isNotEmpty()) },
+            { result.suggestedUsers.all { it.status == MemberStatus.ACTIVE } }, // 활성화된 회원만
+            { assertFalse(result.suggestedUsers.any { it.id == inactiveMember2.id }) }, // 비활성화 회원 제외
+            { assertEquals(1, result.followingIds.size) }, // 활성화된 회원 중 팔로우한 1명만
+            { assertTrue(result.followingIds.contains(activeMember1.id!!)) }, // 활성화된 팔로우 회원 포함
+            { assertFalse(result.followingIds.contains(inactiveMember2.id!!)) }, // 비활성화된 팔로우 회원 제외
+            { assertFalse(result.followingIds.contains(targetMember.id!!)) }
+        )
+    }
+
+    @Test
+    fun `findSuggestedMembersWithFollowStatus - success - returns empty result when no other members exist`() {
+        // given
+        val targetMember = createActiveMember(email = Email("target@example.com"))
+        val limit = 5L
+
+        // when
+        val result = memberReader.findSuggestedMembersWithFollowStatus(targetMember.id!!, limit)
+
+        // then
+        assertAll(
+            { assertTrue(result.suggestedUsers.isEmpty()) },
+            { assertTrue(result.followingIds.isEmpty()) }
+        )
+    }
+
+    @Test
+    fun `findSuggestedMembersWithFollowStatus - success - handles non-existent member ID with following status`() {
+        // given
+        val nonExistentMemberId = 99999L
+        (1..3).map { i ->
+            createActiveMember(email = Email("suggested$i@example.com"))
+        }
+        val limit = 5L
+
+        // when
+        val result = memberReader.findSuggestedMembersWithFollowStatus(nonExistentMemberId, limit)
+
+        // then - 비활성화 회원이 없는 한, 다른 활성화된 회원들을 반환할 수 있음
+        assertAll(
+            { result.suggestedUsers.all { it.status == MemberStatus.ACTIVE } },
+            { assertTrue(result.followingIds.isEmpty()) }, // 존재하지 않는 회원이므로 팔로우한 사람이 없음
+            { assertTrue(result.suggestedUsers.size <= limit) }
+        )
+    }
+
     private fun createActiveMember(email: Email): Member {
         val registeredMember = createMember(email)
         registeredMember.activate()
@@ -404,5 +552,20 @@ class MemberReaderTest(
                 nickname = MemberFixture.DEFAULT_NICKNAME
             )
         )
+    }
+
+    private fun createFollowRelationship(follower: Member, following: Member) {
+        val command = FollowCreateCommand(
+            followerId = follower.id!!,
+            followingId = following.id!!,
+            followerNickname = follower.nickname.value,
+            followingNickname = following.nickname.value,
+            followerProfileImageId = follower.imageId,
+            followingProfileImageId = following.imageId
+        )
+
+        val follow = Follow.create(command)
+
+        followRepository.save(follow)
     }
 }

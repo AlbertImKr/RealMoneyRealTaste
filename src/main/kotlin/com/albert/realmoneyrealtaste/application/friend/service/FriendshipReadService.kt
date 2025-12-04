@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.application.friend.dto.FriendshipResponse
 import com.albert.realmoneyrealtaste.application.friend.exception.FriendshipNotFoundException
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
+import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import org.springframework.data.domain.Page
@@ -15,12 +16,11 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class FriendshipReadService(
     private val friendshipRepository: FriendshipRepository,
+    private val memberReader: MemberReader,
 ) : FriendshipReader {
 
     companion object {
         const val ERROR_FRIENDSHIP_NOT_FOUND = "친구 관계를 찾을 수 없습니다."
-
-        const val UNKNOWN_NICKNAME = "Unknown"
     }
 
     override fun findActiveFriendship(memberId: Long, friendMemberId: Long): Friendship? {
@@ -116,16 +116,36 @@ class FriendshipReadService(
         )
     }
 
-    override fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship> {
-        return friendshipRepository.findReceivedFriendships(memberId, FriendshipStatus.PENDING, pageable)
+    override fun findPendingRequests(memberId: Long, pageable: Pageable): Page<FriendshipResponse> {
+        val receivedFriendships =
+            friendshipRepository.findReceivedFriendships(memberId, FriendshipStatus.PENDING, pageable)
+
+        return mapToFriendshipResponses(receivedFriendships)
+    }
+
+    override fun isSent(memberId: Long, friendMemberId: Long): Boolean {
+        return friendshipRepository.existsByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatusIsIn(
+            memberId,
+            friendMemberId,
+            listOf(FriendshipStatus.PENDING, FriendshipStatus.ACCEPTED)
+        )
     }
 
     private fun mapToFriendshipResponses(friendships: Page<Friendship>): Page<FriendshipResponse> {
+        val membersMap = memberReader.readAllActiveMembersByIds(
+            friendships.content.map { it.relationShip.memberId }
+        ).associateBy { it.id }
+        val friendsMap = memberReader.readAllActiveMembersByIds(
+            friendships.content.map { it.relationShip.friendMemberId }
+        ).associateBy { it.id }
+
+
         return friendships
             .map { friendship ->
                 FriendshipResponse.from(
                     friendship,
-                    friendship.relationShip.friendNickname,
+                    membersMap.getValue(friendship.relationShip.memberId),
+                    friendsMap.getValue(friendship.relationShip.friendMemberId),
                 )
             }
     }

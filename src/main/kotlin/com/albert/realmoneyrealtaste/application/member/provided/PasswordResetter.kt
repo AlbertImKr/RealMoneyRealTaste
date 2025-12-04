@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
 import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
-import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.RawPassword
 
 /**
@@ -15,7 +14,7 @@ interface PasswordResetter {
      * @param email 대상 이메일
      * @throws SendPasswordResetEmailException 이메일 전송에 실패한 경우 발생
      */
-    fun sendPasswordResetEmail(email: Email)
+    fun sendPasswordResetEmail(email: String)
 
     /**
      * 비밀번호 재설정

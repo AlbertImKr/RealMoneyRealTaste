@@ -1,9 +1,12 @@
-package com.albert.realmoneyrealtaste.adapter.webview.member
+package com.albert.realmoneyrealtaste.adapter.webview.member.form
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 
+/**
+ * 비밀번호 재설정 폼
+ */
 data class PasswordResetForm(
     @field:NotBlank(message = "새 비밀번호는 필수입니다")
     @field:Size(min = 8, max = 20, message = "비밀번호는 8-20자 사이여야 합니다")

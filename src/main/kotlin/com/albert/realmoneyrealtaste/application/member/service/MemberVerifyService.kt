@@ -31,8 +31,8 @@ class MemberVerifyService(
             require(member.verifyPassword(password, passwordEncoder)) {}
 
             return MemberPrincipal.from(member)
-        } catch (e: IllegalArgumentException) {
-            throw MemberVerifyException(ERROR_MEMBER_VERIFY, e)
+        } catch (_: IllegalArgumentException) {
+            throw MemberVerifyException(ERROR_MEMBER_VERIFY)
         }
     }
 }

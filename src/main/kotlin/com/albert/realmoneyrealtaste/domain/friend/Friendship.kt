@@ -67,11 +67,7 @@ class Friendship protected constructor(
 
             val now = LocalDateTime.now()
             return Friendship(
-                relationShip = FriendRelationship.of(
-                    memberId = requestCommand.fromMemberId,
-                    friendMemberId = requestCommand.toMemberId,
-                    friendNickname = requestCommand.toMemberNickname
-                ),
+                relationShip = FriendRelationship.of(requestCommand),
                 status = FriendshipStatus.PENDING,
                 createdAt = now,
                 updatedAt = now

@@ -8,4 +8,6 @@ data class AccountUpdateRequest(
     val nickname: Nickname?,
     val profileAddress: ProfileAddress?,
     val introduction: Introduction?,
+    val address: String?,
+    val imageId: Long?,
 )

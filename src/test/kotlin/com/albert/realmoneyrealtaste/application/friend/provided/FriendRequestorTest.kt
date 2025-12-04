@@ -11,6 +11,7 @@ import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.event.ApplicationEvents
 import org.springframework.test.context.event.RecordApplicationEvents
+import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -39,11 +40,10 @@ class FriendRequestorTest(
             email = "receiver@test.com",
             nickname = "receiver"
         )
-        val command = FriendRequestCommand(fromMember.requireId(), toMember.requireId(), toMember.nickname.value)
         applicationEvents.clear()
 
         // when
-        val result = friendRequestor.sendFriendRequest(command)
+        val result = friendRequestor.sendFriendRequest(fromMember.requireId(), toMember.requireId())
 
         // then
         assertAll(
@@ -78,10 +78,9 @@ class FriendRequestorTest(
             email = "db-receiver@test.com",
             nickname = "dbreceiver"
         )
-        val command = FriendRequestCommand(fromMember.requireId(), toMember.requireId(), toMember.nickname.value)
 
         // when
-        val result = friendRequestor.sendFriendRequest(command)
+        val result = friendRequestor.sendFriendRequest(fromMember.requireId(), toMember.requireId())
 
         // then
         val saved = friendshipRepository.findById(result.requireId())
@@ -101,11 +100,10 @@ class FriendRequestorTest(
             email = "existing@test.com",
             nickname = "existing"
         )
-        val command = FriendRequestCommand(nonExistentMemberId, toMember.requireId(), toMember.nickname.value)
 
         // when & then
         assertFailsWith<FriendRequestException> {
-            friendRequestor.sendFriendRequest(command)
+            friendRequestor.sendFriendRequest(nonExistentMemberId, toMember.requireId())
         }.let {
             assertEquals("친구 요청에 실패했습니다.", it.message)
         }
@@ -119,11 +117,10 @@ class FriendRequestorTest(
             nickname = "existing2"
         )
         val nonExistentMemberId = 999999L
-        val command = FriendRequestCommand(fromMember.requireId(), nonExistentMemberId, "unknown")
 
         // when & then
         assertFailsWith<FriendRequestException> {
-            friendRequestor.sendFriendRequest(command)
+            friendRequestor.sendFriendRequest(fromMember.requireId(), nonExistentMemberId)
         }.let {
             assertEquals("친구 요청에 실패했습니다.", it.message)
         }
@@ -142,16 +139,12 @@ class FriendRequestorTest(
         )
 
         // 친구 요청 생성 후 수락
-        val initialCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        val friendship = friendRequestor.sendFriendRequest(initialCommand)
+        val friendship = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
         friendship.accept()
         friendshipRepository.save(friendship)
 
-        // 이미 친구인 상태에서 다시 요청 시도
-        val duplicateCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-
         // when & then
-        val result = friendRequestor.sendFriendRequest(duplicateCommand)
+        val result = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
 
         assertAll(
             { assertEquals(friendship.requireId(), result.requireId()) },
@@ -169,7 +162,7 @@ class FriendRequestorTest(
         )
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(member.requireId(), member.requireId(), member.nickname.value)
+            FriendRequestCommand(member.requireId(), member.nickname.value, member.requireId(), member.nickname.value)
         }
     }
 
@@ -186,14 +179,12 @@ class FriendRequestorTest(
         )
 
         // 첫 번째 요청 후 거절
-        val firstCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        val firstFriendship = friendRequestor.sendFriendRequest(firstCommand)
+        val firstFriendship = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
         firstFriendship.reject()
         friendshipRepository.save(firstFriendship)
 
         // 반대 방향 요청 (허용되어야 함)
-        val reverseCommand = FriendRequestCommand(member2.requireId(), member1.requireId(), member1.nickname.value)
-        val result = friendRequestor.sendFriendRequest(reverseCommand)
+        val result = friendRequestor.sendFriendRequest(member2.requireId(), member1.requireId())
 
         assertAll(
             { assertNotNull(result) },
@@ -219,12 +210,9 @@ class FriendRequestorTest(
             nickname = "receiver2"
         )
 
-        val command1 = FriendRequestCommand(sender.requireId(), receiver1.requireId(), receiver1.nickname.value)
-        val command2 = FriendRequestCommand(sender.requireId(), receiver2.requireId(), receiver2.nickname.value)
-
         // when
-        val result1 = friendRequestor.sendFriendRequest(command1)
-        val result2 = friendRequestor.sendFriendRequest(command2)
+        val result1 = friendRequestor.sendFriendRequest(sender.requireId(), receiver1.requireId())
+        val result2 = friendRequestor.sendFriendRequest(sender.requireId(), receiver2.requireId())
 
         // then
         assertAll(
@@ -248,12 +236,9 @@ class FriendRequestorTest(
         val inactiveMember = testMemberHelper.createMember()
         // 활성화하지 않음 (PENDING 상태)
 
-        val command =
-            FriendRequestCommand(activeMember.requireId(), inactiveMember.requireId(), inactiveMember.nickname.value)
-
         // when & then
         assertFailsWith<FriendRequestException> {
-            friendRequestor.sendFriendRequest(command)
+            friendRequestor.sendFriendRequest(activeMember.requireId(), inactiveMember.requireId())
         }.let {
             assertEquals("친구 요청에 실패했습니다.", it.message)
         }
@@ -270,12 +255,11 @@ class FriendRequestorTest(
             nickname = "tomember"
         )
 
-        val command = FriendRequestCommand(fromMember.requireId(), toMember.requireId(), toMember.nickname.value)
-        val beforeCreation = java.time.LocalDateTime.now()
+        val beforeCreation = LocalDateTime.now()
 
-        val result = friendRequestor.sendFriendRequest(command)
+        val result = friendRequestor.sendFriendRequest(fromMember.requireId(), toMember.requireId())
 
-        val afterCreation = java.time.LocalDateTime.now()
+        val afterCreation = LocalDateTime.now()
 
         assertAll(
             { assertNotNull(result.createdAt) },
@@ -297,8 +281,7 @@ class FriendRequestorTest(
             nickname = "tomember"
         )
 
-        val command = FriendRequestCommand(fromMember.requireId(), toMember.requireId(), toMember.nickname.value)
-        val result = friendRequestor.sendFriendRequest(command)
+        val result = friendRequestor.sendFriendRequest(fromMember.requireId(), toMember.requireId())
 
         flushAndClear()
 
@@ -320,7 +303,7 @@ class FriendRequestorTest(
         )
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(member.requireId(), member.requireId(), member.nickname.value)
+            FriendRequestCommand(member.requireId(), member.nickname.value, member.requireId(), member.nickname.value)
         }
     }
 
@@ -336,14 +319,18 @@ class FriendRequestorTest(
         )
 
         // 첫 번째 요청 후 거절
-        val firstCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        val firstFriendship = friendRequestor.sendFriendRequest(firstCommand)
+        val firstFriendship = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
         firstFriendship.reject()
         friendshipRepository.save(firstFriendship)
 
         // 거절된 후 동일 방향으로 다시 요청 (허용되어야 함)
-        val secondCommand = FriendRequestCommand(member1.requireId(), member2.requireId(), member2.nickname.value)
-        val result = friendRequestor.sendFriendRequest(secondCommand)
+        val secondCommand = FriendRequestCommand(
+            member1.requireId(),
+            member1.nickname.value,
+            member2.requireId(),
+            member2.nickname.value
+        )
+        val result = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
 
         assertAll(
             { assertNotNull(result) },

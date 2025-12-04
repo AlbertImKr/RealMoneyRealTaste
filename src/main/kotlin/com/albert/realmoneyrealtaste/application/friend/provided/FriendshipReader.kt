@@ -20,7 +20,7 @@ interface FriendshipReader {
     fun findActiveFriendship(memberId: Long, friendMemberId: Long): Friendship?
 
     /**
-     * 두 회원 간의 친구 관계를 조회합니다.
+     * 보낸 친구 요청을 조회합니다.
      *
      * @param memberId 회원 ID
      * @param friendMemberId 친구 회원 ID
@@ -116,7 +116,9 @@ interface FriendshipReader {
      */
     fun countPendingRequests(memberId: Long): Long
 
-    fun findPendingRequests(memberId: Long, pageable: Pageable): Page<Friendship>
+    fun findPendingRequests(memberId: Long, pageable: Pageable): Page<FriendshipResponse>
 
     fun findByMembersId(memberId: Long, friendMemberId: Long): Friendship?
+
+    fun isSent(memberId: Long, friendMemberId: Long): Boolean
 }

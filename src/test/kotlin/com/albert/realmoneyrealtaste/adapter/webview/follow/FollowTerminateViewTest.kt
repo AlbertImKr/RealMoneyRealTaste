@@ -53,7 +53,6 @@ class FollowTerminateViewTest : IntegrationTestBase() {
             responseContent.contains("hx-post=\"/members/${targetMember.requireId()}/follow\""),
             "팔로우 요청 URL이 포함되어야 함"
         )
-        assertTrue(responseContent.contains("fa-solid fa-plus"), "팔로우 추가 아이콘이 포함되어야 함")
         assertTrue(responseContent.contains("follow-button-${targetMember.requireId()}"), "타겟 ID가 포함되어야 함")
 
         // 실제 팔로우 관계가 삭제되었는지 확인

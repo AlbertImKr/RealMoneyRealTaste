@@ -150,7 +150,64 @@
                                 <p class="mb-0">회원님의 계정 정보를 관리하고 수정할 수 있습니다.</p>
                             </div>
                             <div class="card-body">
-                                <form class="row g-3" method="post" th:action="@{/members/setting/account}">
+                                <form class="row g-3" id="accountUpdateForm" method="post"
+                                      th:action="@{/members/setting/account}">
+                                    <!-- Profile Image -->
+                                    <div class="col-12">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <!-- Current Profile Image -->
+                                            <div class="profile-image-preview">
+                                                <img alt="현재 프로필 이미지"
+                                                     class="rounded-circle border"
+                                                     style="width: 80px; height: 80px; object-fit: cover;"
+                                                     th:if="${member.detail.imageId}"
+                                                     th:src="@{'/api/images/' + ${member.detail.imageId}}">
+                                                <div class="rounded-circle border d-flex align-items-center justify-content-center bg-light"
+                                                     style="width: 80px; height: 80px;"
+                                                     th:unless="${member.detail.imageId}">
+                                                    <i class="bi bi-person fs-3 text-muted"></i>
+                                                </div>
+                                            </div>
+
+                                            <!-- Image Upload Section -->
+                                            <div class="flex-grow-1">
+                                                <!-- 프로필 이미지 업로드 -->
+                                                <div class="mb-2">
+                                                    <!-- 이미지 업로드 컨테이너 -->
+                                                    <div class="mb-2" id="profile-image-upload-container">
+                                                        <!-- 업로드된 이미지 미리보기 및 URL 저장 영역 -->
+                                                    </div>
+
+                                                    <!-- 파일 선택 버튼 -->
+                                                    <div class="d-flex gap-2 align-items-center">
+                                                        <label class="btn btn-sm btn-outline-primary mb-0"
+                                                               for="profile-image-file-input">
+                                                            <i class="bi bi-upload me-1"></i> 프로필 이미지 선택
+                                                        </label>
+                                                        <input accept="image/jpeg,image/png,image/gif,image/webp"
+                                                               class="d-none"
+                                                               id="profile-image-file-input"
+                                                               type="file">
+                                                    </div>
+                                                    <div class="form-text">JPG, PNG, GIF, WebP 형식 지원 (최대 5MB)</div>
+
+                                                    <!-- 업로드 진행 상태 표시 -->
+                                                    <div class="mt-2" id="profile-upload-progress"
+                                                         style="display: none;">
+                                                        <div class="progress" style="height: 20px;">
+                                                            <progress
+                                                                    class="progress-bar progress-bar-striped progress-bar-animated"
+                                                                    id="profile-upload-progress-bar" max="100"
+                                                                    value="0">
+                                                                <span id="profile-upload-progress-text">0%</span>
+                                                            </progress>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Nickname -->
                                     <div class="col-sm-6">
                                         <label class="form-label" for="nickname">닉네임</label>
@@ -169,7 +226,7 @@
                                         <label class="form-label" for="profileAddress">프로필 주소</label>
                                         <input class="form-control" id="profileAddress" name="profileAddress"
                                                placeholder="프로필 주소를 입력하세요. 프로필 URL에 사용되며 중복될 수 없습니다."
-                                               th:value="${member.detail.profileAddress?.address ?: ''}" type="text">
+                                               th:value="${member.detail.profileAddress?.address ?: null}" type="text">
                                     </div>
                                     <!-- Introduction -->
                                     <div class="col-12">
@@ -178,9 +235,12 @@
                                                   name="introduction"
                                                   placeholder="자기소개를 입력하세요"
                                                   rows="4"
-                                                  th:text="${member.detail.introduction?.value ?: ''}"></textarea>
+                                                  th:text="${member.detail.introduction?.value ?: null}"></textarea>
                                         <small>최대 500자까지 입력 가능합니다</small>
                                     </div>
+                                    <!-- Hidden field for imageId -->
+                                    <input id="imageId" name="imageId" th:value="${member.detail.imageId}"
+                                           type="hidden">
                                     <!-- Button -->
                                     <div class="col-12 text-end">
                                         <button class="btn btn-sm btn-primary mb-0" type="submit">변경사항 저장</button>
@@ -321,6 +381,305 @@
 <script src="/assets/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
 <th:block th:replace="~{fragments/scripts :: scripts}"></th:block>
+
+<!-- Form Submit Handler -->
+<script>
+    document.getElementById('accountUpdateForm').addEventListener('submit', function (e) {
+        // 빈 문자열인 input은 name 속성 제거 (파라미터로 전송 안됨)
+        const inputs = this.querySelectorAll('input[type="text"], textarea');
+        inputs.forEach(input => {
+            if (input.value.trim() === '') {
+                input.removeAttribute('name');
+            }
+        });
+    });
+</script>
+
+<!-- Profile Image Upload JavaScript -->
+<script th:inline="javascript">
+    /**
+     * 프로필 이미지 업로드 관리
+     * S3 Presigned POST를 사용한 직접 업로드 방식 with CSRF 지원
+     */
+    class ProfileImageUploader {
+        constructor() {
+            this.maxFileSize = 5 * 1024 * 1024; // 5MB
+            this.uploadedImage = null;
+            this.isUploading = false;
+            this.csrfToken = null;
+            this.csrfHeader = null;
+
+            this.init();
+        }
+
+        init() {
+            // CSRF 토큰 초기화
+            this.initCsrfToken();
+
+            const fileInput = document.getElementById('profile-image-file-input');
+            if (!fileInput) return;
+
+            fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+        }
+
+        /**
+         * Spring Security CSRF 토큰 초기화
+         * meta 태그에서 토큰을 읽어옴
+         */
+        initCsrfToken() {
+            const tokenMeta = document.querySelector('meta[name="_csrf"]');
+            const headerMeta = document.querySelector('meta[name="_csrf_header"]');
+
+            if (tokenMeta && headerMeta) {
+                this.csrfToken = tokenMeta.getAttribute('content');
+                this.csrfHeader = headerMeta.getAttribute('content');
+                console.log('CSRF 토큰 초기화 완료');
+            } else {
+                console.warn('CSRF meta 태그를 찾을 수 없습니다. HTML head에 추가하세요.');
+            }
+        }
+
+        /**
+         * CSRF 토큰을 포함한 헤더 반환
+         */
+        getCsrfHeaders() {
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            if (this.csrfToken && this.csrfHeader) {
+                headers[this.csrfHeader] = this.csrfToken;
+            }
+
+            return headers;
+        }
+
+        handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+
+            if (files.length === 0) return;
+
+            // 프로필 이미지는 1개만 가능
+            const file = files[0];
+
+            // 파일 검증
+            if (!this.validateFile(file)) {
+                event.target.value = '';
+                return;
+            }
+
+            this.uploadFile(file);
+
+            // input 초기화 (같은 파일 재선택 가능하도록)
+            event.target.value = '';
+        }
+
+        validateFile(file) {
+            // 파일 타입 검증
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                this.showError(`${file.name}: 지원하지 않는 파일 형식입니다.`);
+                return false;
+            }
+
+            // 파일 크기 검증
+            if (file.size > this.maxFileSize) {
+                this.showError(`${file.name}: 파일 크기는 5MB를 초과할 수 없습니다.`);
+                return false;
+            }
+
+            return true;
+        }
+
+        /**
+         * 이미지 파일에서 width와 height 추출
+         * @param {File} file - 이미지 파일
+         * @returns {Promise<{width: number, height: number}>}
+         */
+        async getImageDimensions(file) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+
+                img.onload = () => {
+                    URL.revokeObjectURL(url); // 메모리 해제
+                    resolve({
+                        width: img.naturalWidth,
+                        height: img.naturalHeight
+                    });
+                };
+
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('이미지를 로드할 수 없습니다.'));
+                };
+
+                img.src = url;
+            });
+        }
+
+        async uploadFile(file) {
+            if (this.isUploading) return;
+
+            this.isUploading = true;
+            this.showProgress();
+
+            try {
+                // 0단계: 이미지 크기 추출
+                const dimensions = await this.getImageDimensions(file);
+
+                // 1단계: Presigned POST URL 요청 (CSRF 토큰 포함)
+                const uploadRequest = await this.requestPresignedPost(file, dimensions);
+
+                // 2단계: S3에 직접 업로드
+                await this.uploadToS3(file, uploadRequest);
+
+                // 3단계: 업로드 확인 (CSRF 토큰 포함)
+                const result = await this.confirmUpload(uploadRequest.key);
+
+                // 4단계: UI 업데이트
+                this.updateProfileImagePreview(file, result);
+                this.updateImageIdField(result.imageId);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                this.showError(`${file.name} 업로드 실패: ${error.message}`);
+            } finally {
+                this.hideProgress();
+                this.isUploading = false;
+            }
+        }
+
+        async requestPresignedPost(file, dimensions) {
+            const response = await fetch('/api/images/upload-request', {
+                method: 'POST',
+                headers: this.getCsrfHeaders(),
+                body: JSON.stringify({
+                    fileName: file.name,
+                    fileSize: file.size,
+                    contentType: file.type,
+                    width: dimensions.width,
+                    height: dimensions.height,
+                    imageType: "PROFILE_IMAGE"
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Presigned URL 요청 실패');
+            }
+
+            return await response.json();
+        }
+
+        async uploadToS3(file, uploadRequest) {
+            let metadata = uploadRequest.metadata
+            const response = await fetch(uploadRequest.uploadUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': metadata['content-type'],
+                    'x-amz-meta-content-type': metadata['content-type'],
+                    'x-amz-meta-file-size': metadata['file-size'],
+                    'x-amz-meta-height': metadata['height'],
+                    'x-amz-meta-original-name': metadata['original-name'],
+                    'x-amz-meta-width': metadata['width']
+                },
+                body: file
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('S3 업로드 실패:', response.status, errorText);
+                throw new Error(`S3 업로드 실패: ${response.status}`);
+            }
+        }
+
+        async confirmUpload(key) {
+            const response = await fetch(`/api/images/upload-confirm?key=${encodeURIComponent(key)}`, {
+                method: 'POST',
+                headers: this.getCsrfHeaders()
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || '업로드 확인 실패');
+            }
+
+            return await response.json();
+        }
+
+        updateProfileImagePreview(file, uploadResult) {
+            const previewContainer = document.querySelector('.profile-image-preview');
+
+            // FileReader로 미리보기 생성
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewContainer.innerHTML = `
+                    <img src="${e.target.result}"
+                         alt="새 프로필 이미지"
+                         class="rounded-circle border"
+                         style="width: 80px; height: 80px; object-fit: cover;">
+                `;
+            };
+            reader.readAsDataURL(file);
+
+            // 업로드된 이미지 정보 저장
+            this.uploadedImage = {
+                file: file,
+                imageId: uploadResult.imageId
+            };
+
+        }
+
+        updateImageIdField(imageId) {
+            const imageIdField = document.getElementById('imageId');
+            if (imageIdField) {
+                imageIdField.value = imageId;
+            }
+        }
+
+        showProgress() {
+            const progressContainer = document.getElementById('profile-upload-progress');
+            if (progressContainer) {
+                progressContainer.style.display = 'block';
+                this.updateProgress(0);
+            }
+        }
+
+        hideProgress() {
+            const progressContainer = document.getElementById('profile-upload-progress');
+            if (progressContainer) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    this.updateProgress(0);
+                }, 500);
+            }
+        }
+
+        updateProgress(percent) {
+            const progressBar = document.getElementById('profile-upload-progress-bar');
+            const progressText = document.getElementById('profile-upload-progress-text');
+
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+            }
+            if (progressText) {
+                progressText.textContent = `${Math.round(percent)}%`;
+            }
+        }
+
+        showError(message) {
+            console.error(message);
+            alert(message);
+        }
+    }
+
+    // 전역 인스턴스 생성
+    let profileImageUploader;
+    document.addEventListener('DOMContentLoaded', () => {
+        profileImageUploader = new ProfileImageUploader();
+    });
+</script>
 
 </body>
 

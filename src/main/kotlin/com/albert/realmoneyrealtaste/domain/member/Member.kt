@@ -51,6 +51,8 @@ class Member protected constructor(
     followersCount: Long,
 
     followingsCount: Long,
+
+    postCount: Long,
 ) : BaseEntity() {
 
     @Embedded
@@ -95,6 +97,22 @@ class Member protected constructor(
     var followingsCount: Long = followingsCount
         protected set
 
+    @Column(name = "post_count", nullable = false)
+    var postCount: Long = postCount
+        protected set
+
+    val imageId: Long
+        get() = detail.imageId ?: 1L
+
+    val address: String
+        get() = detail.address ?: "푸디마을에 살고 있어요"
+
+    val introduction: String
+        get() = detail.introduction?.value ?: "아직 자기소개가 없어요!"
+
+    val registeredAt: LocalDateTime
+        get() = detail.registeredAt
+
     fun activate() {
         require(status == MemberStatus.PENDING) { ERROR_INVALID_STATUS_FOR_ACTIVATION }
 
@@ -133,14 +151,14 @@ class Member protected constructor(
         profileAddress: ProfileAddress? = null,
         introduction: Introduction? = null,
         address: String? = null,
+        imageId: Long? = null,
     ) {
-        if (nickname == null && profileAddress == null && introduction == null && address == null) return
-
         require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_INFO_UPDATE }
 
+        val sameNickname = nickname == this.nickname
         nickname?.let { this.nickname = it }
-        detail.updateInfo(profileAddress, introduction, address)
-        updatedAt = LocalDateTime.now()
+        val updated = detail.updateInfo(profileAddress, introduction, address, imageId)
+        if (!sameNickname || updated) updatedAt = LocalDateTime.now()
     }
 
     fun updateTrustScore(newTrustScore: TrustScore) {
@@ -182,6 +200,11 @@ class Member protected constructor(
         updatedAt = LocalDateTime.now()
     }
 
+    fun updatePostCount(count: Long) {
+        postCount = count
+        updatedAt = LocalDateTime.now()
+    }
+
     companion object {
         const val ERROR_INVALID_STATUS_FOR_ACTIVATION = "등록 대기 상태에서만 등록 완료가 가능합니다"
         const val ERROR_INVALID_STATUS_FOR_DEACTIVATION = "등록 완료 상태에서만 탈퇴가 가능합니다"
@@ -205,6 +228,7 @@ class Member protected constructor(
             roles = Roles.ofUser(),
             followersCount = 0L,
             followingsCount = 0L,
+            postCount = 0L,
         )
 
         fun registerManager(
@@ -222,6 +246,7 @@ class Member protected constructor(
             roles = Roles.of(Role.USER, Role.MANAGER),
             followersCount = 0L,
             followingsCount = 0L,
+            postCount = 0L,
         )
 
         fun registerAdmin(
@@ -239,6 +264,7 @@ class Member protected constructor(
             roles = Roles.of(Role.USER, Role.ADMIN),
             followersCount = 0L,
             followingsCount = 0L,
+            postCount = 0L,
         )
     }
 }

@@ -61,6 +61,15 @@ class ImageApi(
         return ResponseEntity.ok(result)
     }
 
+    @GetMapping("/{imageId}")
+    fun getImageRedirect(
+        @PathVariable imageId: Long,
+        @AuthenticationPrincipal member: MemberPrincipal,
+    ): ResponseEntity<Unit> {
+        val url = imageReader.getImageUrl(imageId, member.id)
+        return ResponseEntity.status(302).header("Location", url).build()
+    }
+
     @GetMapping("/{imageId}/url")
     fun getImageUrl(
         @PathVariable imageId: Long,

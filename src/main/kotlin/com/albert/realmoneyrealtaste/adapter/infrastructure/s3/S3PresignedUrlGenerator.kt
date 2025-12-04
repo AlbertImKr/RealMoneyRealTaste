@@ -49,8 +49,6 @@ class S3PresignedUrlGenerator(
 
         val presignedRequest = s3Presigner.presignPutObject(presignRequest)
 
-        logger.info("Generated presigned PUT URL for key: $imageKey")
-
         return PresignedPutResponse(
             uploadUrl = presignedRequest.url().toString(),
             key = imageKey,
@@ -74,8 +72,6 @@ class S3PresignedUrlGenerator(
             .build()
 
         val presignedRequest = s3Presigner.presignGetObject(presignRequest)
-
-        logger.info("Generated presigned GET URL for key: $imageKey")
 
         return presignedRequest.url().toString()
     }

@@ -25,7 +25,9 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     @Query(
         """
         SELECT f FROM Friendship f
+        JOIN Member m ON f.relationShip.memberId = m.id
         WHERE f.relationShip.friendMemberId = :friendMemberId AND f.status = :status
+        AND m.status = 'ACTIVE'
         ORDER BY f.createdAt DESC
         """
     )
@@ -41,7 +43,10 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     @Query(
         """
         SELECT f FROM Friendship f
-        WHERE f.relationShip.memberId = :memberId AND f.status = :status
+        JOIN Member m ON f.relationShip.friendMemberId = m.id
+        WHERE f.relationShip.memberId = :memberId 
+        AND f.status = :status
+        AND m.status = 'ACTIVE'
         ORDER BY f.createdAt DESC
         """
     )
@@ -97,8 +102,10 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     @Query(
         """
         SELECT f1 FROM Friendship f1
+        JOIN Member m ON f1.relationShip.friendMemberId = m.id
         WHERE f1.relationShip.memberId = :memberId 
         AND f1.status = :status
+        AND m.status = 'ACTIVE'
         AND EXISTS (
             SELECT 1 FROM Friendship f2 
             WHERE f2.relationShip.friendMemberId = :memberId 
@@ -121,8 +128,10 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     @Query(
         """
         SELECT f1 FROM Friendship f1
+        JOIN Member m ON f1.relationShip.friendMemberId = m.id
         WHERE f1.relationShip.memberId = :memberId 
         AND f1.status = :status
+        AND m.status = 'ACTIVE'
         AND EXISTS (
             SELECT 1 FROM Friendship f2 
             WHERE f2.relationShip.friendMemberId = :memberId 
@@ -146,8 +155,10 @@ interface FriendshipRepository : Repository<Friendship, Long> {
     @Query(
         """
         SELECT f1 FROM Friendship f1
+        JOIN Member m ON f1.relationShip.friendMemberId = m.id
         WHERE f1.relationShip.memberId = :memberId 
         AND f1.status = :status
+        AND m.status = 'ACTIVE'
         AND EXISTS (
             SELECT 1 FROM Friendship f2 
             WHERE f2.relationShip.friendMemberId = :memberId 
@@ -162,4 +173,10 @@ interface FriendshipRepository : Repository<Friendship, Long> {
         status: FriendshipStatus,
         pageable: Pageable,
     ): Page<Friendship>
+
+    fun existsByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatusIsIn(
+        memberId: Long,
+        friendMemberId: Long,
+        statusList: List<FriendshipStatus>,
+    ): Boolean
 }

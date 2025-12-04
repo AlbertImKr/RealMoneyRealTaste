@@ -1,0 +1,13 @@
+<!-- 팔로우 버튼 Fragment -->
+<div class="d-flex flex-column align-items-center" th:fragment="follow-button"
+     th:id="'follow-button-'+${authorId}">
+    <div th:if="${isFollowing}">
+        <div th:replace="~{follow/fragments/terminate-button :: terminate-button}"></div>
+    </div>
+
+    <div th:if="${!isFollowing}">
+        <div th:replace="~{follow/fragments/create-button :: create-button}"></div>
+    </div>
+</div>
+
+

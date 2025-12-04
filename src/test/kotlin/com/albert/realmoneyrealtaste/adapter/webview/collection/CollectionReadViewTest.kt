@@ -55,7 +55,7 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(CollectionViews.MY_LIST))
             .andExpect(model().attributeExists("collections"))
             .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("author"))
+            .andExpect(model().attributeExists("authorId"))
     }
 
     @Test
@@ -75,7 +75,7 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(CollectionViews.MY_LIST))
             .andExpect(model().attributeExists("collections"))
             .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("author"))
+            .andExpect(model().attributeExists("authorId"))
             .andReturn()
 
         // PUBLIC 필터 시 공개 컬렉션만 반환되는지 확인
@@ -101,7 +101,7 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(CollectionViews.MY_LIST))
             .andExpect(model().attributeExists("collections"))
             .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("author"))
+            .andExpect(model().attributeExists("authorId"))
             .andReturn()
 
         // ALL 필터 시 모든 컬렉션이 반환되는지 확인
@@ -139,7 +139,6 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(status().isOk)
             .andExpect(view().name(CollectionViews.DETAIL_EDIT_FRAGMENT))
             .andExpect(model().attributeExists("collection"))
-            .andExpect(model().attributeExists("member"))
     }
 
     @Test
@@ -192,7 +191,7 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(CollectionViews.MY_LIST))
             .andExpect(model().attributeExists("collections"))
             .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("author"))
+            .andExpect(model().attributeExists("authorId"))
     }
 
     @Test
@@ -209,7 +208,7 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(CollectionViews.MY_LIST))
             .andExpect(model().attributeExists("collections"))
             .andExpect(model().attributeDoesNotExist("member"))
-            .andExpect(model().attributeExists("author"))
+            .andExpect(model().attributeExists("authorId"))
     }
 
     @Test
@@ -226,7 +225,6 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(CollectionViews.DETAIL_FRAGMENT))
             .andExpect(model().attributeExists("collection"))
             .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("author"))
     }
 
     @Test
@@ -242,7 +240,6 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(CollectionViews.DETAIL_FRAGMENT))
             .andExpect(model().attributeExists("collection"))
             .andExpect(model().attributeDoesNotExist("member"))
-            .andExpect(model().attributeExists("author"))
     }
 
     private fun createCollection(
@@ -309,7 +306,6 @@ class CollectionReadViewTest : IntegrationTestBase() {
             .andExpect(model().attributeExists("collection"))
             .andExpect(model().attributeExists("posts"))
             .andExpect(model().attributeExists("myPosts"))
-            .andExpect(model().attributeExists("member"))
             .andReturn()
 
         // 컬렉션 게시글 확인

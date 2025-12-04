@@ -20,19 +20,96 @@
 
 ## ✨ 주요 기능
 
-🎯 **내돈내산 인증** | 👥 **소셜 네트워킹** | 📍 **위치 기반 검색** | 🏆 **신뢰도 시스템**
+### 🎯 내돈내산 리뷰 시스템
+
+- 게시글 CRUD (생성, 조회, 수정, 삭제)
+- 맛집 정보 및 평점 (1-5점)
+- 이미지 업로드 (최대 5장, AWS S3 Presigned URL)
+- 좋아요 및 조회수 관리
+- 댓글 및 대댓글 (계층적 구조)
+
+### 👥 소셜 네트워킹
+
+- 친구 시스템 (요청, 수락, 거절, 해제)
+- 팔로우/언팔로우 (단방향 관계)
+- 컬렉션 (게시글 모음, 공개/비공개 설정)
+- 프로필 페이지 (권한별 UI 분리)
+- 추천 사용자 (무작위 선택 기반)
+
+### 🏆 신뢰도 시스템
+
+- 내돈내산 리뷰: +5점
+- 광고성 리뷰: +1점
+- 위반 페널티: -20점
+- 신뢰도 레벨: BRONZE/SILVER/GOLD/PLATINUM (0-1000점)
+
+### 🔐 회원 관리
+
+- 이메일 기반 회원가입 및 인증
+- 비밀번호 재설정 (이메일 토큰)
+- 프로필 수정 (닉네임, 소개, 프로필 주소)
+- 회원 상태 관리 (PENDING → ACTIVE → DEACTIVATED)
 
 ## 🛠 기술 스택
 
-**Backend**: Kotlin, Spring Boot, JPA, MySQL  
-**Testing**: JUnit5, MockK, Testcontainers  
-**DevOps**: Docker, GitHub Actions, SonarCloud
+**Backend**
+
+- `Kotlin 2.1.21` `Spring Boot 3.x` `Spring Security` `JPA` `QueryDSL`
+
+**Database & Migration**
+
+- `MySQL 8.0` `Flyway` (데이터베이스 버전 관리)
+
+**Cloud & Infrastructure**
+
+- `AWS S3` (이미지 스토리지, Presigned URL)
+- `AWS ECS` (컨테이너 오케스트레이션)
+- `AWS ECR` (컨테이너 레지스트리)
+- `AWS RDS` (MySQL Multi-AZ)
+- `AWS ALB` (Application Load Balancer)
+- `AWS Route 53` (DNS 관리)
+
+**DevOps & CI/CD**
+
+- `Docker` (Multi-stage 빌드)
+- `GitHub Actions` (완전 자동화 파이프라인)
+- `SonarCloud` (코드 품질 분석, 커버리지 80%+)
+
+**Testing**
+
+- `JUnit5` `MockK` (단위 테스트)
+- `Testcontainers` (통합 테스트, 실제 DB 환경)
+- `LocalStack` (AWS S3 로컬 테스트)
+
+**Architecture**
+
+- `Hexagonal Architecture` (Ports & Adapters)
+- `DDD` (Domain-Driven Design)
+- `Clean Architecture` (의존성 역전)
+
+**Frontend**
+
+- `HTMX` (동적 SPA-like 경험)
+- `Thymeleaf` (서버 사이드 렌더링)
+- `Bootstrap 5`
 
 ## 🌐 배포
 
 - **프로덕션**: https://rmrt.albert-im.com/
 - **인프라**: AWS 기반 컨테이너 오케스트레이션 (ECS, RDS, ALB)
 - **CI/CD**: GitHub Actions 기반 자동화 파이프라인
+
+### 📈 성과 지표
+
+| 항목            | 성과                          |
+|---------------|-----------------------------|
+| **배포 자동화**    | 배포 시간 83% 단축 (30분 → 5분)     |
+| **코드 품질**     | SonarCloud 커버리지 80%+ 유지     |
+| **테스트 코드**    | 약 15,000줄 (단위/통합/API 테스트)   |
+| **아키텍처**      | 헥사고날 아키텍처 + DDD 완벽 적용       |
+| **이미지 시스템**   | S3 Presigned URL로 서버 부하 최소화 |
+| **DB 마이그레이션** | Flyway 기반 자동 스키마 버전 관리      |
+| **문서화**       | 2,800줄+ 기술 문서               |
 
 ### ☁️ 클라우드 아키텍처
 
@@ -64,12 +141,14 @@
                         │    ECS Task     │
                         │   (rmrt-task)   │
                         └─────────────────┘
-                                 ▲
                                  │
-                        ┌─────────────────┐
-                        │    CloudWatch   │
-                        │   (Monitoring)  │
-                        └─────────────────┘
+                        ┌────────┴────────┐
+                        ▼                 ▼
+                ┌─────────────┐   ┌─────────────────┐
+                │  Amazon S3  │   │   CloudWatch    │
+                │   (Image    │   │  (Monitoring)   │
+                │   Storage)  │   └─────────────────┘
+                └─────────────┘
 ```
 
 ### 📊 데이터베이스 구조
@@ -83,6 +162,7 @@
 - [🏛 아키텍처](docs/ARCHITECTURE.md)
 - [🚀 빠른 시작](docs/QUICK_START.md)
 - [📖 API 문서](docs/API_DOCUMENTATION.md)
+- [📷 이미지 관리 시스템](docs/IMAGE_MANAGEMENT.md)
 - [🧪 테스트 가이드](docs/TESTING_GUIDE.md)
 - [✅ TODO 리스트](docs/TODO.md)
 

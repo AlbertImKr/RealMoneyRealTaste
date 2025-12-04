@@ -1,0 +1,13 @@
+<!-- 언팔로우 버튼 Fragment -->
+<form class="d-flex flex-column align-items-center" th:attr="hx-target='#follow-button-'+${authorId},
+      hx-delete='/members/'+${authorId}+'/follow',
+      hx-swap='innerHTML'"
+      th:fragment="terminate-button"
+>
+    <button class="btn btn-primary rounded-circle icon-md" title="언팔로우"
+            type="submit"
+    >
+        <i class="bi bi-person-check-fill"></i>
+    </button>
+    <small class="text-primary d-block mt-1">팔로우 중</small>
+</form>

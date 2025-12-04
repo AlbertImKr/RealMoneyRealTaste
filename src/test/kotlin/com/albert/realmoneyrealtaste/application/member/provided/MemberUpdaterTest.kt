@@ -32,11 +32,15 @@ class MemberUpdaterTest(
         val newNickname = Nickname("newNickname")
         val newProfileAddress = ProfileAddress("newAddress123")
         val newIntroduction = Introduction("Hello, I'm updated!")
+        val newAddress = "서울시 강남구 테헤란로 123"
+        val newImageId = 123L
         val memberId = member.id!!
         val request = AccountUpdateRequest(
             nickname = newNickname,
             profileAddress = newProfileAddress,
             introduction = newIntroduction,
+            address = newAddress,
+            imageId = newImageId,
         )
 
         val updatedMember = memberUpdater.updateInfo(memberId, request)
@@ -44,6 +48,8 @@ class MemberUpdaterTest(
         assertEquals(newNickname, updatedMember.nickname)
         assertEquals(newProfileAddress, updatedMember.detail.profileAddress)
         assertEquals(newIntroduction, updatedMember.detail.introduction)
+        assertEquals(newAddress, updatedMember.detail.address)
+        assertEquals(newImageId, updatedMember.detail.imageId)
     }
 
     @Test
@@ -55,6 +61,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = oldProfileAddress,
             introduction = null,
+            address = null,
+            imageId = null,
         )
         memberUpdater.updateInfo(memberId, request)
         val newProfileAddress = ProfileAddress("newAddress123")
@@ -62,6 +70,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = newProfileAddress,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         val updatedMember = memberUpdater.updateInfo(memberId, newRequest)
@@ -74,12 +84,16 @@ class MemberUpdaterTest(
         val member = registerAndActivateMember()
         val originalProfileAddress = member.detail.profileAddress
         val originalIntroduction = member.detail.introduction
+        val originalAddress = member.detail.address
+        val originalImageId = member.detail.imageId
         val newNickname = Nickname("onlyNickname")
         val memberId = member.id!!
         val request = AccountUpdateRequest(
             nickname = newNickname,
             profileAddress = null,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         val updatedMember = memberUpdater.updateInfo(memberId, request)
@@ -87,6 +101,8 @@ class MemberUpdaterTest(
         assertEquals(newNickname, updatedMember.nickname)
         assertEquals(originalProfileAddress, updatedMember.detail.profileAddress)
         assertEquals(originalIntroduction, updatedMember.detail.introduction)
+        assertEquals(originalAddress, updatedMember.detail.address)
+        assertEquals(originalImageId, updatedMember.detail.imageId)
     }
 
     @Test
@@ -95,11 +111,15 @@ class MemberUpdaterTest(
         val originalNickname = member.nickname
         val originalProfileAddress = member.detail.profileAddress
         val originalIntroduction = member.detail.introduction
+        val originalAddress = member.detail.address
+        val originalImageId = member.detail.imageId
         val memberId = member.id!!
         val request = AccountUpdateRequest(
             nickname = null,
             profileAddress = null,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         val updatedMember = memberUpdater.updateInfo(memberId, request)
@@ -107,6 +127,8 @@ class MemberUpdaterTest(
         assertEquals(originalNickname, updatedMember.nickname)
         assertEquals(originalProfileAddress, updatedMember.detail.profileAddress)
         assertEquals(originalIntroduction, updatedMember.detail.introduction)
+        assertEquals(originalAddress, updatedMember.detail.address)
+        assertEquals(originalImageId, updatedMember.detail.imageId)
     }
 
     @Test
@@ -116,6 +138,8 @@ class MemberUpdaterTest(
             nickname = Nickname("test"),
             profileAddress = null,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         assertFailsWith<MemberUpdateException> {
@@ -131,6 +155,8 @@ class MemberUpdaterTest(
             nickname = Nickname("test"),
             profileAddress = null,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         assertFailsWith<MemberUpdateException> {
@@ -151,6 +177,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = duplicateProfileAddress,
             introduction = null,
+            address = null,
+            imageId = null,
         )
         val member1UP = memberUpdater.updateInfo(member1Id, request)
 
@@ -172,6 +200,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = null,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         val updatedMember = memberUpdater.updateInfo(memberId, request)
@@ -190,6 +220,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = profileAddress,
             introduction = null,
+            address = null,
+            imageId = null,
         )
         memberUpdater.updateInfo(memberId, setRequest)
 
@@ -198,6 +230,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = profileAddress,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         val updatedMember = memberUpdater.updateInfo(memberId, sameRequest)
@@ -219,6 +253,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = profileAddress1,
             introduction = null,
+            address = null,
+            imageId = null,
         )
         memberUpdater.updateInfo(member1Id, request1)
 
@@ -227,6 +263,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = profileAddress2,
             introduction = null,
+            address = null,
+            imageId = null,
         )
         memberUpdater.updateInfo(member2Id, request2)
 
@@ -235,6 +273,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = profileAddress1,
             introduction = null,
+            address = null,
+            imageId = null,
         )
 
         assertFailsWith<MemberUpdateException> {
@@ -257,6 +297,8 @@ class MemberUpdaterTest(
             nickname = null,
             profileAddress = initialProfileAddress,
             introduction = null,
+            address = null,
+            imageId = null,
         )
         memberUpdater.updateInfo(memberId, setRequest)
 
@@ -265,6 +307,8 @@ class MemberUpdaterTest(
             nickname = newNickname,
             profileAddress = null,
             introduction = newIntroduction,
+            address = null,
+            imageId = null,
         )
 
         val updatedMember = memberUpdater.updateInfo(memberId, updateRequest)
@@ -362,6 +406,129 @@ class MemberUpdaterTest(
         }.let {
             assertEquals("회원 탈퇴 중 오류가 발생했습니다", it.message)
         }
+    }
+
+    @Test
+    fun `updateInfo - success - updates address and imageId`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val newAddress = "서울시 강남구 역삼동 456"
+        val newImageId = 456L
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+            address = newAddress,
+            imageId = newImageId,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, request)
+
+        assertEquals(newAddress, updatedMember.detail.address)
+        assertEquals(newImageId, updatedMember.detail.imageId)
+    }
+
+    @Test
+    fun `updateInfo - success - updates only address when imageId is null`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val originalImageId = member.detail.imageId
+        val newAddress = "부산시 해운대구 광안리 789"
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+            address = newAddress,
+            imageId = null,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, request)
+
+        assertEquals(newAddress, updatedMember.detail.address)
+        assertEquals(originalImageId, updatedMember.detail.imageId)
+    }
+
+    @Test
+    fun `updateInfo - success - updates only imageId when address is null`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val originalAddress = member.detail.address
+        val newImageId = 789L
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+            address = null,
+            imageId = newImageId,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, request)
+
+        assertEquals(originalAddress, updatedMember.detail.address)
+        assertEquals(newImageId, updatedMember.detail.imageId)
+    }
+
+    @Test
+    fun `updateInfo - success - updates address to empty string`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+
+        // 먼저 주소 설정
+        val setRequest = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+            address = "초기 주소",
+            imageId = null,
+        )
+        memberUpdater.updateInfo(memberId, setRequest)
+
+        // 빈 문자열로 업데이트
+        val updateRequest = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+            address = "",
+            imageId = null,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, updateRequest)
+
+        assertEquals("", updatedMember.detail.address)
+    }
+
+    @Test
+    fun `updateInfo - success - updates imageId to zero`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+            address = null,
+            imageId = 0L,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, request)
+
+        assertEquals(0L, updatedMember.detail.imageId)
+    }
+
+    @Test
+    fun `updateInfo - success - updates imageId to negative value`() {
+        val member = registerAndActivateMember()
+        val memberId = member.id!!
+        val request = AccountUpdateRequest(
+            nickname = null,
+            profileAddress = null,
+            introduction = null,
+            address = null,
+            imageId = -1L,
+        )
+
+        val updatedMember = memberUpdater.updateInfo(memberId, request)
+
+        assertEquals(-1L, updatedMember.detail.imageId)
     }
 
     private fun registerMember(

@@ -461,33 +461,6 @@ class FollowReaderTest(
     }
 
     @Test
-    fun `mapToFollowResponses - success - preserves nicknames from relationship`() {
-        val follower = testMemberHelper.createActivatedMember(
-            email = "known-follower@test.com",
-            nickname = "known"
-        )
-        val following = testMemberHelper.createActivatedMember(
-            email = "following@test.com",
-            nickname = "following"
-        )
-
-        createActiveFollow(follower.requireId(), following.requireId())
-
-        // 팔로워를 비활성화해도 FollowRelationship에 저장된 닉네임은 유지됨
-        follower.deactivate()
-        following.deactivate()
-
-        val pageable = PageRequest.of(0, 10)
-        val result = followReader.findFollowingsByMemberId(follower.requireId(), pageable)
-
-        assertAll(
-            { assertEquals(1, result.totalElements) },
-            { assertEquals("known", result.content.first().followerNickname) },
-            { assertEquals("following", result.content.first().followingNickname) }
-        )
-    }
-
-    @Test
     fun `mapToFollowResponses - success - handles empty follow list`() {
         val pageable = PageRequest.of(0, 10)
         val result = followReader.findFollowersByMemberId(999999L, pageable)
@@ -555,6 +528,367 @@ class FollowReaderTest(
         assertAll(
             { assertEquals(0L, result.followersCount) },
             { assertEquals(0L, result.followingCount) }
+        )
+    }
+
+    @Test
+    fun `findFollowByRelationship - success - returns follow when exists`() {
+        val follower = testMemberHelper.createActivatedMember(
+            email = "relationship-follower@test.com",
+            nickname = "follower"
+        )
+        val following = testMemberHelper.createActivatedMember(
+            email = "relationship-following@test.com",
+            nickname = "following"
+        )
+
+        val follow = createActiveFollow(follower.requireId(), following.requireId())
+
+        val result = followReader.findFollowByRelationship(follower.requireId(), following.requireId())!!
+
+        assertAll(
+            { assertEquals(follow.requireId(), result.requireId()) },
+            { assertEquals(follower.requireId(), result.relationship.followerId) },
+            { assertEquals(following.requireId(), result.relationship.followingId) }
+        )
+    }
+
+    @Test
+    fun `findFollowByRelationship - success - returns null when follow does not exist`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "no-relationship1@test.com",
+            nickname = "member1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "no-relationship2@test.com",
+            nickname = "member2"
+        )
+
+        val result = followReader.findFollowByRelationship(member1.requireId(), member2.requireId())
+
+        assertEquals(null, result)
+    }
+
+    @Test
+    fun `searchFollowers - success - returns followers matching keyword`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "search-target@test.com",
+            nickname = "target"
+        )
+        val matchingFollower1 = testMemberHelper.createActivatedMember(
+            email = "match1@test.com",
+            nickname = "searchable"
+        )
+        val matchingFollower2 = testMemberHelper.createActivatedMember(
+            email = "match2@test.com",
+            nickname = "searchable2"
+        )
+        val nonMatchingFollower = testMemberHelper.createActivatedMember(
+            email = "nomatch@test.com",
+            nickname = "other"
+        )
+
+        // 팔로우 관계 생성
+        createActiveFollow(matchingFollower1.requireId(), member.requireId())
+        createActiveFollow(matchingFollower2.requireId(), member.requireId())
+        createActiveFollow(nonMatchingFollower.requireId(), member.requireId())
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.searchFollowers(member.requireId(), "search", pageable)
+
+        assertAll(
+            { assertEquals(2, result.totalElements) },
+            { assertTrue(result.content.all { it.followerNickname.contains("search") }) },
+            { assertFalse(result.content.any { it.followerNickname == "other" }) }
+        )
+    }
+
+    @Test
+    fun `searchFollowers - success - returns empty when no followers match keyword`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "empty-search@test.com",
+            nickname = "member"
+        )
+        val follower = testMemberHelper.createActivatedMember(
+            email = "follower@test.com",
+            nickname = "follower"
+        )
+
+        createActiveFollow(follower.requireId(), member.requireId())
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.searchFollowers(member.requireId(), "nonexistent", pageable)
+
+        assertTrue(result.isEmpty)
+        assertEquals(0, result.totalElements)
+    }
+
+    @Test
+    fun `searchFollowings - success - returns followings matching keyword`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "searching@test.com",
+            nickname = "searcher"
+        )
+        val matchingFollowing1 = testMemberHelper.createActivatedMember(
+            email = "following1@test.com",
+            nickname = "searchable"
+        )
+        val matchingFollowing2 = testMemberHelper.createActivatedMember(
+            email = "following2@test.com",
+            nickname = "searchable2"
+        )
+        val nonMatchingFollowing = testMemberHelper.createActivatedMember(
+            email = "following3@test.com",
+            nickname = "other"
+        )
+
+        // 팔로우 관계 생성
+        createActiveFollow(member.requireId(), matchingFollowing1.requireId())
+        createActiveFollow(member.requireId(), matchingFollowing2.requireId())
+        createActiveFollow(member.requireId(), nonMatchingFollowing.requireId())
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.searchFollowings(member.requireId(), "search", pageable)
+
+        assertAll(
+            { assertEquals(2, result.totalElements) },
+            { assertTrue(result.content.all { it.followerNickname.contains("search") }) },
+            { assertFalse(result.content.any { it.followerNickname == "other" }) }
+        )
+    }
+
+    @Test
+    fun `findFollowings - success - returns only followed member IDs`() {
+        val follower = testMemberHelper.createActivatedMember(
+            email = "bulk-follower@test.com",
+            nickname = "follower"
+        )
+        val members = (1..5).map { index ->
+            testMemberHelper.createActivatedMember(
+                email = "target$index@test.com",
+                nickname = "target$index"
+            )
+        }
+
+        // 일부 멤버만 팔로우
+        createActiveFollow(follower.requireId(), members[0].requireId())
+        createActiveFollow(follower.requireId(), members[2].requireId())
+        createActiveFollow(follower.requireId(), members[4].requireId())
+
+        val targetIds = members.map { it.requireId() }
+        val result = followReader.findFollowings(follower.requireId(), targetIds)
+
+        assertAll(
+            { assertEquals(3, result.size) },
+            { assertTrue(result.contains(members[0].requireId())) },
+            { assertTrue(result.contains(members[2].requireId())) },
+            { assertTrue(result.contains(members[4].requireId())) },
+            { assertFalse(result.contains(members[1].requireId())) },
+            { assertFalse(result.contains(members[3].requireId())) }
+        )
+    }
+
+    @Test
+    fun `findFollowings - success - returns empty list when no follows`() {
+        val follower = testMemberHelper.createActivatedMember(
+            email = "no-follow@test.com",
+            nickname = "follower"
+        )
+        val members = (1..3).map { index ->
+            testMemberHelper.createActivatedMember(
+                email = "target$index@test.com",
+                nickname = "target$index"
+            )
+        }
+
+        val targetIds = members.map { it.requireId() }
+        val result = followReader.findFollowings(follower.requireId(), targetIds)
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `searchFollowings - success - returns empty when no followings match keyword`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "empty-following-search@test.com",
+            nickname = "member"
+        )
+        val following = testMemberHelper.createActivatedMember(
+            email = "following@test.com",
+            nickname = "following"
+        )
+
+        createActiveFollow(member.requireId(), following.requireId())
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.searchFollowings(member.requireId(), "nonexistent", pageable)
+
+        assertTrue(result.isEmpty)
+        assertEquals(0, result.totalElements)
+    }
+
+    @Test
+    fun `findFollowings - success - excludes unfollowed relationships`() {
+        val follower = testMemberHelper.createActivatedMember(
+            email = "unfollow-test@test.com",
+            nickname = "follower"
+        )
+        val members = (1..3).map { index ->
+            testMemberHelper.createActivatedMember(
+                email = "target$index@test.com",
+                nickname = "target$index"
+            )
+        }
+
+        // 팔로우 생성
+        val follow1 = createActiveFollow(follower.requireId(), members[0].requireId())
+        val follow2 = createActiveFollow(follower.requireId(), members[1].requireId())
+        val follow3 = createActiveFollow(follower.requireId(), members[2].requireId())
+
+        // 하나 언팔로우
+        follow2.unfollow()
+        followRepository.save(follow2)
+
+        val targetIds = members.map { it.requireId() }
+        val result = followReader.findFollowings(follower.requireId(), targetIds)
+
+        assertAll(
+            { assertEquals(2, result.size) },
+            { assertTrue(result.contains(members[0].requireId())) },
+            { assertTrue(result.contains(members[2].requireId())) },
+            { assertFalse(result.contains(members[1].requireId())) }
+        )
+    }
+
+    @Test
+    fun `findFollowersByMemberId - success - excludes deactivated members`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "deactivated-follower@test.com",
+            nickname = "member"
+        )
+        val activeFollower = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "active"
+        )
+        val deactivatedFollower = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivated"
+        )
+
+        // 팔로우 관계 생성
+        createActiveFollow(activeFollower.requireId(), member.requireId())
+        createActiveFollow(deactivatedFollower.requireId(), member.requireId())
+
+        // 비활성화
+        deactivatedFollower.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.findFollowersByMemberId(member.requireId(), pageable)
+
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(activeFollower.requireId(), result.content.first().followerId) },
+            { assertFalse(result.content.any { it.followerId == deactivatedFollower.requireId() }) }
+        )
+    }
+
+    @Test
+    fun `findFollowingsByMemberId - success - excludes deactivated members`() {
+        val follower = testMemberHelper.createActivatedMember(
+            email = "deactivated-following@test.com",
+            nickname = "follower"
+        )
+        val activeFollowing = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "active"
+        )
+        val deactivatedFollowing = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivated"
+        )
+
+        // 팔로우 관계 생성
+        createActiveFollow(follower.requireId(), activeFollowing.requireId())
+        createActiveFollow(follower.requireId(), deactivatedFollowing.requireId())
+
+        // 비활성화
+        deactivatedFollowing.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.findFollowingsByMemberId(follower.requireId(), pageable)
+
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(activeFollowing.requireId(), result.content.first().followingId) },
+            { assertFalse(result.content.any { it.followingId == deactivatedFollowing.requireId() }) }
+        )
+    }
+
+    @Test
+    fun `searchFollowers - success - excludes deactivated members`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "deactivated-search@test.com",
+            nickname = "member"
+        )
+        val activeFollower = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "activeSearch"
+        )
+        val deactivatedFollower = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivatedSearch"
+        )
+
+        // 팔로우 관계 생성
+        createActiveFollow(activeFollower.requireId(), member.requireId())
+        createActiveFollow(deactivatedFollower.requireId(), member.requireId())
+
+        // 비활성화
+        deactivatedFollower.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.searchFollowers(member.requireId(), "Search", pageable)
+
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(activeFollower.requireId(), result.content.first().followerId) },
+            { assertFalse(result.content.any { it.followerId == deactivatedFollower.requireId() }) }
+        )
+    }
+
+    @Test
+    fun `searchFollowings - success - excludes deactivated members`() {
+        val follower = testMemberHelper.createActivatedMember(
+            email = "deactivated-following@test.com",
+            nickname = "follower"
+        )
+        val activeFollowing = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "activeSearch"
+        )
+        val deactivatedFollowing = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivatedSearch"
+        )
+
+        // 팔로우 관계 생성
+        createActiveFollow(follower.requireId(), activeFollowing.requireId())
+        createActiveFollow(follower.requireId(), deactivatedFollowing.requireId())
+
+        // 비활성화
+        deactivatedFollowing.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = followReader.searchFollowings(follower.requireId(), "search", pageable)
+
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(activeFollowing.requireId(), result.content.first().followingId) },
+            { assertFalse(result.content.any { it.followingId == deactivatedFollowing.requireId() }) }
         )
     }
 

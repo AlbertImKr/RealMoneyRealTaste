@@ -58,91 +58,14 @@
                                 <div class="card-body pt-0">
                                     <!-- 로그인된 경우: 프로필 정보 표시 -->
                                     <div th:if="${member != null}">
-                                        <div class="text-center">
-                                            <div class="avatar avatar-xs me-2">
-                                                <a href="#"> <img alt=""
-                                                                  class="avatar-img rounded-circle" src="#"> </a>
-                                            </div>
-                                            <!-- Info -->
-                                            <h5 class="mb-0">
-                                                <a href="#" th:text="${member.nickname.value}">회원 닉네임</a>
-                                            </h5>
-                                            <p class="mt-3"
-                                               th:text="${member.detail.introduction != null ? member.detail.introduction.value : '회원 소개글이 없습니다.'}">
-                                                회원 소개글
-                                            </p>
-
-                                            <!-- User stat START -->
-                                            <div class="hstack gap-2 gap-xl-3 justify-content-center">
-                                                <!-- User stat item -->
-                                                <div>
-                                                    <h6 class="mb-0" th:text="${postCount != null ? postCount : 0}">
-                                                        0</h6>
-                                                    <small>Post</small>
-                                                </div>
-                                                <!-- Divider -->
-                                                <div class="vr"></div>
-                                                <!-- User stat item -->
-                                                <div>
-                                                    <h6 class="mb-0"
-                                                        th:text="${followStats != null ? followStats.followersCount : 0}">
-                                                        0</h6>
-                                                    <small>Followers</small>
-                                                </div>
-                                                <!-- Divider -->
-                                                <div class="vr"></div>
-                                                <!-- User stat item -->
-                                                <div>
-                                                    <h6 class="mb-0"
-                                                        th:text="${followStats != null ? followStats.followingCount : 0}">
-                                                        0</h6>
-                                                    <small>Following</small>
-                                                </div>
-                                            </div>
-                                            <!-- User stat END -->
+                                        <div class="card-body pt-0" hx-get="/fragments/member-profile" hx-swap="innerHTML"
+                                             hx-indicator="#member-profile-indicator" hx-trigger="load">
+                                            <!-- htmx를 통해 member profile fragment가 동적으로 로드됩니다 -->
                                         </div>
-
-                                        <!-- Divider -->
-                                        <hr>
-
-                                        <!-- Side Nav START -->
-                                        <ul class="nav nav-link-secondary flex-column fw-bold gap-2">
-                                            <li class="nav-item">
-                                                <a class="nav-link" th:href="@{/posts/mine}">
-                                                    <img alt=""
-                                                         class="me-2 h-20px fa-fw"
-                                                         src="/assets/images/icon/home-outline-filled.svg">
-                                                    <span>My Posts </span>
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="#"
-                                                   th:href="@{/members/connections}">
-                                                    <img alt=""
-                                                         class="me-2 h-20px fa-fw"
-                                                         src="/assets/images/icon/person-outline-filled.svg">
-                                                    <span>Connections </span>
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" href="#"
-                                                   th:href="@{/notifications}">
-                                                    <img alt=""
-                                                         class="me-2 h-20px fa-fw"
-                                                         src="/assets/images/icon/notification-outlined-filled.svg">
-                                                    <span>Notifications </span>
-                                                </a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" th:href="@{/members/setting}">
-                                                    <img alt=""
-                                                         class="me-2 h-20px fa-fw"
-                                                         src="/assets/images/icon/cog-outline-filled.svg">
-                                                    <span>Settings </span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                        <!-- Side Nav END -->
+                                        <div class="htmx-indicator" id="member-profile-indicator">
+                                            <div class="spinner-border text-primary"></div>
+                                            <p class="mt-2 text-muted">불러오는 중...</p>
+                                        </div>
                                     </div>
 
                                     <!-- 로그인 안된 경우: 로그인 버튼 표시 -->
@@ -160,6 +83,7 @@
                                         </div>
                                     </div>
                                 </div>
+
                                 <!-- Card body END -->
                             </div>
                             <!-- Card END -->

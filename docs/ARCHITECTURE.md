@@ -25,44 +25,78 @@ RMRT는 **클린 아키텍처**와 **도메인 주도 설계**를 기반으로 �
 
 ### 1.2 헥사고날 아키텍처 (Ports and Adapters)
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    Adapter Layer                         │
-│  ┌─────────────────┐         ┌─────────────────────────┐ │
-│  │   Web Adapter   │         │ Infrastructure Adapter  │ │
-│  │  Controllers    │         │  Repositories, Email    │ │
-│  │  Views, Forms   │         │  External Services      │ │
-│  │  Exception      │         │  Configuration          │ │
-│  │  Handlers       │         │                         │ │
-│  └─────────────────┘         └─────────────────────────┘ │
-├──────────────────────────────────────────────────────────┤
-│                  Application Layer                       │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │              Use Case Services                      │ │
-│  │   Registration, Authentication, Post Management     │ │
-│  │                                                     │ │
-│  │  ┌─────────────┐           ┌─────────────────────┐  │ │
-│  │  │  Provided   │           │     Required        │  │ │
-│  │  │   Ports     │◄─────────►│      Ports          │  │ │
-│  │  │ (Interfaces │           │   (Interfaces)      │  │ │
-│  │  │ for Inbound)│           │  for Outbound)      │  │ │
-│  │  └─────────────┘           └─────────────────────┘  │ │
-│  └─────────────────────────────────────────────────────┘ │
-├──────────────────────────────────────────────────────────┤
-│                    Domain Layer                          │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │               Business Logic                        │ │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │ │
-│  │  │   Member    │  │    Post     │  │   Token     │  │ │
-│  │  │ Aggregate   │  │ Aggregate   │  │ Aggregates  │  │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  │ │
-│  │                                                     │ │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │ │
-│  │  │   Value     │  │   Domain    │  │   Domain    │  │ │
-│  │  │  Objects    │  │   Events    │  │  Services   │  │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  │ │
-│  └─────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph AL["Adapter Layer"]
+        subgraph WA["Web Adapter"]
+            Controllers[Controllers]
+            Views[Views, Forms]
+            ExceptionHandlers[Exception Handlers]
+        end
+
+        subgraph IA["Infrastructure Adapter"]
+            Repositories[Repositories]
+            Email[Email Service]
+            S3[S3 Service]
+            ExternalServices[External Services]
+        end
+    end
+
+    subgraph APL["Application Layer"]
+        subgraph UC["Use Case Services"]
+            Registration[Registration]
+            Authentication[Authentication]
+            PostManagement[Post Management]
+            ImageManagement[Image Management]
+        end
+
+        subgraph PP["Provided Ports (Inbound)"]
+            MemberRegister[MemberRegister]
+            PostCreator[PostCreator]
+            ImageUploadRequester[ImageUploadRequester]
+        end
+
+        subgraph RP["Required Ports (Outbound)"]
+            MemberRepository[MemberRepository]
+            PostRepository[PostRepository]
+            ImageRepository[ImageRepository]
+            PresignedUrlGenerator[PresignedUrlGenerator]
+        end
+    end
+
+    subgraph DL["Domain Layer"]
+        subgraph AG["Aggregates"]
+            Member[Member Aggregate]
+            Post[Post Aggregate]
+            Image[Image Aggregate]
+            Collection[Collection Aggregate]
+        end
+
+        subgraph VO["Value Objects"]
+            Email_VO[Email]
+            Nickname[Nickname]
+            FileKey[FileKey]
+        end
+
+        subgraph DE["Domain Events"]
+            MemberRegistered[MemberRegisteredEvent]
+            PostCreated[PostCreatedEvent]
+        end
+
+        subgraph DS["Domain Services"]
+            PasswordEncoder[PasswordEncoder]
+        end
+    end
+
+    WA --> PP
+    IA --> RP
+    PP --> UC
+    UC --> RP
+    UC --> DL
+
+    style AL fill:#e1f5ff
+    style APL fill:#fff4e1
+    style DL fill:#ffe1f5
 ```
 
 **의존성 방향**: Adapter → Application → Domain (단방향)
@@ -202,6 +236,9 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
 │   │   ├── comment/                  # 댓글 API
 │   │   │   ├── CommentReadApi.kt
 │   │   │   └── CommentWriteApi.kt
+│   │   ├── image/                   # 이미지 API
+│   │   │   ├── ImageApi.kt
+│   │   │   └── ImageRestExceptionHandler.kt
 │   │   └── exception/                # API 예외 처리
 │   ├── webview/                      # WebView 어댑터 (MVC)
 │   │   ├── auth/                     # 인증 뷰
@@ -210,11 +247,18 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
 │   │   │   ├── AuthViews.kt
 │   │   │   ├── SignupForm.kt
 │   │   │   └── SigninForm.kt
-│   │   ├── member/                   # 회원 뷰
-│   │   │   ├── MemberView.kt
+│   │   ├── member/                   # 회원 뷰 (리팩토링 완료)
+│   │   │   ├── MemberAuthView.kt     # 인증 컨트롤러
+│   │   │   ├── MemberProfileView.kt  # 프로필 컨트롤러
+│   │   │   ├── MemberSettingsView.kt # 설정 컨트롤러
+│   │   │   ├── MemberFragmentView.kt # 프래그먼트 컨트롤러
 │   │   │   ├── MemberUrls.kt
 │   │   │   ├── MemberViews.kt
-│   │   │   └── forms/
+│   │   │   ├── form/                 # 폼 클래스
+│   │   │   ├── validator/            # 검증 로직
+│   │   │   ├── converter/            # 데이터 변환
+│   │   │   ├── util/                 # 유틸리티
+│   │   │   └── message/              # 메시지 상수
 │   │   ├── post/                     # 게시글 뷰
 │   │   │   ├── PostView.kt
 │   │   │   ├── PostUrls.kt
@@ -229,29 +273,38 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
 │   │   │   ├── FriendWriteView.kt
 │   │   │   ├── FriendUrls.kt
 │   │   │   └── FriendViews.kt
-│   │   ├── follow/                   # 팔로우 뷰
-│   │   │   ├── FollowView.kt
-│   │   │   ├── FollowCreateView.kt
-│   │   │   ├── FollowTerminateView.kt
-│   │   │   └── FollowUrls.kt
+│   │   ├── follow/                   # 팔로우 뷰 (리팩토링 완료)
+│   │   │   ├── FollowReadView.kt     # 조회 컨트롤러
+│   │   │   ├── FollowCreateView.kt   # 생성 컨트롤러
+│   │   │   ├── FollowTerminateView.kt # 삭제 컨트롤러
+│   │   │   ├── FollowUrls.kt
+│   │   │   └── fragments/            # 프래그먼트 분리
+│   │   │       ├── followers.html    # 팔로워 목록
+│   │   │       └── following.html    # 팔로잉 목록
 │   │   └── comment/                  # 댓글 뷰
 │   │       ├── CommentReadView.kt
 │   │       ├── CommentWriteView.kt
 │   │       ├── CommentUrls.kt
 │   │       └── CommentViews.kt
 │   ├── infrastructure/               # 인프라 어댑터
+│   │   ├── s3/                       # AWS S3 어댑터
+│   │   │   ├── S3Config.kt
+│   │   │   └── S3PresignedUrlGenerator.kt
+│   │   ├── email/                    # 이메일 어댑터
+│   │   │   ├── EmailSenderImpl.kt
+│   │   │   └── EmailTemplateService.kt
+│   │   ├── security/                 # 보안 어댑터
+│   │   │   ├── SecurityConfig.kt
+│   │   │   ├── MemberPrincipal.kt
+│   │   │   └── CustomAuthenticationProvider.kt
 │   │   ├── persistence/              # 데이터베이스 어댑터
 │   │   │   ├── member/
 │   │   │   ├── post/
+│   │   │   ├── image/
 │   │   │   ├── collection/
 │   │   │   ├── friend/
 │   │   │   ├── follow/
 │   │   │   └── comment/
-│   │   ├── email/                    # 이메일 어댑터
-│   │   │   └── EmailTemplateService.kt
-│   │   └── security/                 # 보안 설정
-│   │       ├── SecurityConfig.kt
-│   │       └── MemberPrincipal.kt
 │   └── configuration/                # 설정 클래스
 ├── application/                      # 애플리케이션 레이어
 │   ├── member/                       # 회원 유스케이스
@@ -322,18 +375,31 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
 │   │   │   └── FollowTerminator.kt
 │   │   └── required/
 │   │       └── FollowRepository.kt
-│   └── comment/                      # 댓글 유스케이스
+│   ├── comment/                      # 댓글 유스케이스
+│   │   ├── service/
+│   │   │   ├── CommentCreationService.kt
+│   │   │   ├── CommentReadService.kt
+│   │   │   └── CommentUpdateService.kt
+│   │   ├── dto/
+│   │   ├── provided/
+│   │   │   ├── CommentCreator.kt
+│   │   │   ├── CommentReader.kt
+│   │   │   └── CommentUpdater.kt
+│   │   └── required/
+│   │       └── CommentRepository.kt
+│   └── image/                        # 이미지 유스케이스
 │       ├── service/
-│       │   ├── CommentCreationService.kt
-│       │   ├── CommentReadService.kt
-│       │   └── CommentUpdateService.kt
+│       │   ├── ImageUploadService.kt
+│       │   ├── ImageReadService.kt
+│       │   └── ImageDeleteService.kt
 │       ├── dto/
 │       ├── provided/
-│       │   ├── CommentCreator.kt
-│       │   ├── CommentReader.kt
-│       │   └── CommentUpdater.kt
+│       │   ├── ImageUploadRequester.kt
+│       │   ├── ImageReader.kt
+│       │   └── ImageDeleter.kt
 │       └── required/
-│           └── CommentRepository.kt
+│           ├── ImageRepository.kt
+│           └── PresignedUrlGenerator.kt
 └── domain/                           # 도메인 레이어
     ├── member/                       # 회원 도메인
     │   ├── Member.kt                 # 회원 애그리게이트 루트
@@ -415,9 +481,17 @@ src/main/kotlin/com/albert/realmoneyrealtaste/
     │   │   └── CommentDeletedEvent.kt
     │   └── exceptions/
     │       └── CommentApplicationException.kt
+    ├── image/                        # 이미지 도메인
+    │   ├── Image.kt                  # 이미지 애그리게이트 루트
+    │   ├── ImageType.kt
+    │   ├── ImageStatus.kt
+    │   ├── value/
+    │   │   ├── FileKey.kt
+    │   │   └── ImageMetadata.kt
+    │   └── exceptions/
+    │       └── ImageApplicationException.kt
     └── common/                       # 공통 도메인 요소
         ├── BaseEntity.kt
         └── exceptions/
             └── DomainException.kt
 ```
-

@@ -7,14 +7,15 @@
 - [1. 도메인 설계 개요](#1-도메인-설계-개요)
 - [2. 회원 애그리거트](#2-회원-애그리거트)
 - [3. 게시글 애그리거트](#3-게시글-애그리거트)
-- [4. 컬렉션 애그리거트](#4-컬렉션-애그리거트)
-- [5. 친구 관계 애그리거트](#5-친구-관계-애그리거트)
-- [6. 팔로우 애그리거트](#6-팔로우-애그리거트)
-- [7. 댓글 애그리거트](#7-댓글-애그리거트)
-- [8. 토큰 애그리거트](#8-토큰-애그리거트)
-- [9. 공통 설계 요소](#9-공통-설계-요소)
-- [10. 애플리케이션 레이어](#10-애플리케이션-레이어)
-- [11. 설계 특징 및 패턴](#11-설계-특징-및-패턴)
+- [4. 이미지 애그리거트](#4-이미지-애그리거트)
+- [5. 컬렉션 애그리거트](#5-컬렉션-애그리거트)
+- [6. 친구 관계 애그리거트](#6-친구-관계-애그리거트)
+- [7. 팔로우 애그리거트](#7-팔로우-애그리거트)
+- [8. 댓글 애그리거트](#8-댓글-애그리거트)
+- [9. 토큰 애그리거트](#9-토큰-애그리거트)
+- [10. 공통 설계 요소](#10-공통-설계-요소)
+- [11. 애플리케이션 레이어](#11-애플리케이션-레이어)
+- [12. 설계 특징 및 패턴](#12-설계-특징-및-패턴)
 
 ---
 
@@ -40,9 +41,13 @@ Member Aggregate
 ├── TrustScore
 └── Roles
 
-Post Aggregate  
+Post Aggregate
 ├── Post (Root)
 └── PostImages (ElementCollection)
+
+Image Aggregate
+├── Image (Root)
+└── FileKey (Value Object)
 
 PostCollection Aggregate
 ├── PostCollection (Root)
@@ -423,9 +428,106 @@ data class PostHeartRemovedEvent(
 
 ---
 
-## 4. 컬렉션 애그리거트
+## 4. 이미지 애그리거트
 
-### 4.1 컬렉션 (PostCollection)
+### 4.1 이미지 (Image)
+
+**_Aggregate Root, Entity_**
+
+#### 속성
+
+* `id: Long` - 이미지 식별자 (PK)
+* `fileKey: FileKey` - S3 파일 키 (Embedded, Unique)
+* `uploadedBy: Long` - 업로드한 회원 ID
+* `imageType: ImageType` - 이미지 타입 (Enum)
+* `isDeleted: Boolean` - 삭제 여부 (Soft Delete)
+* `createdAt: LocalDateTime` - 업로드 일시
+* `updatedAt: LocalDateTime` - 수정 일시
+
+#### 주요 행위
+
+**생성**
+
+```kotlin
+static create(
+    fileKey: FileKey,
+    uploadedBy: Long,
+    imageType: ImageType
+): Image
+```
+
+**삭제**
+
+- `delete()` - 이미지 삭제 (Soft Delete)
+    - `isDeleted = true`로 설정
+    - 실제 S3 파일은 별도 배치 작업으로 삭제
+
+#### 비즈니스 규칙
+
+* 초기 상태: isDeleted = false
+* 이미 삭제된 이미지는 재삭제 불가
+* 하루 업로드 제한: 회원당 50장
+* 파일 크기 제한: 5MB
+* 지원 타입: PROFILE, POST, COLLECTION
+
+#### 인덱스
+
+* `idx_image_uploaded_by`: uploaded_by
+* `idx_image_type`: image_type
+* `uidx_image_file_key`: file_key (UNIQUE)
+
+---
+
+### 4.2 Value Objects
+
+#### FileKey
+
+**경로 안전성 검증**
+
+```kotlin
+@Embeddable
+data class FileKey(
+    @Column(name = "file_key", unique = true, length = 512)
+    val value: String
+) {
+    init {
+        require(!value.contains("..")) { "경로 탐색 공격 방지" }
+        require(!value.startsWith("/")) { "절대 경로 사용 불가" }
+        require(value.length <= MAX_LENGTH) { "파일 키는 512자를 초과할 수 없습니다" }
+    }
+
+    companion object {
+        const val MAX_LENGTH = 512
+    }
+}
+```
+
+**특징**
+- 경로 탐색 공격 (`../`) 방지
+- 절대 경로 사용 금지
+- S3 객체 키 직접 매핑
+
+#### ImageType
+
+```kotlin
+enum class ImageType {
+    PROFILE,    // 프로필 이미지
+    POST,       // 게시글 이미지
+    COLLECTION  // 컬렉션 커버 이미지
+}
+```
+
+---
+
+### 4.3 도메인 이벤트
+
+현재 이미지 관련 도메인 이벤트는 정의되지 않음 (향후 확장 가능)
+
+---
+
+## 5. 컬렉션 애그리거트
+
+### 5.1 컬렉션 (PostCollection)
 
 **_Aggregate Root, Entity_**
 
@@ -486,9 +588,25 @@ privacy: CollectionPrivacy
 
 #### 주요 행위
 
-**생성**
+**생성 (feature36 개선)**
 
-- `static request(fromMemberId: Long, toMemberId: Long): Friendship` - 친구 요청
+```kotlin
+companion object {
+    fun request(command: FriendRequestCommand): Friendship {
+        // 친구 요청 시 양방향 닉네임 정보 저장
+        val relationship = FriendRelationship(
+            fromMemberId = command.fromMemberId,
+            fromMemberNickname = command.fromMemberNickname,  // 추가
+            toMemberId = command.toMemberId,
+            toMemberNickname = command.toMemberNickname  // 추가
+        )
+        return Friendship(
+            relationship = relationship,
+            status = FriendshipStatus.PENDING
+        )
+    }
+}
+```
 
 **상태 전이**
 
@@ -502,6 +620,7 @@ privacy: CollectionPrivacy
 * PENDING → ACCEPTED/REJECTED만 가능
 * ACCEPTED → TERMINATED만 가능
 * 양방향 관계 관리
+* **데이터 완전성 확보 (feature36)**: 친구 요청 시 양방향 닉네임 저장으로 조회 성능 개선
 
 #### 도메인 이벤트
 
@@ -543,9 +662,22 @@ data class FriendshipTerminatedEvent(
 
 #### 주요 행위
 
-**생성**
+**생성 (feature36 개선)**
 
-- `static start(followerId: Long, followingId: Long): Follow` - 팔로우 시작
+```kotlin
+companion object {
+    fun start(command: FollowCreateCommand): Follow {
+        // 팔로우 관계 생성 시 닉네임 정보 저장
+        val relationship = FollowRelationship(
+            followerId = command.followerId,
+            followerNickname = command.followerNickname,  // 추가
+            followingId = command.followingId,
+            followingNickname = command.followingNickname  // 추가
+        )
+        return Follow(relationship = relationship, status = FollowStatus.ACTIVE)
+    }
+}
+```
 
 **관리**
 
@@ -557,6 +689,7 @@ data class FriendshipTerminatedEvent(
 * ACTIVE → TERMINATED만 가능
 * 단방향 관계 (팔로워 → 팔로잉)
 * 자기 자신 팔로우 불가
+* **데이터 완전성 확보 (feature36)**: 팔로우 관계 생성 시 닉네임 저장으로 조회 성능 개선
 
 #### 도메인 이벤트
 

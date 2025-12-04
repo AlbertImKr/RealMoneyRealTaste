@@ -18,6 +18,7 @@ RMRT는 **실제 사용 시나리오**를 중심으로 테스트합니다. Mock�
 - **JUnit 5**: 테스트 프레임워크
 - **MockK**: Mock 객체 생성 (Kotlin 친화적)
 - **Testcontainers**: 실제 Docker MySQL 컨테이너
+- **LocalStack**: AWS S3 로컬 테스트 환경
 - **MockMvc**: 웹 계층 테스트
 - **Spring Boot Test**: 통합 테스트 지원
 
@@ -308,3 +309,190 @@ fun `unfriend - success - publishes friendship terminated event`() {
 ./gradlew jacocoTestReport
 # 결과: build/reports/jacoco/test/html/index.html
 ```
+
+---
+
+## 🖼 이미지 관리 시스템 테스트
+
+### LocalStack S3 테스트
+
+이미지 업로드/조회/삭제 기능은 LocalStack을 통해 실제 S3 환경과 동일하게 테스트됩니다:
+
+```kotlin
+@SpringBootTest
+@Import(TestcontainersConfiguration::class)
+class ImageUploadServiceTest {
+
+    @Autowired
+    private lateinit var imageUploadRequester: ImageUploadRequester
+
+    @Autowired
+    private lateinit var imageUploadTracker: ImageUploadTracker
+
+    @Test
+    fun `requestPresignedPutUrl - success - returns valid presigned URL`() {
+        // Given
+        val request = ImageUploadRequest(
+            memberId = 1L,
+            imageType = ImageType.POST_IMAGE,
+            contentType = "image/jpeg"
+        )
+
+        // When
+        val response = imageUploadRequester.requestPresignedPutUrl(request)
+
+        // Then
+        assertNotNull(response.uploadUrl)
+        assertTrue(response.uploadUrl.contains("localhost"))
+        assertNotNull(response.key)
+        assertNotNull(response.expiresAt)
+    }
+
+    @Test
+    fun `trackUploadCompletion - success - saves image metadata`() {
+        // Given: Presigned URL 발급
+        val uploadRequest = ImageUploadRequest(...)
+        val presignedResponse = imageUploadRequester.requestPresignedPutUrl(uploadRequest)
+
+        // When: 업로드 완료 추적
+        val result = imageUploadTracker.trackUploadCompletion(
+            key = presignedResponse.key,
+            memberId = 1L
+        )
+
+        // Then: 메타데이터 저장 확인
+        assertTrue(result.success)
+        assertNotNull(result.imageId)
+    }
+}
+```
+
+### 이미지 테스트 시나리오
+
+#### 1. Presigned URL 발급 테스트
+
+```kotlin
+@Test
+fun `image upload request - success - returns presigned PUT URL`() {
+    mockMvc.perform(
+        post("/api/images/upload-request")
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                {
+                    "imageType": "POST_IMAGE",
+                    "contentType": "image/jpeg"
+                }
+            """.trimIndent()
+            )
+    )
+        .andExpect(status().isOk)
+        .andExpect(jsonPath("$.uploadUrl").exists())
+        .andExpect(jsonPath("$.key").exists())
+        .andExpect(jsonPath("$.expiresAt").exists())
+}
+```
+
+#### 2. 업로드 완료 추적 테스트
+
+```kotlin
+@Test
+fun `image upload confirmation - success - saves metadata to database`() {
+    // Given: Presigned URL 발급
+    val uploadResponse = requestPresignedUrl()
+
+    // When: 업로드 완료 알림
+    mockMvc.perform(
+        post("/api/images/upload-confirm")
+            .with(csrf())
+            .param("key", uploadResponse.key)
+    )
+        .andExpect(status().isOk)
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.imageId").exists())
+}
+```
+
+#### 3. 이미지 삭제 테스트
+
+```kotlin
+@Test
+fun `delete image - success - soft deletes image`() {
+    // Given: 이미지 업로드
+    val image = createTestImage()
+
+    // When: 삭제 요청
+    mockMvc.perform(
+        delete("/api/images/${image.id}")
+            .with(csrf())
+    )
+        .andExpect(status().isOk)
+
+    // Then: Soft Delete 확인
+    val deletedImage = imageRepository.findById(image.id!!).get()
+    assertTrue(deletedImage.isDeleted)
+}
+```
+
+#### 4. 일일 업로드 제한 테스트
+
+```kotlin
+@Test
+fun `upload request - failure - when daily limit exceeded`() {
+    // Given: 100개 이미지 업로드 완료
+    repeat(100) { uploadImage() }
+
+    // When: 101번째 업로드 시도
+    mockMvc.perform(
+        post("/api/images/upload-request")
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""{"imageType": "POST_IMAGE", "contentType": "image/jpeg"}""")
+    )
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("일일 업로드 한도를 초과했습니다"))
+}
+```
+
+### LocalStack 설정 확인
+
+Testcontainers Configuration에서 LocalStack S3가 자동으로 시작됩니다:
+
+```kotlin
+@TestConfiguration(proxyBeanMethods = false)
+class TestcontainersConfiguration {
+
+    @Bean
+    @ServiceConnection
+    fun localStackContainer(): LocalStackContainer {
+        return LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
+            .withServices(LocalStackContainer.Service.S3)
+            .withEnv("DEBUG", "1")
+    }
+}
+```
+
+---
+
+## 📊 테스트 커버리지 목표
+
+- **전체 커버리지**: 80% 이상 유지 (SonarCloud 품질 게이트)
+- **도메인 계층**: 90% 이상
+- **애플리케이션 계층**: 85% 이상
+- **어댑터 계층**: 75% 이상
+
+---
+
+## 🔍 테스트 작성 체크리스트
+
+새로운 기능을 구현할 때 다음 테스트들을 작성하세요:
+
+- [ ] **성공 시나리오**: 정상적인 입력에 대한 성공 케이스
+- [ ] **실패 시나리오**: 잘못된 입력, 권한 없음, 리소스 없음 등
+- [ ] **경계값 테스트**: 최소/최대 길이, 0, null 등
+- [ ] **동시성 테스트**: 여러 사용자가 동시에 접근하는 경우
+- [ ] **권한 테스트**: 인증/인가 검증
+- [ ] **이벤트 발행 테스트**: 도메인 이벤트가 올바르게 발행되는지
+
+---

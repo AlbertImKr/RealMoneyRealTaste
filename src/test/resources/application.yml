@@ -26,3 +26,5 @@ app:
       expiration-hours: 24
     password-reset-token:
       expiration-hours: 1
+password:
+  mismatch: 새 비밀번호와 비밀번호 확인이 일치하지 않습니다.

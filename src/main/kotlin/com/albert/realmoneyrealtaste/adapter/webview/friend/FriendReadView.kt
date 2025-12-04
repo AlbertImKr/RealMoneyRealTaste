@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.adapter.webview.friend
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
-import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping
 class FriendReadView(
     private val friendshipReader: FriendshipReader,
-    private val memberReader: MemberReader,
 ) {
 
     /**
@@ -46,11 +44,8 @@ class FriendReadView(
             0
         }
 
-        val author = memberReader.readMemberById(memberId)
-
         model.addAttribute("recentFriends", recentFriends)
         model.addAttribute("pendingRequestsCount", pendingRequestsCount)
-        model.addAttribute("author", author)
         model.addAttribute("member", principal)
 
         return FriendViews.FRIEND_WIDGET
@@ -72,5 +67,20 @@ class FriendReadView(
         model.addAttribute("member", principal)
 
         return FriendViews.FRIEND_REQUESTS
+    }
+
+    @GetMapping(FriendUrls.FRIEND_BUTTON)
+    fun readFriendButton(
+        @AuthenticationPrincipal principal: MemberPrincipal,
+        @PathVariable authorId: Long,
+        model: Model,
+    ): String {
+        val isFriend = friendshipReader.isFriend(principal.id, authorId)
+        val hasSentFriendRequest = friendshipReader.isSent(principal.id, authorId)
+
+        model.addAttribute("authorId", authorId)
+        model.addAttribute("isFriend", isFriend)
+        model.addAttribute("hasSentFriendRequest", hasSentFriendRequest)
+        return FriendViews.FRIEND_BUTTON
     }
 }

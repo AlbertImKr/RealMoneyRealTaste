@@ -38,9 +38,9 @@ class PasswordResetService(
         private const val ERROR_INVALID_TOKEN = "유효하지 않은 비밀번호 재설정 토큰입니다"
     }
 
-    override fun sendPasswordResetEmail(email: Email) {
+    override fun sendPasswordResetEmail(email: String) {
         try {
-            val member = memberReader.readMemberByEmail(email)
+            val member = memberReader.readMemberByEmail(Email(email))
 
             deleteExistingTokenIfPresent(member.requireId())
 
@@ -48,7 +48,7 @@ class PasswordResetService(
 
             publishPasswordResetRequestedEvent(member, token)
         } catch (e: IllegalArgumentException) {
-            throw SendPasswordResetEmailException(ERROR_SENDING_PASSWORD_RESET_EMAIL, e)
+            throw SendPasswordResetEmailException(ERROR_SENDING_PASSWORD_RESET_EMAIL)
         }
     }
 
@@ -63,7 +63,7 @@ class PasswordResetService(
 
             deleteToken(resetToken)
         } catch (e: IllegalArgumentException) {
-            throw PassWordResetException(ERROR_RESETTING_PASSWORD, e)
+            throw PassWordResetException(ERROR_RESETTING_PASSWORD)
         }
     }
 

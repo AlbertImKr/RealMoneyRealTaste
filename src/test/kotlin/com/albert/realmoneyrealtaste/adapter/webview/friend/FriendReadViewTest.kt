@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.model
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class FriendReadViewTest : IntegrationTestBase() {
 
@@ -40,7 +41,6 @@ class FriendReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_WIDGET))
             .andExpect(model().attributeExists("recentFriends"))
             .andExpect(model().attributeExists("pendingRequestsCount"))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeExists("member"))
     }
 
@@ -55,7 +55,6 @@ class FriendReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_WIDGET))
             .andExpect(model().attributeExists("recentFriends"))
             .andExpect(model().attributeExists("pendingRequestsCount"))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeDoesNotExist("member"))
     }
 
@@ -71,7 +70,6 @@ class FriendReadViewTest : IntegrationTestBase() {
             .andExpect(view().name(FriendViews.FRIEND_WIDGET))
             .andExpect(model().attributeExists("recentFriends"))
             .andExpect(model().attributeExists("pendingRequestsCount"))
-            .andExpect(model().attributeExists("author"))
             .andExpect(model().attributeExists("member"))
     }
 
@@ -93,5 +91,72 @@ class FriendReadViewTest : IntegrationTestBase() {
             get(FriendUrls.FRIEND_REQUESTS_FRAGMENT)
         )
             .andExpect(status().isForbidden())
+    }
+
+    @Test
+    fun `readFriendButton - forbidden - when not authenticated`() {
+        val authorId = 1L
+
+        mockMvc.perform(
+            get(FriendUrls.FRIEND_BUTTON, authorId)
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFriendButton - success - returns friend button when not friend`() {
+        val member = testMemberHelper.getDefaultMember()
+        val author = testMemberHelper.createActivatedMember("author@test.com", "author")
+
+        mockMvc.perform(
+            get(FriendUrls.FRIEND_BUTTON, author.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FriendViews.FRIEND_BUTTON))
+            .andExpect(model().attributeExists("authorId"))
+            .andExpect(model().attributeExists("isFriend"))
+            .andExpect(model().attributeExists("hasSentFriendRequest"))
+            .andExpect(model().attribute("authorId", author.requireId()))
+            .andExpect(model().attribute("isFriend", false))
+            .andExpect(model().attribute("hasSentFriendRequest", false))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFriendWidgetFragment - success - pendingRequestsCount is zero for other profile`() {
+        val targetMember = testMemberHelper.createActivatedMember("target@example.com", "target")
+
+        val result = mockMvc.perform(
+            get(FriendUrls.FRIEND_WIDGET, targetMember.requireId())
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FriendViews.FRIEND_WIDGET))
+            .andExpect(model().attributeExists("recentFriends"))
+            .andExpect(model().attributeExists("pendingRequestsCount"))
+            .andExpect(model().attributeExists("member"))
+            .andReturn()
+
+        // 다른 사용자 프로필에서는 pendingRequestsCount가 항상 0이어야 함
+        val modelAndView = result.modelAndView!!
+        val pendingRequestsCount = modelAndView.model["pendingRequestsCount"] as Long
+        assertEquals(0, pendingRequestsCount, "다른 사용자의 pendingRequestsCount는 0이어야 함")
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `readFriendWidgetFragment - success - handles pagination correctly`() {
+        val member = testMemberHelper.getDefaultMember()
+
+        mockMvc.perform(
+            get(FriendUrls.FRIEND_WIDGET, member.requireId())
+                .param("page", "0")
+                .param("size", "5")
+        )
+            .andExpect(status().isOk)
+            .andExpect(view().name(FriendViews.FRIEND_WIDGET))
+            .andExpect(model().attributeExists("recentFriends"))
+            .andExpect(model().attributeExists("pendingRequestsCount"))
+            .andExpect(model().attributeExists("member"))
     }
 }

@@ -12,6 +12,9 @@ data class FriendRelationship(
     @Column(name = "member_id", nullable = false)
     val memberId: Long,
 
+    @Column(name = "member_nickname", length = 50)
+    val memberNickname: String,
+
     @Column(name = "friend_member_id", nullable = false)
     val friendMemberId: Long,
 
@@ -26,16 +29,9 @@ data class FriendRelationship(
         fun of(friendRequestCommand: FriendRequestCommand): FriendRelationship {
             return FriendRelationship(
                 memberId = friendRequestCommand.fromMemberId,
+                memberNickname = friendRequestCommand.fromMemberNickName,
                 friendMemberId = friendRequestCommand.toMemberId,
                 friendNickname = friendRequestCommand.toMemberNickname,
-            )
-        }
-
-        fun of(memberId: Long, friendMemberId: Long, friendNickname: String): FriendRelationship {
-            return FriendRelationship(
-                memberId = memberId,
-                friendMemberId = friendMemberId,
-                friendNickname = friendNickname,
             )
         }
     }

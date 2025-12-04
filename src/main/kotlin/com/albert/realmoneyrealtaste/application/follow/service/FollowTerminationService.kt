@@ -22,8 +22,15 @@ class FollowTerminationService(
         const val ERROR_UNFOLLOW_FAILED = "언팔로우에 실패했습니다."
     }
 
-    override fun unfollow(request: UnfollowRequest) {
+    override fun unfollow(
+        followerId: Long,
+        followingId: Long,
+    ) {
         try {
+            val request = UnfollowRequest(
+                followerId = followerId,
+                followingId = followingId,
+            )
             // 요청자가 활성 회원인지 확인
             memberReader.readActiveMemberById(request.followerId)
 

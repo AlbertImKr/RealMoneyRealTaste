@@ -1,269 +1,476 @@
-# RMRT 프로젝트 TODO 목록
+# 🧪 테스트 가이드
 
-> 본 문서는 RMRT(Real Money Real Taste) 프로젝트의 향후 개발 및 개선 작업 목록을 정리합니다.
+## 🎯 테스트 철학
 
-## 📋 목차
+RMRT는 **실제 사용 시나리오**를 중심으로 테스트합니다. Mock을 최소화하고 실제 데이터베이스와 Spring Context를 사용하여 통합 테스트를 선호합니다.
 
-- [1. 인프라 및 배포](#1-인프라-및-배포)
-- [2. 파일 관리 및 이미지 처리](#2-파일-관리-및-이미지-처리)
-- [3. 이벤트 시스템 고도화](#3-이벤트-시스템-고도화)
-- [4. 핵심 도메인 기능 현황](#4-핵심-도메인-기능-현황)
-- [5. 성능 및 최적화](#5-성능-및-최적화)
-- [6. 보안 강화](#6-보안-강화)
-- [7. 기능 확장](#7-기능-확장)
-- [8. 모니터링 및 운영](#8-모니터링-및-운영)
-- [9. 문서 및 테스트](#9-문서-및-테스트)
+- **통합 테스트 우선**: 단위 테스트보다 통합 테스트 중심
+- **실제 데이터**: Testcontainers MySQL 사용
+- **인증 테스트**: `@WithMockMember`로 실제 인증 시나리오
+- **CSRF 보호**: 모든 POST/PUT/DELETE 요청에 CSRF 적용
 
 ---
 
-## 1. 인프라 및 배포
+## 🛠 테스트 도구 스택
 
-### 🚀 배포 자동화
+### 핵심 도구
 
-| 작업 항목                | 상태 | 우선순위  | 상세 설명                         |
-|----------------------|----|-------|-------------------------------|
-| Dockerfile 생성        | ✅  | 🔴 P0 | Multi-stage 빌드 구성, 경량 이미지 최적화 |
-| Docker Compose 설정    | ✅  | 🔴 P0 | 개발 환경 구성 (앱 + DB + Redis)     |
-| GitHub Actions 확장    | ✅  | 🟡 P1 | 현재 SonarQube → 완전한 CI/CD로 확장  |
-| Blue-Green 배포 구현     | ✅  | 🟡 P1 | ECS 롤링 업데이트, 헬스체크 자동화         |
-| ECS/EKS 컨테이너 오케스트레이션 | ✅  | 🟢 P2 | 서비스 디스커버리, 오토스케일링             |
-| RDS 데이터베이스 구성        | ✅  | 🟢 P2 | MySQL 8.0, 읽기 전용 복제본          |
-| ElastiCache Redis 구성 | ☐  | 🟢 P2 | 캐시 레이어, 세션 저장소                |
+- **JUnit 5**: 테스트 프레임워크
+- **MockK**: Mock 객체 생성 (Kotlin 친화적)
+- **Testcontainers**: 실제 Docker MySQL 컨테이너
+- **LocalStack**: AWS S3 로컬 테스트 환경
+- **MockMvc**: 웹 계층 테스트
+- **Spring Boot Test**: 통합 테스트 지원
 
----
+### 테스트 유틸리티
 
-## 2. 파일 관리 및 이미지 처리
-
-### 📸 이미지 업로드 시스템
-
-| 작업 항목             | 상태 | 우선순위  | 상세 설명                           |
-|-------------------|----|-------|---------------------------------|
-| AWS S3 버킷 구성      | ✅  | 🔴 P0 | 버킷 정책, CORS, 접근 제어              |
-| 이미지 업로드 API 개발    | ✅  | 🔴 P0 | Multipart 파일 업로드, Presigned URL |
-| 이미지 최적화           | ☐  | 🟡 P1 | 리사이징, WebP 변환, 압축               |
-| CloudFront CDN 연동 | ☐  | 🟡 P1 | 이미지 캐싱, 글로벌 배포                  |
-| 파일 메타데이터 관리       | ☐  | 🟢 P2 | 업로드 이력, 용량 모니터링                 |
-| 파일 보안 강화          | ☐  | 🟢 P2 | 타입 검증, 바이러스 스캔                  |
+- **IntegrationTestBase**: 모든 통합 테스트의 기본 클래스
+- **TestMemberHelper**: 멤버 생성 유틸리티
+- **TestPostHelper**: 포스트 생성 유틸리티
+- **@WithMockMember**: 인증된 사용자 시뮬레이션
 
 ---
 
-## 3. 이벤트 시스템 고도화
+## 🏗 테스트 구조
 
-### 🔄 이벤트 기반 아키텍처
+### 기본 클래스 설정
 
-| 작업 항목                         | 상태 | 우선순위  | 상세 설명                      |
-|-------------------------------|----|-------|----------------------------|
-| Spring Events → Message Queue | ☐  | 🟡 P1 | RabbitMQ/Kafka 연동, 이벤트 직렬화 |
-| 이벤트 저장소 구현                    | ☐  | 🟡 P1 | Event Sourcing, 스냅샷 전략     |
-| 도메인 이벤트 추가                    | ☐  | 🟢 P2 | CollectionUpdatedEvent 등   |
-| 이벤트 핸들러 고도화                   | ☐  | 🟢 P2 | 실패 재시도, 데드 레터 큐            |
+```kotlin
+@SpringBootTest
+@Transactional
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@Import(TestcontainersConfiguration::class, TestConfig::class)
+@AutoConfigureMockMvc
+abstract class IntegrationTestBase() {
+    @Autowired
+    protected lateinit var entityManager: EntityManager
 
-### ✅ 현재 구현된 이벤트 시스템
+    protected fun flushAndClear() {
+        entityManager.flush()
+        entityManager.clear()
+    }
+}
+```
 
-| 이벤트 리스너             | 구현 상태 | 설명                   |
-|---------------------|-------|----------------------|
-| PostEventListener   | ✅     | 좋아요/조회수 비동기 처리       |
-| MemberEventListener | ✅     | 회원가입/비밀번호 재설정 이메일 발송 |
+### 테스트 클래스 패턴
 
----
+```kotlin
+class CollectionDeleteApiTest : IntegrationTestBase() {
 
-## 4. 핵심 도메인 기능 현황
+    @Autowired
+    private lateinit var mockMvc: MockMvc
 
-### 👥 회원 관리 시스템
+    @Autowired
+    private lateinit var testMemberHelper: TestMemberHelper
 
-| 작업 항목          | 상태 | 우선순위  | 상세 설명                          |
-|----------------|----|-------|--------------------------------|
-| 회원가입 및 이메일 인증  | ✅  | -     | 이메일 인증, ActivationToken 관리     |
-| 로그인/로그아웃       | ✅  | -     | Spring Security 기반 인증          |
-| 비밀번호 재설정       | ✅  | -     | 이메일 기반 비밀번호 재설정                |
-| 회원 정보 수정       | ✅  | -     | 프로필, 자기소개 등 개인정보 수정            |
-| 소셜 로그인 연동      | ☐  | 🟡 P1 | Google, Kakao, Naver OAuth 2.0 |
-| 2FA (2단계 인증)   | ☐  | 🟡 P1 | SMS, Google Authenticator      |
-| 회원 탈퇴 및 데이터 보존 | ☐  | 🟢 P2 | Soft Delete, 개인정보 보관 정책        |
-| 프로필 이미지 S3 연동  | ✅  | 🔴 P0 | 이미지 업로드, 리사이징, CDN             |
+    @Autowired
+    private lateinit var collectionCreator: CollectionCreator
 
-### 📝 게시글 및 리뷰 시스템
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    @Test
+    fun `deleteCollection - success - deletes own collection`() {
+        // Given: 테스트 데이터 준비
+        val owner = testMemberHelper.getDefaultMember()
+        val collection = collectionCreator.createCollection(...)
 
-| 작업 항목        | 상태 | 우선순위  | 상세 설명                           |
-|--------------|----|-------|---------------------------------|
-| 게시글 생성/수정/삭제 | ✅  | -     | 내돈내산/광고성 리뷰 구분, 이미지 최대 5장       |
-| 게시글 조회 및 검색  | ✅  | -     | 페이징, 정렬, 위치 기반 검색               |
-| 좋아요 기능       | ✅  | -     | 비동기 좋아요/취소, 카운트 관리              |
-| 게시글 이미지 관리   | ✅  | -     | PostImages Value Object, URL 관리 |
-| 게시글 위치 기반 검색 | ☐  | 🔴 P0 | 카카오/네이버 지도 API 연동, 주소 검색        |
-| 게시글 신고 기능    | ☐  | 🟡 P1 | 부적절한 콘텐츠 신고, 관리자 검토             |
-| 게시글 추천 알고리즘  | ☐  | 🟢 P2 | 사용자 기반 추천, 인기 게시글               |
-| 게시글 통계 및 분석  | ☐  | 🟢 P2 | 조회수, 좋아요, 작성 시간 등 분석            |
-| 게시글 임시 저장 기능 | ☐  | 🟢 P2 | 자동 저장, 초안 관리                    |
+        // When: API 호출
+        mockMvc.perform(
+            delete("/api/collections/${collection.requireId()}")
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().string(""))
 
-### 📁 컬렉션 시스템
-
-| 작업 항목          | 상태 | 우선순위  | 상세 설명                |
-|----------------|----|-------|----------------------|
-| 컬렉션 생성/수정/삭제   | ✅  | -     | 공개/비공개 설정, 소유자 권한 관리 |
-| 컬렉션에 게시글 추가/제거 | ✅  | -     | 모달 기반 동적 관리, HTMX 통합 |
-| 컬렉션 조회 및 공유    | ✅  | -     | 소유자별 조회, 공유 링크       |
-| 컬렉션 공유 기능      | ☐  | 🟢 P2 | 소셜 미디어 연동, 임베드 코드    |
-| 컬렉션 추천 시스템     | ☐  | ⚪ P3  | AI 기반 추천, 인기 컬렉션 순위  |
-| 컬렉션 협업 기능      | ☐  | 🟢 P2 | 여러 사용자의 컬렉션 공동 편집    |
-| 컬렉션 카테고리 및 태그  | ☐  | 🟢 P2 | 체계적인 분류, 검색 기능 강화    |
-
-### 👥 친구 관계 시스템
-
-| 작업 항목         | 상태 | 우선순위  | 상세 설명                             |
-|---------------|----|-------|-----------------------------------|
-| 친구 요청 및 수락/거절 | ✅  | -     | PENDING → ACCEPTED/REJECTED 상태 전이 |
-| 친구 목록 조회 및 관리 | ✅  | -     | 양방향 친구 관계, 상태별 조회                 |
-| 친구 관계 해제      | ✅  | -     | UNFRIENDED 상태, 이벤트 발행             |
-| 친구 추천 시스템     | ☐  | 🟢 P2 | 상호 친구, 관심사 기반 추천                  |
-| 친구 그룹/리스트 관리  | ☐  | 🟢 P2 | 친구 분류, 그룹별 공유 기능                  |
-| 친구 활동 피드      | ☐  | 🟡 P1 | 친구들의 최신 활동 표시                     |
-
-### 🔔 팔로우 시스템
-
-| 작업 항목         | 상태 | 우선순위  | 상세 설명                        |
-|---------------|----|-------|------------------------------|
-| 팔로우/언팔로우 기능   | ✅  | -     | 단방향 관계, ACTIVE/UNFOLLOWED 상태 |
-| 팔로워/팔로잉 목록 조회 | ✅  | -     | 페이징, 정렬, 상세 정보 조회            |
-| 팔로우 상태 확인     | ✅  | -     | 특정 사용자와의 팔로우 관계 확인           |
-| 실시간 팔로우 알림    | ☐  | 🟡 P1 | WebSocket, 푸시 알림             |
-| 팔로우 추천        | ☐  | 🟢 P2 | 관심사 기반, 맞팔 추천                |
-| 팔로우 차단 기능     | ☐  | 🟢 P2 | BLOCKED 상태, 특정 사용자 차단        |
-
-### 💬 댓글 시스템
-
-| 작업 항목       | 상태 | 우선순위  | 상세 설명                |
-|-------------|----|-------|----------------------|
-| 댓글 생성/수정/삭제 | ✅  | -     | Soft Delete, 댓글 수 계산 |
-| 대댓글 기능      | ✅  | -     | 계층적 댓글 구조, 부모-자식 관계  |
-| 댓글 조회 및 페이징 | ✅  | -     | 게시글별 댓글, 정렬 기능       |
-| 댓글 신고 기능    | ☐  | 🟡 P1 | 부적절한 댓글 신고, 관리자 검토   |
-| 댓글 좋아요 기능   | ☐  | 🟢 P2 | 댓글별 좋아요, 비동기 처리      |
-| 댓글 알림       | ☐  | 🟡 P1 | 게시글 작성자에게 댓글 알림      |
-| 댓글 필터링 및 정렬 | ☐  | 🟢 P2 | 최신순, 인기순, 작성자 필터     |
+        // Then: 결과 검증
+        assertFailsWith<IllegalArgumentException> {
+            collectionReader.readById(collection.requireId())
+        }
+    }
+}
+```
 
 ---
 
-## 5. 성능 및 최적화
+## 🔐 인증 테스트
 
-### ⚡ 데이터베이스 최적화
+### @WithMockMember 사용
 
-| 작업 항목          | 상태 | 우선순위  | 상세 설명                      |
-|----------------|----|-------|----------------------------|
-| 인덱스 전략 개선      | ☐  | 🟡 P1 | 복합 인덱스 추가, 쿼리 실행 계획 분석     |
-| N+1 문제 해결      | ☐  | 🟡 P1 | Fetch Join, DTO Projection |
-| Redis 캐시 구현    | ☐  | 🟡 P1 | 조회 성능 개선, 캐시 무효화           |
-| Caffeine 로컬 캐시 | ☐  | 🟢 P2 | 애플리케이션 레벨 캐싱               |
-| JVM 튜닝         | ☐  | 🟢 P2 | G1GC, 메모리 할당 최적화           |
-| 프로파일링 도구 연동    | ☐  | 🟢 P2 | Micrometer, APM 도구         |
+```kotlin
+@WithMockMember(email = "test@example.com", nickname = "테스트")
+@Test
+fun `authenticated request test`() {
+    // 인증된 상태로 테스트 실행
+}
+```
 
----
+### 인증 실패 테스트
 
-## 6. 보안 강화
-
-### 🔐 인증 및 인가
-
-| 작업 항목            | 상태 | 우선순위  | 상세 설명                          |
-|------------------|----|-------|--------------------------------|
-| 소셜 로그인 연동        | ☐  | 🟡 P1 | Google, Kakao, Naver OAuth 2.0 |
-| 2FA (2단계 인증)     | ☐  | 🟡 P1 | SMS, Google Authenticator      |
-| Rate Limiting 구현 | ☐  | 🔴 P0 | API 호출 제한, IP 차단               |
-| 데이터 암호화          | ☐  | 🟢 P2 | 민감정보, 전송 계층 보안                 |
-
----
-
-## 7. 기능 확장
-
-### 🎯 핵심 기능 고도화
-
-| 작업 항목      | 상태 | 우선순위  | 상세 설명            |
-|------------|----|-------|------------------|
-| 컬렉션 공유 기능  | ☐  | 🟢 P2 | 링크 공유, 소셜 미디어 연동 |
-| 컬렉션 추천 시스템 | ☐  | ⚪ P3  | AI 기반 추천, 인기 순위  |
-| 실시간 알림     | ☐  | 🟡 P1 | WebSocket, 푸시 알림 |
-| 커뮤니티 기능    | ☐  | ⚪ P3  | 그룹 채팅, 게시판, 해시태그 |
-
-### 📊 분석 및 리포팅
-
-| 작업 항목               | 상태 | 우선순위  | 상세 설명              |
-|---------------------|----|-------|--------------------|
-| Google Analytics 연동 | ☐  | 🟢 P2 | 사용자 행동 분석, 커스텀 이벤트 |
-| 비즈니스 대시보드           | ☐  | 🟢 P2 | 리포트 자동화, 예측 분석     |
+```kotlin
+@Test
+fun `deleteCollection - forbidden - when not authenticated`() {
+    mockMvc.perform(
+        delete("/api/collections/1")
+            .with(csrf())
+    )
+        .andExpect(status().isForbidden())
+}
+```
 
 ---
 
-## 8. 모니터링 및 운영
+## 📝 MockMvc 테스트 패턴
 
-### 📈 모니터링 시스템
+### API 테스트
 
-| 작업 항목        | 상태 | 우선순위  | 상세 설명                    |
-|--------------|----|-------|--------------------------|
-| ELK Stack 구축 | ☐  | 🟡 P1 | 중앙 로그 수집, 분석             |
-| 애플리케이션 헬스체크  | ☐  | 🟡 P1 | Health Indicator, 의존성 상태 |
-| 알림 시스템 연동    | ☐  | 🟢 P2 | Slack, SMS, 이메일 알림       |
+```kotlin
+// 성공 케이스
+mockMvc.perform(
+    delete("/api/collections/${collection.requireId()}")
+        .with(csrf())
+)
+    .andExpect(status().isOk)
+    .andExpect(content().string(""))
 
----
+// 에러 응답 검증
+mockMvc.perform(
+    delete("/api/collections/${collection.requireId()}")
+        .with(csrf())
+)
+    .andExpect(status().isBadRequest())
+    .andExpect(content().contentType("application/json"))
+    .andExpect(jsonPath("$.success").value(false))
+    .andExpect(jsonPath("$.error").value("컬렉션을 삭제할 수 없습니다."))
+```
 
-## 9. 문서 및 테스트
+### WebView 테스트
 
-### 📚 문서화
+```kotlin
+mockMvc.perform(
+    get(CollectionUrls.MY_LIST_FRAGMENT)
+        .param("filter", CollectionFilter.PUBLIC.name)
+)
+    .andExpect(status().isOk)
+    .andExpect(view().name(CollectionViews.MY_LIST))
+    .andExpect(model().attributeExists("collections"))
+    .andExpect(model().attributeExists("member"))
 
-| 작업 항목          | 상태 | 우선순위  | 상세 설명                 |
-|----------------|----|-------|-----------------------|
-| OpenAPI 3.0 명세 | ☐  | 🟢 P2 | Swagger UI, API 예제 코드 |
-| 기술 문서 완성       | ☐  | 🟢 P2 | 아키텍처 다이어그램, 배포 가이드    |
-
-### 🧪 테스트 자동화
-
-| 작업 항목             | 상태 | 우선순위  | 상세 설명                |
-|-------------------|----|-------|----------------------|
-| 통합 테스트 확장         | ☐  | 🟡 P1 | API 테스트, E2E 테스트     |
-| TestContainers 활용 | ☐  | 🟢 P2 | 테스트 데이터 관리, Mock 데이터 |
-
----
-
-## 🎯 우선순위 가이드
-
-### 우선순위 표기
-
-- 🔴 **긴급 (P0)**: 즉시 필요한 핵심 기능
-- 🟡 **중요 (P1)**: 조기 구현이 필요한 기능
-- 🟢 **보통 (P2)**: 단계적으로 구현할 기능
-- ⚪ **낮음 (P3)**: 장기적으로 고려할 기능
-
-### 상태 표기
-
-- ✅ **완료**: 이미 구현된 기능
-- ☐ **미구현**: 구현이 필요한 기능
-- 🚧 **진행중**: 현재 개발 중인 기능
-- ⚠️ **이슈**: 문제가 있는 기능
-- 🔍 **검토**: 기술 검토가 필요한 기능
+// 반환된 모델 데이터 검증
+val result = mockMvc.perform(...).andReturn()
+val collections = result.modelAndView!!.model["collections"] as Page<*>
+assertEquals(1, collections.content.size)
+```
 
 ---
 
-## 📝 사용 가이드
+## 🏭 테스트 데이터 생성
 
-### 체크박스 사용법
+### TestMemberHelper 사용
 
+```kotlin
+// 기본 멤버 생성
+val member = testMemberHelper.getDefaultMember()
 
-| 작업 항목  | 상태 | 우선순위  | 상세 설명 |
-|--------|----|-------|-------|
-| 새로운 작업 | ☐  | 🔴 P0 | 작업 설명 |
+// 커스텀 멤버 생성
+val customMember = testMemberHelper.createActivatedMember(
+    email = "custom@test.com",
+    nickname = "커스텀"
+)
 
-### 상태 업데이트
+// 비활성 멤버 생성
+val inactiveMember = testMemberHelper.createMember(
+    email = "inactive@test.com"
+)
+```
 
-- 작업 완료 시: `☐` → `✅`
-- 진행 중 시: `☐` → `🚧`
-- 이슈 발생 시: `☐` → `⚠️`
-- 검토 필요 시: `☐` → `🔍`
+### TestPostHelper 사용
 
-### 새로운 항목 추가
+```kotlin
+val post = testPostHelper.createPost(
+    authorMemberId = member.requireId(),
+    authorNickname = "작성자",
+    restaurant = Restaurant("식당", "주소"),
+    content = PostContent("맛있어요!")
+)
+```
 
-1. 해당 섹션의 테이블에 새 행 추가
-2. 적절한 우선순위 지정
-3. 상세 설명 작성
-4. 상태는 `☐`으로 시작
+### 직접 도메인 생성
+
+```kotlin
+val collection = collectionCreator.createCollection(
+    CollectionCreateCommand(
+        name = "테스트 컬렉션",
+        description = "설명",
+        ownerMemberId = owner.requireId(),
+        ownerName = owner.nickname.value
+    )
+)
+```
 
 ---
 
-*본 TODO 목록은 프로젝트 진행 상황에 따라 지속적으로 업데이트됩니다.*
+## 🎯 테스트 시나리오 예제
+
+### 성공 시나리오
+
+```kotlin
+@WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+@Test
+fun `createCollection - success - creates new collection`() {
+    val member = testMemberHelper.getDefaultMember()
+
+    val result = mockMvc.perform(
+        post("/api/collections")
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                {
+                    "name": "새 컬렉션",
+                    "description": "설명"
+                }
+            """.trimIndent()
+            )
+    )
+        .andExpect(status().isOk)
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.collectionId").exists())
+        .andReturn()
+
+    // 생성된 컬렉션 확인
+    val collectionId = result.response.jsonPath.getLong("collectionId")
+    assertNotNull(collectionReader.readById(collectionId))
+}
+```
+
+### 권한 없음 시나리오
+
+```kotlin
+@WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+@Test
+fun `deleteCollection - failure - when trying to delete other's collection`() {
+    val owner = testMemberHelper.createActivatedMember("other@user.com")
+    val collection = createCollectionForOwner(owner)
+
+    mockMvc.perform(
+        delete("/api/collections/${collection.requireId()}")
+            .with(csrf())
+    )
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("컬렉션을 삭제할 수 없습니다."))
+}
+```
+
+### 이벤트 발행 테스트
+
+```kotlin
+@RecordApplicationEvents
+@Test
+fun `unfriend - success - publishes friendship terminated event`() {
+    // 친구 관계 생성 및 삭제
+
+    val events = applicationEvents
+        .stream(FriendshipTerminatedEvent::class.java)
+        .toList()
+
+    assertEquals(1, events.size)
+    assertEquals(member1.requireId(), events[0].memberId)
+}
+```
+
+---
+
+## 🔄 테스트 실행 방법
+
+### 전체 테스트 실행
+
+```bash
+./gradlew test
+```
+
+### 특정 테스트만 실행
+
+```bash
+# API 테스트만
+./gradlew test --tests "*ApiTest*"
+
+# WebView 테스트만
+./gradlew test --tests "*ViewTest*"
+
+# 애플리케이션 테스트만
+./gradlew test --tests "*application*"
+
+# 특정 클래스 테스트
+./gradlew test --tests "*CollectionDeleteApiTest*"
+```
+
+### 테스트 커버리지 확인
+
+```bash
+./gradlew jacocoTestReport
+# 결과: build/reports/jacoco/test/html/index.html
+```
+
+---
+
+## 🖼 이미지 관리 시스템 테스트
+
+### LocalStack S3 테스트
+
+이미지 업로드/조회/삭제 기능은 LocalStack을 통해 실제 S3 환경과 동일하게 테스트됩니다:
+
+```kotlin
+@SpringBootTest
+@Import(TestcontainersConfiguration::class)
+class ImageUploadServiceTest {
+
+    @Autowired
+    private lateinit var imageUploadRequester: ImageUploadRequester
+
+    @Autowired
+    private lateinit var imageUploadTracker: ImageUploadTracker
+
+    @Test
+    fun `requestPresignedPutUrl - success - returns valid presigned URL`() {
+        // Given
+        val request = ImageUploadRequest(
+            memberId = 1L,
+            imageType = ImageType.POST_IMAGE,
+            contentType = "image/jpeg"
+        )
+
+        // When
+        val response = imageUploadRequester.requestPresignedPutUrl(request)
+
+        // Then
+        assertNotNull(response.uploadUrl)
+        assertTrue(response.uploadUrl.contains("localhost"))
+        assertNotNull(response.key)
+        assertNotNull(response.expiresAt)
+    }
+
+    @Test
+    fun `trackUploadCompletion - success - saves image metadata`() {
+        // Given: Presigned URL 발급
+        val uploadRequest = ImageUploadRequest(...)
+        val presignedResponse = imageUploadRequester.requestPresignedPutUrl(uploadRequest)
+
+        // When: 업로드 완료 추적
+        val result = imageUploadTracker.trackUploadCompletion(
+            key = presignedResponse.key,
+            memberId = 1L
+        )
+
+        // Then: 메타데이터 저장 확인
+        assertTrue(result.success)
+        assertNotNull(result.imageId)
+    }
+}
+```
+
+### 이미지 테스트 시나리오
+
+#### 1. Presigned URL 발급 테스트
+
+```kotlin
+@Test
+fun `image upload request - success - returns presigned PUT URL`() {
+    mockMvc.perform(
+        post("/api/images/upload-request")
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(
+                """
+                {
+                    "imageType": "POST_IMAGE",
+                    "contentType": "image/jpeg"
+                }
+            """.trimIndent()
+            )
+    )
+        .andExpect(status().isOk)
+        .andExpect(jsonPath("$.uploadUrl").exists())
+        .andExpect(jsonPath("$.key").exists())
+        .andExpect(jsonPath("$.expiresAt").exists())
+}
+```
+
+#### 2. 업로드 완료 추적 테스트
+
+```kotlin
+@Test
+fun `image upload confirmation - success - saves metadata to database`() {
+    // Given: Presigned URL 발급
+    val uploadResponse = requestPresignedUrl()
+
+    // When: 업로드 완료 알림
+    mockMvc.perform(
+        post("/api/images/upload-confirm")
+            .with(csrf())
+            .param("key", uploadResponse.key)
+    )
+        .andExpect(status().isOk)
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.imageId").exists())
+}
+```
+
+#### 3. 이미지 삭제 테스트
+
+```kotlin
+@Test
+fun `delete image - success - soft deletes image`() {
+    // Given: 이미지 업로드
+    val image = createTestImage()
+
+    // When: 삭제 요청
+    mockMvc.perform(
+        delete("/api/images/${image.id}")
+            .with(csrf())
+    )
+        .andExpect(status().isOk)
+
+    // Then: Soft Delete 확인
+    val deletedImage = imageRepository.findById(image.id!!).get()
+    assertTrue(deletedImage.isDeleted)
+}
+```
+
+#### 4. 일일 업로드 제한 테스트
+
+```kotlin
+@Test
+fun `upload request - failure - when daily limit exceeded`() {
+    // Given: 100개 이미지 업로드 완료
+    repeat(100) { uploadImage() }
+
+    // When: 101번째 업로드 시도
+    mockMvc.perform(
+        post("/api/images/upload-request")
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""{"imageType": "POST_IMAGE", "contentType": "image/jpeg"}""")
+    )
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("일일 업로드 한도를 초과했습니다"))
+}
+```
+
+### LocalStack 설정 확인
+
+Testcontainers Configuration에서 LocalStack S3가 자동으로 시작됩니다:
+
+```kotlin
+@TestConfiguration(proxyBeanMethods = false)
+class TestcontainersConfiguration {
+
+    @Bean
+    @ServiceConnection
+    fun localStackContainer(): LocalStackContainer {
+        return LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
+            .withServices(LocalStackContainer.Service.S3)
+            .withEnv("DEBUG", "1")
+    }
+}
+```
+
+---
