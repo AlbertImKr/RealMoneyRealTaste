@@ -42,7 +42,8 @@ class CollectionReadView(
             )
         }
         model.addAttribute("collections", collections)
-        setCommonModelAttributes(model, principal, principal.id)
+        model.addAttribute("member", principal)
+        model.addAttribute("authorId", principal.id)
         return CollectionViews.MY_LIST
     }
 
@@ -55,10 +56,7 @@ class CollectionReadView(
     ): String {
         val collection = collectionReader.readById(collectionId)
 
-        setCommonModelAttributes(model, principal)
-
         model.addAttribute("collection", collection)
-
         model.addAttribute("posts", postReader.readPostsByIds(collection.posts.postIds))
         val myPosts = postReader.readPostsByAuthor(principal.id, pageRequest)
         model.addAttribute("myPosts", myPosts)
@@ -75,7 +73,6 @@ class CollectionReadView(
     ): String {
         val collection = collectionReader.readById(collectionId)
         model.addAttribute("collection", collection)
-        setCommonModelAttributes(model, principal)
         return CollectionViews.DETAIL_EDIT_FRAGMENT
     }
 
@@ -88,7 +85,7 @@ class CollectionReadView(
         val collection = collectionReader.readById(collectionId)
 
         model.addAttribute("collection", collection)
-        setCommonModelAttributes(model, principal)
+        model.addAttribute("member", principal)
         return CollectionViews.DETAIL_FRAGMENT
     }
 
@@ -113,7 +110,8 @@ class CollectionReadView(
         )
 
         model.addAttribute("collections", collections)
-        setCommonModelAttributes(model, principal, id)
+        model.addAttribute("member", principal)
+        model.addAttribute("authorId", id)
         return CollectionViews.MY_LIST
     }
 
@@ -130,21 +128,7 @@ class CollectionReadView(
         val collection = collectionReader.readById(collectionId)
 
         model.addAttribute("collection", collection)
-        setCommonModelAttributes(model, principal, memberId)
-        return CollectionViews.DETAIL_FRAGMENT
-    }
-
-    /**
-     * 공통 Model 속성 설정
-     */
-    private fun setCommonModelAttributes(
-        model: Model,
-        principal: MemberPrincipal?,
-        authorId: Long? = null,
-    ) {
         model.addAttribute("member", principal)
-        authorId?.let {
-            model.addAttribute("author", memberReader.readMemberById(it))
-        }
+        return CollectionViews.DETAIL_FRAGMENT
     }
 }
