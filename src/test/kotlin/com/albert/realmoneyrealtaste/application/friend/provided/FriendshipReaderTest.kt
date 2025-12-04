@@ -701,4 +701,278 @@ class FriendshipReaderTest(
 
         assertNull(result)
     }
+
+    @Test
+    fun `isSent - success - returns true when member sent friend request`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "sent-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "sent-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        // 친구 요청 보내기
+        friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
+
+        val result = friendshipReader.isSent(sender.requireId(), receiver.requireId())
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun `isSent - success - returns false when no friend request was sent`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "nosent1@test.com",
+            nickname = "nosent1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "nosent2@test.com",
+            nickname = "nosent2"
+        )
+
+        val result = friendshipReader.isSent(member1.requireId(), member2.requireId())
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun `isSent - success - returns false when member received friend request`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "reverse-sender@test.com",
+            nickname = "sender"
+        )
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "reverse-receiver@test.com",
+            nickname = "receiver"
+        )
+
+        // sender가 receiver에게 요청 보냄
+        friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
+
+        // receiver가 sender에게 요청을 보냈는지 확인 (false여야 함)
+        val result = friendshipReader.isSent(receiver.requireId(), sender.requireId())
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun `isSent - success - returns true when friendship is accepted`() {
+        val member1 = testMemberHelper.createActivatedMember(
+            email = "accepted-sent1@test.com",
+            nickname = "accepted1"
+        )
+        val member2 = testMemberHelper.createActivatedMember(
+            email = "accepted-sent2@test.com",
+            nickname = "accepted2"
+        )
+
+        // 친구 관계 생성 및 수락
+        createAcceptedFriendship(
+            member1.requireId(),
+            member1.nickname.value,
+            member2.requireId(),
+            member2.nickname.value
+        )
+
+        val result = friendshipReader.isSent(member1.requireId(), member2.requireId())
+
+        assertTrue(result)
+    }
+
+    @Test
+    fun `findFriendsByMemberId - success - excludes friendships with deactivated members`() {
+        val activeMember = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "active"
+        )
+        val deactivatedMember = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivated"
+        )
+        val anotherActiveMember = testMemberHelper.createActivatedMember(
+            email = "another@test.com",
+            nickname = "another"
+        )
+
+        // 친구 관계 생성
+        createAcceptedFriendship(
+            activeMember.requireId(),
+            activeMember.nickname.value,
+            deactivatedMember.requireId(),
+            deactivatedMember.nickname.value
+        )
+        createAcceptedFriendship(
+            activeMember.requireId(),
+            activeMember.nickname.value,
+            anotherActiveMember.requireId(),
+            anotherActiveMember.nickname.value
+        )
+        deactivatedMember.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.findFriendsByMemberId(activeMember.requireId(), pageable)
+
+        // 비활성화된 멤버와의 친구 관계는 제외되어야 함
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(1, result.content.size) },
+            { assertEquals(anotherActiveMember.requireId(), result.content.first().friendMemberId) },
+            { assertFalse(result.content.any { it.friendMemberId == deactivatedMember.requireId() }) }
+        )
+    }
+
+    @Test
+    fun `findPendingRequestsReceived - success - excludes requests from deactivated members`() {
+        val receiver = testMemberHelper.createActivatedMember(
+            email = "receiver@test.com",
+            nickname = "receiver"
+        )
+        val deactivatedSender = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivated"
+        )
+        val activeSender = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "active"
+        )
+
+        // 친구 요청 생성
+        friendRequestor.sendFriendRequest(deactivatedSender.requireId(), receiver.requireId())
+        friendRequestor.sendFriendRequest(activeSender.requireId(), receiver.requireId())
+        deactivatedSender.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.findPendingRequestsReceived(receiver.requireId(), pageable)
+
+        // 비활성화된 멤버로부터의 요청은 제외되어야 함
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(1, result.content.size) },
+            { assertEquals(activeSender.requireId(), result.content.first().memberId) },
+            { assertFalse(result.content.any { it.memberId == deactivatedSender.requireId() }) }
+        )
+    }
+
+    @Test
+    fun `findPendingRequestsSent - success - excludes requests to deactivated members`() {
+        val sender = testMemberHelper.createActivatedMember(
+            email = "sender@test.com",
+            nickname = "sender"
+        )
+        val deactivatedReceiver = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivated"
+        )
+        val activeReceiver = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "active"
+        )
+
+        // 친구 요청 생성
+        friendRequestor.sendFriendRequest(sender.requireId(), deactivatedReceiver.requireId())
+        friendRequestor.sendFriendRequest(sender.requireId(), activeReceiver.requireId())
+        deactivatedReceiver.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.findPendingRequestsSent(sender.requireId(), pageable)
+
+        // 비활성화된 멤버에게 보낸 요청은 제외되어야 함
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(1, result.content.size) },
+            { assertEquals(activeReceiver.requireId(), result.content.first().friendMemberId) },
+            { assertFalse(result.content.any { it.friendMemberId == deactivatedReceiver.requireId() }) }
+        )
+    }
+
+    @Test
+    fun `searchFriends - success - excludes deactivated friends from search results`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "searcher@test.com",
+            nickname = "searcher"
+        )
+        val deactivatedFriend = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivatedfriend"
+        )
+        val activeFriend = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "activefriend"
+        )
+
+        // 친구 관계 생성
+        createAcceptedFriendship(
+            member.requireId(),
+            member.nickname.value,
+            deactivatedFriend.requireId(),
+            deactivatedFriend.nickname.value
+        )
+        createAcceptedFriendship(
+            member.requireId(),
+            member.nickname.value,
+            activeFriend.requireId(),
+            activeFriend.nickname.value
+        )
+        deactivatedFriend.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.searchFriends(member.requireId(), "active", pageable)
+
+        // 비활성화된 친구는 검색 결과에서 제외되어야 함
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(1, result.content.size) },
+            { assertEquals(activeFriend.requireId(), result.content.first().friendMemberId) },
+            { assertFalse(result.content.any { it.friendMemberId == deactivatedFriend.requireId() }) }
+        )
+    }
+
+    @Test
+    fun `findRecentFriends - success - excludes deactivated friends from recent friends`() {
+        val member = testMemberHelper.createActivatedMember(
+            email = "recent@test.com",
+            nickname = "recent"
+        )
+        val deactivatedFriend = testMemberHelper.createActivatedMember(
+            email = "deactivated@test.com",
+            nickname = "deactivated"
+        )
+        val activeFriend = testMemberHelper.createActivatedMember(
+            email = "active@test.com",
+            nickname = "active"
+        )
+
+        // 친구 관계 생성
+        createAcceptedFriendship(
+            member.requireId(),
+            member.nickname.value,
+            deactivatedFriend.requireId(),
+            deactivatedFriend.nickname.value
+        )
+        createAcceptedFriendship(
+            member.requireId(),
+            member.nickname.value,
+            activeFriend.requireId(),
+            activeFriend.nickname.value
+        )
+        deactivatedFriend.deactivate()
+        flushAndClear()
+
+        val pageable = PageRequest.of(0, 10)
+        val result = friendshipReader.findRecentFriends(member.requireId(), pageable)
+
+        // 비활성화된 친구는 최근 친구 목록에서 제외되어야 함
+        assertAll(
+            { assertEquals(1, result.totalElements) },
+            { assertEquals(1, result.content.size) },
+            { assertEquals(activeFriend.requireId(), result.content.first().friendMemberId) },
+            { assertFalse(result.content.any { it.friendMemberId == deactivatedFriend.requireId() }) }
+        )
+    }
 }

@@ -36,7 +36,10 @@ interface FollowRepository : Repository<Follow, Long> {
     @Query(
         """
         SELECT f FROM Follow f
-        WHERE f.relationship.followingId = :followingId AND f.status = :status
+        JOIN Member m ON f.relationship.followerId = m.id
+        WHERE f.relationship.followingId = :followingId 
+        AND f.status = :status
+        AND m.status = 'ACTIVE'
     """
     )
     fun findFollowersByFollowingIdAndStatus(followingId: Long, status: FollowStatus, pageable: Pageable): Page<Follow>
@@ -44,7 +47,9 @@ interface FollowRepository : Repository<Follow, Long> {
     @Query(
         """
         SELECT f FROM Follow f
+        JOIN Member m ON f.relationship.followingId = m.id
         WHERE f.relationship.followerId = :followerId AND f.status = :status
+        AND m.status = 'ACTIVE'
     """
     )
     fun findFollowingsByFollowerIdAndStatus(followerId: Long, status: FollowStatus, pageable: Pageable): Page<Follow>
@@ -121,9 +126,11 @@ interface FollowRepository : Repository<Follow, Long> {
     @Query(
         """
         SELECT f FROM Follow f
+        JOIN Member m ON f.relationship.followerId = m.id
         WHERE f.relationship.followingId = :memberId
           AND f.status = :status
           AND f.relationship.followerNickname LIKE %:keyword%
+          AND m.status = 'ACTIVE'
     """
     )
     fun searchFollowersByFollowingIdAndStatus(
@@ -140,9 +147,11 @@ interface FollowRepository : Repository<Follow, Long> {
     @Query(
         """
         SELECT f FROM Follow f
+        JOIN Member m ON f.relationship.followingId = m.id
         WHERE f.relationship.followerId = :memberId
           AND f.status = :status
           AND f.relationship.followingNickname LIKE %:keyword%
+          AND m.status = 'ACTIVE'
     """
     )
     fun searchFollowingsByFollowerIdAndStatus(

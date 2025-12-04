@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.assertEquals
@@ -469,5 +470,105 @@ class ImageApiTest : IntegrationTestBase() {
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.success").value(false))
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `getImageRedirect - success - redirects to image URL`() {
+        // Given
+        val member = testMemberHelper.getDefaultMember()
+        val image = createTestImage(member.requireId())
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/images/${image.requireId()}")
+        )
+            .andExpect(status().isFound())
+            .andExpect(header().exists("Location"))
+    }
+
+    @Test
+    fun `getImageRedirect - failure - unauthorized`() {
+        // Given
+        val imageId = 1L
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/images/$imageId")
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    @Test
+    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
+    fun `getImageRedirect - failure - image not found`() {
+        // Given
+        val imageId = 999999L
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/images/$imageId")
+        )
+            .andExpect(status().isBadRequest())
+    }
+
+    @Test
+    @WithMockMember(email = "other@example.com")
+    fun `getImageRedirect - success - can access other user's image`() {
+        // Given
+        val owner = testMemberHelper.createActivatedMember("owner@email.com")
+        val image = createTestImage(owner.requireId())
+
+        // When & Then
+        mockMvc.perform(
+            get("/api/images/${image.requireId()}")
+        )
+            .andExpect(status().is3xxRedirection())
+    }
+
+    @Test
+    fun `confirmImageUpload - failure - unauthorized`() {
+        // Given
+        val key = "images/test.jpg"
+
+        // When & Then
+        mockMvc.perform(
+            post("/api/images/upload-confirm")
+                .param("key", key)
+                .with(csrf())
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    @Test
+    fun `getMyImages - failure - unauthorized`() {
+        // When & Then
+        mockMvc.perform(
+            get("/api/images/my-images")
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    @Test
+    fun `deleteImage - failure - unauthorized`() {
+        // Given
+        val imageId = 1L
+
+        // When & Then
+        mockMvc.perform(
+            delete("/api/images/$imageId")
+                .with(csrf())
+        )
+            .andExpect(status().isForbidden())
+    }
+
+    private fun createTestImage(memberId: Long): Image {
+        val command = ImageCreateCommand(
+            fileKey = FileKey("images/test.jpg"),
+            imageType = ImageType.PROFILE_IMAGE,
+            uploadedBy = memberId,
+        )
+        val image = Image.create(command)
+        return imageRepository.save(image)
     }
 }

@@ -191,7 +191,7 @@ class MemberPrincipalTest {
 
         val principal = MemberPrincipal.from(member)
 
-        assertEquals("아직 주소가 없어요!", principal.address)
+        assertEquals("푸디마을에 살고 있어요", principal.address)
     }
 
     @Test

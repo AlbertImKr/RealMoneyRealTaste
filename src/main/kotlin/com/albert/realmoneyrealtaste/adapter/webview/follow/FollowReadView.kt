@@ -2,7 +2,6 @@ package com.albert.realmoneyrealtaste.adapter.webview.follow
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.follow.provided.FollowReader
-import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.web.PageableDefault
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam
 @Controller
 class FollowReadView(
     private val followReader: FollowReader,
-    private val memberReader: MemberReader,
 ) {
     /**
      * 팔로우 버튼 Fragment
@@ -68,14 +66,12 @@ class FollowReadView(
                 pageable = pageRequest
             )
         }
-        val author = memberReader.readMemberById(targetMemberId)
         // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
         val followingIds = followings.content.map { it.followingId }
-        val currentUserFollowingIds = followReader.findFollowings(principal.id, followingIds)
-        model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
+
+
+        setupFollowModelAttributes(followingIds, model, principal)
         model.addAttribute("followings", followings)
-        model.addAttribute("member", principal)
-        model.addAttribute("author", author)
         return FollowViews.FOLLOWING_FRAGMENT
     }
 
@@ -104,13 +100,11 @@ class FollowReadView(
             )
         }
 
+        model.addAttribute("followers", followers)
         // 현재 사용자가 팔로우하는 사용자 ID 목록 추가
         val followerIds = followers.content.map { it.followerId }
-        val currentUserFollowingIds = followReader.findFollowings(principal.id, followerIds)
 
-        model.addAttribute("followers", followers)
-        model.addAttribute("currentUserFollowingIds", currentUserFollowingIds)
-        model.addAttribute("member", principal)
+        setupFollowModelAttributes(followerIds, model, principal)
         return FollowViews.FOLLOWERS_FRAGMENT
     }
 
@@ -129,7 +123,7 @@ class FollowReadView(
             pageable = pageRequest
         )
 
-        setupFollowModelAttributes(memberId, followings.content.map { it.followingId }, model, principal)
+        setupFollowModelAttributes(followings.content.map { it.followingId }, model, principal)
 
         model.addAttribute("followings", followings)
         return FollowViews.FOLLOWING_FRAGMENT
@@ -150,20 +144,17 @@ class FollowReadView(
             pageable = pageRequest
         )
 
-        setupFollowModelAttributes(memberId, followers.content.map { it.followerId }, model, principal)
+        setupFollowModelAttributes(followers.content.map { it.followerId }, model, principal)
 
         model.addAttribute("followers", followers)
         return FollowViews.FOLLOWERS_FRAGMENT
     }
 
     private fun setupFollowModelAttributes(
-        memberId: Long,
         followIds: List<Long>,
         model: Model,
         principal: MemberPrincipal?,
     ) {
-        val author = memberReader.readMemberById(memberId)
-        model.addAttribute("author", author)
         if (principal != null) {
             val currentUserFollowingIds = followReader.findFollowings(principal.id, followIds)
             model.addAttribute("member", principal)

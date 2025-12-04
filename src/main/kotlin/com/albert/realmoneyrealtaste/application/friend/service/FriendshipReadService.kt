@@ -124,27 +124,28 @@ class FriendshipReadService(
     }
 
     override fun isSent(memberId: Long, friendMemberId: Long): Boolean {
-        return friendshipRepository.existsByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatus(
+        return friendshipRepository.existsByRelationShipMemberIdAndRelationShipFriendMemberIdAndStatusIsIn(
             memberId,
             friendMemberId,
-            FriendshipStatus.PENDING
+            listOf(FriendshipStatus.PENDING, FriendshipStatus.ACCEPTED)
         )
     }
 
     private fun mapToFriendshipResponses(friendships: Page<Friendship>): Page<FriendshipResponse> {
-        val members = memberReader.readAllActiveMembersByIds(
+        val membersMap = memberReader.readAllActiveMembersByIds(
             friendships.content.map { it.relationShip.memberId }
-        )
-        val friends = memberReader.readAllActiveMembersByIds(
+        ).associateBy { it.id }
+        val friendsMap = memberReader.readAllActiveMembersByIds(
             friendships.content.map { it.relationShip.friendMemberId }
-        )
+        ).associateBy { it.id }
+
 
         return friendships
             .map { friendship ->
                 FriendshipResponse.from(
                     friendship,
-                    members.find { it.id == friendship.relationShip.memberId }!!,
-                    friends.find { it.id == friendship.relationShip.friendMemberId }!!,
+                    membersMap.getValue(friendship.relationShip.memberId),
+                    friendsMap.getValue(friendship.relationShip.friendMemberId),
                 )
             }
     }

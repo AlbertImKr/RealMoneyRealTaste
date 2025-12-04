@@ -15,6 +15,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MemberTest {
@@ -200,7 +201,7 @@ class MemberTest {
         val newIntroduction = Introduction("new intro")
         val beforeUpdateAt = member.updatedAt
 
-        member.updateInfo(nickname = null, profileAddress = null, introduction = newIntroduction)
+        member.updateInfo(nickname = beforeNickname, profileAddress = null, introduction = newIntroduction)
 
         assertEquals(beforeNickname, member.nickname)
         assertEquals(beforeProfileAddress, member.detail.profileAddress)
@@ -223,6 +224,23 @@ class MemberTest {
         assertEquals(newProfileAddress, member.detail.profileAddress)
         assertEquals(beforeIntroduction, member.detail.introduction)
         assertTrue(beforeUpdateAt < member.updatedAt)
+    }
+
+    @Test
+    fun `updateInfo - success - updates nothing when parameters are same`() {
+        val member = createMember()
+        member.activate()
+        val beforeNickname = member.nickname
+        val beforeProfileAddress = member.detail.profileAddress
+        val beforeIntroduction = member.detail.introduction
+        val beforeUpdateAt = member.updatedAt
+
+        member.updateInfo(nickname = beforeNickname, profileAddress = null, introduction = null)
+
+        assertEquals(beforeNickname, member.nickname)
+        assertEquals(beforeProfileAddress, member.detail.profileAddress)
+        assertEquals(beforeIntroduction, member.detail.introduction)
+        assertEquals(beforeUpdateAt, member.updatedAt)
     }
 
     @Test
@@ -570,5 +588,121 @@ class MemberTest {
         member.updateFollowingsCount(0)
 
         assertEquals(0, member.followingsCount)
+    }
+
+    @Test
+    fun `imageId - success - returns 1L when detail imageId is null`() {
+        val member = createMember()
+
+        assertEquals(1L, member.imageId)
+    }
+
+    @Test
+    fun `imageId - success - returns detail imageId when it exists`() {
+        val member = TestMember()
+        val testImageId = 123L
+        member.detail.updateInfo(null, null, null, testImageId)
+
+        assertEquals(testImageId, member.imageId)
+    }
+
+    @Test
+    fun `address - success - returns default address when detail address is null`() {
+        val member = createMember()
+
+        assertEquals("푸디마을에 살고 있어요", member.address)
+    }
+
+    @Test
+    fun `address - success - returns detail address when it exists`() {
+        val member = TestMember()
+        val testAddress = "서울시 강남구"
+        member.detail.updateInfo(null, null, testAddress, null)
+
+        assertEquals(testAddress, member.address)
+    }
+
+    @Test
+    fun `introduction - success - returns default introduction when detail introduction is null`() {
+        val member = createMember()
+
+        assertNull(member.detail.introduction)
+        assertEquals("아직 자기소개가 없어요!", member.introduction)
+    }
+
+    @Test
+    fun `introduction - success - returns detail introduction when it exists`() {
+        val member = TestMember()
+        val testIntroduction = Introduction("안녕하세요, 테스트입니다.")
+        member.detail.updateInfo(null, testIntroduction, null, null)
+
+        assertEquals(testIntroduction.value, member.introduction)
+    }
+
+    @Test
+    fun `registeredAt - success - returns detail registeredAt`() {
+        val member = createMember()
+        val now = LocalDateTime.now()
+
+        assertTrue(member.registeredAt >= now.minusSeconds(1))
+        assertTrue(member.registeredAt <= now.plusSeconds(1))
+    }
+
+    @Test
+    fun `grantRole - failure - throws exception when member is deactivated`() {
+        val member = createMember()
+        member.activate()
+        member.deactivate()
+
+        assertFailsWith<IllegalArgumentException> {
+            member.grantRole(Role.MANAGER)
+        }.let {
+            assertEquals("등록 완료 상태에서만 권한 변경이 가능합니다", it.message)
+        }
+    }
+
+    @Test
+    fun `revokeRole - failure - throws exception when member is deactivated`() {
+        val member = createMember()
+        member.activate()
+        member.deactivate()
+
+        assertFailsWith<IllegalArgumentException> {
+            member.revokeRole(Role.USER)
+        }.let {
+            assertEquals("등록 완료 상태에서만 권한 변경이 가능합니다", it.message)
+        }
+    }
+
+    @Test
+    fun `updateInfo - success - updates address and imageId`() {
+        val member = createMember()
+        member.activate()
+        val newAddress = "부산시 해운대구"
+        val newImageId = 456L
+        val beforeUpdateAt = member.updatedAt
+
+        member.updateInfo(address = newAddress, imageId = newImageId)
+
+        assertEquals(newAddress, member.address)
+        assertEquals(newImageId, member.imageId)
+        assertTrue(beforeUpdateAt < member.updatedAt)
+    }
+
+    @Test
+    fun `postCount - success - returns initial post count`() {
+        val member = createMember()
+
+        assertEquals(0L, member.postCount)
+    }
+
+    @Test
+    fun `updatePostCount - success - updates post count`() {
+        val member = createMember()
+        val updatedPostCount = 20L
+
+        member.updatePostCount(updatedPostCount)
+
+        assertEquals(updatedPostCount, member.postCount)
     }
 }

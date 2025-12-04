@@ -101,8 +101,17 @@ class Member protected constructor(
     var postCount: Long = postCount
         protected set
 
-    val imageId: Long?
-        get() = detail.imageId
+    val imageId: Long
+        get() = detail.imageId ?: 1L
+
+    val address: String
+        get() = detail.address ?: "푸디마을에 살고 있어요"
+
+    val introduction: String
+        get() = detail.introduction?.value ?: "아직 자기소개가 없어요!"
+
+    val registeredAt: LocalDateTime
+        get() = detail.registeredAt
 
     fun activate() {
         require(status == MemberStatus.PENDING) { ERROR_INVALID_STATUS_FOR_ACTIVATION }
@@ -188,6 +197,11 @@ class Member protected constructor(
 
     fun updateFollowingsCount(count: Long) {
         followingsCount = count
+        updatedAt = LocalDateTime.now()
+    }
+
+    fun updatePostCount(count: Long) {
+        postCount = count
         updatedAt = LocalDateTime.now()
     }
 

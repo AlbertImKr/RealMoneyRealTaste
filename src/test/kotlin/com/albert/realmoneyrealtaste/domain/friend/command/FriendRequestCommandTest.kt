@@ -212,4 +212,18 @@ class FriendRequestCommandTest {
             assertEquals(FriendRequestCommand.ERROR_TO_MEMBER_NICKNAME_MUST_NOT_BE_EMPTY, it.message)
         }
     }
+
+    @Test
+    fun `create - failure - throws exception when from nickname is empty`() {
+        val fromMemberId = 1L
+        val toMemberId = 2L
+        val emptyNickname = ""
+        val toMemberNickname = "receiver"
+
+        assertFailsWith<IllegalArgumentException> {
+            FriendRequestCommand(fromMemberId, emptyNickname, toMemberId, toMemberNickname)
+        }.let {
+            assertEquals(FriendRequestCommand.ERROR_FROM_MEMBER_NICKNAME_MUST_NOT_BE_EMPTY, it.message)
+        }
+    }
 }

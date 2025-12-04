@@ -9,10 +9,12 @@ import java.time.LocalDateTime
  */
 data class FollowResponse(
     val followId: Long,
+    val followingId: Long,
+    val followingProfileImageId: Long,
+    val followingNickname: String,
     val followerId: Long,
     val followerNickname: String,
-    val followingId: Long,
-    val followingNickname: String,
+    val followerProfileImageId: Long,
     val status: FollowStatus,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime,
@@ -27,8 +29,10 @@ data class FollowResponse(
                 followId = follow.requireId(),
                 followerId = follow.relationship.followerId,
                 followerNickname = follow.relationship.followerNickname,
+                followerProfileImageId = follow.relationship.followerProfileImageId,
                 followingId = follow.relationship.followingId,
                 followingNickname = follow.relationship.followingNickname,
+                followingProfileImageId = follow.relationship.followingProfileImageId,
                 status = follow.status,
                 createdAt = follow.createdAt,
                 updatedAt = follow.updatedAt

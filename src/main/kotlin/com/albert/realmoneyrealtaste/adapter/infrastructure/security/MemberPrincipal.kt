@@ -33,17 +33,16 @@ data class MemberPrincipal(
 
     companion object {
         fun from(member: Member): MemberPrincipal {
-            val introValue = member.detail.introduction?.value
             return MemberPrincipal(
                 id = member.requireId(),
                 email = member.email,
                 nickname = member.nickname,
                 roles = member.roles.getRoles(),
                 active = member.isActive(),
-                introduction = introValue ?: "아직 자기소개가 없어요!",
-                address = member.detail.address ?: "아직 주소가 없어요!",
-                createdAt = member.detail.registeredAt,
-                imageId = member.detail.imageId ?: 0L,
+                introduction = member.introduction,
+                address = member.address,
+                createdAt = member.registeredAt,
+                imageId = member.imageId,
                 followersCount = member.followersCount,
                 followingsCount = member.followingsCount,
             )

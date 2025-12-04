@@ -12,14 +12,18 @@ class FollowResponseTest {
     @Test
     fun `from - success - creates response with all follow information`() {
         val followerId = 1L
-        val followingId = 2L
         val followerNickname = "follower"
+        val followerProfileImageId = 1L
+        val followingId = 2L
         val followingNickname = "following"
+        val followingProfileImageId = 2L
         val command = FollowCreateCommand(
             followerId = followerId,
             followerNickname = followerNickname,
+            followerProfileImageId = followerProfileImageId,
             followingId = followingId,
-            followingNickname = followingNickname
+            followingNickname = followingNickname,
+            followingProfileImageId = followingProfileImageId,
         )
         val follow = Follow.create(command)
 
