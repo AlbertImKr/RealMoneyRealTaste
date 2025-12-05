@@ -237,7 +237,7 @@ class PostTest {
     fun `setter - success - for covering frameworks`() {
         val post = TestPost()
 
-        val newAuthor = Author(999L, "새로운닉네임", "새로운소개")
+        val newAuthor = Author(999L, "새로운닉네임", "새로운소개", 1L)
         post.setAuthorForTest(newAuthor)
         assertEquals(999L, post.author.memberId)
 

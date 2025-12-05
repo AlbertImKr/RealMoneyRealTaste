@@ -41,9 +41,6 @@ class MemberFragmentView(
         val member = memberReader.readMemberById(memberPrincipal.id)
 
         model.addAttribute("member", member)
-        model.addAttribute("followersCount", member.followersCount)
-        model.addAttribute("followingCount", member.followingsCount)
-        model.addAttribute("postCount", member.postCount)
 
         return MemberViews.MEMBER_PROFILE_FRAGMENT
     }

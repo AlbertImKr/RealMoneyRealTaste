@@ -8,7 +8,7 @@
     <!-- Posts 헤더 -->
     <!-- Share feed START -->
     <div class="card card-body m-3" sec:authorize="isAuthenticated()"
-         th:if="${member.id == author.id}">
+         th:if="${member.id == authorId}">
         <div class="d-flex mb-3">
             <!-- Avatar -->
             <div class="avatar avatar-xs me-2">
@@ -18,6 +18,7 @@
             </div>
             <!-- Post input -->
             <form class="w-100">
+                <form class="w-100">
                 <label class="visually-hidden" for="postInput">Create post</label>
                 <input class="form-control pe-4 border-0" data-bs-target="#modalCreateFeed"
                        data-bs-toggle="modal"
@@ -71,7 +72,7 @@
                 <p class="text-muted">첫 번째 포스트를 작성해보세요!</p>
                 <button class="btn btn-primary" data-bs-target="#modalCreateFeed" data-bs-toggle="modal"
                         sec:authorize="isAuthenticated()"
-                        th:if="member.id == author.id"
+                        th:if="member.id == authorId"
                 >
                     <i class="bi bi-plus-circle me-2"></i>포스트 작성하기
                 </button>

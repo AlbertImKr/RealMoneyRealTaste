@@ -1,6 +1,6 @@
 <th:block th:fragment="memberProfile">
     <div class="text-center">
-        <div class="avatar avatar-xs me-2">
+        <div class="avatar avatar-story me-2 m-2">
             <img alt="member profile"
                  class="avatar-img rounded-circle"
                  th:if="${member.detail.imageId != null}"
@@ -19,7 +19,7 @@
         <div class="hstack gap-2 gap-xl-3 justify-content-center">
             <!-- User stat item -->
             <div>
-                <h6 class="mb-0" th:text="${postCount != null ? postCount : 0}">
+                <h6 class="mb-0" th:text="${member.postCount}">
                     0</h6>
                 <small>Post</small>
             </div>
@@ -28,7 +28,7 @@
             <!-- User stat item -->
             <div>
                 <h6 class="mb-0"
-                    th:text="${followersCount}">
+                    th:text="${member.followersCount}">
                     0</h6>
                 <small>Followers</small>
             </div>
@@ -37,7 +37,7 @@
             <!-- User stat item -->
             <div>
                 <h6 class="mb-0"
-                    th:text="${followingCount}">
+                    th:text="${member.followingsCount}">
                     0</h6>
                 <small>Following</small>
             </div>
@@ -51,7 +51,7 @@
     <!-- Side Nav START -->
     <ul class="nav nav-link-secondary flex-column fw-bold gap-2">
         <li class="nav-item">
-            <a class="nav-link" th:href="@{/posts/mine}">
+            <a class="nav-link" th:href="@{/members/{id}(id=${member.id})}">
                 <img alt="Posts"
                      class="me-2 h-20px fa-fw"
                      src="/assets/images/icon/home-outline-filled.svg">

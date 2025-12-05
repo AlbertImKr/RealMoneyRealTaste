@@ -57,9 +57,10 @@ class Post protected constructor(
             content: PostContent,
             images: PostImages,
             authorIntroduction: String,
+            authorImageId: Long,
         ): Post {
             return Post(
-                author = Author(authorMemberId, authorNickname, authorIntroduction),
+                author = Author(authorMemberId, authorNickname, authorIntroduction, authorImageId),
                 restaurant = restaurant,
                 content = content,
                 images = images,

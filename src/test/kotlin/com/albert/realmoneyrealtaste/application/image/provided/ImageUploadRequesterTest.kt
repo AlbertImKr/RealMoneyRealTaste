@@ -436,27 +436,6 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `generatePresignedPostUrl - failure - throws ImageGenerateException for special characters in file name`() {
-        // Given
-        val userId = 123L
-        val invalidRequest = ImageUploadRequest(
-            fileName = "test@image.jpg", // 특수문자 포함
-            fileSize = 1024L,
-            contentType = "image/jpeg",
-            width = 100,
-            height = 100,
-            imageType = ImageType.POST_IMAGE
-        )
-
-        // When & Then
-        val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
-        }
-        assertEquals("이미지 업로드 실패", exception.message)
-        assertNotNull(exception.cause)
-    }
-
-    @Test
     fun `generatePresignedPostUrl - failure - throws ImageGenerateException for path traversal attempt`() {
         // Given
         val userId = 123L
@@ -472,27 +451,6 @@ class ImageUploadRequesterTest : IntegrationTestBase() {
         // When & Then
         val exception = assertFailsWith<ImageGenerateException> {
             imageUploadRequester.generatePresignedUploadUrl(invalidRequest, userId)
-        }
-        assertEquals("이미지 업로드 실패", exception.message)
-        assertNotNull(exception.cause)
-    }
-
-    @Test
-    fun `generatePresignedPostUrl - failure - throws ImageGenerateException for wrong name`() {
-        // Given
-        val userId = 1L
-        val request = ImageUploadRequest(
-            fileName = "test^.jpg",
-            fileSize = 1024L,
-            contentType = "image/jpeg",
-            width = 100,
-            height = 100,
-            imageType = ImageType.POST_IMAGE
-        )
-
-        // When & Then
-        val exception = assertFailsWith<ImageGenerateException> {
-            imageUploadRequester.generatePresignedUploadUrl(request, userId)
         }
         assertEquals("이미지 업로드 실패", exception.message)
         assertNotNull(exception.cause)

@@ -5,7 +5,6 @@ import com.albert.realmoneyrealtaste.domain.post.value.Author
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
 import com.albert.realmoneyrealtaste.domain.post.value.Restaurant
-import java.lang.reflect.Field
 
 class PostFixture {
 
@@ -26,7 +25,8 @@ class PostFixture {
         val DEFAULT_AUTHOR = Author(
             memberId = DEFAULT_AUTHOR_MEMBER_ID,
             nickname = DEFAULT_AUTHOR_NICKNAME,
-            introduction = DEFAULT_AUTHOR_INTRODUCTION
+            introduction = DEFAULT_AUTHOR_INTRODUCTION,
+            imageId = 1L
         )
 
         val DEFAULT_RESTAURANT = Restaurant(
@@ -65,7 +65,8 @@ class PostFixture {
                 authorIntroduction = DEFAULT_AUTHOR_INTRODUCTION,
                 restaurant = restaurant,
                 content = content,
-                images = images
+                images = images,
+                authorImageId = 1L
             )
         }
 
@@ -81,23 +82,6 @@ class PostFixture {
          */
         fun createPostWithoutImages(): Post {
             return createPost(images = PostImages.empty())
-        }
-
-        /**
-         * 특정 평점의 Post 생성
-         */
-        fun createPostWithRating(rating: Int): Post {
-            val content = PostContent(DEFAULT_CONTENT_TEXT, rating)
-            return createPost(content = content)
-        }
-
-        /**
-         * ID를 설정하는 헬퍼 메서드 (테스트용)
-         */
-        fun setId(post: Post, id: Long) {
-            val idField: Field = post.javaClass.superclass.getDeclaredField("id")
-            idField.isAccessible = true
-            idField.set(post, id)
         }
     }
 }

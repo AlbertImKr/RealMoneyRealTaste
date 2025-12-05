@@ -34,6 +34,7 @@ class PostCreationService(
                 request.content,
                 request.images,
                 member.detail.introduction?.value ?: "",
+                member.imageId
             )
 
             val savedPost = postRepository.save(post)

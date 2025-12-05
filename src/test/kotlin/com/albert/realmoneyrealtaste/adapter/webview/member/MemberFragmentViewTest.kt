@@ -49,8 +49,5 @@ class MemberFragmentViewTest : IntegrationTestBase() {
             .andExpect(status().isOk)
             .andExpect(view().name(MemberViews.MEMBER_PROFILE_FRAGMENT))
             .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("followersCount"))
-            .andExpect(model().attributeExists("followingCount"))
-            .andExpect(model().attributeExists("postCount"))
     }
 }

@@ -569,34 +569,6 @@ class PostViewTest : IntegrationTestBase() {
     }
 
     @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
-    fun `readMyPosts - success - returns my posts list view with posts and member info`() {
-        val member = testMemberHelper.getDefaultMember()
-        postRepository.save(
-            PostFixture.createPost(
-                authorMemberId = member.requireId(),
-                authorNickname = member.nickname.value
-            )
-        )
-        postRepository.save(
-            PostFixture.createPost(
-                authorMemberId = member.requireId(),
-                authorNickname = member.nickname.value
-            )
-        )
-
-        mockMvc.perform(
-            get("/posts/mine")
-        )
-            .andExpect(status().isOk)
-            .andExpect(view().name(PostViews.MY_LIST))
-            .andExpect(model().attributeExists("posts"))
-            .andExpect(model().attributeExists("author"))
-            .andExpect(model().attributeExists("member"))
-            .andExpect(model().attributeExists("postCreateForm"))
-    }
-
-    @Test
     fun `readMyPosts - failure - returns forbidden when not authenticated`() {
         mockMvc.perform(
             get("/posts/mine")
@@ -661,40 +633,6 @@ class PostViewTest : IntegrationTestBase() {
             get("/members/{id}/posts/fragment", 99999L)
         )
             .andExpect(status().isOk)
-    }
-
-    @Test
-    @WithMockMember(email = MemberFixture.DEFAULT_USERNAME)
-    fun `readMyPostsFragment - success - returns my posts fragment with posts and member info`() {
-        val member = testMemberHelper.getDefaultMember()
-        postRepository.save(
-            PostFixture.createPost(
-                authorMemberId = member.requireId(),
-                authorNickname = member.nickname.value
-            )
-        )
-        postRepository.save(
-            PostFixture.createPost(
-                authorMemberId = member.requireId(),
-                authorNickname = member.nickname.value
-            )
-        )
-
-        mockMvc.perform(
-            get("/posts/mine/fragment")
-        )
-            .andExpect(status().isOk)
-            .andExpect(view().name(PostViews.POSTS_CONTENT))
-            .andExpect(model().attributeExists("posts"))
-            .andExpect(model().attributeExists("member"))
-    }
-
-    @Test
-    fun `readMyPostsFragment - failure - returns forbidden when not authenticated`() {
-        mockMvc.perform(
-            get("/posts/mine/fragment")
-        )
-            .andExpect(status().isForbidden)
     }
 
     @Test
