@@ -479,7 +479,7 @@ class FriendResponderTest(
         )
 
         val friendship = friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
-        friendship.status = FriendshipStatus.ACCEPTED
+        friendship.accept()
 
         // 친구 관계를 UNFRIENDED 상태로 변경
         friendship.unfriend()

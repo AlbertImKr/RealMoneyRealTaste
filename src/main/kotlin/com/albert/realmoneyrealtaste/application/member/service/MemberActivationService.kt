@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
-import com.albert.realmoneyrealtaste.application.member.event.ResendActivationEmailEvent
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
+import com.albert.realmoneyrealtaste.application.member.event.EmailSendRequestedEvent.ActivationEmail
 import com.albert.realmoneyrealtaste.application.member.exception.MemberActivateException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberResendActivationEmailException
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenDeleter
@@ -21,6 +22,7 @@ class MemberActivationService(
     private val activationTokenReader: ActivationTokenReader,
     private val activationTokenDeleter: ActivationTokenDeleter,
     private val memberReader: MemberReader,
+    private val domainEventPublisher: DomainEventPublisher,
     private val eventPublisher: ApplicationEventPublisher,
     private val activationTokenGenerator: ActivationTokenGenerator,
 ) : MemberActivate {
@@ -44,6 +46,9 @@ class MemberActivationService(
 
             activationTokenDeleter.delete(activationToken)
 
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(member)
+
             return member
         } catch (e: IllegalArgumentException) {
             throw MemberActivateException(ERROR_MEMBER_ACTIVATE_FAILED)
@@ -58,24 +63,25 @@ class MemberActivationService(
 
             val newToken = activationTokenGenerator.generate(member.requireId())
 
-            publishResendActivationEmailEvent(member, newToken)
+            // 애플리케이션 이벤트 직접 발행 (도메인 이벤트 없이)
+            publishActivationEmailEvent(member, newToken)
         } catch (e: IllegalArgumentException) {
             throw MemberResendActivationEmailException(ERROR_ACTIVATION_TOKEN_RESEND_EMAIL_FAILED)
         }
     }
 
     /**
-     * 인증 이메일 재전송 이벤트 발행
+     * 활성화 이메일 발송 이벤트 발행
      *
      * @param member 회원
      * @param newToken 새로 생성된 활성화 토큰
      */
-    private fun publishResendActivationEmailEvent(
+    private fun publishActivationEmailEvent(
         member: Member,
         newToken: ActivationToken,
     ) {
         eventPublisher.publishEvent(
-            ResendActivationEmailEvent(
+            ActivationEmail(
                 email = member.email,
                 nickname = member.nickname,
                 activationToken = newToken

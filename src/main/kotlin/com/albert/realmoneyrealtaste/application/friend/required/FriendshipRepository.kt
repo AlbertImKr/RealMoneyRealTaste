@@ -179,4 +179,17 @@ interface FriendshipRepository : Repository<Friendship, Long> {
         friendMemberId: Long,
         statusList: List<FriendshipStatus>,
     ): Boolean
+
+    /**
+     * 특정 회원과 관련된 모든 활성 친구 관계를 조회합니다.
+     * (회원이 요청자이거나 수신자인 모든 관계)
+     */
+    @Query(
+        """
+        SELECT f FROM Friendship f
+        WHERE (f.relationShip.memberId = :memberId OR f.relationShip.friendMemberId = :memberId)
+        AND f.status = 'ACCEPTED'
+        """
+    )
+    fun findAllActiveByMemberId(memberId: Long): List<Friendship>
 }

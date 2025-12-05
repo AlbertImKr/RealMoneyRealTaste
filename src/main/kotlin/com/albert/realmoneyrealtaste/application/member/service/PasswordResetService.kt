@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
-import com.albert.realmoneyrealtaste.application.member.event.PasswordResetRequestedEvent
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
+import com.albert.realmoneyrealtaste.application.member.event.EmailSendRequestedEvent.PasswordResetEmail
 import com.albert.realmoneyrealtaste.application.member.exception.ExpiredPasswordResetTokenException
 import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
 import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
@@ -29,6 +30,7 @@ class PasswordResetService(
     private val passwordRestTokenDeleter: PasswordResetTokenDeleter,
     private val passwordEncoder: PasswordEncoder,
     private val entityManager: EntityManager,
+    private val domainEventPublisher: DomainEventPublisher,
     private val eventPublisher: ApplicationEventPublisher,
 ) : PasswordResetter {
 
@@ -46,7 +48,8 @@ class PasswordResetService(
 
             val token = passwordRestTokenGenerator.generate(member.requireId())
 
-            publishPasswordResetRequestedEvent(member, token)
+            // 애플리케이션 이벤트 직접 발행 (도메인 이벤트 없이)
+            publishPasswordResetEmailEvent(member, token)
         } catch (e: IllegalArgumentException) {
             throw SendPasswordResetEmailException(ERROR_SENDING_PASSWORD_RESET_EMAIL)
         }
@@ -60,6 +63,9 @@ class PasswordResetService(
             val member = memberReader.readMemberById(resetToken.memberId)
 
             member.changePassword(PasswordHash.of(newPassword, passwordEncoder))
+
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(member)
 
             deleteToken(resetToken)
         } catch (e: IllegalArgumentException) {
@@ -80,17 +86,17 @@ class PasswordResetService(
     }
 
     /**
-     * 비밀번호 재설정 요청 이벤트를 발행합니다.
+     * 비밀번호 재설정 이메일 발송 이벤트를 발행합니다.
      *
      * @param member 회원
      * @param token 비밀번호 재설정 토큰
      */
-    private fun publishPasswordResetRequestedEvent(member: Member, token: PasswordResetToken) {
+    private fun publishPasswordResetEmailEvent(member: Member, token: PasswordResetToken) {
         eventPublisher.publishEvent(
-            PasswordResetRequestedEvent(
+            PasswordResetEmail(
                 email = member.email,
                 nickname = member.nickname,
-                token = token,
+                passwordResetToken = token
             )
         )
     }

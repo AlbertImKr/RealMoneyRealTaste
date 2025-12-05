@@ -1,7 +1,11 @@
 package com.albert.realmoneyrealtaste.domain.comment
 
+import com.albert.realmoneyrealtaste.domain.comment.event.CommentCreatedEvent
+import com.albert.realmoneyrealtaste.domain.comment.event.CommentDeletedEvent
+import com.albert.realmoneyrealtaste.domain.comment.event.CommentUpdatedEvent
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentAuthor
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
+import com.albert.realmoneyrealtaste.domain.common.AggregateRoot
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
@@ -10,6 +14,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Index
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import java.time.LocalDateTime
 
 @Entity
@@ -32,7 +37,7 @@ class Comment protected constructor(
     repliesCount: Long,
     createdAt: LocalDateTime,
     updatedAt: LocalDateTime,
-) : BaseEntity() {
+) : BaseEntity(), AggregateRoot {
 
     companion object {
         const val ERROR_POST_ID_MUST_BE_POSITIVE = "게시글 ID는 양수여야 합니다: %d"
@@ -65,7 +70,7 @@ class Comment protected constructor(
                 )
             }
 
-            return Comment(
+            val comment = Comment(
                 postId = postId,
                 author = CommentAuthor(authorMemberId, authorNickname),
                 content = content,
@@ -75,6 +80,19 @@ class Comment protected constructor(
                 updatedAt = LocalDateTime.now(),
                 repliesCount = 0,
             )
+
+            // 도메인 이벤트 발행
+            comment.addDomainEvent(
+                CommentCreatedEvent(
+                    commentId = 0L, // drainDomainEvents에서 실제 ID로 설정
+                    postId = postId,
+                    authorMemberId = authorMemberId,
+                    parentCommentId = parentCommentId,
+                    createdAt = comment.createdAt
+                )
+            )
+
+            return comment
         }
     }
 
@@ -123,6 +141,16 @@ class Comment protected constructor(
         ensurePublished()
         this.content = content
         this.updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            CommentUpdatedEvent(
+                commentId = requireId(),
+                postId = postId,
+                authorMemberId = author.memberId,
+                updatedAt = updatedAt,
+            )
+        )
     }
 
     /**
@@ -136,6 +164,17 @@ class Comment protected constructor(
         ensurePublished()
         this.status = CommentStatus.DELETED
         this.updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            CommentDeletedEvent(
+                commentId = requireId(),
+                parentCommentId = parentCommentId,
+                postId = postId,
+                authorMemberId = author.memberId,
+                deletedAt = updatedAt,
+            )
+        )
     }
 
     /**
@@ -176,4 +215,33 @@ class Comment protected constructor(
      * 삭제된 댓글인지 확인합니다.
      */
     fun isDeleted(): Boolean = status == CommentStatus.DELETED
+
+    @Transient
+    private var domainEvents: MutableList<Any> = mutableListOf()
+
+    /**
+     * 도메인 이벤트 추가
+     */
+    private fun addDomainEvent(event: Any) {
+        domainEvents.add(event)
+    }
+
+    /**
+     * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
+     */
+    override fun drainDomainEvents(): List<Any> {
+        val events = domainEvents.toList()
+        domainEvents.clear()
+
+        // 이벤트의 commentId를 실제 ID로 설정
+        val actualId = this.requireId()
+        return events.map { event ->
+            when (event) {
+                is CommentCreatedEvent -> event.copy(commentId = actualId)
+                is CommentUpdatedEvent -> event.copy(commentId = actualId)
+                is CommentDeletedEvent -> event.copy(commentId = actualId)
+                else -> event
+            }
+        }
+    }
 }

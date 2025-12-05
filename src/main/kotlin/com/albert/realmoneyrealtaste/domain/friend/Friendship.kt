@@ -1,7 +1,12 @@
 package com.albert.realmoneyrealtaste.domain.friend
 
+import com.albert.realmoneyrealtaste.domain.common.AggregateRoot
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
+import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
+import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestRejectedEvent
+import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestSentEvent
+import com.albert.realmoneyrealtaste.domain.friend.event.FriendshipTerminatedEvent
 import com.albert.realmoneyrealtaste.domain.friend.value.FriendRelationship
 import jakarta.persistence.Column
 import jakarta.persistence.Embedded
@@ -10,6 +15,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Index
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import jakarta.persistence.UniqueConstraint
 import java.time.LocalDateTime
 
@@ -37,19 +43,14 @@ import java.time.LocalDateTime
     ]
 )
 class Friendship protected constructor(
-    @Embedded
-    val relationShip: FriendRelationship,
+    relationShip: FriendRelationship,
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20, nullable = false)
-    var status: FriendshipStatus,
+    status: FriendshipStatus,
 
-    @Column(nullable = false)
-    val createdAt: LocalDateTime,
+    createdAt: LocalDateTime,
 
-    @Column(nullable = false)
-    var updatedAt: LocalDateTime,
-) : BaseEntity() {
+    updatedAt: LocalDateTime,
+) : BaseEntity(), AggregateRoot {
 
     companion object {
         const val ERROR_ONLY_PENDING_REQUESTS_CAN_BE_ACCEPTED = "대기 중인 친구 요청만 수락할 수 있습니다"
@@ -66,13 +67,63 @@ class Friendship protected constructor(
             require(requestCommand.fromMemberId != requestCommand.toMemberId) { ERROR_CANNOT_SEND_REQUEST_TO_SELF }
 
             val now = LocalDateTime.now()
-            return Friendship(
+            val friendship = Friendship(
                 relationShip = FriendRelationship.of(requestCommand),
                 status = FriendshipStatus.PENDING,
                 createdAt = now,
                 updatedAt = now
             )
+
+            // 도메인 이벤트 발행
+            friendship.addDomainEvent(
+                FriendRequestSentEvent(
+                    friendshipId = 0L, // drainDomainEvents에서 실제 ID로 설정
+                    fromMemberId = requestCommand.fromMemberId,
+                    toMemberId = requestCommand.toMemberId
+                )
+            )
+
+            return friendship
         }
+    }
+
+    @Embedded
+    var relationShip: FriendRelationship = relationShip
+        protected set
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    var status: FriendshipStatus = status
+        protected set
+
+    @Column(nullable = false)
+    var createdAt: LocalDateTime = createdAt
+        protected set
+
+    @Column(nullable = false)
+    var updatedAt: LocalDateTime = updatedAt
+        protected set
+
+    /**
+     * 다시 친구 요청
+     *
+     * @throws IllegalArgumentException  친구 요청을 다시 보낼 수 없는 상태인 경우
+     */
+    fun rePending() {
+        require(status == FriendshipStatus.UNFRIENDED || status == FriendshipStatus.REJECTED) {
+            "친구 요청을 다시 보낼 수 없는 상태입니다. 현재 상태: $status"
+        }
+        status = FriendshipStatus.PENDING
+        updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            FriendRequestSentEvent(
+                friendshipId = requireId(),
+                fromMemberId = relationShip.memberId,
+                toMemberId = relationShip.friendMemberId
+            )
+        )
     }
 
     /**
@@ -84,6 +135,15 @@ class Friendship protected constructor(
         require(status == FriendshipStatus.PENDING) { ERROR_ONLY_PENDING_REQUESTS_CAN_BE_ACCEPTED }
         status = FriendshipStatus.ACCEPTED
         updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            FriendRequestAcceptedEvent(
+                friendshipId = requireId(),
+                fromMemberId = relationShip.memberId,
+                toMemberId = relationShip.friendMemberId
+            )
+        )
     }
 
     /**
@@ -95,6 +155,15 @@ class Friendship protected constructor(
         require(status == FriendshipStatus.PENDING) { ERROR_ONLY_PENDING_REQUESTS_CAN_BE_REJECTED }
         status = FriendshipStatus.REJECTED
         updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            FriendRequestRejectedEvent(
+                friendshipId = requireId(),
+                fromMemberId = relationShip.memberId,
+                toMemberId = relationShip.friendMemberId
+            )
+        )
     }
 
     /**
@@ -106,6 +175,14 @@ class Friendship protected constructor(
         require(status == FriendshipStatus.ACCEPTED) { ERROR_ONLY_FRIENDS_CAN_UNFRIEND }
         status = FriendshipStatus.UNFRIENDED
         updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            FriendshipTerminatedEvent(
+                memberId = relationShip.memberId,
+                friendMemberId = relationShip.friendMemberId
+            )
+        )
     }
 
     /**
@@ -123,5 +200,57 @@ class Friendship protected constructor(
      */
     fun isRelatedTo(memberId: Long): Boolean {
         return relationShip.memberId == memberId || relationShip.friendMemberId == memberId
+    }
+
+    /**
+     * 회원 정보를 업데이트합니다 (크로스 도메인 이벤트 처리용)
+     *
+     * @param memberId 업데이트할 회원 ID
+     * @param nickname 새 닉네임 (null이면 업데이트하지 않음)
+     * @param imageId 새 이미지 ID (null이면 업데이트하지 않음)
+     */
+    fun updateMemberInfo(memberId: Long, nickname: String?, imageId: Long?) {
+        if (relationShip.memberId == memberId) {
+            // 요청자 정보 업데이트
+            nickname?.let { relationShip = relationShip.copy(memberNickname = it) }
+            imageId?.let { relationShip = relationShip.copy(memberProfileImageId = it) }
+        } else if (relationShip.friendMemberId == memberId) {
+            // 친구 정보 업데이트
+            nickname?.let { relationShip = relationShip.copy(friendNickname = it) }
+            imageId?.let { relationShip = relationShip.copy(friendProfileImageId = it) }
+        }
+
+        if (nickname != null || imageId != null) {
+            updatedAt = LocalDateTime.now()
+        }
+    }
+
+    @Transient
+    private var domainEvents: MutableList<Any> = mutableListOf()
+
+    /**
+     * 도메인 이벤트 추가
+     */
+    private fun addDomainEvent(event: Any) {
+        domainEvents.add(event)
+    }
+
+    /**
+     * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
+     */
+    override fun drainDomainEvents(): List<Any> {
+        val events = domainEvents.toList()
+        domainEvents.clear()
+
+        // 이벤트의 friendshipId를 실제 ID로 설정
+        val actualId = this.requireId()
+        return events.map { event ->
+            when (event) {
+                is FriendRequestSentEvent -> event.copy(friendshipId = actualId)
+                is FriendRequestAcceptedEvent -> event.copy(friendshipId = actualId)
+                is FriendRequestRejectedEvent -> event.copy(friendshipId = actualId)
+                else -> event
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.member.dto.AccountUpdateRequest
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateProfileAddressException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberDeactivateException
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service
 class MemberUpdateService(
     private val memberReader: MemberReader,
     private val passwordEncoder: PasswordEncoder,
+    private val domainEventPublisher: DomainEventPublisher,
 ) : MemberUpdater {
 
     companion object {
@@ -49,6 +51,9 @@ class MemberUpdateService(
                 imageId = request.imageId,
             )
 
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(member)
+
             return member
         } catch (e: IllegalArgumentException) {
             throw MemberUpdateException(ERROR_MEMBER_INFO_UPDATE)
@@ -65,6 +70,9 @@ class MemberUpdateService(
 
             member.changePassword(currentPassword, newPassword, passwordEncoder)
 
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(member)
+
             return member
         } catch (e: IllegalArgumentException) {
             throw PasswordChangeException(ERROR_PASSWORD_UPDATE)
@@ -76,6 +84,9 @@ class MemberUpdateService(
             val member = memberReader.readMemberById(memberId)
 
             member.deactivate()
+
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(member)
 
             return member
         } catch (e: IllegalArgumentException) {

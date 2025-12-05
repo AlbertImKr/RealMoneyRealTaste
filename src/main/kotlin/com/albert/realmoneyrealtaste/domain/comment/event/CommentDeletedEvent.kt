@@ -7,6 +7,7 @@ import java.time.LocalDateTime
  */
 data class CommentDeletedEvent(
     val commentId: Long,
+    val parentCommentId: Long?,
     val postId: Long,
     val authorMemberId: Long,
     val deletedAt: LocalDateTime,

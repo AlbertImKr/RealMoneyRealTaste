@@ -15,11 +15,17 @@ data class FriendRelationship(
     @Column(name = "member_nickname", length = 50)
     val memberNickname: String,
 
+    @Column(name = "image_id", nullable = false)
+    val memberProfileImageId: Long,
+
     @Column(name = "friend_member_id", nullable = false)
     val friendMemberId: Long,
 
     @Column(name = "friend_nickname", length = 50)
     val friendNickname: String,
+
+    @Column(name = "friend_image_id", nullable = false)
+    val friendProfileImageId: Long,
 ) {
     companion object {
         const val ERROR_MEMBER_ID_MUST_BE_POSITIVE = "회원 ID는 양수여야 합니다"
@@ -29,9 +35,11 @@ data class FriendRelationship(
         fun of(friendRequestCommand: FriendRequestCommand): FriendRelationship {
             return FriendRelationship(
                 memberId = friendRequestCommand.fromMemberId,
-                memberNickname = friendRequestCommand.fromMemberNickName,
+                memberNickname = friendRequestCommand.fromMemberNickname,
+                memberProfileImageId = friendRequestCommand.fromMemberProfileImageId,
                 friendMemberId = friendRequestCommand.toMemberId,
                 friendNickname = friendRequestCommand.toMemberNickname,
+                friendProfileImageId = friendRequestCommand.toMemberProfileImageId,
             )
         }
     }

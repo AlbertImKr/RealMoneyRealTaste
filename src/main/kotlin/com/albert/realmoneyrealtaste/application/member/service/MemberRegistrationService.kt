@@ -1,17 +1,15 @@
 package com.albert.realmoneyrealtaste.application.member.service
 
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.member.dto.MemberRegisterRequest
-import com.albert.realmoneyrealtaste.application.member.event.MemberRegisteredEvent
 import com.albert.realmoneyrealtaste.application.member.exception.DuplicateEmailException
 import com.albert.realmoneyrealtaste.application.member.exception.MemberRegisterException
-import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberRegister
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
 import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.PasswordHash
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -20,8 +18,7 @@ import org.springframework.transaction.annotation.Transactional
 class MemberRegistrationService(
     private val passwordEncoder: PasswordEncoder,
     private val memberRepository: MemberRepository,
-    private val eventPublisher: ApplicationEventPublisher,
-    private val activationTokenGenerator: ActivationTokenGenerator,
+    private val domainEventPublisher: DomainEventPublisher,
     private val memberReader: MemberReader,
 ) : MemberRegister {
 
@@ -40,7 +37,8 @@ class MemberRegistrationService(
 
             val savedMember = memberRepository.save(member)
 
-            publishMemberRegisteredEvent(savedMember)
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(savedMember)
 
             return savedMember
         } catch (e: IllegalArgumentException) {
@@ -60,21 +58,5 @@ class MemberRegistrationService(
                 throw DuplicateEmailException("$ERROR_MEMBER_DUPLICATE_EMAIL: ${request.email.address}")
             }
         }
-    }
-
-    /**
-     * 회원 등록 이벤트를 발행합니다.
-     *
-     * @param member 등록된 회원
-     */
-    private fun publishMemberRegisteredEvent(member: Member) {
-        val activationToken = activationTokenGenerator.generate(member.requireId())
-        eventPublisher.publishEvent(
-            MemberRegisteredEvent(
-                email = member.email,
-                nickname = member.nickname,
-                activationToken = activationToken,
-            )
-        )
     }
 }

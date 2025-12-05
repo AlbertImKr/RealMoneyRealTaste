@@ -594,7 +594,7 @@ class MemberTest {
     fun `imageId - success - returns 1L when detail imageId is null`() {
         val member = createMember()
 
-        assertEquals(1L, member.imageId)
+        assertEquals(1L, member.profileImageId)
     }
 
     @Test
@@ -603,7 +603,7 @@ class MemberTest {
         val testImageId = 123L
         member.detail.updateInfo(null, null, null, testImageId)
 
-        assertEquals(testImageId, member.imageId)
+        assertEquals(testImageId, member.profileImageId)
     }
 
     @Test
@@ -685,7 +685,7 @@ class MemberTest {
         member.updateInfo(address = newAddress, imageId = newImageId)
 
         assertEquals(newAddress, member.address)
-        assertEquals(newImageId, member.imageId)
+        assertEquals(newImageId, member.profileImageId)
         assertTrue(beforeUpdateAt < member.updatedAt)
     }
 

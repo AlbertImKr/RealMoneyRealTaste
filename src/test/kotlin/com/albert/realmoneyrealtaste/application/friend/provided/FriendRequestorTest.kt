@@ -162,7 +162,14 @@ class FriendRequestorTest(
         )
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(member.requireId(), member.nickname.value, member.requireId(), member.nickname.value)
+            FriendRequestCommand(
+                member.requireId(),
+                member.nickname.value,
+                member.profileImageId,
+                member.requireId(),
+                member.nickname.value,
+                member.profileImageId,
+            )
         }
     }
 
@@ -303,7 +310,14 @@ class FriendRequestorTest(
         )
 
         assertFailsWith<IllegalArgumentException> {
-            FriendRequestCommand(member.requireId(), member.nickname.value, member.requireId(), member.nickname.value)
+            FriendRequestCommand(
+                member.requireId(),
+                member.nickname.value,
+                member.profileImageId,
+                member.requireId(),
+                member.nickname.value,
+                member.profileImageId,
+            )
         }
     }
 
@@ -327,8 +341,10 @@ class FriendRequestorTest(
         val secondCommand = FriendRequestCommand(
             member1.requireId(),
             member1.nickname.value,
+            member1.profileImageId,
             member2.requireId(),
-            member2.nickname.value
+            member2.nickname.value,
+            member2.profileImageId,
         )
         val result = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
 

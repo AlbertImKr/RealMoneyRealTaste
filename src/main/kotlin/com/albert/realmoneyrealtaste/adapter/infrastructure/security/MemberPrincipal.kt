@@ -42,7 +42,7 @@ data class MemberPrincipal(
                 introduction = member.introduction,
                 address = member.address,
                 createdAt = member.registeredAt,
-                imageId = member.imageId,
+                imageId = member.profileImageId,
                 followersCount = member.followersCount,
                 followingsCount = member.followingsCount,
             )

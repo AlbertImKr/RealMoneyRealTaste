@@ -1,16 +1,14 @@
 package com.albert.realmoneyrealtaste.application.friend.service
 
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.friend.exception.FriendRequestException
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendRequestor
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
-import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
-import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestSentEvent
 import jakarta.transaction.Transactional
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 
 @Service
@@ -18,7 +16,7 @@ import org.springframework.stereotype.Service
 class FriendRequestService(
     private val friendshipReader: FriendshipReader,
     private val memberReader: MemberReader,
-    private val eventPublisher: ApplicationEventPublisher,
+    private val domainEventPublisher: DomainEventPublisher,
     private val friendshipRepository: FriendshipRepository,
 ) : FriendRequestor {
 
@@ -33,9 +31,11 @@ class FriendRequestService(
 
             val command = FriendRequestCommand(
                 fromMemberId = fromMemberId,
-                fromMemberNickName = fromMember.nickname.value,
+                fromMemberNickname = fromMember.nickname.value,
+                fromMemberProfileImageId = fromMember.profileImageId,
                 toMemberId = toMemberId,
-                toMemberNickname = toMember.nickname.value
+                toMemberNickname = toMember.nickname.value,
+                toMemberProfileImageId = toMember.profileImageId,
             )
             // 요청자와 대상자가 모두 활성 회원인지 확인
             validateMembersExist(command)
@@ -44,19 +44,20 @@ class FriendRequestService(
             val existingFriendship = friendshipReader.findByMembersId(command.fromMemberId, command.toMemberId)
 
             if (existingFriendship != null) {
-                existingFriendship.status = FriendshipStatus.PENDING
-                publishEvent(existingFriendship, command)
+                existingFriendship.rePending()
+                // 도메인 이벤트 발행
+                domainEventPublisher.publishFrom(existingFriendship)
                 return existingFriendship
             }
 
             // 친구 요청 생성
             val friendship = Friendship.request(command)
-            friendshipRepository.save(friendship)
+            val savedFriendship = friendshipRepository.save(friendship)
 
-            // 이벤트 발행 (알림 등을 위해)
-            publishEvent(friendship, command)
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(savedFriendship)
 
-            return friendship
+            return savedFriendship
         } catch (e: IllegalArgumentException) {
             throw FriendRequestException(ERROR_FRIEND_REQUEST_FAILED, e)
         }
@@ -65,18 +66,5 @@ class FriendRequestService(
     private fun validateMembersExist(command: FriendRequestCommand) {
         memberReader.readActiveMemberById(command.fromMemberId)
         memberReader.readActiveMemberById(command.toMemberId)
-    }
-
-    private fun publishEvent(
-        friendship: Friendship,
-        command: FriendRequestCommand,
-    ) {
-        eventPublisher.publishEvent(
-            FriendRequestSentEvent(
-                friendshipId = friendship.requireId(),
-                fromMemberId = command.fromMemberId,
-                toMemberId = command.toMemberId
-            )
-        )
     }
 }

@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.application.post.service
 
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.post.dto.PostUpdateRequest
 import com.albert.realmoneyrealtaste.application.post.exception.PostDeleteException
 import com.albert.realmoneyrealtaste.application.post.exception.PostUpdateException
@@ -7,8 +8,6 @@ import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostUpdater
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.post.Post
-import com.albert.realmoneyrealtaste.domain.post.event.PostDeletedEvent
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class PostUpdateService(
     private val postRepository: PostRepository,
-    private val eventPublisher: ApplicationEventPublisher,
+    private val domainEventPublisher: DomainEventPublisher,
     private val postReader: PostReader,
 ) : PostUpdater {
 
@@ -43,7 +42,8 @@ class PostUpdateService(
 
             post.delete(memberId)
 
-            publishPostDeletedEvent(postId, memberId)
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(post)
         } catch (e: IllegalArgumentException) {
             throw PostDeleteException(ERROR_POST_DELETE.format(postId, memberId), e)
         }
@@ -59,20 +59,5 @@ class PostUpdateService(
 
     override fun incrementViewCount(postId: Long) {
         postRepository.incrementViewCount(postId)
-    }
-
-    /**
-     * 게시글 삭제 이벤트를 발행합니다.
-     *
-     * @param postId 게시글 ID
-     * @param memberId 회원 ID
-     */
-    private fun publishPostDeletedEvent(postId: Long, memberId: Long) {
-        eventPublisher.publishEvent(
-            PostDeletedEvent(
-                postId = postId,
-                authorMemberId = memberId
-            )
-        )
     }
 }

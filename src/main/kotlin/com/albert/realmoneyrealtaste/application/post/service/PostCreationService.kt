@@ -1,13 +1,12 @@
 package com.albert.realmoneyrealtaste.application.post.service
 
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.dto.PostCreateRequest
 import com.albert.realmoneyrealtaste.application.post.exception.PostCreateException
 import com.albert.realmoneyrealtaste.application.post.provided.PostCreator
 import com.albert.realmoneyrealtaste.application.post.required.PostRepository
 import com.albert.realmoneyrealtaste.domain.post.Post
-import com.albert.realmoneyrealtaste.domain.post.event.PostCreatedEvent
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class PostCreationService(
     private val postRepository: PostRepository,
     private val memberReader: MemberReader,
-    private val eventPublisher: ApplicationEventPublisher,
+    private val domainEventPublisher: DomainEventPublisher,
 ) : PostCreator {
 
     companion object {
@@ -34,25 +33,17 @@ class PostCreationService(
                 request.content,
                 request.images,
                 member.detail.introduction?.value ?: "",
-                member.imageId
+                member.profileImageId
             )
 
             val savedPost = postRepository.save(post)
 
-            publishPostCreatedEvent(savedPost)
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(savedPost)
 
             return savedPost
         } catch (e: IllegalArgumentException) {
             throw PostCreateException(ERROR_POST_CREATE, e)
         }
-    }
-
-    /**
-     * 게시글 생성 이벤트를 발행합니다.
-     *
-     * @param post 생성된 게시글
-     */
-    private fun publishPostCreatedEvent(post: Post) {
-        eventPublisher.publishEvent(PostCreatedEvent(post.requireId(), post.author.memberId, post.restaurant.name))
     }
 }

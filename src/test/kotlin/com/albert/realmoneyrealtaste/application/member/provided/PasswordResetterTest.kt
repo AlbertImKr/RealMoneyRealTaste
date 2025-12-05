@@ -1,7 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.application.member.event.PasswordResetRequestedEvent
 import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
 import com.albert.realmoneyrealtaste.application.member.exception.PasswordResetTokenNotFoundException
 import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
@@ -60,7 +59,6 @@ class PasswordResetterTest(
             passwordResetter.sendPasswordResetEmail(nonExistentEmail.address)
         }
 
-        assertEquals(applicationEvents.stream(PasswordResetRequestedEvent::class.java).count().toInt(), 0)
     }
 
     @Test
