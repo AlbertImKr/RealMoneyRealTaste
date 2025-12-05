@@ -1,19 +1,13 @@
 package com.albert.realmoneyrealtaste.application.member.listener
 
-import com.albert.realmoneyrealtaste.application.event.MemberEventService
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.application.member.event.EmailSendRequestedEvent
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
-import com.albert.realmoneyrealtaste.domain.event.MemberEventType
 import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendshipTerminatedEvent
-import com.albert.realmoneyrealtaste.domain.member.event.MemberActivatedDomainEvent
-import com.albert.realmoneyrealtaste.domain.member.event.MemberDeactivatedDomainEvent
-import com.albert.realmoneyrealtaste.domain.member.event.MemberProfileUpdatedDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.event.MemberRegisteredDomainEvent
-import com.albert.realmoneyrealtaste.domain.member.event.PasswordChangedDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
 import com.albert.realmoneyrealtaste.domain.post.event.PostCreatedEvent
@@ -35,7 +29,6 @@ class MemberDomainEventListener(
     private val eventPublisher: ApplicationEventPublisher,
     private val memberRepository: MemberRepository,
     private val friendshipRepository: FriendshipRepository,
-    private val memberEventService: MemberEventService,
 ) {
 
     /**
@@ -121,68 +114,6 @@ class MemberDomainEventListener(
                 nickname = Nickname(event.nickname),
                 activationToken = activationToken
             )
-        )
-    }
-
-    /**
-     * 회원 활성화 도메인 이벤트 처리
-     * - 활성화 완료 알림 이벤트 발행 (향후 확장용)
-     */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun handleMemberActivated(event: MemberActivatedDomainEvent) {
-        // 회원 활성화 이벤트 저장
-        memberEventService.createEvent(
-            memberId = event.memberId,
-            eventType = MemberEventType.ACCOUNT_ACTIVATED,
-            title = "계정이 활성화되었습니다",
-            message = "회원님의 계정이 성공적으로 활성화되었습니다."
-        )
-    }
-
-    /**
-     * 비밀번호 변경 도메인 이벤트 처리
-     * - 비밀번호 변경 알림 이벤트 발행 (향후 확장용)
-     */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Async
-    fun handlePasswordChanged(event: PasswordChangedDomainEvent) {
-        // TODO: 비밀번호 변경 알림 처리 (예: 보안 알림 이메일 등)
-        // 현재는 별도 처리 없음
-    }
-
-    /**
-     * 회원 프로필 업데이트 도메인 이벤트 처리
-     * - 프로필 변경 로깅 (향후 확장용)
-     */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun handleMemberProfileUpdated(event: MemberProfileUpdatedDomainEvent) {
-        // 프로필 업데이트 이벤트 저장
-        memberEventService.createEvent(
-            memberId = event.memberId,
-            eventType = MemberEventType.PROFILE_UPDATED,
-            title = "프로필이 업데이트되었습니다",
-            message = "회원님의 프로필 정보가 업데이트되었습니다."
-        )
-    }
-
-    /**
-     * 회원 비활성화 도메인 이벤트 처리
-     * - 탈퇴 처리 (향후 확장용)
-     */
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun handleMemberDeactivated(event: MemberDeactivatedDomainEvent) {
-        // 회원 비활성화 이벤트 저장
-        memberEventService.createEvent(
-            memberId = event.memberId,
-            eventType = MemberEventType.ACCOUNT_DEACTIVATED,
-            title = "계정이 비활성화되었습니다",
-            message = "회원님의 계정이 비활성화되었습니다."
         )
     }
 }

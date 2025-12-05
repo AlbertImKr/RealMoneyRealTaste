@@ -92,11 +92,4 @@ class MemberEvent protected constructor(
     fun markAsRead() {
         isRead = true
     }
-
-    /**
-     * 이벤트를 모두 읽음으로 표시
-     */
-    fun markAllAsRead() {
-        isRead = true
-    }
 }
