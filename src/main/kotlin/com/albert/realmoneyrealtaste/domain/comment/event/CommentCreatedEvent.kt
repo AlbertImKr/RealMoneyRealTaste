@@ -10,5 +10,6 @@ data class CommentCreatedEvent(
     val postId: Long,
     val authorMemberId: Long,
     val parentCommentId: Long?,
+    val parentCommentAuthorId: Long?,
     val createdAt: LocalDateTime,
 )

@@ -66,7 +66,7 @@ class CommentCreationService(
             val nickname = memberReader.getNicknameById(request.memberId)
 
             // 부모 댓글 검증
-            validateParentComment(request)
+            val parentComment = validateParentComment(request)
 
             // 대댓글 생성
             val reply = Comment.create(
@@ -74,7 +74,8 @@ class CommentCreationService(
                 authorMemberId = request.memberId,
                 authorNickname = nickname,
                 content = CommentContent(request.content),
-                parentCommentId = request.parentCommentId
+                parentCommentId = request.parentCommentId,
+                parentCommentAuthorId = parentComment.author.memberId
             )
 
             // 저장
@@ -107,10 +108,11 @@ class CommentCreationService(
     /**
      * 부모 댓글 검증 로직
      * @param request 대댓글 작성 요청 DTO
+     * @return 검증된 부모 댓글
      *
      * @throws IllegalArgumentException 부모 댓글이 유효하지 않은 경우, 대댓글 작성이 불가능한 경우 발생
      */
-    private fun validateParentComment(request: ReplyCreateRequest) {
+    private fun validateParentComment(request: ReplyCreateRequest): Comment {
         val parentComment = commentReader.findById(request.parentCommentId)
 
         require(parentComment.status == CommentStatus.PUBLISHED) { ERROR_PARENT_COMMENT_NOT_FOUND }
@@ -118,5 +120,7 @@ class CommentCreationService(
         require(parentComment.postId == request.postId) { ERROR_PARENT_COMMENT_POST_MISMATCH }
 
         require(!parentComment.isReply()) { ERROR_CANNOT_REPLY_TO_REPLY }
+
+        return parentComment
     }
 }

@@ -1,9 +1,12 @@
 package com.albert.realmoneyrealtaste.application.member.listener
 
+import com.albert.realmoneyrealtaste.application.event.MemberEventService
 import com.albert.realmoneyrealtaste.application.friend.required.FriendshipRepository
 import com.albert.realmoneyrealtaste.application.member.event.EmailSendRequestedEvent
 import com.albert.realmoneyrealtaste.application.member.provided.ActivationTokenGenerator
 import com.albert.realmoneyrealtaste.application.member.required.MemberRepository
+import com.albert.realmoneyrealtaste.domain.event.MemberEventType
+import com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendshipTerminatedEvent
 import com.albert.realmoneyrealtaste.domain.member.event.MemberActivatedDomainEvent
@@ -32,6 +35,7 @@ class MemberDomainEventListener(
     private val eventPublisher: ApplicationEventPublisher,
     private val memberRepository: MemberRepository,
     private val friendshipRepository: FriendshipRepository,
+    private val memberEventService: MemberEventService,
 ) {
 
     /**
@@ -67,14 +71,14 @@ class MemberDomainEventListener(
         // 요청자의 팔로잉 수 업데이트
         val fromMemberCount = friendshipRepository.countFriends(
             event.fromMemberId,
-            com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus.ACCEPTED
+            FriendshipStatus.ACCEPTED
         )
         memberRepository.updateFollowingsCount(event.fromMemberId, fromMemberCount)
 
         // 수신자의 팔로워 수 업데이트
         val toMemberCount = friendshipRepository.countFriends(
             event.toMemberId,
-            com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus.ACCEPTED
+            FriendshipStatus.ACCEPTED
         )
         memberRepository.updateFollowersCount(event.toMemberId, toMemberCount)
     }
@@ -90,14 +94,14 @@ class MemberDomainEventListener(
         // 회원의 팔로잉 수 업데이트
         val memberCount = friendshipRepository.countFriends(
             event.memberId,
-            com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus.ACCEPTED
+            FriendshipStatus.ACCEPTED
         )
         memberRepository.updateFollowingsCount(event.memberId, memberCount)
 
         // 친구 회원의 팔로워 수 업데이트
         val friendCount = friendshipRepository.countFriends(
             event.friendMemberId,
-            com.albert.realmoneyrealtaste.domain.friend.FriendshipStatus.ACCEPTED
+            FriendshipStatus.ACCEPTED
         )
         memberRepository.updateFollowersCount(event.friendMemberId, friendCount)
     }
@@ -126,9 +130,15 @@ class MemberDomainEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleMemberActivated(event: MemberActivatedDomainEvent) {
-        // TODO: 활성화 완료 알림 처리 (예: 웰컴 이메일, 통계 집계 등)
-        // 현재는 별도 처리 없음
+        // 회원 활성화 이벤트 저장
+        memberEventService.createEvent(
+            memberId = event.memberId,
+            eventType = MemberEventType.ACCOUNT_ACTIVATED,
+            title = "계정이 활성화되었습니다",
+            message = "회원님의 계정이 성공적으로 활성화되었습니다."
+        )
     }
 
     /**
@@ -148,9 +158,15 @@ class MemberDomainEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleMemberProfileUpdated(event: MemberProfileUpdatedDomainEvent) {
-        // TODO: 프로필 업데이트 처리 (예: 분석 데이터 수집, 감사 로그 등)
-        // 현재는 별도 처리 없음
+        // 프로필 업데이트 이벤트 저장
+        memberEventService.createEvent(
+            memberId = event.memberId,
+            eventType = MemberEventType.PROFILE_UPDATED,
+            title = "프로필이 업데이트되었습니다",
+            message = "회원님의 프로필 정보가 업데이트되었습니다."
+        )
     }
 
     /**
@@ -159,8 +175,14 @@ class MemberDomainEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleMemberDeactivated(event: MemberDeactivatedDomainEvent) {
-        // TODO: 회원 비활성화 처리 (예: 데이터 익명화, 구독 취소, 정리 작업 등)
-        // 현재는 별도 처리 없음
+        // 회원 비활성화 이벤트 저장
+        memberEventService.createEvent(
+            memberId = event.memberId,
+            eventType = MemberEventType.ACCOUNT_DEACTIVATED,
+            title = "계정이 비활성화되었습니다",
+            message = "회원님의 계정이 비활성화되었습니다."
+        )
     }
 }

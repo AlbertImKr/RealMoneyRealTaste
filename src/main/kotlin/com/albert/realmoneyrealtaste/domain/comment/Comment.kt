@@ -53,6 +53,7 @@ class Comment protected constructor(
          * @param authorNickname 작성자 닉네임
          * @param content 댓글 내용
          * @param parentCommentId 부모 댓글 ID (대댓글인 경우)
+         * @param parentCommentAuthorId 부모 댓글 작성자 ID (대댓글인 경우)
          * @return 생성된 댓글
          */
         fun create(
@@ -61,6 +62,7 @@ class Comment protected constructor(
             authorNickname: String,
             content: CommentContent,
             parentCommentId: Long? = null,
+            parentCommentAuthorId: Long? = null,
         ): Comment {
             require(postId > 0) { ERROR_POST_ID_MUST_BE_POSITIVE.format(postId) }
 
@@ -88,6 +90,7 @@ class Comment protected constructor(
                     postId = postId,
                     authorMemberId = authorMemberId,
                     parentCommentId = parentCommentId,
+                    parentCommentAuthorId = parentCommentAuthorId,
                     createdAt = comment.createdAt
                 )
             )
