@@ -110,7 +110,7 @@
                         <!-- List profile -->
                         <ul class="list-inline mb-0 text-center text-sm-start mt-3 mt-sm-0">
                             <li class="list-inline-item"><i class="bi bi-person-circle me-1"></i>
-                                <span th:text="${author.detail.introduction ?: '진짜 내돈내산 푸드 리뷰어'}">Food Reviewer at RMRT</span>
+                                <span th:text="${author.introduction ?: '진짜 내돈내산 푸드 리뷰어'}">Food Reviewer at RMRT</span>
                             </li>
                             <li class="list-inline-item">
                                 <i class="bi bi-geo-alt me-1"></i>
@@ -181,8 +181,15 @@
                             </li>
                             <li class="nav-item" sec:authorize="isAuthenticated()"
                                 th:if="${member.id == author.id}">
-                                <a class="nav-link" th:href="@{/members/{id}/events(id=${author.id})}">
-                                    Events</a>
+                                <button class="nav-link"
+                                        hx-indicator="#loading-indicator"
+                                        hx-swap="innerHTML"
+                                        hx-target="#content-area"
+                                        hx-trigger="click, refreshEvents from:body"
+                                        id="events-tab"
+                                        th:attr="hx-get='/members/'+${author.id}+'/events/fragment'">
+                                    Events
+                                </button>
                             </li>
                         </ul>
                     </div>

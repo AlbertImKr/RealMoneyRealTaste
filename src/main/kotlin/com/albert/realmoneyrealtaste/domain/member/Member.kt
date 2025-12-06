@@ -62,7 +62,13 @@ class Member protected constructor(
 ) : BaseEntity(), AggregateRoot {
 
     @Transient
-    private var domainEvents: MutableList<Any> = mutableListOf()
+    private var domainEvents: MutableList<Any>? = null
+        get() {
+            if (field == null) {
+                field = mutableListOf()
+            }
+            return field
+        }
 
     @Embedded
     var email: Email = email
@@ -280,15 +286,15 @@ class Member protected constructor(
      * 도메인 이벤트 추가
      */
     private fun addDomainEvent(event: Any) {
-        domainEvents.add(event)
+        domainEvents?.add(event)
     }
 
     /**
      * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
      */
     override fun drainDomainEvents(): List<Any> {
-        val events = domainEvents.toList()
-        domainEvents.clear()
+        val events = domainEvents?.toList() ?: emptyList()
+        domainEvents?.clear()
 
         // 이벤트의 memberId를 실제 ID로 설정
         val actualId = this.requireId()

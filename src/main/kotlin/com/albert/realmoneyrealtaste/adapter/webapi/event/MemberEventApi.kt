@@ -1,8 +1,9 @@
 package com.albert.realmoneyrealtaste.adapter.webapi.event
 
-import com.albert.realmoneyrealtaste.application.event.MemberEventQueryService
-import com.albert.realmoneyrealtaste.application.event.MemberEventUpdateService
+import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
 import com.albert.realmoneyrealtaste.application.event.dto.MemberEventResponse
+import com.albert.realmoneyrealtaste.application.event.provided.MemberEventReader
+import com.albert.realmoneyrealtaste.application.event.provided.MemberEventUpdater
 import com.albert.realmoneyrealtaste.domain.event.MemberEventType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -10,7 +11,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -24,8 +24,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/events")
 class MemberEventApi(
-    private val memberEventQueryService: MemberEventQueryService,
-    private val memberEventUpdateService: MemberEventUpdateService,
+    private val memberEventReader: MemberEventReader,
+    private val memberEventUpdater: MemberEventUpdater,
 ) {
 
     /**
@@ -33,13 +33,13 @@ class MemberEventApi(
      */
     @GetMapping
     fun getMemberEvents(
-        @AuthenticationPrincipal userDetails: UserDetails,
+        @AuthenticationPrincipal member: MemberPrincipal,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<Page<MemberEventResponse>> {
-        val memberId = userDetails.username.toLong()
+        val memberId = member.id
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
-        val events = memberEventQueryService.readMemberEvents(memberId, pageable)
+        val events = memberEventReader.readMemberEvents(memberId, pageable)
 
         return ResponseEntity.ok(events)
     }
@@ -49,14 +49,13 @@ class MemberEventApi(
      */
     @GetMapping("/type/{eventType}")
     fun getMemberEventsByType(
-        @AuthenticationPrincipal userDetails: UserDetails,
+        @AuthenticationPrincipal member: MemberPrincipal,
         @PathVariable eventType: MemberEventType,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<Page<MemberEventResponse>> {
-        val memberId = userDetails.username.toLong()
         val pageable: Pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
-        val events = memberEventQueryService.readMemberEventsByType(memberId, eventType, pageable)
+        val events = memberEventReader.readMemberEventsByType(member.id, eventType, pageable)
 
         return ResponseEntity.ok(events)
     }
@@ -66,10 +65,9 @@ class MemberEventApi(
      */
     @GetMapping("/unread-count")
     fun getUnreadEventCount(
-        @AuthenticationPrincipal userDetails: UserDetails,
+        @AuthenticationPrincipal member: MemberPrincipal,
     ): ResponseEntity<Long> {
-        val memberId = userDetails.username.toLong()
-        val count = memberEventQueryService.readUnreadEventCount(memberId)
+        val count = memberEventReader.readUnreadEventCount(member.id)
 
         return ResponseEntity.ok(count)
     }
@@ -79,10 +77,9 @@ class MemberEventApi(
      */
     @PostMapping("/mark-all-read")
     fun markAllAsRead(
-        @AuthenticationPrincipal userDetails: UserDetails,
+        @AuthenticationPrincipal member: MemberPrincipal,
     ): ResponseEntity<Int> {
-        val memberId = userDetails.username.toLong()
-        val count = memberEventUpdateService.markAllAsRead(memberId)
+        val count = memberEventUpdater.markAllAsRead(member.id)
 
         return ResponseEntity.ok(count)
     }
@@ -92,11 +89,10 @@ class MemberEventApi(
      */
     @PostMapping("/{eventId}/read")
     fun markAsRead(
-        @AuthenticationPrincipal userDetails: UserDetails,
+        @AuthenticationPrincipal member: MemberPrincipal,
         @PathVariable eventId: Long,
     ): ResponseEntity<MemberEventResponse> {
-        val memberId = userDetails.username.toLong()
-        val event = memberEventUpdateService.markAsRead(eventId, memberId)
+        val event = memberEventUpdater.markAsRead(eventId, member.id)
 
         return ResponseEntity.ok(MemberEventResponse.from(event))
     }
