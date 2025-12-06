@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.domain.comment
 
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentAuthor
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
+import com.albert.realmoneyrealtaste.util.setId
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -108,11 +109,12 @@ class CommentTest {
 
     @Test
     fun `update - success - updates comment content when author matches`() {
-        val comment = Comment.create(
+        val commentContent = CommentContent("원본 댓글")
+        val comment = createComment(
             postId = 1L,
             authorMemberId = 100L,
             authorNickname = "맛집탐험가",
-            content = CommentContent("원본 댓글")
+            content = commentContent
         )
         val originalUpdatedAt = comment.updatedAt
 
@@ -144,12 +146,7 @@ class CommentTest {
 
     @Test
     fun `update - failure - throws exception when comment is deleted`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         // 댓글을 먼저 삭제
         comment.delete(100L)
@@ -164,7 +161,7 @@ class CommentTest {
 
     @Test
     fun `delete - success - deletes comment when author matches`() {
-        val comment = Comment.create(
+        val comment = createComment(
             postId = 1L,
             authorMemberId = 100L,
             authorNickname = "맛집탐험가",
@@ -184,12 +181,7 @@ class CommentTest {
 
     @Test
     fun `delete - failure - throws exception when member is not author`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         assertFailsWith<IllegalArgumentException> {
             comment.delete(999L)
@@ -200,12 +192,7 @@ class CommentTest {
 
     @Test
     fun `delete - failure - throws exception when comment is already deleted`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         // 댓글을 먼저 삭제
         comment.delete(100L)
@@ -220,36 +207,21 @@ class CommentTest {
 
     @Test
     fun `canEditBy - success - returns true when member is author`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         assertTrue(comment.canEditBy(100L))
     }
 
     @Test
     fun `canEditBy - success - returns false when member is not author`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         assertFalse(comment.canEditBy(999L))
     }
 
     @Test
     fun `ensureCanEditBy - success - does not throw when member is author`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         // 예외가 발생하지 않아야 함
         comment.ensureCanEditBy(100L)
@@ -257,12 +229,7 @@ class CommentTest {
 
     @Test
     fun `ensureCanEditBy - failure - throws exception when member is not author`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         assertFailsWith<IllegalArgumentException> {
             comment.ensureCanEditBy(999L)
@@ -273,12 +240,7 @@ class CommentTest {
 
     @Test
     fun `ensurePublished - success - does not throw when comment is published`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         // 예외가 발생하지 않아야 함
         comment.ensurePublished()
@@ -286,12 +248,7 @@ class CommentTest {
 
     @Test
     fun `ensurePublished - failure - throws exception when comment is deleted`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         comment.delete(100L)
 
@@ -329,24 +286,14 @@ class CommentTest {
 
     @Test
     fun `isDeleted - success - returns false when comment is published`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         assertFalse(comment.isDeleted())
     }
 
     @Test
     fun `isDeleted - success - returns true when comment is deleted`() {
-        val comment = Comment.create(
-            postId = 1L,
-            authorMemberId = 100L,
-            authorNickname = "맛집탐험가",
-            content = CommentContent("댓글 내용")
-        )
+        val comment = createComment(1L, 100L, "맛집탐험가", CommentContent("댓글 내용"))
 
         comment.delete(100L)
 
@@ -387,6 +334,19 @@ class CommentTest {
         assertEquals(10L, testComment.parentCommentId)
         assertEquals(expectedCreatedAt, testComment.createdAt)
         assertEquals(5L, testComment.repliesCount)
+    }
+
+    private fun createComment(
+        postId: Long, authorMemberId: Long, authorNickname: String, content: CommentContent,
+    ): Comment {
+        val comment = Comment.create(
+            postId = postId,
+            authorMemberId = authorMemberId,
+            authorNickname = authorNickname,
+            content = content
+        )
+        comment.setId()
+        return comment
     }
 
     private class TestComment : Comment(

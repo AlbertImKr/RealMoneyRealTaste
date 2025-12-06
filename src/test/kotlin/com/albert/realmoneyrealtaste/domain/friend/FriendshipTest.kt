@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.friend
 
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
+import com.albert.realmoneyrealtaste.util.setId
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.assertAll
@@ -299,7 +300,7 @@ class FriendshipTest {
         val command = createFriendRequestCommand(1L, "sender")
 
         // 1. 친구 요청 생성
-        val friendship = Friendship.request(command)
+        val friendship = Friendship.request(command).also { it.setId() }
         assertEquals(FriendshipStatus.PENDING, friendship.status)
 
         // 2. 친구 요청 수락
@@ -316,7 +317,7 @@ class FriendshipTest {
         val command = createFriendRequestCommand()
 
         // 1. 친구 요청 생성
-        val friendship = Friendship.request(command)
+        val friendship = Friendship.request(command).also { it.setId() }
         assertEquals(FriendshipStatus.PENDING, friendship.status)
 
         // 2. 친구 요청 거절
@@ -327,6 +328,7 @@ class FriendshipTest {
     private fun createPendingFriendship(): Friendship {
         val command = createFriendRequestCommand()
         return Friendship.request(command)
+            .also { it.setId() }
     }
 
     private fun createAcceptedFriendship(): Friendship {
@@ -341,6 +343,7 @@ class FriendshipTest {
             toMemberId = toMemberId
         )
         return Friendship.request(command)
+            .also { it.setId() }
     }
 
     private fun createFriendRequestCommand(

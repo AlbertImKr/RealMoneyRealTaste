@@ -67,7 +67,7 @@ class PostFixture {
                 content = content,
                 images = images,
                 authorImageId = 1L
-            )
+            ).also { it.setId() }
         }
 
         fun createContent(text: String, rating: Int): PostContent {

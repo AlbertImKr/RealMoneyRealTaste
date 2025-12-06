@@ -10,6 +10,7 @@ import com.albert.realmoneyrealtaste.domain.member.value.Role
 import com.albert.realmoneyrealtaste.domain.member.value.Roles
 import com.albert.realmoneyrealtaste.domain.member.value.TrustLevel
 import com.albert.realmoneyrealtaste.util.MemberFixture
+import com.albert.realmoneyrealtaste.util.setId
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -514,7 +515,7 @@ class MemberTest {
             email = email,
             nickname = nickname,
             password = PasswordHash.of(password, MemberFixture.TEST_ENCODER)
-        )
+        ).also { it.setId() }
     }
 
     private class TestMember : Member(
