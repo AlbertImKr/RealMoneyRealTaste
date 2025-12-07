@@ -40,7 +40,7 @@ class PostTest {
 
     @Test
     fun `create - success - creates post with images`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertTrue(post.images.isNotEmpty())
         assertEquals(3, post.images.size())
@@ -48,7 +48,7 @@ class PostTest {
 
     @Test
     fun `update - success - updates content and images`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
         val newContent = PostContent("새로운 내용입니다!", 4)
         val newImages = PostImages(listOf(1))
         val newRestaurant = Restaurant(
@@ -71,7 +71,7 @@ class PostTest {
 
     @Test
     fun `update - failure - throws exception when post is deleted`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
         post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
         val newContent = PostContent("새로운 내용", 4)
         val newImages = PostImages.empty()
@@ -85,7 +85,7 @@ class PostTest {
 
     @Test
     fun `update - failure - throws exception when member is not author`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
         val newContent = PostContent("새로운 내용", 4)
         val newImages = PostImages.empty()
 
@@ -98,7 +98,7 @@ class PostTest {
 
     @Test
     fun `delete - success - changes status to deleted`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
         val beforeUpdateAt = post.updatedAt
 
         Thread.sleep(10)
@@ -110,7 +110,7 @@ class PostTest {
 
     @Test
     fun `delete - failure - throws exception when already deleted`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
         post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
 
         assertFailsWith<IllegalArgumentException> {
@@ -122,7 +122,7 @@ class PostTest {
 
     @Test
     fun `delete - failure - throws exception when member is not author`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertFailsWith<IllegalArgumentException> {
             post.delete(999L)
@@ -133,28 +133,28 @@ class PostTest {
 
     @Test
     fun `canEditBy - success - returns true for post author`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertTrue(post.canEditBy(PostFixture.DEFAULT_AUTHOR_MEMBER_ID))
     }
 
     @Test
     fun `canEditBy - success - returns false for different member`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertFalse(post.canEditBy(999L))
     }
 
     @Test
     fun `ensureCanEditBy - success - does not throw for post author`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         post.ensureCanEditBy(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
     }
 
     @Test
     fun `ensureCanEditBy - failure - throws exception for different member`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertFailsWith<IllegalArgumentException> {
             post.ensureCanEditBy(999L)
@@ -165,28 +165,28 @@ class PostTest {
 
     @Test
     fun `heartCount - success - starts at zero`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertEquals(0, post.heartCount)
     }
 
     @Test
     fun `viewCount - success - starts at zero`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertEquals(0, post.viewCount)
     }
 
     @Test
     fun `isDeleted - success - returns false for published post`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertFalse(post.isDeleted())
     }
 
     @Test
     fun `isDeleted - success - returns true for deleted post`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
         post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
 
         assertTrue(post.isDeleted())
@@ -194,28 +194,28 @@ class PostTest {
 
     @Test
     fun `isAuthor - success - returns true for post author`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertTrue(post.isAuthor(PostFixture.DEFAULT_AUTHOR_MEMBER_ID))
     }
 
     @Test
     fun `isAuthor - success - returns false for different member`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         assertFalse(post.isAuthor(999L))
     }
 
     @Test
     fun `ensurePublished - success - does not throw for published post`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
 
         post.ensurePublished() // Should not throw
     }
 
     @Test
     fun `ensurePublished - failure - throws exception for deleted post`() {
-        val post = PostFixture.createPost()
+        val post = PostFixture.createPostWithId()
         post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
 
         assertFailsWith<IllegalArgumentException> {

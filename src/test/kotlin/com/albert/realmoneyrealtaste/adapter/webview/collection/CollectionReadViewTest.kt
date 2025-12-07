@@ -8,6 +8,7 @@ import com.albert.realmoneyrealtaste.domain.collection.PostCollection
 import com.albert.realmoneyrealtaste.domain.collection.command.CollectionCreateCommand
 import com.albert.realmoneyrealtaste.domain.collection.value.CollectionFilter
 import com.albert.realmoneyrealtaste.domain.member.Member
+import com.albert.realmoneyrealtaste.domain.post.Post
 import com.albert.realmoneyrealtaste.util.MemberFixture
 import com.albert.realmoneyrealtaste.util.TestMemberHelper
 import com.albert.realmoneyrealtaste.util.TestPostHelper
@@ -519,7 +520,7 @@ class CollectionReadViewTest : IntegrationTestBase() {
 
     private fun createPost(
         author: Member,
-    ): com.albert.realmoneyrealtaste.domain.post.Post {
+    ): Post {
         return testPostHelper.createPost(authorMemberId = author.requireId())
     }
 }

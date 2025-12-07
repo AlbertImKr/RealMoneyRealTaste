@@ -1,5 +1,10 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.member.event.MemberActivatedDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberDeactivatedDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberProfileUpdatedDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberRegisteredDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.PasswordChangedDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
 import com.albert.realmoneyrealtaste.domain.member.value.Nickname
@@ -705,5 +710,268 @@ class MemberTest {
         member.updatePostCount(updatedPostCount)
 
         assertEquals(updatedPostCount, member.postCount)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns MemberRegisteredDomainEvent when member is registered`() {
+        val member = createMember()
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is MemberRegisteredDomainEvent)
+        val event = events[0] as MemberRegisteredDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(member.email.address, event.email)
+        assertEquals(member.nickname.value, event.nickname)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns MemberActivatedDomainEvent when member is activated`() {
+        val member = createMember()
+        member.activate()
+        val events = member.drainDomainEvents()
+
+        assertEquals(2, events.size)
+        assertTrue(events[0] is MemberRegisteredDomainEvent)
+        assertTrue(events[1] is MemberActivatedDomainEvent)
+        val activatedEvent = events[1] as MemberActivatedDomainEvent
+        assertEquals(member.id, activatedEvent.memberId)
+        assertEquals(member.email.address, activatedEvent.email)
+        assertEquals(member.nickname.value, activatedEvent.nickname)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns MemberDeactivatedDomainEvent when member is deactivated`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear previous events
+        member.deactivate()
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is MemberDeactivatedDomainEvent)
+        val event = events[0] as MemberDeactivatedDomainEvent
+        assertEquals(member.id, event.memberId)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns PasswordChangedDomainEvent when password is changed`() {
+        val member = createMember()
+        member.drainDomainEvents() // Clear registration event
+        val newPassword = PasswordHash.of(MemberFixture.NEW_RAW_PASSWORD, MemberFixture.TEST_ENCODER)
+        member.changePassword(newPassword)
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is PasswordChangedDomainEvent)
+        val event = events[0] as PasswordChangedDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(member.email.address, event.email)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns PasswordChangedDomainEvent when password is changed with current password`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear previous events
+        member.changePassword(
+            MemberFixture.DEFAULT_RAW_PASSWORD,
+            MemberFixture.NEW_RAW_PASSWORD,
+            MemberFixture.TEST_ENCODER
+        )
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is PasswordChangedDomainEvent)
+        val event = events[0] as PasswordChangedDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(member.email.address, event.email)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns MemberProfileUpdatedDomainEvent when profile is updated`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear previous events
+        val newNickname = Nickname("newNickname")
+        val newProfileAddress = ProfileAddress("newAddress")
+        val newIntroduction = Introduction("newIntroduction")
+        member.updateInfo(newNickname, newProfileAddress, newIntroduction)
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is MemberProfileUpdatedDomainEvent)
+        val event = events[0] as MemberProfileUpdatedDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(member.email.address, event.email)
+        assertEquals(listOf("nickname", "profileAddress", "introduction"), event.updatedFields)
+        assertEquals(newNickname.value, event.nickname)
+        assertNull(event.imageId)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns MemberProfileUpdatedDomainEvent with imageId when image is updated`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear previous events
+        val newImageId = 123L
+        member.updateInfo(imageId = newImageId)
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is MemberProfileUpdatedDomainEvent)
+        val event = events[0] as MemberProfileUpdatedDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(member.email.address, event.email)
+        assertEquals(listOf("imageId"), event.updatedFields)
+        assertNull(event.nickname)
+        assertEquals(newImageId, event.imageId)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - clears events after draining`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // First drain
+        val eventsAfterFirstDrain = member.drainDomainEvents() // Second drain
+
+        assertEquals(0, eventsAfterFirstDrain.size)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns empty list when no events exist`() {
+        val member = createMember()
+        member.drainDomainEvents() // Clear all events
+        val events = member.drainDomainEvents()
+
+        assertEquals(0, events.size)
+    }
+
+    @Test
+    fun `registerManager - success - publishes MemberRegisteredDomainEvent`() {
+        val email = MemberFixture.DEFAULT_EMAIL
+        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val password = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, MemberFixture.TEST_ENCODER)
+
+        val member = Member.registerManager(email, nickname, password).also { it.setId() }
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is MemberRegisteredDomainEvent)
+        val event = events[0] as MemberRegisteredDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(email.address, event.email)
+        assertEquals(nickname.value, event.nickname)
+    }
+
+    @Test
+    fun `registerAdmin - success - publishes MemberRegisteredDomainEvent`() {
+        val email = MemberFixture.DEFAULT_EMAIL
+        val nickname = MemberFixture.DEFAULT_NICKNAME
+        val password = PasswordHash.of(MemberFixture.DEFAULT_RAW_PASSWORD, MemberFixture.TEST_ENCODER)
+
+        val member = Member.registerAdmin(email, nickname, password).also { it.setId() }
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is MemberRegisteredDomainEvent)
+        val event = events[0] as MemberRegisteredDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(email.address, event.email)
+        assertEquals(nickname.value, event.nickname)
+    }
+
+    @Test
+    fun `updateInfo - success - does not publish event when no actual changes`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear previous events
+
+        member.updateInfo(nickname = member.nickname) // Same nickname
+        val events = member.drainDomainEvents()
+
+        assertEquals(0, events.size)
+    }
+
+    @Test
+    fun `updateInfo - success - does not publish event when updatedFields is empty`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear previous events
+
+        // Update with same values - should not generate event
+        member.updateInfo(
+            nickname = member.nickname,
+            profileAddress = member.detail.profileAddress,
+            introduction = member.detail.introduction,
+            address = member.detail.address,
+            imageId = member.detail.imageId
+        )
+        val events = member.drainDomainEvents()
+
+        assertEquals(0, events.size)
+        assertEquals(member.updatedAt, member.updatedAt) // updatedAt should not change
+    }
+
+    @Test
+    fun `drainDomainEvents - success - handles MemberDeactivatedDomainEvent correctly`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear registration event
+
+        // Deactivate member
+        member.deactivate()
+        val events = member.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is MemberDeactivatedDomainEvent)
+        val event = events[0] as MemberDeactivatedDomainEvent
+        assertEquals(member.id, event.memberId)
+        assertEquals(MemberStatus.DEACTIVATED, member.status)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - handles multiple event types correctly`() {
+        val member = createMember()
+        member.activate()
+        member.drainDomainEvents() // Clear registration and activation events
+
+        // Trigger multiple events
+        member.updateInfo(nickname = Nickname("newNick"))
+        member.changePassword(PasswordHash.of(MemberFixture.NEW_RAW_PASSWORD, MemberFixture.TEST_ENCODER))
+        member.grantRole(Role.MANAGER)
+
+        val events = member.drainDomainEvents()
+
+        assertEquals(2, events.size)
+        assertTrue(events[0] is MemberProfileUpdatedDomainEvent)
+        assertTrue(events[1] is PasswordChangedDomainEvent)
+
+        // Verify event data
+        val profileEvent = events[0] as MemberProfileUpdatedDomainEvent
+        assertEquals(listOf("nickname"), profileEvent.updatedFields)
+        assertEquals("newNick", profileEvent.nickname)
+
+        val passwordEvent = events[1] as PasswordChangedDomainEvent
+        assertEquals(member.id, passwordEvent.memberId)
+        assertEquals(member.email.address, passwordEvent.email)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - maintains event order`() {
+        val member = createMember()
+        val originalEvents = mutableListOf<Any>()
+
+        // Collect events in order
+        originalEvents.addAll(member.drainDomainEvents()) // Registration event
+        member.activate()
+        originalEvents.addAll(member.drainDomainEvents()) // Activation event
+        member.updateInfo(nickname = Nickname("changed"))
+        originalEvents.addAll(member.drainDomainEvents()) // Profile update event
+
+        // Verify order
+        assertTrue(originalEvents[0] is MemberRegisteredDomainEvent)
+        assertTrue(originalEvents[1] is MemberActivatedDomainEvent)
+        assertTrue(originalEvents[2] is MemberProfileUpdatedDomainEvent)
     }
 }

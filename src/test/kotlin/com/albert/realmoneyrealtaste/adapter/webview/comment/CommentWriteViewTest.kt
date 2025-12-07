@@ -209,7 +209,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
             )
         )
         val comment = createAndSaveComment(post.requireId(), "원본 댓글 내용", member.requireId())
-        flushAndClear()
 
         mockMvc.perform(
             post("/comments/{commentId}", comment.id)
@@ -233,7 +232,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
         )
         val parentComment = createAndSaveComment(post.requireId(), "부모 댓글", member.requireId())
         val replyComment = createAndSaveReply(post.requireId(), parentComment.id!!, "원본 대댓글", member.requireId())
-        flushAndClear()
 
         mockMvc.perform(
             post("/comments/{commentId}", replyComment.id)
@@ -255,8 +253,6 @@ class CommentWriteViewTest : IntegrationTestBase() {
             )
         )
         val comment = createAndSaveComment(post.requireId(), "댓글 내용", member.requireId())
-        flushAndClear()
-
         mockMvc.perform(
             post("/comments/{commentId}", comment.id)
                 .with(csrf())

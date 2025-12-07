@@ -105,6 +105,7 @@ class MemberDomainEventListener(
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleMemberRegistered(event: MemberRegisteredDomainEvent) {
         val activationToken = activationTokenGenerator.generate(event.memberId)
 

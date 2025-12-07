@@ -2,8 +2,10 @@ package com.albert.realmoneyrealtaste.domain.member
 
 import com.albert.realmoneyrealtaste.domain.common.AggregateRoot
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.common.DomainEvent
 import com.albert.realmoneyrealtaste.domain.member.event.MemberActivatedDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.event.MemberDeactivatedDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.event.MemberProfileUpdatedDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.event.MemberRegisteredDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.event.PasswordChangedDomainEvent
@@ -62,13 +64,7 @@ class Member protected constructor(
 ) : BaseEntity(), AggregateRoot {
 
     @Transient
-    private var domainEvents: MutableList<Any>? = null
-        get() {
-            if (field == null) {
-                field = mutableListOf()
-            }
-            return field
-        }
+    private var domainEvents: MutableList<MemberDomainEvent> = mutableListOf()
 
     @Embedded
     var email: Email = email
@@ -202,39 +198,35 @@ class Member protected constructor(
     ) {
         require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_INFO_UPDATE }
 
-        val sameNickname = nickname == this.nickname
         val updatedFields = mutableListOf<String>()
 
         nickname?.let {
-            if (!sameNickname) {
+            if (nickname != this.nickname) {
                 this.nickname = it
                 updatedFields.add("nickname")
             }
         }
 
-        val updated = detail.updateInfo(profileAddress, introduction, address, imageId)
-        if (updated) {
+        if (detail.updateInfo(profileAddress, introduction, address, imageId)) {
             profileAddress?.let { updatedFields.add("profileAddress") }
             introduction?.let { updatedFields.add("introduction") }
             address?.let { updatedFields.add("address") }
             imageId?.let { updatedFields.add("imageId") }
         }
 
-        if (!sameNickname || updated) {
+        // 도메인 이벤트 발행
+        if (updatedFields.isNotEmpty()) {
             updatedAt = LocalDateTime.now()
 
-            // 도메인 이벤트 발행
-            if (updatedFields.isNotEmpty()) {
-                addDomainEvent(
-                    MemberProfileUpdatedDomainEvent(
-                        memberId = requireId(),
-                        email = email.address,
-                        updatedFields = updatedFields,
-                        nickname = if (updatedFields.contains("nickname")) this.nickname.value else null,
-                        imageId = if (updatedFields.contains("imageId")) detail.imageId else null
-                    )
+            addDomainEvent(
+                MemberProfileUpdatedDomainEvent(
+                    memberId = requireId(),
+                    email = email.address,
+                    updatedFields = updatedFields,
+                    nickname = if (updatedFields.contains("nickname")) this.nickname.value else null,
+                    imageId = if (updatedFields.contains("imageId")) detail.imageId else null
                 )
-            }
+            )
         }
     }
 
@@ -285,29 +277,19 @@ class Member protected constructor(
     /**
      * 도메인 이벤트 추가
      */
-    private fun addDomainEvent(event: Any) {
-        domainEvents?.add(event)
+    private fun addDomainEvent(event: MemberDomainEvent) {
+        domainEvents.add(event)
     }
 
     /**
      * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
      */
-    override fun drainDomainEvents(): List<Any> {
-        val events = domainEvents?.toList() ?: emptyList()
-        domainEvents?.clear()
+    override fun drainDomainEvents(): List<DomainEvent> {
+        val events = domainEvents.toList()
+        domainEvents.clear()
 
         // 이벤트의 memberId를 실제 ID로 설정
-        val actualId = this.requireId()
-        return events.map { event ->
-            when (event) {
-                is MemberRegisteredDomainEvent -> event.copy(memberId = actualId)
-                is MemberActivatedDomainEvent -> event.copy(memberId = actualId)
-                is PasswordChangedDomainEvent -> event.copy(memberId = actualId)
-                is MemberProfileUpdatedDomainEvent -> event.copy(memberId = actualId)
-                is MemberDeactivatedDomainEvent -> event.copy(memberId = actualId)
-                else -> event
-            }
-        }
+        return events.map { it.withMemberId(requireId()) }
     }
 
     companion object {

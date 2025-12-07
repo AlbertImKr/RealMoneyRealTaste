@@ -138,10 +138,9 @@ class FriendRequestorTest(
             nickname = "friend2"
         )
 
-        // 친구 요청 생성 후 수락
+        // 친구 요청 생성 후 reject
         val friendship = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())
-        friendship.accept()
-        friendshipRepository.save(friendship)
+        friendship.reject()
 
         // when & then
         val result = friendRequestor.sendFriendRequest(member1.requireId(), member2.requireId())

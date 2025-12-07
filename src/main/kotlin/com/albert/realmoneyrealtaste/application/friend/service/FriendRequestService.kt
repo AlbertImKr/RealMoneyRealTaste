@@ -37,8 +37,6 @@ class FriendRequestService(
                 toMemberNickname = toMember.nickname.value,
                 toMemberProfileImageId = toMember.profileImageId,
             )
-            // 요청자와 대상자가 모두 활성 회원인지 확인
-            validateMembersExist(command)
 
             // 기존 친구 관계나 요청이 있는지 확인
             val existingFriendship = friendshipReader.findByMembersId(command.fromMemberId, command.toMemberId)
@@ -61,10 +59,5 @@ class FriendRequestService(
         } catch (e: IllegalArgumentException) {
             throw FriendRequestException(ERROR_FRIEND_REQUEST_FAILED, e)
         }
-    }
-
-    private fun validateMembersExist(command: FriendRequestCommand) {
-        memberReader.readActiveMemberById(command.fromMemberId)
-        memberReader.readActiveMemberById(command.toMemberId)
     }
 }

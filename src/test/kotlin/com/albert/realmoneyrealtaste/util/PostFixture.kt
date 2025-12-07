@@ -52,7 +52,7 @@ class PostFixture {
         /**
          * 기본 Post 생성
          */
-        fun createPost(
+        fun createPostWithId(
             authorMemberId: Long = DEFAULT_AUTHOR_MEMBER_ID,
             authorNickname: String = DEFAULT_AUTHOR_NICKNAME,
             restaurant: Restaurant = DEFAULT_RESTAURANT,
@@ -68,6 +68,24 @@ class PostFixture {
                 images = images,
                 authorImageId = 1L
             ).also { it.setId() }
+        }
+
+        fun createPost(
+            authorMemberId: Long = DEFAULT_AUTHOR_MEMBER_ID,
+            authorNickname: String = DEFAULT_AUTHOR_NICKNAME,
+            restaurant: Restaurant = DEFAULT_RESTAURANT,
+            content: PostContent = DEFAULT_CONTENT,
+            images: PostImages = createImages(3),
+        ): Post {
+            return Post.create(
+                authorMemberId = authorMemberId,
+                authorNickname = authorNickname,
+                authorIntroduction = DEFAULT_AUTHOR_INTRODUCTION,
+                restaurant = restaurant,
+                content = content,
+                images = images,
+                authorImageId = 1L
+            )
         }
 
         fun createContent(text: String, rating: Int): PostContent {

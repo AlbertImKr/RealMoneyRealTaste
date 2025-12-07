@@ -132,6 +132,9 @@ class Comment protected constructor(
     var updatedAt: LocalDateTime = updatedAt
         protected set
 
+    @Transient
+    private var domainEvents: MutableList<Any> = mutableListOf()
+
     /**
      * 댓글 내용을 수정합니다.
      *
@@ -218,9 +221,6 @@ class Comment protected constructor(
      * 삭제된 댓글인지 확인합니다.
      */
     fun isDeleted(): Boolean = status == CommentStatus.DELETED
-
-    @Transient
-    private var domainEvents: MutableList<Any> = mutableListOf()
 
     /**
      * 도메인 이벤트 추가

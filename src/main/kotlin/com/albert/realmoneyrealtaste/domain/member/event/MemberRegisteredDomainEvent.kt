@@ -7,8 +7,10 @@ import java.time.LocalDateTime
  * 순수 비즈니스 사실만 포함
  */
 data class MemberRegisteredDomainEvent(
-    val memberId: Long,
+    override val memberId: Long,
     val email: String,
     val nickname: String,
     val occurredAt: LocalDateTime = LocalDateTime.now(),
-)
+) : MemberDomainEvent {
+    override fun withMemberId(memberId: Long): MemberDomainEvent = this.copy(memberId = memberId)
+}

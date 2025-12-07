@@ -6,6 +6,7 @@ import com.albert.realmoneyrealtaste.application.friend.exception.UnfriendExcept
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipTerminator
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
+import com.albert.realmoneyrealtaste.domain.friend.Friendship
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 
@@ -27,7 +28,7 @@ class FriendshipTerminationService(
             memberReader.readActiveMemberById(request.memberId)
 
             // 양방향 친구 관계 모두 해제
-            val friendshipsToTerminate = mutableListOf<com.albert.realmoneyrealtaste.domain.friend.Friendship>()
+            val friendshipsToTerminate = mutableListOf<Friendship>()
 
             friendshipReader.findActiveFriendship(request.memberId, request.friendMemberId)
                 ?.let { friendship ->

@@ -104,6 +104,9 @@ class Friendship protected constructor(
     var updatedAt: LocalDateTime = updatedAt
         protected set
 
+    @Transient
+    private var domainEvents: MutableList<Any> = mutableListOf()
+
     /**
      * 다시 친구 요청
      *
@@ -224,9 +227,6 @@ class Friendship protected constructor(
             updatedAt = LocalDateTime.now()
         }
     }
-
-    @Transient
-    private var domainEvents: MutableList<Any> = mutableListOf()
 
     /**
      * 도메인 이벤트 추가

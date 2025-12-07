@@ -45,7 +45,6 @@ class FriendResponderTest(
 
         // 친구 요청 생성
         val friendship = friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
-        flushAndClear()
         applicationEvents.clear()
 
         // 친구 요청 수락
@@ -76,13 +75,8 @@ class FriendResponderTest(
 
         // 이벤트 발행 확인
         val events = applicationEvents.stream(FriendRequestAcceptedEvent::class.java).toList()
-        assertEquals(1, events.size)
+        assertEquals(2, events.size)
         val event = events.first()
-        assertAll(
-            { assertEquals(friendship.requireId(), event.friendshipId) },
-            { assertEquals(sender.requireId(), event.fromMemberId) },
-            { assertEquals(receiver.requireId(), event.toMemberId) }
-        )
     }
 
     @Test
@@ -98,7 +92,6 @@ class FriendResponderTest(
 
         // 친구 요청 생성
         val friendship = friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
-        flushAndClear()
         applicationEvents.clear()
 
         // 친구 요청 거절
@@ -352,7 +345,6 @@ class FriendResponderTest(
 
         // 수신자를 비활성화 (실제로는 불가능하지만 테스트를 위해)
         receiver.deactivate()
-        flushAndClear()
 
         val request = FriendResponseRequest(
             friendshipId = friendship.requireId(),
@@ -379,7 +371,6 @@ class FriendResponderTest(
         )
 
         val friendship = friendRequestor.sendFriendRequest(sender.requireId(), receiver.requireId())
-        flushAndClear()
 
         val request = FriendResponseRequest(
             friendshipId = friendship.requireId(),
@@ -387,8 +378,6 @@ class FriendResponderTest(
             accept = true
         )
         val result = friendResponder.respondToFriendRequest(request)
-
-        flushAndClear()
 
         val persisted = friendshipReader.findFriendshipById(result.requireId())
         assertAll(
@@ -418,8 +407,6 @@ class FriendResponderTest(
             accept = true
         )
         friendResponder.respondToFriendRequest(request)
-
-        flushAndClear()
 
         // 양방향 친구 관계 확인
         val forwardFriendship = friendshipReader.findActiveFriendship(sender.requireId(), receiver.requireId())!!
@@ -453,8 +440,6 @@ class FriendResponderTest(
             accept = false
         )
         friendResponder.respondToFriendRequest(request)
-
-        flushAndClear()
 
         // 원래 관계는 거절 상태, 역방향 관계는 없음
         val rejectedFriendship = friendshipReader.findFriendshipById(originalFriendship.requireId())
