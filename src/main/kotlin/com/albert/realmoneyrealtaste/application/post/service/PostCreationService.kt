@@ -32,7 +32,7 @@ class PostCreationService(
                 request.restaurant,
                 request.content,
                 request.images,
-                member.detail.introduction?.value ?: "",
+                member.introduction,
                 member.profileImageId
             )
 

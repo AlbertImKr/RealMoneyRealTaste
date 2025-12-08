@@ -31,12 +31,4 @@ class MemberEventUpdateService(
     override fun deleteOldEvents(memberId: Long, beforeDate: LocalDateTime): Int {
         return memberEventRepository.deleteOldEvents(memberId, beforeDate)
     }
-
-    fun deletePostEvents(memberId: Long, postId: Long): Int {
-        return memberEventRepository.deleteByMemberIdAndRelatedPostId(memberId, postId)
-    }
-
-    fun deleteCommentEvents(memberId: Long, commentId: Long): Int {
-        return memberEventRepository.deleteByMemberIdAndRelatedCommentId(memberId, commentId)
-    }
 }

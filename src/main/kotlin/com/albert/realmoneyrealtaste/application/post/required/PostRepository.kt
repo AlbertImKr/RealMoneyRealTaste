@@ -189,8 +189,8 @@ interface PostRepository : Repository<Post, Long> {
     )
     fun updateAuthorInfo(
         authorMemberId: Long,
-        nickname: String? = null,
-        introduction: String? = null,
-        imageId: Long? = null,
+        nickname: String?,
+        introduction: String?,
+        imageId: Long?,
     )
 }

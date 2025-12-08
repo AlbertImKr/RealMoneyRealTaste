@@ -79,4 +79,9 @@ interface MemberEventRepository : JpaRepository<MemberEvent, Long> {
         @Param("memberId") memberId: Long,
         @Param("commentId") commentId: Long,
     ): Int
+
+    /**
+     * 특정 회원의 모든 이벤트 조회
+     */
+    fun findByMemberId(memberId: Long): List<MemberEvent>
 }

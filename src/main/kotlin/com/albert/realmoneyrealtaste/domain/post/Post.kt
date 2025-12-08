@@ -64,6 +64,7 @@ class Post protected constructor(
             authorIntroduction: String,
             authorImageId: Long,
         ): Post {
+            val createdAt = LocalDateTime.now()
             val post = Post(
                 author = Author(authorMemberId, authorNickname, authorIntroduction, authorImageId),
                 restaurant = restaurant,
@@ -73,8 +74,8 @@ class Post protected constructor(
                 commentCount = 0,
                 heartCount = 0,
                 viewCount = 0,
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
+                createdAt = createdAt,
+                updatedAt = createdAt,
             )
 
             // 도메인 이벤트 발행
@@ -82,7 +83,8 @@ class Post protected constructor(
                 PostCreatedEvent(
                     postId = 0L, // drainDomainEvents에서 실제 ID로 설정
                     authorMemberId = authorMemberId,
-                    restaurantName = restaurant.name
+                    restaurantName = restaurant.name,
+                    occurredAt = createdAt,
                 )
             )
 
@@ -160,7 +162,8 @@ class Post protected constructor(
         addDomainEvent(
             PostDeletedEvent(
                 postId = requireId(),
-                authorMemberId = author.memberId
+                authorMemberId = author.memberId,
+                occurredAt = this.updatedAt,
             )
         )
     }

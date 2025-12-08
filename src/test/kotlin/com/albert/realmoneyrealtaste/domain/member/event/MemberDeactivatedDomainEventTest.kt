@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.member.event
 
 import org.junit.jupiter.api.assertAll
+import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -59,9 +60,10 @@ class MemberDeactivatedDomainEventTest {
 
     @Test
     fun `equals and hashCode - success - works correctly`() {
-        val event1 = MemberDeactivatedDomainEvent(memberId = 1L)
-        val event2 = MemberDeactivatedDomainEvent(memberId = 1L)
-        val event3 = MemberDeactivatedDomainEvent(memberId = 2L)
+        val occurredAt = LocalDateTime.now()
+        val event1 = MemberDeactivatedDomainEvent(memberId = 1L, occurredAt)
+        val event2 = MemberDeactivatedDomainEvent(memberId = 1L, occurredAt)
+        val event3 = MemberDeactivatedDomainEvent(memberId = 2L, occurredAt)
 
         assertAll(
             { assertEquals(event1, event2) },

@@ -31,7 +31,8 @@ class PostDomainEventListener(
         postRepository.updateAuthorInfo(
             authorMemberId = event.memberId,
             nickname = event.nickname,
-            imageId = event.imageId
+            introduction = event.introduction,
+            imageId = event.imageId,
         )
     }
 

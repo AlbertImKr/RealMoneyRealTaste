@@ -10,6 +10,7 @@ data class MemberProfileUpdatedDomainEvent(
     val email: String,
     val updatedFields: List<String>,
     val nickname: String? = null,
+    val introduction: String? = null,
     val imageId: Long? = null,
     val occurredAt: LocalDateTime = LocalDateTime.now(),
 ) : MemberDomainEvent {

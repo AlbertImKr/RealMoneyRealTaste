@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.post.event
 
 import org.junit.jupiter.api.assertAll
+import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -80,19 +81,23 @@ class PostDeletedEventTest {
 
     @Test
     fun `equals and hashCode - success - works correctly`() {
+        val occurredAt = LocalDateTime.now()
         val event1 = PostDeletedEvent(
             postId = 1L,
-            authorMemberId = 42L
+            authorMemberId = 42L,
+            occurredAt,
         )
 
         val event2 = PostDeletedEvent(
             postId = 1L,
-            authorMemberId = 42L
+            authorMemberId = 42L,
+            occurredAt,
         )
 
         val event3 = PostDeletedEvent(
             postId = 2L,
-            authorMemberId = 42L
+            authorMemberId = 42L,
+            occurredAt,
         )
 
         assertAll(
