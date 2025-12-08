@@ -66,6 +66,13 @@ RMRT는 RESTful API와 WebView 기반의 하이브리드 구조를 제공합니�
 - [컬렉션 게시글 추가/제거](#컬렉션-게시글-추가제거)
 - [컬렉션 상세 조회](#컬렉션-상세-조회)
 
+### 🔔 회원 이벤트 관련 API (NEW!)
+
+- [내 이벤트 목록 조회](#내-이벤트-목록-조회)
+- [읽지 않은 이벤트 수 조회](#읽지-않은-이벤트-수-조회)
+- [이벤트 읽음 처리](#이벤트-읽음-처리)
+- [이벤트 일괄 읽음 처리](#이벤트-일괄-읽음-처리)
+
 ---
 
 ## 👥 멤버 관련 API
@@ -899,3 +906,225 @@ API 테스트는 다음 명령으로 실행할 수 있습니다:
 
 - 이 프로젝트는 REST API와 WebView가 혼합된 구조입니다
 - JSON API는 `/api/*` 경로를 사용합니다
+
+---
+
+## 🔔 회원 이벤트 관련 API
+
+### 내 이벤트 목록 조회
+
+현재 로그인한 사용자의 이벤트 목록을 조회합니다.
+
+```http
+GET /api/events/me?isRead={isRead}&page={page}&size={size}
+```
+
+**Query Parameters:**
+
+| 파라미터     | 타입      | 필수 | 설명                                                      | 기본값       |
+|----------|---------|----|---------------------------------------------------------|-----------|
+| `isRead` | Boolean | ✗  | 읽음 여부 필터 (`true`: 읽은 이벤트만, `false`: 읽지 않은 이벤트만, 생략: 전체) | null (전체) |
+| `page`   | Integer | ✗  | 페이지 번호 (0부터 시작)                                         | 0         |
+| `size`   | Integer | ✗  | 페이지당 이벤트 수                                              | 20        |
+
+**응답 예시 (200 OK):**
+
+```json
+{
+  "events": [
+    {
+      "id": 123,
+      "eventType": "FRIEND_REQUEST_RECEIVED",
+      "title": "새로운 친구 요청",
+      "message": "홍길동님이 친구 요청을 보냈습니다",
+      "isRead": false,
+      "createdAt": "2025-12-08T10:30:00",
+      "relatedMemberId": 456,
+      "relatedMemberNickname": "홍길동",
+      "relatedMemberProfileImageUrl": "https://example.com/profile.jpg",
+      "relatedPostId": null,
+      "relatedCommentId": null
+    },
+    {
+      "id": 122,
+      "eventType": "POST_COMMENTED",
+      "title": "새로운 댓글",
+      "message": "내 게시물에 댓글이 달렸습니다",
+      "isRead": false,
+      "createdAt": "2025-12-08T09:15:00",
+      "relatedMemberId": 789,
+      "relatedMemberNickname": "김철수",
+      "relatedMemberProfileImageUrl": "https://example.com/profile2.jpg",
+      "relatedPostId": 100,
+      "relatedCommentId": 50
+    }
+  ],
+  "totalElements": 42,
+  "totalPages": 3,
+  "currentPage": 0,
+  "size": 20,
+  "hasNext": true
+}
+```
+
+**이벤트 타입 (MemberEventType):**
+
+| 이벤트 타입                    | 설명             |
+|---------------------------|----------------|
+| `FRIEND_REQUEST_SENT`     | 친구 요청을 보냈습니다   |
+| `FRIEND_REQUEST_RECEIVED` | 친구 요청을 받았습니다   |
+| `FRIEND_REQUEST_ACCEPTED` | 친구 요청이 수락되었습니다 |
+| `FRIEND_REQUEST_REJECTED` | 친구 요청이 거절되었습니다 |
+| `FRIENDSHIP_TERMINATED`   | 친구 관계가 해제되었습니다 |
+| `POST_CREATED`            | 새 게시물을 작성했습니다  |
+| `POST_DELETED`            | 게시물을 삭제했습니다    |
+| `POST_COMMENTED`          | 게시물에 댓글이 달렸습니다 |
+| `COMMENT_CREATED`         | 댓글을 작성했습니다     |
+| `COMMENT_DELETED`         | 댓글을 삭제했습니다     |
+| `COMMENT_REPLIED`         | 대댓글이 달렸습니다     |
+| `PROFILE_UPDATED`         | 프로필이 업데이트되었습니다 |
+| `ACCOUNT_ACTIVATED`       | 계정이 활성화되었습니다   |
+| `ACCOUNT_DEACTIVATED`     | 계정이 비활성화되었습니다  |
+
+**오류 응답:**
+
+- `401 Unauthorized`: 인증되지 않은 사용자
+
+---
+
+### 읽지 않은 이벤트 수 조회
+
+현재 로그인한 사용자의 읽지 않은 이벤트 수를 조회합니다.
+
+```http
+GET /api/events/me/unread-count
+```
+
+**응답 예시 (200 OK):**
+
+```json
+{
+  "unreadCount": 5
+}
+```
+
+**오류 응답:**
+
+- `401 Unauthorized`: 인증되지 않은 사용자
+
+---
+
+### 이벤트 읽음 처리
+
+특정 이벤트를 읽음으로 표시합니다.
+
+```http
+PUT /api/events/{eventId}/mark-as-read
+```
+
+**Path Parameters:**
+
+| 파라미터      | 타입   | 설명     |
+|-----------|------|--------|
+| `eventId` | Long | 이벤트 ID |
+
+**응답 예시 (204 No Content):**
+
+이벤트가 성공적으로 읽음 처리되었습니다. 응답 본문 없음.
+
+**오류 응답:**
+
+- `401 Unauthorized`: 인증되지 않은 사용자
+- `403 Forbidden`: 다른 사용자의 이벤트에 접근 시도
+- `404 Not Found`: 존재하지 않는 이벤트 ID
+
+---
+
+### 이벤트 일괄 읽음 처리
+
+여러 이벤트를 한 번에 읽음으로 표시합니다.
+
+```http
+PUT /api/events/me/mark-all-as-read
+```
+
+**Request Body:**
+
+```json
+{
+  "eventIds": [
+    123,
+    124,
+    125,
+    126
+  ]
+}
+```
+
+**응답 예시 (204 No Content):**
+
+모든 이벤트가 성공적으로 읽음 처리되었습니다. 응답 본문 없음.
+
+**오류 응답:**
+
+- `401 Unauthorized`: 인증되지 않은 사용자
+- `403 Forbidden`: 다른 사용자의 이벤트 포함 시
+
+---
+
+### 이벤트 프래그먼트 조회 (WebView)
+
+HTMX를 사용한 동적 이벤트 목록 조회입니다.
+
+```http
+GET /events/fragment/list?isRead={isRead}&page={page}
+```
+
+**Query Parameters:**
+
+| 파라미터     | 타입      | 필수 | 설명       | 기본값       |
+|----------|---------|----|----------|-----------|
+| `isRead` | Boolean | ✗  | 읽음 여부 필터 | null (전체) |
+| `page`   | Integer | ✗  | 페이지 번호   | 0         |
+
+**응답:** HTML 프래그먼트 (이벤트 목록)
+
+**사용 예시 (HTMX):**
+
+```html
+
+<div hx-get="/events/fragment/list"
+     hx-trigger="load"
+     hx-target="#event-list">
+</div>
+```
+
+---
+
+## 🔔 이벤트 사용 가이드
+
+### 실시간 알림
+
+이벤트는 도메인 이벤트 발생 시 자동으로 생성됩니다:
+
+1. **친구 요청 발송**: 발신자와 수신자 모두에게 이벤트 생성
+2. **게시물 작성**: 작성자에게 이벤트 생성
+3. **댓글 작성**: 작성자와 게시물 작성자에게 이벤트 생성
+
+### 폴링 vs 웹소켓
+
+현재 버전은 **폴링 방식**을 사용합니다:
+
+- 클라이언트가 주기적으로 `/api/events/me/unread-count` 호출
+- 권장 폴링 간격: 30초
+
+**향후 개선 (WebSocket):**
+
+- 실시간 알림 푸시
+- 서버 부하 감소
+- 즉각적인 사용자 경험
+
+### 이벤트 자동 삭제
+
+- **읽은 이벤트**: 90일 후 자동 삭제
+- **읽지 않은 이벤트**: 무기한 보관

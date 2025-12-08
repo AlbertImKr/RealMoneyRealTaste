@@ -6,7 +6,8 @@
 
 - [1. 아키텍처 원칙](#1-아키텍처-원칙)
 - [2. 레이어별 구현 예시](#2-레이어별-구현-예시)
-- [3. 프로젝트 구조](#3-프로젝트-구조)
+- [3. 도메인 이벤트 시스템](#3-도메인-이벤트-시스템)
+- [4. 프로젝트 구조](#4-프로젝트-구조)
 
 ---
 
@@ -217,7 +218,272 @@ class JpaMemberRepository(
 }
 ```
 
-## 3. 프로젝트 구조
+---
+
+## 3. 도메인 이벤트 시스템
+
+### 3.1 Event-Driven Architecture
+
+RMRT는 **도메인 이벤트 기반 아키텍처**를 적용하여 도메인 간 결합도를 낮추고 확장성을 높였습니다.
+
+```mermaid
+graph LR
+    subgraph "Domain Layer"
+        A[Member Aggregate] -->|이벤트 발행| B[MemberRegisteredDomainEvent]
+        C[Post Aggregate] -->|이벤트 발행| D[PostCreatedEvent]
+        E[Friendship Aggregate] -->|이벤트 발행| F[FriendRequestSentEvent]
+        G[Comment Aggregate] -->|이벤트 발행| H[CommentCreatedEvent]
+    end
+
+    subgraph "Application Layer"
+        B -->|리스닝| I[MemberEventDomainEventListener]
+        D -->|리스닝| J[PostDomainEventListener]
+        F -->|리스닝| K[FriendshipDomainEventListener]
+        H -->|리스닝| L[CommentDomainEventListener]
+        I -->|MemberEvent 생성| M[(MemberEvent DB)]
+        J -->|MemberEvent 생성| M
+        K -->|MemberEvent 생성| M
+        L -->|MemberEvent 생성| M
+        B -->|리스닝| N[EmailEventListener]
+        N -->|이메일 발송| O[Email Service]
+    end
+```
+
+### 3.2 AggregateRoot 패턴
+
+#### 개념
+
+도메인 엔티티가 상태 변경 시 도메인 이벤트를 발행하여 다른 도메인 로직을 트리거하는 패턴입니다.
+
+```kotlin
+fun interface AggregateRoot {
+    /**
+     * 애그리거트에 축적된 도메인 이벤트를 모두 가져오고 초기화합니다.
+     */
+    fun drainDomainEvents(): List<Any>
+}
+```
+
+#### 구현 예시 - Member Aggregate
+
+```kotlin
+@Entity
+class Member : BaseEntity(), AggregateRoot {
+    private val domainEvents: MutableList<Any> = mutableListOf()
+
+    fun activate() {
+        if (status != MemberStatus.PENDING) {
+            throw InvalidMemberStatusException.NotPending("등록 대기 상태에서만 등록 완료가 가능합니다")
+        }
+        status = MemberStatus.ACTIVE
+        detail.activate()
+        updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        domainEvents.add(
+            MemberActivatedDomainEvent(
+                memberId = requireId(),
+                email = email.address,
+                nickname = nickname.value,
+                occurredOn = Instant.now()
+            )
+        )
+    }
+
+    override fun drainDomainEvents(): List<Any> {
+        val events = domainEvents.toList()
+        domainEvents.clear()
+        return events
+    }
+}
+```
+
+### 3.3 도메인 이벤트 계층 구조
+
+```kotlin
+// 최상위 도메인 이벤트 인터페이스
+interface DomainEvent {
+    val occurredOn: Instant  // 이벤트 발생 시각
+}
+
+// 도메인별 마커 인터페이스
+interface MemberDomainEvent : DomainEvent
+interface PostDomainEvent : DomainEvent
+interface CommentDomainEvent : DomainEvent
+interface FriendDomainEvent : DomainEvent
+
+// 구체적인 도메인 이벤트
+data class MemberRegisteredDomainEvent(
+    val memberId: Long,
+    val email: String,
+    val nickname: String,
+    override val occurredOn: Instant
+) : MemberDomainEvent
+
+data class PostCreatedEvent(
+    val postId: Long,
+    val authorMemberId: Long,
+    val restaurantName: String,
+    val isSponsored: Boolean,
+    override val occurredOn: Instant
+) : PostDomainEvent
+```
+
+### 3.4 이벤트 발행 및 처리 흐름
+
+```mermaid
+sequenceDiagram
+    participant C as Controller
+    participant S as Service
+    participant A as Aggregate
+    participant P as DomainEventPublisher
+    participant L as EventListener
+    participant M as MemberEventRepository
+    C ->> S: 비즈니스 로직 요청
+    S ->> A: 도메인 메서드 호출
+    A ->> A: 상태 변경
+    A ->> A: 도메인 이벤트 저장 (내부 리스트)
+    A -->> S: 반환
+    S ->> P: 트랜잭션 커밋 전 이벤트 발행
+    P ->> P: drainDomainEvents() 호출
+    P ->> L: 이벤트 발행 (비동기 @Async)
+    S -->> C: 응답
+    Note over L: 별도 트랜잭션에서 처리
+    L ->> M: MemberEvent 생성 및 저장
+```
+
+#### 핵심 구현
+
+**DomainEventPublisher (서비스)**
+
+```kotlin
+@Service
+class DomainEventPublisherService(
+    private val eventPublisher: ApplicationEventPublisher,
+) : DomainEventPublisher {
+
+    override fun publishDomainEvents(aggregateRoot: AggregateRoot) {
+        aggregateRoot.drainDomainEvents().forEach { event ->
+            eventPublisher.publishEvent(event)
+        }
+    }
+}
+```
+
+**이벤트 리스너 (비동기 처리)**
+
+```kotlin
+@Component
+class MemberEventDomainEventListener(
+    private val memberEventCreator: MemberEventCreator,
+    private val memberReader: MemberReader,
+) {
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @EventListener
+    fun handleMemberRegistered(event: MemberRegisteredDomainEvent) {
+        memberEventCreator.create(
+            MemberEventCreateRequest(
+                memberId = event.memberId,
+                eventType = MemberEventType.ACCOUNT_ACTIVATED,
+                title = "회원 가입 완료",
+                message = "${event.nickname}님, 환영합니다!"
+            )
+        )
+    }
+}
+```
+
+### 3.5 이벤트 리스너 목록
+
+#### MemberEventDomainEventListener
+
+**처리하는 이벤트**
+
+- `MemberRegisteredDomainEvent`: 회원 가입
+- `MemberActivatedDomainEvent`: 계정 활성화
+- `MemberDeactivatedDomainEvent`: 계정 비활성화
+- `MemberProfileUpdatedDomainEvent`: 프로필 업데이트
+- `PasswordChangedDomainEvent`: 비밀번호 변경
+
+**수행 작업**: MemberEvent 엔티티 생성 (활동 기록)
+
+#### EmailEventListener
+
+**처리하는 이벤트**
+
+- `EmailSendRequestedEvent`: 이메일 발송 요청
+
+**수행 작업**: 이메일 발송 (회원가입 인증, 비밀번호 재설정)
+
+#### FriendshipDomainEventListener
+
+**처리하는 이벤트**
+
+- `FriendRequestSentEvent`: 친구 요청 발송
+- `FriendRequestAcceptedEvent`: 친구 요청 수락
+- `FriendRequestRejectedEvent`: 친구 요청 거절
+- `FriendshipTerminatedEvent`: 친구 관계 해제
+
+**수행 작업**: 양방향 MemberEvent 생성 (발신자/수신자)
+
+#### PostDomainEventListener
+
+**처리하는 이벤트**
+
+- `PostCreatedEvent`: 게시물 작성
+- `PostDeletedEvent`: 게시물 삭제
+
+**수행 작업**: MemberEvent 생성 (작성자)
+
+#### CommentDomainEventListener
+
+**처리하는 이벤트**
+
+- `CommentCreatedEvent`: 댓글 작성
+- `CommentDeletedEvent`: 댓글 삭제
+
+**수행 작업**: MemberEvent 생성 (작성자 및 게시물 작성자)
+
+### 3.6 이벤트 처리 특징
+
+#### 비동기 처리 (@Async)
+
+```kotlin
+@Async
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+@EventListener
+fun handleEvent(event: DomainEvent) {
+    // 이벤트 처리 로직
+}
+```
+
+**장점**
+
+- 메인 비즈니스 로직과 분리
+- 실패 시 메인 로직에 영향 없음
+- 성능 향상 (비동기 처리)
+
+#### 트랜잭션 경계
+
+```
+1. 메인 트랜잭션: 도메인 엔티티 상태 변경
+   ↓
+2. 트랜잭션 커밋 전: 도메인 이벤트 발행
+   ↓
+3. 리스너 트랜잭션: 각 리스너가 독립 트랜잭션 (REQUIRES_NEW)
+```
+
+**Eventually Consistent 모델**
+
+- 메인 로직은 즉시 일관성 유지
+- 이벤트 처리는 최종 일관성 보장
+- 시스템 전체의 복원력(resilience) 향상
+
+---
+
+## 4. 프로젝트 구조
 
 ```
 src/main/kotlin/com/albert/realmoneyrealtaste/
