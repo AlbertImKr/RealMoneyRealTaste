@@ -1,6 +1,14 @@
 package com.albert.realmoneyrealtaste.domain.member
 
+import com.albert.realmoneyrealtaste.domain.common.AggregateRoot
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.common.DomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberActivatedDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberDeactivatedDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberProfileUpdatedDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.MemberRegisteredDomainEvent
+import com.albert.realmoneyrealtaste.domain.member.event.PasswordChangedDomainEvent
 import com.albert.realmoneyrealtaste.domain.member.service.PasswordEncoder
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.Introduction
@@ -53,7 +61,10 @@ class Member protected constructor(
     followingsCount: Long,
 
     postCount: Long,
-) : BaseEntity() {
+) : BaseEntity(), AggregateRoot {
+
+    @Transient
+    private var domainEvents: MutableList<MemberDomainEvent> = mutableListOf()
 
     @Embedded
     var email: Email = email
@@ -101,7 +112,7 @@ class Member protected constructor(
     var postCount: Long = postCount
         protected set
 
-    val imageId: Long
+    val profileImageId: Long
         get() = detail.imageId ?: 1L
 
     val address: String
@@ -119,6 +130,15 @@ class Member protected constructor(
         status = MemberStatus.ACTIVE
         detail.activate()
         updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            MemberActivatedDomainEvent(
+                memberId = requireId(),
+                email = email.address,
+                nickname = nickname.value
+            )
+        )
     }
 
     fun deactivate() {
@@ -127,6 +147,14 @@ class Member protected constructor(
         status = MemberStatus.DEACTIVATED
         detail.deactivate()
         updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            MemberDeactivatedDomainEvent(
+                memberId = requireId(),
+                occurredAt = LocalDateTime.now(),
+            )
+        )
     }
 
     fun verifyPassword(rawPassword: RawPassword, encoder: PasswordEncoder): Boolean =
@@ -135,6 +163,14 @@ class Member protected constructor(
     fun changePassword(newPassword: PasswordHash) {
         passwordHash = newPassword
         updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            PasswordChangedDomainEvent(
+                memberId = requireId(),
+                email = email.address
+            )
+        )
     }
 
     fun changePassword(currentPassword: RawPassword, newPassword: RawPassword, encoder: PasswordEncoder) {
@@ -144,6 +180,14 @@ class Member protected constructor(
 
         passwordHash = PasswordHash.of(newPassword, encoder)
         updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            PasswordChangedDomainEvent(
+                memberId = requireId(),
+                email = email.address
+            )
+        )
     }
 
     fun updateInfo(
@@ -155,10 +199,36 @@ class Member protected constructor(
     ) {
         require(status == MemberStatus.ACTIVE) { ERROR_INVALID_STATUS_FOR_INFO_UPDATE }
 
-        val sameNickname = nickname == this.nickname
-        nickname?.let { this.nickname = it }
-        val updated = detail.updateInfo(profileAddress, introduction, address, imageId)
-        if (!sameNickname || updated) updatedAt = LocalDateTime.now()
+        val updatedFields = mutableListOf<String>()
+
+        nickname?.let {
+            if (nickname != this.nickname) {
+                this.nickname = it
+                updatedFields.add("nickname")
+            }
+        }
+
+        if (detail.updateInfo(profileAddress, introduction, address, imageId)) {
+            profileAddress?.let { updatedFields.add("profileAddress") }
+            introduction?.let { updatedFields.add("introduction") }
+            address?.let { updatedFields.add("address") }
+            imageId?.let { updatedFields.add("imageId") }
+        }
+
+        // 도메인 이벤트 발행
+        if (updatedFields.isNotEmpty()) {
+            updatedAt = LocalDateTime.now()
+
+            addDomainEvent(
+                MemberProfileUpdatedDomainEvent(
+                    memberId = requireId(),
+                    email = email.address,
+                    updatedFields = updatedFields,
+                    nickname = if (updatedFields.contains("nickname")) this.nickname.value else null,
+                    imageId = if (updatedFields.contains("imageId")) detail.imageId else null
+                )
+            )
+        }
     }
 
     fun updateTrustScore(newTrustScore: TrustScore) {
@@ -205,6 +275,24 @@ class Member protected constructor(
         updatedAt = LocalDateTime.now()
     }
 
+    /**
+     * 도메인 이벤트 추가
+     */
+    private fun addDomainEvent(event: MemberDomainEvent) {
+        domainEvents.add(event)
+    }
+
+    /**
+     * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
+     */
+    override fun drainDomainEvents(): List<DomainEvent> {
+        val events = domainEvents.toList()
+        domainEvents.clear()
+
+        // 이벤트의 memberId를 실제 ID로 설정
+        return events.map { it.withMemberId(requireId()) }
+    }
+
     companion object {
         const val ERROR_INVALID_STATUS_FOR_ACTIVATION = "등록 대기 상태에서만 등록 완료가 가능합니다"
         const val ERROR_INVALID_STATUS_FOR_DEACTIVATION = "등록 완료 상태에서만 탈퇴가 가능합니다"
@@ -217,54 +305,93 @@ class Member protected constructor(
             email: Email,
             nickname: Nickname,
             password: PasswordHash,
-        ): Member = Member(
-            email = email,
-            nickname = nickname,
-            passwordHash = password,
-            detail = MemberDetail.register(),
-            trustScore = TrustScore.create(),
-            status = MemberStatus.PENDING,
-            updatedAt = LocalDateTime.now(),
-            roles = Roles.ofUser(),
-            followersCount = 0L,
-            followingsCount = 0L,
-            postCount = 0L,
-        )
+        ): Member {
+            val member = Member(
+                email = email,
+                nickname = nickname,
+                passwordHash = password,
+                detail = MemberDetail.register(),
+                trustScore = TrustScore.create(),
+                status = MemberStatus.PENDING,
+                updatedAt = LocalDateTime.now(),
+                roles = Roles.ofUser(),
+                followersCount = 0L,
+                followingsCount = 0L,
+                postCount = 0L,
+            )
+
+            // 도메인 이벤트 발행 (ID는 나중에 설정)
+            member.addDomainEvent(
+                MemberRegisteredDomainEvent(
+                    memberId = 0L, // 임시값, 이벤트 발행 시점에 실제 ID로 설정
+                    email = email.address,
+                    nickname = nickname.value
+                )
+            )
+
+            return member
+        }
 
         fun registerManager(
             email: Email,
             nickname: Nickname,
             password: PasswordHash,
-        ): Member = Member(
-            email = email,
-            nickname = nickname,
-            passwordHash = password,
-            detail = MemberDetail.register(),
-            trustScore = TrustScore.create(),
-            status = MemberStatus.PENDING,
-            updatedAt = LocalDateTime.now(),
-            roles = Roles.of(Role.USER, Role.MANAGER),
-            followersCount = 0L,
-            followingsCount = 0L,
-            postCount = 0L,
-        )
+        ): Member {
+            val member = Member(
+                email = email,
+                nickname = nickname,
+                passwordHash = password,
+                detail = MemberDetail.register(),
+                trustScore = TrustScore.create(),
+                status = MemberStatus.PENDING,
+                updatedAt = LocalDateTime.now(),
+                roles = Roles.of(Role.USER, Role.MANAGER),
+                followersCount = 0L,
+                followingsCount = 0L,
+                postCount = 0L,
+            )
+
+            // 도메인 이벤트 발행 (ID는 나중에 설정)
+            member.addDomainEvent(
+                MemberRegisteredDomainEvent(
+                    memberId = 0L, // 임시값, 이벤트 발행 시점에 실제 ID로 설정
+                    email = email.address,
+                    nickname = nickname.value
+                )
+            )
+
+            return member
+        }
 
         fun registerAdmin(
             email: Email,
             nickname: Nickname,
             password: PasswordHash,
-        ): Member = Member(
-            email = email,
-            nickname = nickname,
-            passwordHash = password,
-            detail = MemberDetail.register(),
-            trustScore = TrustScore.create(),
-            status = MemberStatus.PENDING,
-            updatedAt = LocalDateTime.now(),
-            roles = Roles.of(Role.USER, Role.ADMIN),
-            followersCount = 0L,
-            followingsCount = 0L,
-            postCount = 0L,
-        )
+        ): Member {
+            val member = Member(
+                email = email,
+                nickname = nickname,
+                passwordHash = password,
+                detail = MemberDetail.register(),
+                trustScore = TrustScore.create(),
+                status = MemberStatus.PENDING,
+                updatedAt = LocalDateTime.now(),
+                roles = Roles.of(Role.USER, Role.ADMIN),
+                followersCount = 0L,
+                followingsCount = 0L,
+                postCount = 0L,
+            )
+
+            // 도메인 이벤트 발행 (ID는 나중에 설정)
+            member.addDomainEvent(
+                MemberRegisteredDomainEvent(
+                    memberId = 0L, // 임시값, 이벤트 발행 시점에 실제 ID로 설정
+                    email = email.address,
+                    nickname = nickname.value
+                )
+            )
+
+            return member
+        }
     }
 }

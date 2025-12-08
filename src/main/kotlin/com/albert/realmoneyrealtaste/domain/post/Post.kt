@@ -1,6 +1,10 @@
 package com.albert.realmoneyrealtaste.domain.post
 
+import com.albert.realmoneyrealtaste.domain.common.AggregateRoot
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
+import com.albert.realmoneyrealtaste.domain.post.event.PostCreatedEvent
+import com.albert.realmoneyrealtaste.domain.post.event.PostDeletedEvent
+import com.albert.realmoneyrealtaste.domain.post.event.PostDomainEvent
 import com.albert.realmoneyrealtaste.domain.post.value.Author
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
@@ -12,6 +16,7 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Index
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import java.time.LocalDateTime
 
 @Entity
@@ -44,7 +49,7 @@ class Post protected constructor(
     createdAt: LocalDateTime,
 
     updatedAt: LocalDateTime,
-) : BaseEntity() {
+) : BaseEntity(), AggregateRoot {
 
     companion object {
         const val ERROR_NO_EDIT_PERMISSION = "게시글 수정 권한이 없습니다."
@@ -57,9 +62,11 @@ class Post protected constructor(
             content: PostContent,
             images: PostImages,
             authorIntroduction: String,
+            authorImageId: Long,
         ): Post {
-            return Post(
-                author = Author(authorMemberId, authorNickname, authorIntroduction),
+            val createdAt = LocalDateTime.now()
+            val post = Post(
+                author = Author(authorMemberId, authorNickname, authorIntroduction, authorImageId),
                 restaurant = restaurant,
                 content = content,
                 images = images,
@@ -67,9 +74,21 @@ class Post protected constructor(
                 commentCount = 0,
                 heartCount = 0,
                 viewCount = 0,
-                createdAt = LocalDateTime.now(),
-                updatedAt = LocalDateTime.now()
+                createdAt = createdAt,
+                updatedAt = createdAt,
             )
+
+            // 도메인 이벤트 발행
+            post.addDomainEvent(
+                PostCreatedEvent(
+                    postId = 0L, // drainDomainEvents에서 실제 ID로 설정
+                    authorMemberId = authorMemberId,
+                    restaurantName = restaurant.name,
+                    occurredAt = createdAt,
+                )
+            )
+
+            return post
         }
     }
 
@@ -138,6 +157,15 @@ class Post protected constructor(
         ensurePublished()
         this.status = PostStatus.DELETED
         this.updatedAt = LocalDateTime.now()
+
+        // 도메인 이벤트 발행
+        addDomainEvent(
+            PostDeletedEvent(
+                postId = requireId(),
+                authorMemberId = author.memberId,
+                occurredAt = this.updatedAt,
+            )
+        )
     }
 
     /**
@@ -172,4 +200,25 @@ class Post protected constructor(
     fun isAuthor(memberId: Long): Boolean = author.memberId == memberId
 
     fun isDeleted(): Boolean = status == PostStatus.DELETED
+
+    @Transient
+    private var domainEvents: MutableList<PostDomainEvent> = mutableListOf()
+
+    /**
+     * 도메인 이벤트 추가
+     */
+    private fun addDomainEvent(event: PostDomainEvent) {
+        domainEvents.add(event)
+    }
+
+    /**
+     * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
+     */
+    override fun drainDomainEvents(): List<PostDomainEvent> {
+        val events = domainEvents.toList()
+        domainEvents.clear()
+
+        // 이벤트의 postId를 실제 ID로 설정
+        return events.map { it.withPostId(requireId()) }
+    }
 }

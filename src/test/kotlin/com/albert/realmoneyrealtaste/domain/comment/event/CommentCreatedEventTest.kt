@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.domain.comment.event
 
+import java.time.LocalDateTime
 import kotlin.test.Test
 
 class CommentCreatedEventTest {
@@ -10,13 +11,14 @@ class CommentCreatedEventTest {
         val postId = 10L
         val authorMemberId = 100L
         val parentCommentId = 5L
-        val createdAt = java.time.LocalDateTime.now()
+        val createdAt = LocalDateTime.now()
 
         val event = CommentCreatedEvent(
             commentId = commentId,
             postId = postId,
             authorMemberId = authorMemberId,
             parentCommentId = parentCommentId,
+            parentCommentAuthorId = null,
             createdAt = createdAt
         )
 

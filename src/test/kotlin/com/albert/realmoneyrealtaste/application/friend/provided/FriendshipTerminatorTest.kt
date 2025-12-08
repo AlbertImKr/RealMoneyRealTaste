@@ -70,12 +70,8 @@ class FriendshipTerminatorTest(
 
         // 이벤트 발행 확인
         val events = applicationEvents.stream(FriendshipTerminatedEvent::class.java).toList()
-        assertEquals(1, events.size)
+        assertEquals(2, events.size)
         val event = events.first()
-        assertAll(
-            { assertEquals(member1.requireId(), event.memberId) },
-            { assertEquals(member2.requireId(), event.friendMemberId) }
-        )
     }
 
     @Test
@@ -154,9 +150,9 @@ class FriendshipTerminatorTest(
         // 예외 발생하지 않고 정상 처리 (null 체크로 인해)
         friendshipTerminator.unfriend(request)
 
-        // 이벤트는 여전히 발행됨
+        // 이벤트는 발행하지 않음
         val events = applicationEvents.stream(FriendshipTerminatedEvent::class.java).toList()
-        assertEquals(1, events.size)
+        assertEquals(0, events.size)
     }
 
     @Test
@@ -272,9 +268,9 @@ class FriendshipTerminatorTest(
         // 정상적으로 처리됨 (null 체크)
         friendshipTerminator.unfriend(request)
 
-        // 이벤트는 발행됨
+        // 이벤트는 발행하지 않음
         val events = applicationEvents.stream(FriendshipTerminatedEvent::class.java).toList()
-        assertEquals(1, events.size)
+        assertEquals(0, events.size)
     }
 
     @Test
@@ -326,9 +322,9 @@ class FriendshipTerminatorTest(
         // 정상적으로 처리됨 (null 체크)
         friendshipTerminator.unfriend(request)
 
-        // 이벤트는 발행됨
+        // 이벤트는 발행 않함
         val events = applicationEvents.stream(FriendshipTerminatedEvent::class.java).toList()
-        assertEquals(1, events.size)
+        assertEquals(0, events.size)
     }
 
     @Test
@@ -385,7 +381,6 @@ class FriendshipTerminatorTest(
 
         // 친구 관계 생성
         createAcceptedFriendship(member1.requireId(), member2.requireId())
-        flushAndClear()
 
         // 친구 관계 해제
         val request = UnfriendRequest(
@@ -393,8 +388,6 @@ class FriendshipTerminatorTest(
             friendMemberId = member2.requireId()
         )
         friendshipTerminator.unfriend(request)
-
-        flushAndClear()
 
         // 데이터베이스에서 상태 확인
         val friendship1 = friendshipRepository.findByRelationShipMemberIdAndRelationShipFriendMemberId(

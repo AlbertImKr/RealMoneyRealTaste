@@ -16,6 +16,9 @@ data class Author(
 
     @Column(name = "author_introduction", nullable = false, length = MAX_INTRODUCTION_LENGTH)
     val introduction: String,
+
+    @Column(name = "author_image_id", nullable = false)
+    val imageId: Long,
 ) {
 
     companion object {
@@ -24,10 +27,13 @@ data class Author(
 
         const val ERROR_NICKNAME_BLANK = "작성자 닉네임은 필수입니다."
         const val ERROR_NICKNAME_LENGTH = "닉네임은 20자 이내여야 합니다."
+
+        const val ERROR_IMAGE_ID_POSITIVE = "작성자 이미지 ID는 0보다 커야 합니다."
     }
 
     init {
         require(nickname.isNotBlank()) { ERROR_NICKNAME_BLANK }
         require(nickname.length <= MAX_NICKNAME_LENGTH) { ERROR_NICKNAME_LENGTH }
+        require(imageId > 0) { ERROR_IMAGE_ID_POSITIVE }
     }
 }

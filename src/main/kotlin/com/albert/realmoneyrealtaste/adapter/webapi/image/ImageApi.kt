@@ -39,7 +39,7 @@ class ImageApi(
         @RequestBody @Valid request: ImageUploadRequest,
         @AuthenticationPrincipal member: MemberPrincipal,
     ): ResponseEntity<PresignedPutResponse> {
-        val response = imageUploadRequester.generatePresignedPostUrl(request, member.id)
+        val response = imageUploadRequester.generatePresignedUploadUrl(request, member.id)
 
         return ResponseEntity.ok(response)
     }

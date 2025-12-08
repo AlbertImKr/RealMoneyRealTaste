@@ -147,4 +147,50 @@ interface PostRepository : Repository<Post, Long> {
      * @return 조회된 게시글 목록
      */
     fun findAllByStatusAndIdIn(status: PostStatus, ids: List<Long>): List<Post>
+
+    /**
+     * 댓글 수를 증가시킵니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param postId 게시글 ID
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :postId")
+    fun incrementCommentCount(postId: Long)
+
+    /**
+     * 댓글 수를 감소시킵니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param postId 게시글 ID
+     */
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = p.commentCount - 1 WHERE p.id = :postId AND p.commentCount > 0")
+    fun decrementCommentCount(postId: Long)
+
+    /**
+     * 작성자 정보를 업데이트합니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param authorMemberId 작성자 회원 ID
+     * @param nickname 새 닉네임 (null이면 업데이트하지 않음)
+     * @param introduction 새 자기소개 (null이면 업데이트하지 않음)
+     * @param imageId 새 이미지 ID (null이면 업데이트하지 않음)
+     */
+    @Modifying
+    @Query(
+        """
+        UPDATE Post p SET 
+        p.author.nickname = COALESCE(:nickname, p.author.nickname),
+        p.author.introduction = COALESCE(:introduction, p.author.introduction),
+        p.author.imageId = COALESCE(:imageId, p.author.imageId)
+        WHERE p.author.memberId = :authorMemberId
+    """
+    )
+    fun updateAuthorInfo(
+        authorMemberId: Long,
+        nickname: String?,
+        introduction: String?,
+        imageId: Long?,
+    )
 }

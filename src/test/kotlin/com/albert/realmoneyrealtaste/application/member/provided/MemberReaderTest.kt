@@ -479,7 +479,7 @@ class MemberReaderTest(
         val targetMember = createActiveMember(email = Email("target@example.com"))
         val activeMember1 = createActiveMember(email = Email("active1@example.com"))
         val inactiveMember2 = createMember(email = Email("inactive2@example.com")) // 비활성화
-        val activeMember3 = createActiveMember(email = Email("active3@example.com"))
+        createActiveMember(email = Email("active3@example.com"))
 
         // targetMember가 activeMember1과 inactiveMember2를 팔로우
         createFollowRelationship(targetMember, activeMember1)
@@ -560,8 +560,8 @@ class MemberReaderTest(
             followingId = following.id!!,
             followerNickname = follower.nickname.value,
             followingNickname = following.nickname.value,
-            followerProfileImageId = follower.imageId,
-            followingProfileImageId = following.imageId
+            followerProfileImageId = follower.profileImageId,
+            followingProfileImageId = following.profileImageId
         )
 
         val follow = Follow.create(command)

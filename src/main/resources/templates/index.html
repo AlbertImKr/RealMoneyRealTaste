@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>RMRT - 진짜 내돈내산 푸디 소셜 플랫폼</title>
 
@@ -58,7 +59,8 @@
                                 <div class="card-body pt-0">
                                     <!-- 로그인된 경우: 프로필 정보 표시 -->
                                     <div th:if="${member != null}">
-                                        <div class="card-body pt-0" hx-get="/fragments/member-profile" hx-swap="innerHTML"
+                                        <div class="card-body pt-0" hx-get="/fragments/member-profile"
+                                             hx-swap="innerHTML"
                                              hx-indicator="#member-profile-indicator" hx-trigger="load">
                                             <!-- htmx를 통해 member profile fragment가 동적으로 로드됩니다 -->
                                         </div>

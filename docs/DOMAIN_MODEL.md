@@ -13,9 +13,11 @@
 - [7. 팔로우 애그리거트](#7-팔로우-애그리거트)
 - [8. 댓글 애그리거트](#8-댓글-애그리거트)
 - [9. 토큰 애그리거트](#9-토큰-애그리거트)
-- [10. 공통 설계 요소](#10-공통-설계-요소)
-- [11. 애플리케이션 레이어](#11-애플리케이션-레이어)
-- [12. 설계 특징 및 패턴](#12-설계-특징-및-패턴)
+- [10. 회원 이벤트 애그리거트](#10-회원-이벤트-애그리거트)
+- [11. 도메인 이벤트 시스템](#11-도메인-이벤트-시스템)
+- [12. 공통 설계 요소](#12-공통-설계-요소)
+- [13. 애플리케이션 레이어](#13-애플리케이션-레이어)
+- [14. 설계 특징 및 패턴](#14-설계-특징-및-패턴)
 
 ---
 
@@ -78,6 +80,11 @@ ActivationToken Aggregate
 
 PasswordResetToken Aggregate
 └── PasswordResetToken (Root)
+
+MemberEvent Aggregate
+├── MemberEvent (Root)
+├── MemberEventType (Enum)
+└── 관련 엔티티 ID (Long)
 ```
 
 ---
@@ -276,12 +283,12 @@ class Roles(
 **생성**
 
 ```kotlin
-static create(
+static create (
     authorMemberId: Long,
-    authorNickname: String,
-    restaurant: Restaurant,
-    content: PostContent,
-    images: PostImages
+authorNickname: String,
+restaurant: Restaurant,
+content: PostContent,
+images: PostImages
 ): Post
 ```
 
@@ -449,10 +456,10 @@ data class PostHeartRemovedEvent(
 **생성**
 
 ```kotlin
-static create(
+static create (
     fileKey: FileKey,
-    uploadedBy: Long,
-    imageType: ImageType
+uploadedBy: Long,
+imageType: ImageType
 ): Image
 ```
 
@@ -503,6 +510,7 @@ data class FileKey(
 ```
 
 **특징**
+
 - 경로 탐색 공격 (`../`) 방지
 - 절대 경로 사용 금지
 - S3 객체 키 직접 매핑
@@ -820,9 +828,282 @@ class PasswordResetToken(
 
 ---
 
-## 9. 공통 설계 요소
+## 9. 회원 이벤트 애그리거트
 
-### 9.1 BaseEntity
+### 9.1 회원 이벤트 (MemberEvent)
+
+**_Aggregate Root, Entity_**
+
+#### 속성
+
+* `id: Long` - 이벤트 식별자 (PK)
+* `memberId: Long` - 이벤트 대상 회원 ID
+* `eventType: MemberEventType` - 이벤트 타입 (Enum)
+* `title: String` - 이벤트 제목 (최대 100자)
+* `message: String` - 이벤트 상세 메시지 (최대 500자)
+* `relatedMemberId: Long?` - 관련 회원 ID (선택)
+* `relatedPostId: Long?` - 관련 게시물 ID (선택)
+* `relatedCommentId: Long?` - 관련 댓글 ID (선택)
+* `isRead: Boolean` - 읽음 여부 (기본값: false)
+* `createdAt: LocalDateTime` - 생성 일시
+
+#### 주요 행위
+
+**생성**
+
+```kotlin
+static create (
+    memberId: Long,
+eventType: MemberEventType,
+title: String,
+message: String,
+relatedMemberId: Long? = null,
+relatedPostId: Long? = null,
+relatedCommentId: Long? = null
+): MemberEvent
+```
+
+**관리**
+
+- `markAsRead()` - 이벤트를 읽음으로 표시
+
+#### 비즈니스 규칙
+
+* 초기 읽음 상태: false
+* 본인의 이벤트만 조회 및 읽음 처리 가능
+* Hard Delete 방식 (90일 이상 경과한 읽은 이벤트 자동 삭제)
+* 도메인 이벤트 발생 시 자동 생성
+
+### 9.2 회원 이벤트 타입 (MemberEventType)
+
+**_Enum_**
+
+```kotlin
+enum class MemberEventType {
+    // 친구 관련
+    FRIEND_REQUEST_SENT,      // 친구 요청을 보냈습니다
+    FRIEND_REQUEST_RECEIVED,  // 친구 요청을 받았습니다
+    FRIEND_REQUEST_ACCEPTED,  // 친구 요청이 수락되었습니다
+    FRIEND_REQUEST_REJECTED,  // 친구 요청이 거절되었습니다
+    FRIENDSHIP_TERMINATED,    // 친구 관계가 해제되었습니다
+
+    // 게시물 관련
+    POST_CREATED,             // 새 게시물을 작성했습니다
+    POST_DELETED,             // 게시물을 삭제했습니다
+    POST_COMMENTED,           // 게시물에 댓글이 달렸습니다
+
+    // 댓글 관련
+    COMMENT_CREATED,          // 댓글을 작성했습니다
+    COMMENT_DELETED,          // 댓글을 삭제했습니다
+    COMMENT_REPLIED,          // 대댓글이 달렸습니다
+
+    // 프로필 관련
+    PROFILE_UPDATED,          // 프로필이 업데이트되었습니다
+
+    // 시스템 관련
+    ACCOUNT_ACTIVATED,        // 계정이 활성화되었습니다
+    ACCOUNT_DEACTIVATED,      // 계정이 비활성화되었습니다
+}
+```
+
+**인덱스**
+
+* `idx_member_event_member_id`: member_id
+* `idx_member_event_event_type`: event_type
+* `idx_member_event_is_read`: is_read
+* `idx_member_event_created_at`: created_at
+
+---
+
+## 10. 도메인 이벤트 시스템
+
+### 10.1 AggregateRoot 패턴
+
+**_Interface_**
+
+```kotlin
+fun interface AggregateRoot {
+    /**
+     * 애그리거트에 축적된 도메인 이벤트를 모두 가져오고 초기화합니다.
+     */
+    fun drainDomainEvents(): List<Any>
+}
+```
+
+#### 구현 엔티티
+
+* **Member**: 회원 도메인 이벤트 발행
+* **Post**: 게시물 도메인 이벤트 발행
+* **Comment**: 댓글 도메인 이벤트 발행
+* **Friendship**: 친구 관계 도메인 이벤트 발행
+
+### 10.2 도메인 이벤트 계층 구조
+
+#### 공통 인터페이스
+
+```kotlin
+interface DomainEvent {
+    val occurredOn: Instant  // 이벤트 발생 시각
+}
+```
+
+#### 도메인별 이벤트 마커 인터페이스
+
+```kotlin
+interface MemberDomainEvent : DomainEvent
+interface PostDomainEvent : DomainEvent
+interface CommentDomainEvent : DomainEvent
+interface FriendDomainEvent : DomainEvent
+```
+
+### 10.3 회원 도메인 이벤트
+
+```kotlin
+// 회원 가입
+data class MemberRegisteredDomainEvent(
+    val memberId: Long,
+    val email: String,
+    val nickname: String,
+    override val occurredOn: Instant
+) : MemberDomainEvent
+
+// 회원 활성화
+data class MemberActivatedDomainEvent(
+    val memberId: Long,
+    val email: String,
+    val nickname: String,
+    override val occurredOn: Instant
+) : MemberDomainEvent
+
+// 회원 비활성화
+data class MemberDeactivatedDomainEvent(
+    val memberId: Long,
+    override val occurredOn: Instant
+) : MemberDomainEvent
+
+// 프로필 업데이트
+data class MemberProfileUpdatedDomainEvent(
+    val memberId: Long,
+    val nickname: String,
+    val introduction: String?,
+    val profileAddress: String?,
+    override val occurredOn: Instant
+) : MemberDomainEvent
+
+// 비밀번호 변경
+data class PasswordChangedDomainEvent(
+    val memberId: Long,
+    override val occurredOn: Instant
+) : MemberDomainEvent
+```
+
+### 10.4 게시물 도메인 이벤트
+
+```kotlin
+// 게시물 생성
+data class PostCreatedEvent(
+    val postId: Long,
+    val authorMemberId: Long,
+    val restaurantName: String,
+    val isSponsored: Boolean,
+    override val occurredOn: Instant
+) : PostDomainEvent
+
+// 게시물 삭제
+data class PostDeletedEvent(
+    val postId: Long,
+    val authorMemberId: Long,
+    override val occurredOn: Instant
+) : PostDomainEvent
+```
+
+### 10.5 댓글 도메인 이벤트
+
+```kotlin
+// 댓글 생성
+data class CommentCreatedEvent(
+    val commentId: Long,
+    val postId: Long,
+    val authorMemberId: Long,
+    val postAuthorMemberId: Long,
+    val parentCommentId: Long?,
+    override val occurredOn: Instant
+) : CommentDomainEvent
+
+// 댓글 삭제
+data class CommentDeletedEvent(
+    val commentId: Long,
+    val postId: Long,
+    val authorMemberId: Long,
+    override val occurredOn: Instant
+) : CommentDomainEvent
+```
+
+### 10.6 친구 관계 도메인 이벤트
+
+```kotlin
+// 친구 요청 발송
+data class FriendRequestSentEvent(
+    val friendshipId: Long,
+    val requesterId: Long,
+    val recipientId: Long,
+    override val occurredOn: Instant
+) : FriendDomainEvent
+
+// 친구 요청 수락
+data class FriendRequestAcceptedEvent(
+    val friendshipId: Long,
+    val requesterId: Long,
+    val recipientId: Long,
+    override val occurredOn: Instant
+) : FriendDomainEvent
+
+// 친구 요청 거절
+data class FriendRequestRejectedEvent(
+    val friendshipId: Long,
+    val requesterId: Long,
+    val recipientId: Long,
+    override val occurredOn: Instant
+) : FriendDomainEvent
+
+// 친구 관계 해제
+data class FriendshipTerminatedEvent(
+    val friendshipId: Long,
+    val initiatorId: Long,
+    val targetId: Long,
+    override val occurredOn: Instant
+) : FriendDomainEvent
+```
+
+### 10.7 이벤트 발행 및 처리
+
+#### 발행 방식
+
+```
+1. 엔티티 상태 변경 메서드 호출
+   ↓
+2. 도메인 이벤트 생성 및 내부 리스트에 저장
+   ↓
+3. 트랜잭션 커밋 전 DomainEventPublisher가 이벤트 발행
+   ↓
+4. Spring ApplicationEventPublisher를 통해 이벤트 발행
+   ↓
+5. 이벤트 리스너가 비동기로 처리 (@Async)
+```
+
+#### 주요 리스너
+
+* **MemberEventDomainEventListener**: 도메인 이벤트 → MemberEvent 생성
+* **EmailEventListener**: 이메일 발송 이벤트 처리
+* **FriendshipDomainEventListener**: 친구 관계 이벤트 → MemberEvent 생성
+* **PostDomainEventListener**: 게시물 이벤트 → MemberEvent 생성
+* **CommentDomainEventListener**: 댓글 이벤트 → MemberEvent 생성
+
+---
+
+## 11. 공통 설계 요소
+
+### 11.1 BaseEntity
 
 ```kotlin
 @MappedSuperclass
@@ -846,7 +1127,7 @@ abstract class BaseEntity {
 
 ---
 
-### 9.2 예외 계층
+### 11.2 예외 계층
 
 ```
 RuntimeException
@@ -882,9 +1163,9 @@ RuntimeException
 
 ---
 
-## 10. 애플리케이션 레이어
+## 12. 애플리케이션 레이어
 
-### 10.1 서비스 구조
+### 12.1 서비스 구조
 
 #### Provided 인터페이스 (Use Case)
 
@@ -959,7 +1240,7 @@ RuntimeException
 
 ---
 
-### 10.2 주요 서비스 흐름
+### 12.2 주요 서비스 흐름
 
 #### 회원 등록
 
@@ -998,7 +1279,7 @@ RuntimeException
 
 ---
 
-### 10.3 이벤트 기반 처리
+### 12.3 이벤트 기반 처리
 
 #### 회원 이벤트 리스너
 
@@ -1049,9 +1330,9 @@ class FriendEventListener {
 
 ---
 
-## 11. 설계 특징 및 패턴
+## 13. 설계 특징 및 패턴
 
-### 11.1 Aggregate 설계 원칙
+### 13.1 Aggregate 설계 원칙
 
 #### Member Aggregate
 
@@ -1082,7 +1363,7 @@ class FriendEventListener {
 
 ---
 
-### 11.2 Value Object 활용
+### 13.2 Value Object 활용
 
 #### Embedded 방식
 
@@ -1102,7 +1383,7 @@ class FriendEventListener {
 
 ---
 
-### 11.3 동시성 처리
+### 13.3 동시성 처리
 
 #### 문제 상황
 
@@ -1125,7 +1406,7 @@ fun incrementHeartCount(postId: Long)
 
 ---
 
-### 11.4 Soft Delete 패턴
+### 13.4 Soft Delete 패턴
 
 **구현**
 
@@ -1140,7 +1421,7 @@ fun incrementHeartCount(postId: Long)
 
 ---
 
-### 11.5 아키텍처 패턴
+### 13.5 아키텍처 패턴
 
 #### 헥사고날 아키텍처
 
@@ -1172,7 +1453,7 @@ fun incrementHeartCount(postId: Long)
 
 ---
 
-### 11.6 Kotlin 특성 활용
+### 13.6 Kotlin 특성 활용
 
 #### data class
 

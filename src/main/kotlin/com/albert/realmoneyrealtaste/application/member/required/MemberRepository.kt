@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.Repository
 
@@ -89,4 +90,46 @@ interface MemberRepository : Repository<Member, Long> {
         """
     )
     fun findSuggestedMembers(memberId: Long, status: MemberStatus, limit: Long): List<Member>
+
+    /**
+     * 회원의 게시글 수를 증가시킵니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param memberId 회원 ID
+     */
+    @Modifying
+    @Query("UPDATE Member m SET m.postCount = m.postCount + 1 WHERE m.id = :memberId")
+    fun incrementPostCount(memberId: Long)
+
+    /**
+     * 회원의 게시글 수를 감소시킵니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param memberId 회원 ID
+     */
+    @Modifying
+    @Query("UPDATE Member m SET m.postCount = m.postCount - 1 WHERE m.id = :memberId AND m.postCount > 0")
+    fun decrementPostCount(memberId: Long)
+
+    /**
+     * 회원의 팔로워 수를 업데이트합니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param memberId 회원 ID
+     * @param count 새 팔로워 수
+     */
+    @Modifying
+    @Query("UPDATE Member m SET m.followersCount = :count WHERE m.id = :memberId")
+    fun updateFollowersCount(memberId: Long, count: Long)
+
+    /**
+     * 회원의 팔로잉 수를 업데이트합니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param memberId 회원 ID
+     * @param count 새 팔로잉 수
+     */
+    @Modifying
+    @Query("UPDATE Member m SET m.followingsCount = :count WHERE m.id = :memberId")
+    fun updateFollowingsCount(memberId: Long, count: Long)
 }

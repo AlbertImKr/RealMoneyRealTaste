@@ -1,7 +1,6 @@
 package com.albert.realmoneyrealtaste.adapter.webview.post
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.security.MemberPrincipal
-import com.albert.realmoneyrealtaste.adapter.webview.post.form.PostCreateForm
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -21,33 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam
 class PostReadView(
     private val postReader: PostReader,
 ) {
-
-    /**
-     * 현재 로그인한 사용자의 게시글 목록 페이지를 조회합니다.
-     *
-     * @param memberPrincipal 현재 인증된 사용자 정보
-     * @param pageable 페이징 정보 (기본: 생성일 내림차순, 10개씩)
-     * @param model 뷰에 전달할 데이터 모델
-     * @return 내 게시글 목록 뷰
-     */
-    @GetMapping(PostUrls.READ_MY_LIST)
-    fun readMyPosts(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
-        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
-        model: Model,
-    ): String {
-        val postsPage = postReader.readPostsByAuthor(
-            authorId = memberPrincipal.id,
-            pageable = pageable,
-        )
-        model.addAttribute("postCreateForm", PostCreateForm())
-        model.addAttribute("posts", postsPage)
-        // author: 프로필 페이지의 주인 (게시물 작성자)
-        model.addAttribute("author", memberPrincipal)
-        // member: 현재 로그인한 사용자 (뷰에서 권한 확인용)
-        model.addAttribute("member", memberPrincipal)
-        return PostViews.MY_LIST
-    }
 
     /**
      * 특정 멤버의 게시글 목록 프래그먼트를 조회합니다.
@@ -76,31 +48,6 @@ class PostReadView(
     }
 
     /**
-     * 현재 로그인한 사용자의 게시글 목록 프래그먼트를 조회합니다.
-     * 비동기 AJAX 요청에 사용됩니다.
-     *
-     * @param memberPrincipal 현재 인증된 사용자 정보
-     * @param pageable 페이징 정보 (기본: 생성일 내림차순, 10개씩)
-     * @param model 뷰에 전달할 데이터 모델
-     * @return 게시글 목록 프래그먼트 뷰
-     */
-    @GetMapping(PostUrls.READ_MY_LIST_FRAGMENT)
-    fun readMyPostsFragment(
-        @AuthenticationPrincipal memberPrincipal: MemberPrincipal,
-        @PageableDefault(size = 10, sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable,
-        model: Model,
-    ): String {
-        val postsPage = postReader.readPostsByAuthor(
-            authorId = memberPrincipal.id,
-            pageable = pageable,
-        )
-        model.addAttribute("posts", postsPage)
-        model.addAttribute("member", memberPrincipal)
-        model.addAttribute("author", memberPrincipal)
-        return PostViews.POSTS_CONTENT
-    }
-
-    /**
      * 전체 게시글 목록 프래그먼트를 조회합니다.
      * 인증된 사용자와 비인증 사용자 모두 접근 가능합니다.
      *
@@ -122,7 +69,7 @@ class PostReadView(
         }
         model.addAttribute("posts", postsPage)
         model.addAttribute("member", memberPrincipal)
-        model.addAttribute("author", memberPrincipal)
+        model.addAttribute("authorId", memberPrincipal.id)
         return PostViews.POSTS_CONTENT
     }
 

@@ -49,7 +49,14 @@ class FriendshipResponseTest {
         setMemberId(friend, toMemberId)
         setMemberImageId(friend, 456L)
 
-        val command = FriendRequestCommand(fromMemberId, member.nickname.value, toMemberId, friend.nickname.value)
+        val command = FriendRequestCommand(
+            fromMemberId,
+            member.nickname.value,
+            member.profileImageId,
+            toMemberId,
+            friend.nickname.value,
+            friend.profileImageId,
+        )
         val friendship = Friendship.request(command)
 
         // ID 설정 (실제로는 JPA가 수행)
@@ -93,7 +100,14 @@ class FriendshipResponseTest {
         setMemberId(friend, toMemberId)
         // profileImageId를 설정하지 않음 (null 상태 유지)
 
-        val command = FriendRequestCommand(fromMemberId, member.nickname.value, toMemberId, friend.nickname.value)
+        val command = FriendRequestCommand(
+            fromMemberId,
+            member.nickname.value,
+            member.profileImageId,
+            toMemberId,
+            friend.nickname.value,
+            member.profileImageId,
+        )
         val friendship = Friendship.request(command)
         setFriendshipId(friendship, 100L)
 
@@ -109,12 +123,6 @@ class FriendshipResponseTest {
         val field: Field = BaseEntity::class.java.getDeclaredField("id")
         field.isAccessible = true
         field.set(friendship, id)
-    }
-
-    private fun setStatus(friendship: Friendship, status: FriendshipStatus) {
-        val field: Field = Friendship::class.java.getDeclaredField("status")
-        field.isAccessible = true
-        field.set(friendship, status)
     }
 
     private fun setMemberId(member: Member, memberId: Long) {

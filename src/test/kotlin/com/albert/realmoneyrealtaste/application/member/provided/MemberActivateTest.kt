@@ -32,8 +32,7 @@ class MemberActivateTest(
             nickname = MemberFixture.DEFAULT_NICKNAME
         )
         val member = memberRegister.register(request)
-        val token = activationTokenRepository.findByMemberId(member.id!!)
-            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
+        val token = activationTokenGenerator.generate(member.id!!)
 
         val activatedMember = memberActivate.activate(token.token)
 
@@ -62,8 +61,7 @@ class MemberActivateTest(
             nickname = MemberFixture.DEFAULT_NICKNAME
         )
         val member = memberRegister.register(request)
-        val token = activationTokenRepository.findByMemberId(member.id!!)
-            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
+        val token = activationTokenGenerator.generate(member.id!!)
 
         memberActivate.activate(token.token)
 
@@ -122,8 +120,8 @@ class MemberActivateTest(
         )
         val member = memberRegister.register(request)
         member.activate()
-        val token = activationTokenRepository.findByMemberId(member.requireId())
-            ?: throw IllegalStateException("Activation token not found for member id: ${member.id}")
+
+        val token = activationTokenGenerator.generate(member.requireId())
 
         assertFailsWith<MemberActivateException> {
             memberActivate.activate(token.token)
@@ -163,8 +161,7 @@ class MemberActivateTest(
             nickname = MemberFixture.DEFAULT_NICKNAME
         )
         val member = memberRegister.register(request)
-        val token = activationTokenRepository.findByMemberId(member.id!!)
-            ?: throw IllegalStateException("활성 토큰을 찾을 수 없습니다. 회원 ID: ${member.id}")
+        val token = activationTokenGenerator.generate(member.id!!)
 
         memberActivate.activate(token.token)
 

@@ -18,6 +18,7 @@
             </div>
             <!-- Post input -->
             <form class="w-100">
+                <form class="w-100">
                 <label class="visually-hidden" for="postInput">Create post</label>
                 <input class="form-control pe-4 border-0" data-bs-target="#modalCreateFeed"
                        data-bs-toggle="modal"
@@ -89,7 +90,8 @@
                             <a th:href="@{/members/{id}(id=${post.author.memberId})}">
                                 <img alt=""
                                      class="avatar-img rounded-circle"
-                                     src="#">
+                                     th:src="@{'/api/images/' + ${post.author.imageId}}"
+                                >
                             </a>
                         </div>
                         <!-- Info -->

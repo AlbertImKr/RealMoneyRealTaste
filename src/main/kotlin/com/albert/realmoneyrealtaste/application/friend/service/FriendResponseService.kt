@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.application.friend.service
 
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.friend.dto.FriendResponseRequest
 import com.albert.realmoneyrealtaste.application.friend.exception.FriendResponseException
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendRequestor
@@ -7,11 +8,8 @@ import com.albert.realmoneyrealtaste.application.friend.provided.FriendResponder
 import com.albert.realmoneyrealtaste.application.friend.provided.FriendshipReader
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.friend.Friendship
-import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
-import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestRejectedEvent
 import com.albert.realmoneyrealtaste.domain.member.Member
 import jakarta.transaction.Transactional
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 
 @Service
@@ -19,7 +17,7 @@ import org.springframework.stereotype.Service
 class FriendResponseService(
     private val memberReader: MemberReader,
     private val friendshipReader: FriendshipReader,
-    private val eventPublisher: ApplicationEventPublisher,
+    private val domainEventPublisher: DomainEventPublisher,
     private val friendRequestor: FriendRequestor,
 ) : FriendResponder {
 
@@ -50,8 +48,8 @@ class FriendResponseService(
                 friendship.reject()
             }
 
-            // 이벤트 발행
-            publishEvent(friendship, request.accept)
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(friendship)
 
             return friendship
         } catch (e: IllegalArgumentException) {
@@ -59,29 +57,12 @@ class FriendResponseService(
         }
     }
 
-    private fun publishEvent(
-        friendship: Friendship,
-        accept: Boolean,
-    ) {
-        val event = if (accept) {
-            FriendRequestAcceptedEvent(
-                friendshipId = friendship.requireId(),
-                fromMemberId = friendship.relationShip.memberId,
-                toMemberId = friendship.relationShip.friendMemberId
-            )
-        } else {
-            FriendRequestRejectedEvent(
-                friendshipId = friendship.requireId(),
-                fromMemberId = friendship.relationShip.memberId,
-                toMemberId = friendship.relationShip.friendMemberId
-            )
-        }
-        eventPublisher.publishEvent(event)
-    }
-
     private fun createReverseFriendship(fromMemberId: Long, toMember: Member) {
         val reverseFriendship =
             friendRequestor.sendFriendRequest(fromMemberId = fromMemberId, toMemberId = toMember.requireId())
         reverseFriendship.accept() // 즉시 수락 상태로 설정
+
+        // 역방향 친구 관계의 도메인 이벤트도 발행
+        domainEventPublisher.publishFrom(reverseFriendship)
     }
 }

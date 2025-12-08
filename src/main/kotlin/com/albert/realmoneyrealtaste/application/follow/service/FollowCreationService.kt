@@ -40,6 +40,13 @@ class FollowCreationService(
                 return existingFollow
             } else if (existingFollow != null) {
                 existingFollow.reactivate()
+                eventPublisher.publishEvent(
+                    FollowStartedEvent(
+                        followId = existingFollow.requireId(),
+                        followerId = existingFollow.relationship.followerId,
+                        followingId = existingFollow.relationship.followingId,
+                    )
+                )
                 return existingFollow
             }
 
@@ -47,10 +54,10 @@ class FollowCreationService(
             val command = FollowCreateCommand(
                 followerId = follower.requireId(),
                 followerNickname = follower.nickname.value,
-                followerProfileImageId = follower.imageId,
+                followerProfileImageId = follower.profileImageId,
                 followingId = following.requireId(),
                 followingNickname = following.nickname.value,
-                followingProfileImageId = following.imageId,
+                followingProfileImageId = following.profileImageId,
             )
             val follow = Follow.create(command)
             val savedFollow = followRepository.save(follow)

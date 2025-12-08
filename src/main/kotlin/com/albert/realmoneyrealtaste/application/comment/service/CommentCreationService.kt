@@ -6,13 +6,12 @@ import com.albert.realmoneyrealtaste.application.comment.exception.CommentCreati
 import com.albert.realmoneyrealtaste.application.comment.provided.CommentCreator
 import com.albert.realmoneyrealtaste.application.comment.provided.CommentReader
 import com.albert.realmoneyrealtaste.application.comment.required.CommentRepository
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.application.post.provided.PostReader
 import com.albert.realmoneyrealtaste.domain.comment.Comment
 import com.albert.realmoneyrealtaste.domain.comment.CommentStatus
-import com.albert.realmoneyrealtaste.domain.comment.event.CommentCreatedEvent
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -21,7 +20,7 @@ class CommentCreationService(
     private val commentRepository: CommentRepository,
     private val memberReader: MemberReader,
     private val postReader: PostReader,
-    private val eventPublisher: ApplicationEventPublisher,
+    private val domainEventPublisher: DomainEventPublisher,
     private val commentReader: CommentReader,
 ) : CommentCreator {
 
@@ -50,16 +49,8 @@ class CommentCreationService(
             // 저장
             val savedComment = commentRepository.save(comment)
 
-            // 이벤트 발행
-            eventPublisher.publishEvent(
-                CommentCreatedEvent(
-                    commentId = savedComment.requireId(),
-                    postId = savedComment.postId,
-                    authorMemberId = savedComment.author.memberId,
-                    parentCommentId = null,
-                    createdAt = savedComment.createdAt
-                )
-            )
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(savedComment)
 
             return savedComment
         } catch (e: IllegalArgumentException) {
@@ -75,7 +66,7 @@ class CommentCreationService(
             val nickname = memberReader.getNicknameById(request.memberId)
 
             // 부모 댓글 검증
-            validateParentComment(request)
+            val parentComment = validateParentComment(request)
 
             // 대댓글 생성
             val reply = Comment.create(
@@ -83,22 +74,15 @@ class CommentCreationService(
                 authorMemberId = request.memberId,
                 authorNickname = nickname,
                 content = CommentContent(request.content),
-                parentCommentId = request.parentCommentId
+                parentCommentId = request.parentCommentId,
+                parentCommentAuthorId = parentComment.author.memberId
             )
 
             // 저장
             val savedReply = commentRepository.save(reply)
 
-            // 이벤트 발행
-            eventPublisher.publishEvent(
-                CommentCreatedEvent(
-                    commentId = savedReply.requireId(),
-                    postId = savedReply.postId,
-                    authorMemberId = savedReply.author.memberId,
-                    parentCommentId = savedReply.parentCommentId,
-                    createdAt = savedReply.createdAt
-                )
-            )
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(savedReply)
 
             return savedReply
         } catch (e: IllegalArgumentException) {
@@ -124,10 +108,11 @@ class CommentCreationService(
     /**
      * 부모 댓글 검증 로직
      * @param request 대댓글 작성 요청 DTO
+     * @return 검증된 부모 댓글
      *
      * @throws IllegalArgumentException 부모 댓글이 유효하지 않은 경우, 대댓글 작성이 불가능한 경우 발생
      */
-    private fun validateParentComment(request: ReplyCreateRequest) {
+    private fun validateParentComment(request: ReplyCreateRequest): Comment {
         val parentComment = commentReader.findById(request.parentCommentId)
 
         require(parentComment.status == CommentStatus.PUBLISHED) { ERROR_PARENT_COMMENT_NOT_FOUND }
@@ -135,5 +120,7 @@ class CommentCreationService(
         require(parentComment.postId == request.postId) { ERROR_PARENT_COMMENT_POST_MISMATCH }
 
         require(!parentComment.isReply()) { ERROR_CANNOT_REPLY_TO_REPLY }
+
+        return parentComment
     }
 }

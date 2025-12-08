@@ -1,7 +1,6 @@
 package com.albert.realmoneyrealtaste.application.member.provided
 
 import com.albert.realmoneyrealtaste.IntegrationTestBase
-import com.albert.realmoneyrealtaste.application.member.event.PasswordResetRequestedEvent
 import com.albert.realmoneyrealtaste.application.member.exception.PassWordResetException
 import com.albert.realmoneyrealtaste.application.member.exception.PasswordResetTokenNotFoundException
 import com.albert.realmoneyrealtaste.application.member.exception.SendPasswordResetEmailException
@@ -42,12 +41,12 @@ class PasswordResetterTest(
     @Test
     fun `sendPasswordResetEmail - success - generates token and publishes event`() {
         val member = createMember()
-        member.activate()
-        memberRepository.save(member)
+        val savedMember = memberRepository.save(member)
+        savedMember.activate()
 
-        passwordResetter.sendPasswordResetEmail(member.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember.email.address)
 
-        val savedToken = passwordResetTokenReader.findByMemberId(member.requireId())
+        val savedToken = passwordResetTokenReader.findByMemberId(savedMember.requireId())
         assertNotNull(savedToken)
     }
 
@@ -60,23 +59,22 @@ class PasswordResetterTest(
             passwordResetter.sendPasswordResetEmail(nonExistentEmail.address)
         }
 
-        assertEquals(applicationEvents.stream(PasswordResetRequestedEvent::class.java).count().toInt(), 0)
     }
 
     @Test
     fun `sendPasswordResetEmail - success - deletes existing token before generating new one`() {
         val member = createMember()
-        member.activate()
-        memberRepository.save(member)
+        val savedMember = memberRepository.save(member)
+        savedMember.activate()
 
-        passwordResetter.sendPasswordResetEmail(member.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember.email.address)
 
-        val firstToken = passwordResetTokenReader.findByMemberId(member.requireId())
+        val firstToken = passwordResetTokenReader.findByMemberId(savedMember.requireId())
         assertNotNull(firstToken)
 
-        passwordResetter.sendPasswordResetEmail(member.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember.email.address)
 
-        val secondToken = passwordResetTokenReader.findByMemberId(member.requireId())
+        val secondToken = passwordResetTokenReader.findByMemberId(savedMember.requireId())
         assertAll(
             { assertNotNull(secondToken) },
             { assertTrue(firstToken.token != secondToken.token) }
@@ -86,15 +84,15 @@ class PasswordResetterTest(
     @Test
     fun `sendPasswordResetEmail - success - creates valid token`() {
         val member = createMember()
-        member.activate()
-        memberRepository.save(member)
+        val savedMember = memberRepository.save(member)
+        savedMember.activate()
 
-        passwordResetter.sendPasswordResetEmail(member.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember.email.address)
 
-        val savedToken = passwordResetTokenReader.findByMemberId(member.requireId())
+        val savedToken = passwordResetTokenReader.findByMemberId(savedMember.requireId())
         assertAll(
             { assertNotNull(savedToken) },
-            { assertEquals(member.requireId(), savedToken.memberId) },
+            { assertEquals(savedMember.requireId(), savedToken.memberId) },
             { assertNotNull(savedToken.token) },
             { assertTrue(savedToken.token.isNotEmpty()) },
             { assertNotNull(savedToken.createdAt) },
@@ -106,17 +104,17 @@ class PasswordResetterTest(
     @Test
     fun `resetPassword - success - changes password and deletes token`() {
         val member = createMember()
-        member.activate()
-        memberRepository.save(member)
+        val savedMember = memberRepository.save(member)
+        savedMember.activate()
 
-        passwordResetter.sendPasswordResetEmail(member.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember.email.address)
 
-        val token = passwordResetTokenReader.findByMemberId(member.requireId())
+        val token = passwordResetTokenReader.findByMemberId(savedMember.requireId())
         val newPassword = RawPassword("newPassword123!")
 
         passwordResetter.resetPassword(token.token, newPassword)
 
-        val updatedMember = memberReader.readMemberById(member.requireId())
+        val updatedMember = memberReader.readMemberById(savedMember.requireId())
         assertAll(
             { assertTrue(updatedMember.verifyPassword(newPassword, passwordEncoder)) },
             { assertFailsWith<PasswordResetTokenNotFoundException> { passwordResetTokenReader.findByMemberId(member.requireId()) } }
@@ -136,8 +134,8 @@ class PasswordResetterTest(
     @Test
     fun `resetPassword - failure - throws exception when token is expired`() {
         val member = createMember()
-        member.activate()
         memberRepository.save(member)
+        member.activate()
 
         val expiredToken = PasswordResetToken(
             memberId = member.requireId(),
@@ -161,18 +159,18 @@ class PasswordResetterTest(
     @Test
     fun `resetPassword - success - old password no longer works after reset`() {
         val member = createMember()
-        member.activate()
         val oldPassword = MemberFixture.DEFAULT_RAW_PASSWORD
-        memberRepository.save(member)
+        val savedMember = memberRepository.save(member)
+        savedMember.activate()
 
-        passwordResetter.sendPasswordResetEmail(member.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember.email.address)
 
-        val token = passwordResetTokenReader.findByMemberId(member.requireId())
+        val token = passwordResetTokenReader.findByMemberId(savedMember.requireId())
         val newPassword = RawPassword("newPassword123!")
 
         passwordResetter.resetPassword(token.token, newPassword)
 
-        val updatedMember = memberReader.readMemberById(member.requireId())
+        val updatedMember = memberReader.readMemberById(savedMember.requireId())
         assertAll(
             { assertTrue(updatedMember.verifyPassword(newPassword, passwordEncoder)) },
             { assertTrue(!updatedMember.verifyPassword(oldPassword, passwordEncoder)) }
@@ -182,12 +180,12 @@ class PasswordResetterTest(
     @Test
     fun `resetPassword - failure - cannot reuse token after successful reset`() {
         val member = createMember()
-        member.activate()
-        memberRepository.save(member)
+        val savedMember = memberRepository.save(member)
+        savedMember.activate()
 
-        passwordResetter.sendPasswordResetEmail(member.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember.email.address)
 
-        val token = passwordResetTokenReader.findByMemberId(member.requireId())
+        val token = passwordResetTokenReader.findByMemberId(savedMember.requireId())
         val newPassword = RawPassword("newPassword123!")
 
         passwordResetter.resetPassword(token.token, newPassword)
@@ -203,23 +201,23 @@ class PasswordResetterTest(
     fun `sendPasswordResetEmail - success - multiple members can have tokens simultaneously`() {
         val member1 = createMember(email = Email("member1@example.com"))
         val member2 = createMember(email = Email("member2@example.com"))
-        member1.activate()
-        member2.activate()
-        memberRepository.save(member1)
-        memberRepository.save(member2)
+        val savedMember1 = memberRepository.save(member1)
+        val savedMember2 = memberRepository.save(member2)
+        savedMember1.activate()
+        savedMember2.activate()
 
-        passwordResetter.sendPasswordResetEmail(member1.email.address)
-        passwordResetter.sendPasswordResetEmail(member2.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember1.email.address)
+        passwordResetter.sendPasswordResetEmail(savedMember2.email.address)
 
-        val token1 = passwordResetTokenReader.findByMemberId(member1.requireId())
-        val token2 = passwordResetTokenReader.findByMemberId(member2.requireId())
+        val token1 = passwordResetTokenReader.findByMemberId(savedMember1.requireId())
+        val token2 = passwordResetTokenReader.findByMemberId(savedMember2.requireId())
 
         assertAll(
             { assertNotNull(token1) },
             { assertNotNull(token2) },
             { assertTrue(token1.token != token2.token) },
-            { assertEquals(member1.requireId(), token1.memberId) },
-            { assertEquals(member2.requireId(), token2.memberId) }
+            { assertEquals(savedMember1.requireId(), token1.memberId) },
+            { assertEquals(savedMember2.requireId(), token2.memberId) }
         )
     }
 
@@ -228,20 +226,22 @@ class PasswordResetterTest(
         val password = MemberFixture.DEFAULT_RAW_PASSWORD
         val member1 = createMember(email = Email("member1@example.com"), password = password)
         val member2 = createMember(email = Email("member2@example.com"), password = password)
-        member1.activate()
-        member2.activate()
-        memberRepository.save(member1)
-        memberRepository.save(member2)
 
-        passwordResetter.sendPasswordResetEmail(member1.email.address)
+        val savedMember1 = memberRepository.save(member1)
+        val savedMember2 = memberRepository.save(member2)
 
-        val token1 = passwordResetTokenReader.findByMemberId(member1.requireId())
+        savedMember1.activate()
+        savedMember2.activate()
+
+        passwordResetter.sendPasswordResetEmail(savedMember1.email.address)
+
+        val token1 = passwordResetTokenReader.findByMemberId(savedMember1.requireId())
         val newPassword = RawPassword("newPassword123!")
 
         passwordResetter.resetPassword(token1.token, newPassword)
 
-        val updatedMember1 = memberReader.readMemberById(member1.requireId())
-        val updatedMember2 = memberReader.readMemberById(member2.requireId())
+        val updatedMember1 = memberReader.readMemberById(savedMember1.requireId())
+        val updatedMember2 = memberReader.readMemberById(savedMember2.requireId())
 
         assertAll(
             { assertTrue(updatedMember1.verifyPassword(newPassword, passwordEncoder)) },

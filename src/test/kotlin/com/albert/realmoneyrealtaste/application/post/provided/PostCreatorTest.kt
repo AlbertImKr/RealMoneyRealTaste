@@ -171,7 +171,7 @@ class PostCreatorTest(
     }
 
     @Test
-    fun `createPost - success - uses empty introduction when member has no introduction`() {
+    fun `createPost - success - uses default introduction when member has no introduction`() {
         val member = testMemberHelper.createActivatedMember()
         val request = createPostRequest()
 
@@ -180,7 +180,7 @@ class PostCreatorTest(
         assertNotNull(result.id)
         assertEquals(member.id, result.author.memberId)
         assertEquals(member.nickname.value, result.author.nickname)
-        assertEquals("", result.author.introduction) // introduction이 없으면 빈 문자열
+        assertEquals("아직 자기소개가 없어요!", result.author.introduction)
     }
 
     private fun createPostRequest(

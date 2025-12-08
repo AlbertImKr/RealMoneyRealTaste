@@ -4,6 +4,8 @@ import com.albert.realmoneyrealtaste.domain.comment.Comment
 import com.albert.realmoneyrealtaste.domain.comment.CommentStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.Repository
 import java.util.Optional
 
@@ -88,4 +90,35 @@ interface CommentRepository : Repository<Comment, Long> {
      * @param comment 삭제할 댓글
      */
     fun delete(comment: Comment)
+
+    /**
+     * 대댓글 수를 증가시킵니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param parentCommentId 부모 댓글 ID
+     */
+    @Modifying
+    @Query("UPDATE Comment c SET c.repliesCount = c.repliesCount + 1 WHERE c.id = :parentCommentId")
+    fun incrementRepliesCount(parentCommentId: Long)
+
+    /**
+     * 대댓글 수를 감소시킵니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param parentCommentId 부모 댓글 ID
+     */
+    @Modifying
+    @Query("UPDATE Comment c SET c.repliesCount = c.repliesCount - 1 WHERE c.id = :parentCommentId AND c.repliesCount > 0")
+    fun decrementRepliesCount(parentCommentId: Long)
+
+    /**
+     * 작성자 닉네임을 업데이트합니다.
+     * 동시성 문제를 방지하기 위해 DB 레벨에서 직접 업데이트합니다.
+     *
+     * @param authorMemberId 작성자 회원 ID
+     * @param nickname 새 닉네임
+     */
+    @Modifying
+    @Query("UPDATE Comment c SET c.author.nickname = :nickname WHERE c.author.memberId = :authorMemberId")
+    fun updateAuthorNickname(authorMemberId: Long, nickname: String)
 }

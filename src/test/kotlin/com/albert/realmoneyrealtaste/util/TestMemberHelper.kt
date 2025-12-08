@@ -23,8 +23,9 @@ class TestMemberHelper(
     ): Member {
         val passwordHash = PasswordHash.of(password, passwordEncoder)
         val member = Member.register(email, nickname, passwordHash)
+        memberRepository.save(member)
         member.activate()
-        return memberRepository.save(member)
+        return member
     }
 
     @Transactional

@@ -5,6 +5,7 @@ import com.albert.realmoneyrealtaste.application.comment.exception.CommentNotFou
 import com.albert.realmoneyrealtaste.application.comment.exception.CommentUpdateException
 import com.albert.realmoneyrealtaste.application.comment.provided.CommentUpdater
 import com.albert.realmoneyrealtaste.application.comment.required.CommentRepository
+import com.albert.realmoneyrealtaste.application.common.provided.DomainEventPublisher
 import com.albert.realmoneyrealtaste.application.member.provided.MemberReader
 import com.albert.realmoneyrealtaste.domain.comment.Comment
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service
 class CommentUpdateService(
     private val commentRepository: CommentRepository,
     private val memberReader: MemberReader,
+    private val domainEventPublisher: DomainEventPublisher,
 ) : CommentUpdater {
 
     override fun updateComment(request: CommentUpdateRequest): Comment {
@@ -37,7 +39,12 @@ class CommentUpdateService(
                 content = CommentContent(request.content)
             )
 
-            return commentRepository.save(comment)
+            val savedComment = commentRepository.save(comment)
+
+            // 도메인 이벤트 발행
+            domainEventPublisher.publishFrom(savedComment)
+
+            return savedComment
         } catch (e: IllegalArgumentException) {
             throw CommentUpdateException("댓글 수정 중 오류가 발생했습니다.", e)
         }

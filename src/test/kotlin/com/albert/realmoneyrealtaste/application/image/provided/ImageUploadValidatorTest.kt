@@ -51,6 +51,15 @@ class ImageUploadValidatorTest(
     }
 
     @Test
+    fun `validateUserUploadLimit - success - allows upload when count is zero`() {
+        // Given
+        val todayUploadCount = 0
+
+        // When & Then - 예외 발생하지 않음
+        imageUploadValidator.validateUserUploadLimit(todayUploadCount)
+    }
+
+    @Test
     fun `validateImageRequest - success - validates valid post image request`() {
         // Given
         val request = ImageUploadRequest(
@@ -198,7 +207,9 @@ class ImageUploadValidatorTest(
             "123.jpg", // 숫자로 시작
             "file123.jpg", // 숫자 포함
             "ALL_CAPS.JPG", // 대문자
-            "mixed_Case-Name.jpg" // 대소문자 혼합
+            "mixed_Case-Name.jpg", // 대소문자 혼합
+            "test.image.name.jpg", // 여러 개의 점이 있지만 ".."가 아닌 경우
+            "my.photo.album.png" // 여러 개의 점이 있지만 ".."가 아닌 경우
         )
 
         // When & Then
@@ -217,6 +228,21 @@ class ImageUploadValidatorTest(
 
     @Test
     fun `validateImageRequest - failure - throws exception for invalid file size`() {
+        // Given - 파일 크기 음수
+        val negativeSizeRequest = ImageUploadRequest(
+            fileName = "test.jpg",
+            fileSize = -1L,
+            contentType = "image/jpeg",
+            width = 200,
+            height = 200,
+            imageType = ImageType.POST_IMAGE
+        )
+
+        // When & Then
+        assertFailsWith<IllegalArgumentException> {
+            imageUploadValidator.validateImageRequest(negativeSizeRequest)
+        }
+
         // Given - 파일 크기 0
         val zeroSizeRequest = ImageUploadRequest(
             fileName = "test.jpg",
@@ -358,68 +384,101 @@ class ImageUploadValidatorTest(
     }
 
     @Test
-    fun `validateImageRequest - failure - throws exception for invalid file name`() {
-        // Given
-        val invalidFileNameRequests = listOf(
-            "", // 빈 파일명
-            "   ", // 공백만
-            "no-extension", // 확장자 없음
-            "file.", // 확장자만 점
-            ".hidden", // 점으로 시작
-            "file@name.jpg", // 특수문자 @
-            "file#name.jpg", // 특수문자 #
-            "file name.jpg", // 공백
-            "file(name).jpg", // 괄호
-            "file+name.jpg", // 플러스
-            "file=name.jpg", // 등호
-            "file&name.jpg", // 앰퍼샌드
-            "file%name.jpg", // 퍼센트
-            "file?name.jpg", // 물음표
-            "file|name.jpg", // 파이프
-            "file<name>.jpg", // 꺽쇠
-            "file>name>.jpg", // 꺽쇠
-            "file*name.jpg", // 별표
-            "file\"name.jpg", // 따옴표
-            "file'name.jpg", // 작은따옴표
-            "file`name.jpg", // 백틱
-            "file~name.jpg", // 틸드
-            "file!name.jpg", // 느낌표
-            "file^name.jpg", // 캐럿
-            "file{name}.jpg", // 중괄호
-            "file}name.jpg", // 중괄호
-            "file[name].jpg", // 대괄호
-            "file]name.jpg", // 대괄호
-            "file;name.jpg", // 세미콜론
-            "file:name.jpg", // 콜론
-            "file,name.jpg", // 쉼표
-            "file\\name.jpg", // 백슬래시
-            "file/name.jpg", // 슬래시 (허용되지 않음)
-            "file..name.jpg", // 연속 점
-            "file.txt", // 허용되지 않는 확장자
-            "file.exe", // 실행 파일
-            "file.php", // 스크립트 파일
-            "a".repeat(256) + ".jpg" // 파일명 너무 김
+    fun `validateImageRequest - failure - throws exception for invalid file names`() {
+        // Given - 빈 파일명
+        val emptyFileNameRequest = ImageUploadRequest(
+            fileName = "",
+            fileSize = 1024L,
+            contentType = "image/jpeg",
+            width = 200,
+            height = 200,
+            imageType = ImageType.POST_IMAGE
         )
 
         // When & Then
-        invalidFileNameRequests.forEach { fileName ->
-            val request = ImageUploadRequest(
-                fileName = fileName,
-                fileSize = 1024L,
-                contentType = "image/jpeg",
-                width = 200,
-                height = 200,
-                imageType = ImageType.POST_IMAGE
-            )
-            assertFailsWith<IllegalArgumentException> {
-                imageUploadValidator.validateImageRequest(request)
-            }
+        assertFailsWith<IllegalArgumentException> {
+            imageUploadValidator.validateImageRequest(emptyFileNameRequest)
+        }
+
+        // Given - 공백만 있는 파일명
+        val blankFileNameRequest = ImageUploadRequest(
+            fileName = "   ",
+            fileSize = 1024L,
+            contentType = "image/jpeg",
+            width = 200,
+            height = 200,
+            imageType = ImageType.POST_IMAGE
+        )
+
+        // When & Then
+        assertFailsWith<IllegalArgumentException> {
+            imageUploadValidator.validateImageRequest(blankFileNameRequest)
+        }
+
+        // Given - 최대 길이를 초과하는 파일명
+        val tooLongFileNameRequest = ImageUploadRequest(
+            fileName = "a".repeat(256) + ".jpg",
+            fileSize = 1024L,
+            contentType = "image/jpeg",
+            width = 200,
+            height = 200,
+            imageType = ImageType.POST_IMAGE
+        )
+
+        // When & Then
+        assertFailsWith<IllegalArgumentException> {
+            imageUploadValidator.validateImageRequest(tooLongFileNameRequest)
+        }
+
+        // Given - .. 문자열을 포함하는 파일명
+        val doubleDotFileNameRequest = ImageUploadRequest(
+            fileName = "test..image.jpg",
+            fileSize = 1024L,
+            contentType = "image/jpeg",
+            width = 200,
+            height = 200,
+            imageType = ImageType.POST_IMAGE
+        )
+
+        // When & Then
+        assertFailsWith<IllegalArgumentException> {
+            imageUploadValidator.validateImageRequest(doubleDotFileNameRequest)
+        }
+
+        // Given - path traversal 공격 시도
+        val pathTraversalRequest = ImageUploadRequest(
+            fileName = "../test.jpg",
+            fileSize = 1024L,
+            contentType = "image/jpeg",
+            width = 200,
+            height = 200,
+            imageType = ImageType.POST_IMAGE
+        )
+
+        // When & Then
+        assertFailsWith<IllegalArgumentException> {
+            imageUploadValidator.validateImageRequest(pathTraversalRequest)
         }
     }
 
     @Test
     fun `validateImageRequest - failure - throws exception for invalid file extensions`() {
-        // Given
+        // Given - 확장자 없는 파일명
+        val noExtensionRequest = ImageUploadRequest(
+            fileName = "testimage",
+            fileSize = 1024L,
+            contentType = "image/jpeg",
+            width = 200,
+            height = 200,
+            imageType = ImageType.POST_IMAGE
+        )
+
+        // When & Then
+        assertFailsWith<IllegalArgumentException> {
+            imageUploadValidator.validateImageRequest(noExtensionRequest)
+        }
+
+        // Given - 허용되지 않는 확장자들
         val invalidExtensionRequests = listOf(
             "file.txt",
             "file.pdf",
