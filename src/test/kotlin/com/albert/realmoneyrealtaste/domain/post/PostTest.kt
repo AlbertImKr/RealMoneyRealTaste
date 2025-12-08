@@ -1,10 +1,13 @@
 package com.albert.realmoneyrealtaste.domain.post
 
+import com.albert.realmoneyrealtaste.domain.post.event.PostCreatedEvent
+import com.albert.realmoneyrealtaste.domain.post.event.PostDeletedEvent
 import com.albert.realmoneyrealtaste.domain.post.value.Author
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
 import com.albert.realmoneyrealtaste.domain.post.value.Restaurant
 import com.albert.realmoneyrealtaste.util.PostFixture
+import com.albert.realmoneyrealtaste.util.setId
 import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -250,6 +253,91 @@ class PostTest {
 
         post.setViewCountForTest(100)
         assertEquals(100, post.viewCount)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns PostCreatedEvent with actual ID when post is created`() {
+        val post = PostFixture.createPost()
+        post.setId(123L)
+
+        val events = post.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is PostCreatedEvent)
+
+        val event = events[0] as PostCreatedEvent
+        assertEquals(123L, event.postId)
+        assertEquals(PostFixture.DEFAULT_AUTHOR_MEMBER_ID, event.authorMemberId)
+        assertEquals(PostFixture.DEFAULT_RESTAURANT_NAME, event.restaurantName)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns empty list when called twice`() {
+        val post = PostFixture.createPost()
+        post.setId(123L)
+
+        // 첫 번째 호출
+        val firstEvents = post.drainDomainEvents()
+        assertEquals(1, firstEvents.size)
+
+        // 두 번째 호출은 빈 리스트 반환
+        val secondEvents = post.drainDomainEvents()
+        assertEquals(0, secondEvents.size)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns PostDeletedEvent with actual ID when post is deleted`() {
+        val post = PostFixture.createPost()
+        post.setId(456L)
+
+        // 게시글 삭제
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
+
+        val events = post.drainDomainEvents()
+
+        assertEquals(2, events.size) // 생성 + 삭제 이벤트
+        assertTrue(events[1] is PostDeletedEvent)
+
+        val deleteEvent = events[1] as PostDeletedEvent
+        assertEquals(456L, deleteEvent.postId)
+        assertEquals(PostFixture.DEFAULT_AUTHOR_MEMBER_ID, deleteEvent.authorMemberId)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - handles multiple events in correct order`() {
+        val post = PostFixture.createPost()
+        post.setId(789L)
+
+        // 게시글 삭제
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
+
+        val events = post.drainDomainEvents()
+
+        assertEquals(2, events.size)
+        assertTrue(events[0] is PostCreatedEvent)
+        assertTrue(events[1] is PostDeletedEvent)
+
+        // 모든 이벤트의 postId가 실제 ID로 설정되었는지 확인
+        events.forEach { event ->
+            when (event) {
+                is PostCreatedEvent -> assertEquals(789L, event.postId)
+                is PostDeletedEvent -> assertEquals(789L, event.postId)
+            }
+        }
+    }
+
+    @Test
+    fun `drainDomainEvents - success - all events implement PostDomainEvent interface`() {
+        val post = PostFixture.createPost()
+        post.setId(123L)
+
+        post.delete(PostFixture.DEFAULT_AUTHOR_MEMBER_ID)
+
+        val events = post.drainDomainEvents()
+
+        events.forEach { event ->
+            assertEquals(123L, event.postId)
+        }
     }
 
     private class TestPost : Post(

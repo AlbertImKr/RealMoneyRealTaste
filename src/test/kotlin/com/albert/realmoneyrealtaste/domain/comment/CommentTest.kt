@@ -1,5 +1,8 @@
 package com.albert.realmoneyrealtaste.domain.comment
 
+import com.albert.realmoneyrealtaste.domain.comment.event.CommentCreatedEvent
+import com.albert.realmoneyrealtaste.domain.comment.event.CommentDeletedEvent
+import com.albert.realmoneyrealtaste.domain.comment.event.CommentUpdatedEvent
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentAuthor
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
 import com.albert.realmoneyrealtaste.util.setId
@@ -336,14 +339,147 @@ class CommentTest {
         assertEquals(5L, testComment.repliesCount)
     }
 
+    @Test
+    fun `drainDomainEvents - success - returns CommentCreatedEvent with actual ID when comment is created`() {
+        val comment = Comment.create(
+            postId = 1L,
+            authorMemberId = 100L,
+            authorNickname = "맛집탐험가",
+            content = CommentContent("새 댓글"),
+            parentCommentId = 50L,
+            parentCommentAuthorId = 200L
+        )
+        comment.setId(123L)
+
+        val events = comment.drainDomainEvents()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CommentCreatedEvent)
+
+        val event = events[0] as CommentCreatedEvent
+        assertEquals(123L, event.commentId)
+        assertEquals(1L, event.postId)
+        assertEquals(100L, event.authorMemberId)
+        assertEquals(50L, event.parentCommentId)
+        assertEquals(200L, event.parentCommentAuthorId)
+        assertNotNull(event.createdAt)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns empty list when called twice`() {
+        val comment = Comment.create(
+            postId = 1L,
+            authorMemberId = 100L,
+            authorNickname = "맛집탐험가",
+            content = CommentContent("새 댓글")
+        )
+        comment.setId(123L)
+
+        // 첫 번째 호출
+        val firstEvents = comment.drainDomainEvents()
+        assertEquals(1, firstEvents.size)
+
+        // 두 번째 호출은 빈 리스트 반환
+        val secondEvents = comment.drainDomainEvents()
+        assertEquals(0, secondEvents.size)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns CommentUpdatedEvent with actual ID when comment is updated`() {
+        val comment = createComment(
+            postId = 1L,
+            authorMemberId = 100L,
+            authorNickname = "맛집탐험가",
+            content = CommentContent("원본 댓글")
+        )
+        comment.setId(123L)
+
+        // 댓글 수정
+        comment.update(100L, CommentContent("수정된 댓글"))
+
+        val events = comment.drainDomainEvents()
+
+        assertEquals(2, events.size) // 생성 + 수정 이벤트
+        assertTrue(events[1] is CommentUpdatedEvent)
+
+        val updateEvent = events[1] as CommentUpdatedEvent
+        assertEquals(123L, updateEvent.commentId)
+        assertEquals(1L, updateEvent.postId)
+        assertEquals(100L, updateEvent.authorMemberId)
+        assertNotNull(updateEvent.updatedAt)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - returns CommentDeletedEvent with actual ID when comment is deleted`() {
+        val comment = createComment(
+            postId = 1L,
+            authorMemberId = 100L,
+            authorNickname = "맛집탐험가",
+            content = CommentContent("삭제할 댓글"),
+            parentCommentId = 50L
+        )
+        comment.setId(123L)
+
+        // 댓글 삭제
+        comment.delete(100L)
+
+        val events = comment.drainDomainEvents()
+
+        assertEquals(2, events.size) // 생성 + 삭제 이벤트
+        assertTrue(events[1] is CommentDeletedEvent)
+
+        val deleteEvent = events[1] as CommentDeletedEvent
+        assertEquals(123L, deleteEvent.commentId)
+        assertEquals(50L, deleteEvent.parentCommentId)
+        assertEquals(1L, deleteEvent.postId)
+        assertEquals(100L, deleteEvent.authorMemberId)
+        assertNotNull(deleteEvent.deletedAt)
+    }
+
+    @Test
+    fun `drainDomainEvents - success - handles multiple events in correct order`() {
+        val comment = createComment(
+            postId = 1L,
+            authorMemberId = 100L,
+            authorNickname = "맛집탐험가",
+            content = CommentContent("원본 댓글")
+        )
+        comment.setId(123L)
+
+        // 수정 후 삭제
+        comment.update(100L, CommentContent("수정된 댓글"))
+        comment.delete(100L)
+
+        val events = comment.drainDomainEvents()
+
+        assertEquals(3, events.size)
+        assertTrue(events[0] is CommentCreatedEvent)
+        assertTrue(events[1] is CommentUpdatedEvent)
+        assertTrue(events[2] is CommentDeletedEvent)
+
+        // 모든 이벤트의 commentId가 실제 ID로 설정되었는지 확인
+        events.forEach { event ->
+            when (event) {
+                is CommentCreatedEvent -> assertEquals(123L, event.commentId)
+                is CommentUpdatedEvent -> assertEquals(123L, event.commentId)
+                is CommentDeletedEvent -> assertEquals(123L, event.commentId)
+            }
+        }
+    }
+
     private fun createComment(
-        postId: Long, authorMemberId: Long, authorNickname: String, content: CommentContent,
+        postId: Long,
+        authorMemberId: Long,
+        authorNickname: String,
+        content: CommentContent,
+        parentCommentId: Long? = null,
     ): Comment {
         val comment = Comment.create(
             postId = postId,
             authorMemberId = authorMemberId,
             authorNickname = authorNickname,
-            content = content
+            content = content,
+            parentCommentId
         )
         comment.setId()
         return comment

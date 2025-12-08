@@ -148,6 +148,98 @@ class FriendRelationshipTest {
     }
 
     @Test
+    fun `create - failure - throws exception when memberProfileImageId is zero`() {
+        val memberId = 1L
+        val friendMemberId = 2L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
+        val memberProfileImageId = 0L
+        val friendProfileImageId = 4L
+
+        assertFailsWith<IllegalArgumentException> {
+            FriendRelationship(
+                memberId,
+                fromMemberNickname,
+                memberProfileImageId,
+                friendMemberId,
+                friendNickname,
+                friendProfileImageId
+            )
+        }.let {
+            assertEquals(FriendRelationship.ERROR_MEMBER_PROFILE_IMAGE_ID_MUST_BE_POSITIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when memberProfileImageId is negative`() {
+        val memberId = 1L
+        val friendMemberId = 2L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
+        val memberProfileImageId = -1L
+        val friendProfileImageId = 4L
+
+        assertFailsWith<IllegalArgumentException> {
+            FriendRelationship(
+                memberId,
+                fromMemberNickname,
+                memberProfileImageId,
+                friendMemberId,
+                friendNickname,
+                friendProfileImageId
+            )
+        }.let {
+            assertEquals(FriendRelationship.ERROR_MEMBER_PROFILE_IMAGE_ID_MUST_BE_POSITIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when friendProfileImageId is zero`() {
+        val memberId = 1L
+        val friendMemberId = 2L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
+        val memberProfileImageId = 3L
+        val friendProfileImageId = 0L
+
+        assertFailsWith<IllegalArgumentException> {
+            FriendRelationship(
+                memberId,
+                fromMemberNickname,
+                memberProfileImageId,
+                friendMemberId,
+                friendNickname,
+                friendProfileImageId
+            )
+        }.let {
+            assertEquals(FriendRelationship.ERROR_FRIEND_PROFILE_IMAGE_ID_MUST_BE_POSITIVE, it.message)
+        }
+    }
+
+    @Test
+    fun `create - failure - throws exception when friendProfileImageId is negative`() {
+        val memberId = 1L
+        val friendMemberId = 2L
+        val fromMemberNickname = "sender"
+        val friendNickname = "receiver"
+        val memberProfileImageId = 3L
+        val friendProfileImageId = -1L
+
+        assertFailsWith<IllegalArgumentException> {
+            FriendRelationship(
+                memberId,
+                fromMemberNickname,
+                memberProfileImageId,
+                friendMemberId,
+                friendNickname,
+                friendProfileImageId
+            )
+        }.let {
+            assertEquals(FriendRelationship.ERROR_FRIEND_PROFILE_IMAGE_ID_MUST_BE_POSITIVE, it.message)
+        }
+    }
+
+    @Test
     fun `of - success - creates valid relationship when command is valid`() {
         val fromMemberId = 50L
         val toMemberId = 75L

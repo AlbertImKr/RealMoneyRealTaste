@@ -1,6 +1,10 @@
 package com.albert.realmoneyrealtaste.domain.post.event
 
+import org.junit.jupiter.api.assertAll
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 class PostDeletedEventTest {
 
@@ -11,7 +15,121 @@ class PostDeletedEventTest {
             authorMemberId = 42L,
         )
 
-        assert(event.postId == 1L)
-        assert(event.authorMemberId == 42L)
+        assertEquals(1L, event.postId)
+        assertEquals(42L, event.authorMemberId)
+    }
+
+    @Test
+    fun `withPostId - success - returns new event with updated postId`() {
+        val originalPostId = 1L
+        val newPostId = 999L
+        val authorMemberId = 42L
+
+        val originalEvent = PostDeletedEvent(
+            postId = originalPostId,
+            authorMemberId = authorMemberId
+        )
+
+        val updatedEvent = originalEvent.withPostId(newPostId)
+
+        assertAll(
+            { assertEquals(newPostId, updatedEvent.postId) },
+            { assertEquals(authorMemberId, updatedEvent.authorMemberId) },
+            { assertNotEquals(originalEvent, updatedEvent) }
+        )
+    }
+
+    @Test
+    fun `withPostId - success - preserves immutability of original event`() {
+        val originalEvent = PostDeletedEvent(
+            postId = 1L,
+            authorMemberId = 42L
+        )
+
+        originalEvent.withPostId(999L)
+
+        // 원본 이벤트는 변경되지 않아야 함
+        assertEquals(1L, originalEvent.postId)
+    }
+
+    @Test
+    fun `construction - success - handles edge case values`() {
+        val event = PostDeletedEvent(
+            postId = Long.MAX_VALUE,
+            authorMemberId = Long.MAX_VALUE
+        )
+
+        assertAll(
+            { assertEquals(Long.MAX_VALUE, event.postId) },
+            { assertEquals(Long.MAX_VALUE, event.authorMemberId) }
+        )
+    }
+
+    @Test
+    fun `construction - success - handles minimum values`() {
+        val event = PostDeletedEvent(
+            postId = 1L,
+            authorMemberId = 1L
+        )
+
+        assertAll(
+            { assertEquals(1L, event.postId) },
+            { assertEquals(1L, event.authorMemberId) }
+        )
+    }
+
+    @Test
+    fun `equals and hashCode - success - works correctly`() {
+        val event1 = PostDeletedEvent(
+            postId = 1L,
+            authorMemberId = 42L
+        )
+
+        val event2 = PostDeletedEvent(
+            postId = 1L,
+            authorMemberId = 42L
+        )
+
+        val event3 = PostDeletedEvent(
+            postId = 2L,
+            authorMemberId = 42L
+        )
+
+        assertAll(
+            { assertEquals(event1, event2) },
+            { assertEquals(event1.hashCode(), event2.hashCode()) },
+            { assertNotEquals(event1, event3) },
+            { assertNotEquals(event1.hashCode(), event3.hashCode()) }
+        )
+    }
+
+    @Test
+    fun `toString - success - contains all properties`() {
+        val event = PostDeletedEvent(
+            postId = 123L,
+            authorMemberId = 456L
+        )
+
+        val toString = event.toString()
+
+        assertAll(
+            { assertTrue(toString.contains("123")) },
+            { assertTrue(toString.contains("456")) }
+        )
+    }
+
+    @Test
+    fun `equals - success - different authorMemberId produces different event`() {
+        val event1 = PostDeletedEvent(
+            postId = 1L,
+            authorMemberId = 42L
+        )
+
+        val event2 = PostDeletedEvent(
+            postId = 1L,
+            authorMemberId = 43L
+        )
+
+        assertNotEquals(event1, event2)
     }
 }

@@ -3,6 +3,7 @@ package com.albert.realmoneyrealtaste.domain.friend
 import com.albert.realmoneyrealtaste.domain.common.AggregateRoot
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
 import com.albert.realmoneyrealtaste.domain.friend.command.FriendRequestCommand
+import com.albert.realmoneyrealtaste.domain.friend.event.FriendDomainEvent
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestAcceptedEvent
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestRejectedEvent
 import com.albert.realmoneyrealtaste.domain.friend.event.FriendRequestSentEvent
@@ -105,7 +106,7 @@ class Friendship protected constructor(
         protected set
 
     @Transient
-    private var domainEvents: MutableList<Any> = mutableListOf()
+    private var domainEvents: MutableList<FriendDomainEvent> = mutableListOf()
 
     /**
      * 다시 친구 요청
@@ -182,8 +183,9 @@ class Friendship protected constructor(
         // 도메인 이벤트 발행
         addDomainEvent(
             FriendshipTerminatedEvent(
+                friendshipId = requireId(),
                 memberId = relationShip.memberId,
-                friendMemberId = relationShip.friendMemberId
+                friendMemberId = relationShip.friendMemberId,
             )
         )
     }
@@ -221,6 +223,8 @@ class Friendship protected constructor(
             // 친구 정보 업데이트
             nickname?.let { relationShip = relationShip.copy(friendNickname = it) }
             imageId?.let { relationShip = relationShip.copy(friendProfileImageId = it) }
+        } else {
+            return
         }
 
         if (nickname != null || imageId != null) {
@@ -231,26 +235,18 @@ class Friendship protected constructor(
     /**
      * 도메인 이벤트 추가
      */
-    private fun addDomainEvent(event: Any) {
+    private fun addDomainEvent(event: FriendDomainEvent) {
         domainEvents.add(event)
     }
 
     /**
      * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
      */
-    override fun drainDomainEvents(): List<Any> {
+    override fun drainDomainEvents(): List<FriendDomainEvent> {
         val events = domainEvents.toList()
         domainEvents.clear()
 
         // 이벤트의 friendshipId를 실제 ID로 설정
-        val actualId = this.requireId()
-        return events.map { event ->
-            when (event) {
-                is FriendRequestSentEvent -> event.copy(friendshipId = actualId)
-                is FriendRequestAcceptedEvent -> event.copy(friendshipId = actualId)
-                is FriendRequestRejectedEvent -> event.copy(friendshipId = actualId)
-                else -> event
-            }
-        }
+        return events.map { event -> event.withFriendshipId(requireId()) }
     }
 }

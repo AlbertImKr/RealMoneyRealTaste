@@ -10,5 +10,5 @@ data class PasswordChangedDomainEvent(
     val email: String,
     val occurredAt: LocalDateTime = LocalDateTime.now(),
 ) : MemberDomainEvent {
-    override fun withMemberId(memberId: Long): MemberDomainEvent = this.copy(memberId = memberId)
+    override fun withMemberId(memberId: Long): PasswordChangedDomainEvent = this.copy(memberId = memberId)
 }

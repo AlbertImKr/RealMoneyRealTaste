@@ -2,6 +2,7 @@ package com.albert.realmoneyrealtaste.domain.comment
 
 import com.albert.realmoneyrealtaste.domain.comment.event.CommentCreatedEvent
 import com.albert.realmoneyrealtaste.domain.comment.event.CommentDeletedEvent
+import com.albert.realmoneyrealtaste.domain.comment.event.CommentDomainEvent
 import com.albert.realmoneyrealtaste.domain.comment.event.CommentUpdatedEvent
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentAuthor
 import com.albert.realmoneyrealtaste.domain.comment.value.CommentContent
@@ -133,7 +134,7 @@ class Comment protected constructor(
         protected set
 
     @Transient
-    private var domainEvents: MutableList<Any> = mutableListOf()
+    private var domainEvents: MutableList<CommentDomainEvent> = mutableListOf()
 
     /**
      * 댓글 내용을 수정합니다.
@@ -225,26 +226,18 @@ class Comment protected constructor(
     /**
      * 도메인 이벤트 추가
      */
-    private fun addDomainEvent(event: Any) {
+    private fun addDomainEvent(event: CommentDomainEvent) {
         domainEvents.add(event)
     }
 
     /**
      * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
      */
-    override fun drainDomainEvents(): List<Any> {
+    override fun drainDomainEvents(): List<CommentDomainEvent> {
         val events = domainEvents.toList()
         domainEvents.clear()
 
         // 이벤트의 commentId를 실제 ID로 설정
-        val actualId = this.requireId()
-        return events.map { event ->
-            when (event) {
-                is CommentCreatedEvent -> event.copy(commentId = actualId)
-                is CommentUpdatedEvent -> event.copy(commentId = actualId)
-                is CommentDeletedEvent -> event.copy(commentId = actualId)
-                else -> event
-            }
-        }
+        return events.map { it.withCommentId(this.requireId()) }
     }
 }

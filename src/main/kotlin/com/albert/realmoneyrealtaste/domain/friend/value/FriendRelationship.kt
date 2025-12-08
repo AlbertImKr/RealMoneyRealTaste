@@ -31,6 +31,8 @@ data class FriendRelationship(
         const val ERROR_MEMBER_ID_MUST_BE_POSITIVE = "회원 ID는 양수여야 합니다"
         const val ERROR_FRIEND_MEMBER_ID_MUST_BE_POSITIVE = "친구 회원 ID는 양수여야 합니다"
         const val ERROR_CANNOT_FRIEND_YOURSELF = "자기 자신과는 친구가 될 수 없습니다"
+        const val ERROR_MEMBER_PROFILE_IMAGE_ID_MUST_BE_POSITIVE = "회원 프로필 이미지 ID는 양수여야 합니다"
+        const val ERROR_FRIEND_PROFILE_IMAGE_ID_MUST_BE_POSITIVE = "친구 프로필 이미지 ID는 양수여야 합니다"
 
         fun of(friendRequestCommand: FriendRequestCommand): FriendRelationship {
             return FriendRelationship(
@@ -52,5 +54,7 @@ data class FriendRelationship(
         require(memberId > 0) { ERROR_MEMBER_ID_MUST_BE_POSITIVE }
         require(friendMemberId > 0) { ERROR_FRIEND_MEMBER_ID_MUST_BE_POSITIVE }
         require(memberId != friendMemberId) { ERROR_CANNOT_FRIEND_YOURSELF }
+        require(memberProfileImageId > 0) { ERROR_MEMBER_PROFILE_IMAGE_ID_MUST_BE_POSITIVE }
+        require(friendProfileImageId > 0) { ERROR_FRIEND_PROFILE_IMAGE_ID_MUST_BE_POSITIVE }
     }
 }

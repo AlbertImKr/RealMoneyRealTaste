@@ -12,10 +12,12 @@ class FriendshipTerminatedEventTest {
 
         val event = FriendshipTerminatedEvent(
             memberId = memberId,
-            friendMemberId = friendMemberId
+            friendMemberId = friendMemberId,
+            friendshipId = 1L
         )
 
         assertEquals(memberId, event.memberId)
         assertEquals(friendMemberId, event.friendMemberId)
+        assertEquals(1L, event.friendshipId)
     }
 }

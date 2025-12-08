@@ -13,5 +13,5 @@ data class MemberProfileUpdatedDomainEvent(
     val imageId: Long? = null,
     val occurredAt: LocalDateTime = LocalDateTime.now(),
 ) : MemberDomainEvent {
-    override fun withMemberId(memberId: Long): MemberDomainEvent = this.copy(memberId = memberId)
+    override fun withMemberId(memberId: Long): MemberProfileUpdatedDomainEvent = this.copy(memberId = memberId)
 }

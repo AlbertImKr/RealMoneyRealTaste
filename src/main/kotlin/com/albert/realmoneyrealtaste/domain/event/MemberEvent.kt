@@ -18,39 +18,84 @@ import java.time.LocalDateTime
     name = "member_event",
     indexes = [
         Index(name = "idx_member_event_member_id", columnList = "member_id"),
-        Index(name = "idx_member_event_created_at", columnList = "created_at"),
-        Index(name = "idx_member_event_is_read", columnList = "is_read")
+        Index(name = "idx_member_event_event_type", columnList = "event_type"),
+        Index(name = "idx_member_event_is_read", columnList = "is_read"),
+        Index(name = "idx_member_event_created_at", columnList = "created_at")
     ]
 )
 class MemberEvent protected constructor(
+    memberId: Long,
+
+    eventType: MemberEventType,
+
+    title: String,
+
+    message: String,
+
+    relatedMemberId: Long?,
+
+    relatedPostId: Long?,
+
+    relatedCommentId: Long?,
+
+    isRead: Boolean,
+
+    createdAt: LocalDateTime,
+) : BaseEntity() {
+
     @Column(name = "member_id", nullable = false)
-    val memberId: Long,
+    var memberId: Long = memberId
+        protected set
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false, length = 30)
-    val eventType: MemberEventType,
+    var eventType: MemberEventType = eventType
+        protected set
 
     @Column(name = "title", nullable = false, length = 100)
-    val title: String,
+    var title: String = title
+        protected set
 
     @Column(name = "message", nullable = false, length = 500)
-    val message: String,
+    var message: String = message
+        protected set
 
     @Column(name = "related_member_id")
-    val relatedMemberId: Long? = null,
+    var relatedMemberId: Long? = relatedMemberId
+        protected set
 
     @Column(name = "related_post_id")
-    val relatedPostId: Long? = null,
+    var relatedPostId: Long? = relatedPostId
+        protected set
 
     @Column(name = "related_comment_id")
-    val relatedCommentId: Long? = null,
+    var relatedCommentId: Long? = relatedCommentId
+        protected set
 
     @Column(name = "is_read", nullable = false)
-    var isRead: Boolean = false,
+    var isRead: Boolean = isRead
+        protected set
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-) : BaseEntity() {
+    var createdAt: LocalDateTime = createdAt
+        protected set
+
+    init {
+        validate()
+    }
+
+    private fun validate() {
+        require(memberId > 0) { ERROR_MEMBER_ID_MUST_BE_POSITIVE }
+        require(title.isNotBlank()) { ERROR_TITLE_MUST_NOT_BE_EMPTY }
+        require(message.isNotBlank()) { ERROR_MESSAGE_MUST_NOT_BE_EMPTY }
+    }
+
+    /**
+     * 이벤트를 읽음으로 표시
+     */
+    fun markAsRead() {
+        isRead = true
+    }
 
     companion object {
         const val ERROR_MEMBER_ID_MUST_BE_POSITIVE = "회원 ID는 양수여야 합니다"
@@ -69,10 +114,6 @@ class MemberEvent protected constructor(
             relatedPostId: Long? = null,
             relatedCommentId: Long? = null,
         ): MemberEvent {
-            require(memberId > 0) { ERROR_MEMBER_ID_MUST_BE_POSITIVE }
-            require(title.isNotBlank()) { ERROR_TITLE_MUST_NOT_BE_EMPTY }
-            require(message.isNotBlank()) { ERROR_MESSAGE_MUST_NOT_BE_EMPTY }
-
             return MemberEvent(
                 memberId = memberId,
                 eventType = eventType,
@@ -81,15 +122,9 @@ class MemberEvent protected constructor(
                 relatedMemberId = relatedMemberId,
                 relatedPostId = relatedPostId,
                 relatedCommentId = relatedCommentId,
-                isRead = false
+                isRead = false,
+                createdAt = LocalDateTime.now(),
             )
         }
-    }
-
-    /**
-     * 이벤트를 읽음으로 표시
-     */
-    fun markAsRead() {
-        isRead = true
     }
 }

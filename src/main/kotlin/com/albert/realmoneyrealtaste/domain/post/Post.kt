@@ -4,9 +4,7 @@ import com.albert.realmoneyrealtaste.domain.common.AggregateRoot
 import com.albert.realmoneyrealtaste.domain.common.BaseEntity
 import com.albert.realmoneyrealtaste.domain.post.event.PostCreatedEvent
 import com.albert.realmoneyrealtaste.domain.post.event.PostDeletedEvent
-import com.albert.realmoneyrealtaste.domain.post.event.PostHeartAddedEvent
-import com.albert.realmoneyrealtaste.domain.post.event.PostHeartRemovedEvent
-import com.albert.realmoneyrealtaste.domain.post.event.PostViewedEvent
+import com.albert.realmoneyrealtaste.domain.post.event.PostDomainEvent
 import com.albert.realmoneyrealtaste.domain.post.value.Author
 import com.albert.realmoneyrealtaste.domain.post.value.PostContent
 import com.albert.realmoneyrealtaste.domain.post.value.PostImages
@@ -201,33 +199,23 @@ class Post protected constructor(
     fun isDeleted(): Boolean = status == PostStatus.DELETED
 
     @Transient
-    private var domainEvents: MutableList<Any> = mutableListOf()
+    private var domainEvents: MutableList<PostDomainEvent> = mutableListOf()
 
     /**
      * 도메인 이벤트 추가
      */
-    private fun addDomainEvent(event: Any) {
+    private fun addDomainEvent(event: PostDomainEvent) {
         domainEvents.add(event)
     }
 
     /**
      * 도메인 이벤트를 조회 및 초기화하고 ID를 설정합니다.
      */
-    override fun drainDomainEvents(): List<Any> {
+    override fun drainDomainEvents(): List<PostDomainEvent> {
         val events = domainEvents.toList()
         domainEvents.clear()
 
         // 이벤트의 postId를 실제 ID로 설정
-        val actualId = this.requireId()
-        return events.map { event ->
-            when (event) {
-                is PostCreatedEvent -> event.copy(postId = actualId)
-                is PostDeletedEvent -> event.copy(postId = actualId)
-                is PostHeartAddedEvent -> event.copy(postId = actualId)
-                is PostHeartRemovedEvent -> event.copy(postId = actualId)
-                is PostViewedEvent -> event.copy(postId = actualId)
-                else -> event
-            }
-        }
+        return events.map { it.withPostId(requireId()) }
     }
 }

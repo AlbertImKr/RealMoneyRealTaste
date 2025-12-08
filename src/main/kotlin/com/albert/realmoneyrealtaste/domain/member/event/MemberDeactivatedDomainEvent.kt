@@ -6,5 +6,5 @@ package com.albert.realmoneyrealtaste.domain.member.event
 data class MemberDeactivatedDomainEvent(
     override val memberId: Long,
 ) : MemberDomainEvent {
-    override fun withMemberId(memberId: Long): MemberDomainEvent = this.copy(memberId = memberId)
+    override fun withMemberId(memberId: Long): MemberDeactivatedDomainEvent = this.copy(memberId = memberId)
 }
