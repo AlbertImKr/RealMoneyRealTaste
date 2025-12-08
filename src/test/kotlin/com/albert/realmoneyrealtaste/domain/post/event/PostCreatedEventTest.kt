@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste.domain.post.event
 
 import org.junit.jupiter.api.assertAll
+import java.time.LocalDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -13,12 +14,14 @@ class PostCreatedEventTest {
         val event = PostCreatedEvent(
             postId = 1L,
             authorMemberId = 42L,
-            restaurantName = "Delicious Place"
+            restaurantName = "Delicious Place",
+            occurredAt = LocalDateTime.now(),
         )
 
         assertEquals(1L, event.postId)
         assertEquals(42L, event.authorMemberId)
         assertEquals("Delicious Place", event.restaurantName)
+        assertTrue(event.occurredAt.isBefore(LocalDateTime.now()))
     }
 
     @Test
@@ -31,7 +34,8 @@ class PostCreatedEventTest {
         val originalEvent = PostCreatedEvent(
             postId = originalPostId,
             authorMemberId = authorMemberId,
-            restaurantName = restaurantName
+            restaurantName = restaurantName,
+            occurredAt = LocalDateTime.now(),
         )
 
         val updatedEvent = originalEvent.withPostId(newPostId)
@@ -49,7 +53,8 @@ class PostCreatedEventTest {
         val originalEvent = PostCreatedEvent(
             postId = 1L,
             authorMemberId = 42L,
-            restaurantName = "Delicious Place"
+            restaurantName = "Delicious Place",
+            occurredAt = LocalDateTime.now(),
         )
 
         originalEvent.withPostId(999L)
@@ -63,7 +68,8 @@ class PostCreatedEventTest {
         val event = PostCreatedEvent(
             postId = Long.MAX_VALUE,
             authorMemberId = Long.MAX_VALUE,
-            restaurantName = ""
+            restaurantName = "",
+            occurredAt = LocalDateTime.now(),
         )
 
         assertAll(
@@ -78,7 +84,8 @@ class PostCreatedEventTest {
         val event = PostCreatedEvent(
             postId = 1L,
             authorMemberId = 42L,
-            restaurantName = "맛있는 식당"
+            restaurantName = "맛있는 식당",
+            occurredAt = LocalDateTime.now(),
         )
 
         assertEquals("맛있는 식당", event.restaurantName)
@@ -86,22 +93,26 @@ class PostCreatedEventTest {
 
     @Test
     fun `equals and hashCode - success - works correctly`() {
+        val occurredAt = LocalDateTime.now()
         val event1 = PostCreatedEvent(
             postId = 1L,
             authorMemberId = 42L,
-            restaurantName = "Delicious Place"
+            restaurantName = "Delicious Place",
+            occurredAt = occurredAt
         )
 
         val event2 = PostCreatedEvent(
             postId = 1L,
             authorMemberId = 42L,
-            restaurantName = "Delicious Place"
+            restaurantName = "Delicious Place",
+            occurredAt = occurredAt
         )
 
         val event3 = PostCreatedEvent(
             postId = 2L,
             authorMemberId = 42L,
-            restaurantName = "Delicious Place"
+            restaurantName = "Delicious Place",
+            occurredAt = occurredAt
         )
 
         assertAll(
@@ -117,7 +128,8 @@ class PostCreatedEventTest {
         val event = PostCreatedEvent(
             postId = 123L,
             authorMemberId = 456L,
-            restaurantName = "Test Restaurant"
+            restaurantName = "Test Restaurant",
+            occurredAt = LocalDateTime.now(),
         )
 
         val toString = event.toString()
@@ -134,7 +146,8 @@ class PostCreatedEventTest {
         val event = PostCreatedEvent(
             postId = 1L,
             authorMemberId = 42L,
-            restaurantName = "Special & Unique's Place! @#$%"
+            restaurantName = "Special & Unique's Place! @#$%",
+            occurredAt = LocalDateTime.now(),
         )
 
         assertEquals("Special & Unique's Place! @#$%", event.restaurantName)
@@ -145,7 +158,8 @@ class PostCreatedEventTest {
         val event = PostCreatedEvent(
             postId = 1L,
             authorMemberId = 1L,
-            restaurantName = "A"
+            restaurantName = "A",
+            occurredAt = LocalDateTime.now(),
         )
 
         assertAll(

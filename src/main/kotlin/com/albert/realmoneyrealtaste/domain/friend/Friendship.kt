@@ -80,7 +80,8 @@ class Friendship protected constructor(
                 FriendRequestSentEvent(
                     friendshipId = 0L, // drainDomainEvents에서 실제 ID로 설정
                     fromMemberId = requestCommand.fromMemberId,
-                    toMemberId = requestCommand.toMemberId
+                    toMemberId = requestCommand.toMemberId,
+                    occurredAt = now,
                 )
             )
 
@@ -125,7 +126,8 @@ class Friendship protected constructor(
             FriendRequestSentEvent(
                 friendshipId = requireId(),
                 fromMemberId = relationShip.memberId,
-                toMemberId = relationShip.friendMemberId
+                toMemberId = relationShip.friendMemberId,
+                occurredAt = updatedAt,
             )
         )
     }
@@ -145,7 +147,8 @@ class Friendship protected constructor(
             FriendRequestAcceptedEvent(
                 friendshipId = requireId(),
                 fromMemberId = relationShip.memberId,
-                toMemberId = relationShip.friendMemberId
+                toMemberId = relationShip.friendMemberId,
+                occurredAt = updatedAt
             )
         )
     }
@@ -186,6 +189,7 @@ class Friendship protected constructor(
                 friendshipId = requireId(),
                 memberId = relationShip.memberId,
                 friendMemberId = relationShip.friendMemberId,
+                occurredAt = updatedAt
             )
         )
     }

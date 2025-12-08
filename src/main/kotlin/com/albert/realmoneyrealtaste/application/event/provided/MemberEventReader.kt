@@ -1,6 +1,8 @@
 package com.albert.realmoneyrealtaste.application.event.provided
 
 import com.albert.realmoneyrealtaste.application.event.dto.MemberEventResponse
+import com.albert.realmoneyrealtaste.domain.event.MemberEvent
+import com.albert.realmoneyrealtaste.domain.event.MemberEventType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
@@ -31,7 +33,7 @@ interface MemberEventReader {
      */
     fun readMemberEventsByType(
         memberId: Long,
-        eventType: com.albert.realmoneyrealtaste.domain.event.MemberEventType,
+        eventType: MemberEventType,
         pageable: Pageable,
     ): Page<MemberEventResponse>
 
@@ -42,4 +44,6 @@ interface MemberEventReader {
      * @return 읽지 않은 이벤트 수
      */
     fun readUnreadEventCount(memberId: Long): Long
+
+    fun findByIdAndMemberId(eventId: Long, memberId: Long): MemberEvent
 }

@@ -9,7 +9,7 @@ data class FriendshipTerminatedEvent(
     override val friendshipId: Long,
     val memberId: Long,
     val friendMemberId: Long,
-    val occurredAt: LocalDateTime = LocalDateTime.now(),
+    val occurredAt: LocalDateTime,
 ) : FriendDomainEvent {
     override fun withFriendshipId(friendshipId: Long): FriendDomainEvent = copy(friendshipId = friendshipId)
 }

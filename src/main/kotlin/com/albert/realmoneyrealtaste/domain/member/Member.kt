@@ -151,7 +151,8 @@ class Member protected constructor(
         // 도메인 이벤트 발행
         addDomainEvent(
             MemberDeactivatedDomainEvent(
-                memberId = requireId()
+                memberId = requireId(),
+                occurredAt = LocalDateTime.now(),
             )
         )
     }

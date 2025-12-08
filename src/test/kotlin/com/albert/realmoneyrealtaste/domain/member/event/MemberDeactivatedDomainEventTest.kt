@@ -14,10 +14,12 @@ class MemberDeactivatedDomainEventTest {
         val memberId = 1L
 
         val event = MemberDeactivatedDomainEvent(
-            memberId = memberId
+            memberId = memberId,
+            occurredAt = LocalDateTime.now(),
         )
 
         assertEquals(memberId, event.memberId)
+        assertTrue(event.occurredAt.isBefore(LocalDateTime.now()))
     }
 
     @Test
@@ -26,7 +28,8 @@ class MemberDeactivatedDomainEventTest {
         val newMemberId = 999L
 
         val originalEvent = MemberDeactivatedDomainEvent(
-            memberId = originalMemberId
+            memberId = originalMemberId,
+            occurredAt = LocalDateTime.now(),
         )
 
         val updatedEvent = originalEvent.withMemberId(newMemberId)
@@ -40,7 +43,8 @@ class MemberDeactivatedDomainEventTest {
     @Test
     fun `withMemberId - success - preserves immutability of original event`() {
         val originalEvent = MemberDeactivatedDomainEvent(
-            memberId = 1L
+            memberId = 1L,
+            occurredAt = LocalDateTime.now(),
         )
 
         originalEvent.withMemberId(999L)
@@ -52,7 +56,8 @@ class MemberDeactivatedDomainEventTest {
     @Test
     fun `create - success - handles edge case values`() {
         val event = MemberDeactivatedDomainEvent(
-            memberId = Long.MAX_VALUE
+            memberId = Long.MAX_VALUE,
+            occurredAt = LocalDateTime.now(),
         )
 
         assertEquals(Long.MAX_VALUE, event.memberId)
@@ -75,7 +80,7 @@ class MemberDeactivatedDomainEventTest {
 
     @Test
     fun `toString - success - contains memberId`() {
-        val event = MemberDeactivatedDomainEvent(memberId = 123L)
+        val event = MemberDeactivatedDomainEvent(memberId = 123L, occurredAt = LocalDateTime.now())
 
         val toString = event.toString()
 
@@ -84,7 +89,7 @@ class MemberDeactivatedDomainEventTest {
 
     @Test
     fun `create - success - handles minimum memberId`() {
-        val event = MemberDeactivatedDomainEvent(memberId = 1L)
+        val event = MemberDeactivatedDomainEvent(memberId = 1L, occurredAt = LocalDateTime.now())
 
         assertEquals(1L, event.memberId)
     }

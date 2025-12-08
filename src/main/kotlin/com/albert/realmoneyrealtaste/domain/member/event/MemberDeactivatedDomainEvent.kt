@@ -7,7 +7,7 @@ import java.time.LocalDateTime
  */
 data class MemberDeactivatedDomainEvent(
     override val memberId: Long,
-    val occurredAt: LocalDateTime = LocalDateTime.now(),
+    val occurredAt: LocalDateTime,
 ) : MemberDomainEvent {
     override fun withMemberId(memberId: Long): MemberDeactivatedDomainEvent = this.copy(memberId = memberId)
 }

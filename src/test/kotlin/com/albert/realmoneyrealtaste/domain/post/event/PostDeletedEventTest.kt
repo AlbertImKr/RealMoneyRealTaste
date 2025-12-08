@@ -14,10 +14,12 @@ class PostDeletedEventTest {
         val event = PostDeletedEvent(
             postId = 1L,
             authorMemberId = 42L,
+            occurredAt = LocalDateTime.now(),
         )
 
         assertEquals(1L, event.postId)
         assertEquals(42L, event.authorMemberId)
+        assertTrue(event.occurredAt.isBefore(LocalDateTime.now()))
     }
 
     @Test
@@ -28,7 +30,8 @@ class PostDeletedEventTest {
 
         val originalEvent = PostDeletedEvent(
             postId = originalPostId,
-            authorMemberId = authorMemberId
+            authorMemberId = authorMemberId,
+            occurredAt = LocalDateTime.now(),
         )
 
         val updatedEvent = originalEvent.withPostId(newPostId)
@@ -44,7 +47,8 @@ class PostDeletedEventTest {
     fun `withPostId - success - preserves immutability of original event`() {
         val originalEvent = PostDeletedEvent(
             postId = 1L,
-            authorMemberId = 42L
+            authorMemberId = 42L,
+            occurredAt = LocalDateTime.now(),
         )
 
         originalEvent.withPostId(999L)
@@ -57,7 +61,8 @@ class PostDeletedEventTest {
     fun `construction - success - handles edge case values`() {
         val event = PostDeletedEvent(
             postId = Long.MAX_VALUE,
-            authorMemberId = Long.MAX_VALUE
+            authorMemberId = Long.MAX_VALUE,
+            occurredAt = LocalDateTime.now(),
         )
 
         assertAll(
@@ -70,7 +75,8 @@ class PostDeletedEventTest {
     fun `construction - success - handles minimum values`() {
         val event = PostDeletedEvent(
             postId = 1L,
-            authorMemberId = 1L
+            authorMemberId = 1L,
+            occurredAt = LocalDateTime.now(),
         )
 
         assertAll(
@@ -112,7 +118,8 @@ class PostDeletedEventTest {
     fun `toString - success - contains all properties`() {
         val event = PostDeletedEvent(
             postId = 123L,
-            authorMemberId = 456L
+            authorMemberId = 456L,
+            occurredAt = LocalDateTime.now(),
         )
 
         val toString = event.toString()
@@ -127,12 +134,14 @@ class PostDeletedEventTest {
     fun `equals - success - different authorMemberId produces different event`() {
         val event1 = PostDeletedEvent(
             postId = 1L,
-            authorMemberId = 42L
+            authorMemberId = 42L,
+            occurredAt = LocalDateTime.now(),
         )
 
         val event2 = PostDeletedEvent(
             postId = 1L,
-            authorMemberId = 43L
+            authorMemberId = 43L,
+            occurredAt = LocalDateTime.now(),
         )
 
         assertNotEquals(event1, event2)

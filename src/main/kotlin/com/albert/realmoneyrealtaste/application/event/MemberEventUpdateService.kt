@@ -1,5 +1,6 @@
 package com.albert.realmoneyrealtaste.application.event
 
+import com.albert.realmoneyrealtaste.application.event.provided.MemberEventReader
 import com.albert.realmoneyrealtaste.application.event.provided.MemberEventUpdater
 import com.albert.realmoneyrealtaste.application.event.required.MemberEventRepository
 import com.albert.realmoneyrealtaste.domain.event.MemberEvent
@@ -14,6 +15,7 @@ import java.time.LocalDateTime
 @Transactional
 class MemberEventUpdateService(
     private val memberEventRepository: MemberEventRepository,
+    private val memberEventReader: MemberEventReader,
 ) : MemberEventUpdater {
 
     override fun markAllAsRead(memberId: Long): Int {
@@ -21,8 +23,7 @@ class MemberEventUpdateService(
     }
 
     override fun markAsRead(eventId: Long, memberId: Long): MemberEvent {
-        val event = memberEventRepository.findByIdAndMemberId(eventId, memberId)
-            ?: throw IllegalArgumentException("이벤트를 찾을 수 없거나 접근 권한이 없습니다: $eventId")
+        val event = memberEventReader.findByIdAndMemberId(eventId, memberId)
 
         event.markAsRead()
         return memberEventRepository.save(event)

@@ -1,8 +1,10 @@
 package com.albert.realmoneyrealtaste.application.event
 
 import com.albert.realmoneyrealtaste.application.event.dto.MemberEventResponse
+import com.albert.realmoneyrealtaste.application.event.exception.MemberEventNotFoundException
 import com.albert.realmoneyrealtaste.application.event.provided.MemberEventReader
 import com.albert.realmoneyrealtaste.application.event.required.MemberEventRepository
+import com.albert.realmoneyrealtaste.domain.event.MemberEvent
 import com.albert.realmoneyrealtaste.domain.event.MemberEventType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -39,5 +41,17 @@ class MemberEventQueryService(
 
     override fun readUnreadEventCount(memberId: Long): Long {
         return memberEventRepository.countByMemberIdAndIsReadFalse(memberId)
+    }
+
+    override fun findByIdAndMemberId(
+        eventId: Long,
+        memberId: Long,
+    ): MemberEvent {
+        try {
+            return memberEventRepository.findByIdAndMemberId(eventId, memberId)
+                ?: throw IllegalArgumentException("이벤트를 찾을 수 없거나 접근 권한이 없습니다: $eventId")
+        } catch (e: IllegalArgumentException) {
+            throw MemberEventNotFoundException("이벤트를 찾을 수 없거나 접근 권한이 없습니다: $eventId")
+        }
     }
 }

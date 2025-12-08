@@ -42,6 +42,7 @@ class MemberEventDomainEventListenerTest {
             friendshipId = 10L,
             fromMemberId = fromMemberId,
             toMemberId = toMemberId,
+            occurredAt = LocalDateTime.now(),
         )
 
         // When
@@ -424,6 +425,7 @@ class MemberEventDomainEventListenerTest {
 
         val event = MemberDeactivatedDomainEvent(
             memberId = memberId,
+            occurredAt = LocalDateTime.now(),
         )
 
         // When

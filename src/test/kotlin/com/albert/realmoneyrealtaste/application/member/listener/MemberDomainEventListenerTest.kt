@@ -332,12 +332,14 @@ class MemberDomainEventListenerTest {
         val postDeletedEvent = PostDeletedEvent(
             postId = postId,
             authorMemberId = memberId,
+            occurredAt = LocalDateTime.now(),
         )
 
         val friendRequestEvent = FriendRequestAcceptedEvent(
             fromMemberId = fromMemberId,
             toMemberId = toMemberId,
             friendshipId = friendshipId,
+            occurredAt = LocalDateTime.now(),
         )
 
         val memberRegisteredEvent = MemberRegisteredDomainEvent(
