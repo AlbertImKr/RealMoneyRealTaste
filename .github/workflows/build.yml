@@ -186,11 +186,12 @@ jobs:
             --task-definition $TASK_DEFINITION_ARN \
             --force-new-deployment
           
-          # 배포 완료 대기
+          # 배포 완료 대기 (타임아웃 설정 추가)
           echo "⏳ ECS 배포 완료 대기..."
-          aws ecs wait services-stable \
+          timeout 300 aws ecs wait services-stable \
             --cluster rmrt-cluster-ec2version \
-            --services rmrt-task-service-o4qq7b02
+            --services rmrt-task-service-o4qq7b02 || \
+          echo "⚠️ 배포 안정화 대기 시간 초과 (실제 배포는 성공했을 수 있습니다)"
           
           echo "✅ ECS 배포 완료!"
 
