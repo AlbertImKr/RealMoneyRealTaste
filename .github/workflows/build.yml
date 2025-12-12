@@ -4,8 +4,12 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'src/**'
   pull_request:
     types: [ opened, synchronize, reopened ]
+    paths:
+      - 'src/**'
 
 env:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2'
