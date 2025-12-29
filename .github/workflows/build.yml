@@ -62,7 +62,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 테스트 실행
-        run: ./gradlew test --continue -Dorg.gradle.jvmargs="-XX:+EnableDynamicAgentLoading"
+        run: ./gradlew test --continue
 
       - name: 테스트 결과물 저장
         uses: actions/upload-artifact@v5
