@@ -200,43 +200,57 @@ jobs:
     steps:
       - name: Server 1에 배포
         uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+        env:
+          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
+          SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
+          SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
+          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
         with:
           host: ${{ secrets.OCI_VM_IP_1 }}
           username: ubuntu
           key: ${{ secrets.OCI_SSH_KEY_1 }}
+          envs: OCI_AUTH_TOKEN,OCI_REGION,OCI_TENANCY,OCI_USERNAME,DB_URL,DB_USERNAME,DB_PASSWORD,SPRING_MAIL_HOST,SPRING_MAIL_PORT,SPRING_MAIL_USERNAME,SPRING_MAIL_PASSWORD,APP_BASE_URL
           script: |
             echo "🚀 Server 1 배포 시작..."
             
             # OCIR 로그인
-            echo ${{ secrets.OCI_AUTH_TOKEN }} | docker login ${{ secrets.OCI_REGION }}.ocir.io \
-              -u '${{ secrets.OCI_TENANCY }}/${{ secrets.OCI_USERNAME }}' \
+            echo "$OCI_AUTH_TOKEN" | sudo docker login ${OCI_REGION}.ocir.io \
+              -u "${OCI_TENANCY}/oracleidentitycloudservice/${OCI_USERNAME}" \
               --password-stdin
             
             # 최신 이미지 풀
-            docker pull ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}/rmrt-app:latest
+            sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
             
             # 기존 컨테이너 중지 및 삭제
-            docker stop rmrt-app || true
-            docker rm rmrt-app || true
+            sudo docker stop rmrt-app || true
+            sudo docker rm rmrt-app || true
             
             # 새 컨테이너 실행
-            docker run -d \
+            sudo docker run -d \
               --name rmrt-app \
               --restart unless-stopped \
               -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e SPRING_DATASOURCE_URL='${{ secrets.DB_URL }}' \
-              -e SPRING_DATASOURCE_USERNAME='${{ secrets.DB_USERNAME }}' \
-              -e SPRING_DATASOURCE_PASSWORD='${{ secrets.DB_PASSWORD }}' \
-              -e SPRING_MAIL_HOST='${{ secrets.SPRING_MAIL_HOST }}' \
-              -e SPRING_MAIL_PORT='${{ secrets.SPRING_MAIL_PORT }}' \
-              -e SPRING_MAIL_USERNAME='${{ secrets.SPRING_MAIL_USERNAME }}' \
-              -e SPRING_MAIL_PASSWORD='${{ secrets.SPRING_MAIL_PASSWORD }}' \
-              -e APP_BASE_URL='${{ secrets.APP_BASE_URL }}' \
-              ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}/rmrt-app:latest
+              -e SPRING_DATASOURCE_URL="${DB_URL}" \
+              -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
+              -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
+              -e SPRING_MAIL_HOST="${SPRING_MAIL_HOST}" \
+              -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
+              -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
+              -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
+              -e APP_BASE_URL="${APP_BASE_URL}" \
+              ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
             
             # 오래된 이미지 정리
-            docker image prune -f
+            sudo docker image prune -f
 
       - name: Server 1 헬스체크
         uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
@@ -265,43 +279,57 @@ jobs:
     steps:
       - name: Server 2에 배포
         uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+        env:
+          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
+          SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
+          SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
+          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
         with:
           host: ${{ secrets.OCI_VM_IP_2 }}
           username: ubuntu
           key: ${{ secrets.OCI_SSH_KEY_2 }}
+          envs: OCI_AUTH_TOKEN,OCI_REGION,OCI_TENANCY,OCI_USERNAME,DB_URL,DB_USERNAME,DB_PASSWORD,SPRING_MAIL_HOST,SPRING_MAIL_PORT,SPRING_MAIL_USERNAME,SPRING_MAIL_PASSWORD,APP_BASE_URL
           script: |
             echo "🚀 Server 2 배포 시작..."
             
             # OCIR 로그인
-            echo ${{ secrets.OCI_AUTH_TOKEN }} | docker login ${{ secrets.OCI_REGION }}.ocir.io \
-              -u '${{ secrets.OCI_TENANCY }}/${{ secrets.OCI_USERNAME }}' \
+            echo "$OCI_AUTH_TOKEN" | sudo docker login ${OCI_REGION}.ocir.io \
+              -u "${OCI_TENANCY}/oracleidentitycloudservice/${OCI_USERNAME}" \
               --password-stdin
             
             # 최신 이미지 풀
-            docker pull ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}/rmrt-app:latest
+            sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
             
             # 기존 컨테이너 중지 및 삭제
-            docker stop rmrt-app || true
-            docker rm rmrt-app || true
+            sudo docker stop rmrt-app || true
+            sudo docker rm rmrt-app || true
             
             # 새 컨테이너 실행
-            docker run -d \
+            sudo docker run -d \
               --name rmrt-app \
               --restart unless-stopped \
               -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e SPRING_DATASOURCE_URL='${{ secrets.DB_URL }}' \
-              -e SPRING_DATASOURCE_USERNAME='${{ secrets.DB_USERNAME }}' \
-              -e SPRING_DATASOURCE_PASSWORD='${{ secrets.DB_PASSWORD }}' \
-              -e SPRING_MAIL_HOST='${{ secrets.SPRING_MAIL_HOST }}' \
-              -e SPRING_MAIL_PORT='${{ secrets.SPRING_MAIL_PORT }}' \
-              -e SPRING_MAIL_USERNAME='${{ secrets.SPRING_MAIL_USERNAME }}' \
-              -e SPRING_MAIL_PASSWORD='${{ secrets.SPRING_MAIL_PASSWORD }}' \
-              -e APP_BASE_URL='${{ secrets.APP_BASE_URL }}' \
-              ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}/rmrt-app:latest
+              -e SPRING_DATASOURCE_URL="${DB_URL}" \
+              -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
+              -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
+              -e SPRING_MAIL_HOST="${SPRING_MAIL_HOST}" \
+              -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
+              -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
+              -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
+              -e APP_BASE_URL="${APP_BASE_URL}" \
+              ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
             
             # 오래된 이미지 정리
-            docker image prune -f
+            sudo docker image prune -f
 
       - name: Server 2 헬스체크
         uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
