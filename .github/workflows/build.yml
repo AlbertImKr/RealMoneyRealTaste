@@ -62,7 +62,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 테스트 실행
-        run: ./gradlew test --continue
+        run: ./gradlew test --continue --info
 
       - name: 테스트 결과물 저장
         uses: actions/upload-artifact@v5
