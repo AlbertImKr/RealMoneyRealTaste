@@ -173,7 +173,7 @@ jobs:
           OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
         run: |
           echo $OCI_AUTH_TOKEN | docker login $OCI_REGION.ocir.io \
-            -u '$OCI_TENANCY/$OCI_USERNAME' \
+            -u "$OCI_TENANCY/$OCI_USERNAME" \
             --password-stdin
 
       - name: Docker 이미지 빌드
