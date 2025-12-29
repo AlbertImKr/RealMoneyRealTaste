@@ -205,9 +205,9 @@ jobs:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
           OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
           SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
           SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
@@ -284,9 +284,9 @@ jobs:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
           OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
           SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
           SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
