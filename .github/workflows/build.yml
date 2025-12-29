@@ -222,9 +222,9 @@ jobs:
             echo "🚀 Server 1 배포 시작..."
             
             # OCIR 로그인
-            echo "$OCI_AUTH_TOKEN" | sudo docker login ${OCI_REGION}.ocir.io \
-              -u "${OCI_TENANCY}/oracleidentitycloudservice/${OCI_USERNAME}" \
-              --password-stdin
+            sudo docker login ${OCI_REGION}.ocir.io \
+              -u "${OCI_TENANCY}/${OCI_USERNAME}" \
+              --password-stdin <<< "$OCI_AUTH_TOKEN"
             
             # 최신 이미지 풀
             sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
@@ -301,9 +301,9 @@ jobs:
             echo "🚀 Server 2 배포 시작..."
             
             # OCIR 로그인
-            echo "$OCI_AUTH_TOKEN" | sudo docker login ${OCI_REGION}.ocir.io \
-              -u "${OCI_TENANCY}/oracleidentitycloudservice/${OCI_USERNAME}" \
-              --password-stdin
+            sudo docker login ${OCI_REGION}.ocir.io \
+              -u "${OCI_TENANCY}/${OCI_USERNAME}" \
+              --password-stdin <<< "$OCI_AUTH_TOKEN"
             
             # 최신 이미지 풀
             sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
