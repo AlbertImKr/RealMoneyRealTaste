@@ -4,6 +4,7 @@ import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.Repository
@@ -82,14 +83,13 @@ interface MemberRepository : Repository<Member, Long> {
 
     @Query(
         """
-        SELECT m FROM Member m
-        WHERE  m.status = :status
-          AND m.id != :memberId
-        ORDER BY FUNCTION('RAND')
-        LIMIT :limit
-        """
+    SELECT m FROM Member m
+    WHERE m.status = :status
+      AND m.id <> :memberId
+    ORDER BY FUNCTION('random')
+    """
     )
-    fun findSuggestedMembers(memberId: Long, status: MemberStatus, limit: Long): List<Member>
+    fun findSuggestedMembers(memberId: Long, status: MemberStatus, pageable: Pageable): List<Member>
 
     /**
      * 회원의 게시글 수를 증가시킵니다.

@@ -34,18 +34,23 @@ abstract class IntegrationConcurrencyTestBase() {
 
     private fun clearAllTables() {
         transactionTemplate.execute {
-            jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0")
-
-            val tables = jdbcTemplate.queryForList(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE()",
-                String::class.java
+            jdbcTemplate.execute(
+                """
+            DO $$
+            DECLARE
+                r RECORD;
+            BEGIN
+                FOR r IN (
+                    SELECT tablename
+                    FROM pg_tables
+                    WHERE schemaname = 'public'
+                ) LOOP
+                    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';
+                END LOOP;
+            END
+            $$;
+            """
             )
-
-            tables.forEach { tableName ->
-                jdbcTemplate.execute("TRUNCATE TABLE $tableName")
-            }
-
-            jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1")
         }
     }
 }

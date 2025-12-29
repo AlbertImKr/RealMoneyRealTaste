@@ -3,12 +3,12 @@ spring:
   profiles:
     active: docker
   
-  # 데이터베이스 설정 (MySQL)
+  # 데이터베이스 설정 (PostgreSQL)
   datasource:
-    url: jdbc:mysql://mysql:3306/realmoneyrealtaste?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:postgresql://postgres:5432/realmoneyrealtaste
     username: rmrt
     password: rmrtpassword
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
   
   # JPA 설정
   jpa:
@@ -16,10 +16,10 @@ spring:
       ddl-auto: validate # Flyway와 함께 사용할 때는 validate로 설정
     show-sql: false
     properties:
-      dialect: org.hibernate.dialect.MySQLDialect
+      dialect: org.hibernate.dialect.PostgreSQLDialect
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           time_zone: Asia/Seoul
 

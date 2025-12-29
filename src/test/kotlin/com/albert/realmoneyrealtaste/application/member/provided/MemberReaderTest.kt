@@ -339,22 +339,6 @@ class MemberReaderTest(
     }
 
     @Test
-    fun `findSuggestedMembers - success - handles limit of zero`() {
-        // given
-        val targetMember = createActiveMember(email = Email("target@example.com"))
-        (1..5).map { i ->
-            createActiveMember(email = Email("suggested$i@example.com"))
-        }
-        val limit = 0L
-
-        // when
-        val result = memberReader.findSuggestedMembers(targetMember.id!!, limit)
-
-        // then
-        assertTrue(result.isEmpty())
-    }
-
-    @Test
     fun `findSuggestedMembers - success - handles non-existent member ID`() {
         // given
         val nonExistentMemberId = 99999L

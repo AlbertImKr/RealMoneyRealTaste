@@ -1,4 +1,11 @@
 # 프로덕션 환경 설정
+# Supabase 연결 시 환경 변수 설정 가이드:
+# SPRING_DATASOURCE_URL: jdbc:postgresql://db.[project-ref].supabase.co:5432/postgres?sslmode=require
+# SPRING_DATASOURCE_USERNAME: postgres
+# SPRING_DATASOURCE_PASSWORD: [Supabase 프로젝트의 비밀번호]
+#
+# 참고: Flyway 마이그레이션 시에는 Direct Connection(5432) 사용 권장
+# 애플리케이션 운영 시에는 Connection Pooler(6543) 사용 가능
 spring:
   application:
     name: RealMoneyRealTaste
@@ -8,7 +15,7 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -24,8 +31,7 @@ spring:
     properties:
       hibernate:
         format_sql: false
-        jdbc:
-          time_zone: Asia/Seoul
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   
   # Flyway 설정
   flyway:
