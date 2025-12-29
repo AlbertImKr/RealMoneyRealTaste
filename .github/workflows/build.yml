@@ -185,11 +185,12 @@ jobs:
             $OCI_REGISTRY/rmrt-app:latest
 
       - name: Docker 이미지 OCIR에 푸시
+        timeout-minutes: 30
         env:
           OCI_REGISTRY: ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker push $OCI_REGISTRY/rmrt-app:${{ github.sha }}
-          docker push $OCI_REGISTRY/rmrt-app:latest
+          docker push $OCI_REGISTRY/rmrt-app --all-tags
 
   deploy-server-1:
     name: Server 1 배포
