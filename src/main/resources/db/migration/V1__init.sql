@@ -9,9 +9,6 @@ create table public.activation_tokens
     token      varchar(255) not null
 );
 
-alter table public.activation_tokens
-    owner to testuser;
-
 create table public.comments
 (
     author_member_id  bigint       not null,
@@ -27,9 +24,6 @@ create table public.comments
     status            varchar(255) not null constraint comments_status_check
             check ((status)::text = ANY ((ARRAY ['PUBLISHED'::character varying, 'DELETED'::character varying])::text[]))
 );
-
-alter table public.comments
-    owner to testuser;
 
 create index idx_comment_post_id
     on public.comments (post_id);
@@ -64,9 +58,6 @@ create table public.follows
     unique (follower_id, following_id)
 );
 
-alter table public.follows
-    owner to testuser;
-
 create index idx_follow_follower_id
     on public.follows (follower_id);
 
@@ -97,9 +88,6 @@ create table public.friendships
     unique (member_id, friend_member_id)
 );
 
-alter table public.friendships
-    owner to testuser;
-
 create index idx_friendship_member_id
     on public.friendships (member_id);
 
@@ -128,9 +116,6 @@ create table public.images
                    ((ARRAY ['POST_IMAGE'::character varying, 'PROFILE_IMAGE'::character varying, 'THUMBNAIL'::character varying])::text[]))
 );
 
-alter table public.images
-    owner to testuser;
-
 create index idx_uploaded_by
     on public.images (uploaded_by);
 
@@ -153,9 +138,6 @@ create table public.member_event
     title              varchar(100) not null,
     message            varchar(500) not null
 );
-
-alter table public.member_event
-    owner to testuser;
 
 create index idx_member_event_member_id
     on public.member_event (member_id);
@@ -183,9 +165,6 @@ create table public.member_detail
     address         varchar(255)
 );
 
-alter table public.member_detail
-    owner to testuser;
-
 create table public.password_reset_tokens
 (
     created_at timestamp(6) not null,
@@ -196,9 +175,6 @@ create table public.password_reset_tokens
     token      varchar(255) not null
         unique
 );
-
-alter table public.password_reset_tokens
-    owner to testuser;
 
 create index idx_password_reset_token
     on public.password_reset_tokens (token);
@@ -223,9 +199,6 @@ create table public.post_collections
             check ((status)::text = ANY ((ARRAY ['ACTIVE'::character varying, 'DELETED'::character varying])::text[]))
 );
 
-alter table public.post_collections
-    owner to testuser;
-
 create table public.collection_posts
 (
     display_order integer not null,
@@ -234,9 +207,6 @@ create table public.collection_posts
     post_id       bigint  not null,
     primary key (display_order, collection_id)
 );
-
-alter table public.collection_posts
-    owner to testuser;
 
 create index idx_collection_owner_member_id
     on public.post_collections (owner_member_id);
@@ -260,9 +230,6 @@ create table public.post_hearts
     constraint uk_post_heart_post_member
         unique (post_id, member_id)
 );
-
-alter table public.post_hearts
-    owner to testuser;
 
 create index idx_post_heart_post_id
     on public.post_hearts (post_id);
@@ -293,9 +260,6 @@ create table public.posts
             check ((status)::text = ANY ((ARRAY ['PUBLISHED'::character varying, 'DELETED'::character varying])::text[]))
 );
 
-alter table public.posts
-    owner to testuser;
-
 create table public.post_images
 (
     image_order integer not null,
@@ -304,9 +268,6 @@ create table public.post_images
             references public.posts,
     primary key (image_order, post_id)
 );
-
-alter table public.post_images
-    owner to testuser;
 
 create index idx_post_author_id
     on public.posts (author_member_id);
@@ -332,9 +293,6 @@ create table public.trust_score
                    ((ARRAY ['BRONZE'::character varying, 'SILVER'::character varying, 'GOLD'::character varying, 'DIAMOND'::character varying])::text[]))
 );
 
-alter table public.trust_score
-    owner to testuser;
-
 create table public.members
 (
     detail_id       bigint       not null
@@ -358,9 +316,6 @@ create table public.members
                    ((ARRAY ['PENDING'::character varying, 'ACTIVE'::character varying, 'DEACTIVATED'::character varying])::text[]))
 );
 
-alter table public.members
-    owner to testuser;
-
 create table public.member_roles
 (
     member_id bigint not null constraint fk431yrnsn5s4omvwjvl9dre1n0
@@ -369,9 +324,6 @@ create table public.member_roles
             check ((role)::text = ANY
                    ((ARRAY ['USER'::character varying, 'ADMIN'::character varying, 'MANAGER'::character varying])::text[]))
 );
-
-alter table public.member_roles
-    owner to testuser;
 
 create index idx_member_email
     on public.members (email);
