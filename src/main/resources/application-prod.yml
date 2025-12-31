@@ -95,9 +95,12 @@ app:
       expiration-hours: 1
 
 # S3 설정
-aws:
-  s3:
-    access-key: ${AWS_ACCESS_KEY_ID}
-    secret-key: ${AWS_SECRET_ACCESS_KEY}
-    region: ${AWS_REGION}
-    bucket-name: ${AWS_BUCKET_NAME}
+oci:
+  objectstorage:
+    tenant-id: ${OCI_TENANT_ID}
+    user-id: ${OCI_USER_ID}
+    fingerprint: ${OCI_FINGERPRINT}
+    private-key: ${OCI_PRIVATE_KEY}
+    region: ap-chuncheon-1
+    namespace: axe5mmx0njmf
+    bucket-name: rmrt

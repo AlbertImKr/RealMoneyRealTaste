@@ -10,7 +10,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 
-@Profile("prod")
+@Profile("aws")
 @Configuration
 @ConfigurationProperties(prefix = "aws.s3")
 class S3Config {
