@@ -264,12 +264,12 @@ jobs:
           key: ${{ secrets.OCI_SSH_KEY_1 }}
           script: |
             echo "⏳ Server 1 헬스체크 대기..."
-            for i in {1..24}; do
+            for i in {1..100}; do
               if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
                 echo "✅ Server 1 헬스체크 통과!"
                 exit 0
               fi
-              echo "대기 중... ($i/24)"
+              echo "대기 중... ($i/100)"
               sleep 5
             done
             echo "❌ Server 1 헬스체크 실패"
@@ -347,12 +347,12 @@ jobs:
           key: ${{ secrets.OCI_SSH_KEY_2 }}
           script: |
             echo "⏳ Server 2 헬스체크 대기..."
-            for i in {1..24}; do
+            for i in {1..100}; do
               if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
                 echo "✅ Server 2 헬스체크 통과!"
                 exit 0
               fi
-              echo "대기 중... ($i/24)"
+              echo "대기 중... ($i/100)"
               sleep 5
             done
             echo "❌ Server 2 헬스체크 실패"
