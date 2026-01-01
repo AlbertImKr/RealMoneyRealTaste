@@ -3,21 +3,21 @@ package com.albert.realmoneyrealtaste.adapter.infrastructure.oci
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
 import com.albert.realmoneyrealtaste.application.image.dto.PresignedPutResponse
 import com.albert.realmoneyrealtaste.application.image.required.PresignedUrlGenerator
-import com.oracle.bmc.objectstorage.ObjectStorageClient
-import com.oracle.bmc.objectstorage.model.CreatePreauthenticatedRequestDetails
-import com.oracle.bmc.objectstorage.requests.CreatePreauthenticatedRequestRequest
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
 import java.time.Duration
 import java.time.Instant
-import java.util.Date
-import java.util.UUID
 
 @Profile("prod")
 @Component
 class OciPresignedUrlGenerator(
-    private val objectStorageClient: ObjectStorageClient,
+    private val s3Presigner: S3Presigner,
     private val ociConfig: OciObjectStorageConfig,
     @Value("\${image.upload.expiration-minutes:15}") private val uploadExpirationMinutes: Long,
     @Value("\${image.get.expiration-minutes:60}") private val getExpirationMinutes: Long,
@@ -26,56 +26,54 @@ class OciPresignedUrlGenerator(
     override fun generatePresignedPutUrl(imageKey: String, request: ImageUploadRequest): PresignedPutResponse {
         val expiration = Instant.now().plus(Duration.ofMinutes(uploadExpirationMinutes))
 
-        val parDetails = CreatePreauthenticatedRequestDetails.builder()
-            .name("upload-${UUID.randomUUID()}")
-            .objectName(imageKey)
-            .accessType(CreatePreauthenticatedRequestDetails.AccessType.ObjectWrite)
-            .timeExpires(Date.from(expiration))
+        val putObjectRequest = PutObjectRequest.builder()
+            .bucket(ociConfig.bucketName)
+            .key(imageKey)
+            .contentType(request.contentType)
+            .metadata(
+                mapOf(
+                    "original-name" to request.fileName,
+                    "file-size" to request.fileSize.toString(),
+                    "width" to request.width.toString(),
+                    "height" to request.height.toString()
+                )
+            )
             .build()
 
-        val parRequest = CreatePreauthenticatedRequestRequest.builder()
-            .namespaceName(ociConfig.namespace)
-            .bucketName(ociConfig.bucketName)
-            .createPreauthenticatedRequestDetails(parDetails)
+        val presignRequest = PutObjectPresignRequest.builder()
+            .signatureDuration(Duration.ofMinutes(uploadExpirationMinutes))
+            .putObjectRequest(putObjectRequest)
             .build()
 
-        val response = objectStorageClient.createPreauthenticatedRequest(parRequest)
-        val parUrl =
-            "https://objectstorage.${ociConfig.region}.oraclecloud.com${response.preauthenticatedRequest.accessUri}"
-
-        val metadata = mapOf(
-            "original-name" to request.fileName,
-            "content-type" to request.contentType,
-            "file-size" to request.fileSize.toString(),
-            "width" to request.width.toString(),
-            "height" to request.height.toString()
-        )
+        val presignedRequest = s3Presigner.presignPutObject(presignRequest)
 
         return PresignedPutResponse(
-            uploadUrl = parUrl,
+            uploadUrl = presignedRequest.url().toString(),
             key = imageKey,
             expiresAt = expiration,
-            metadata = metadata,
+            metadata = mapOf(
+                "original-name" to request.fileName,
+                "content-type" to request.contentType,
+                "file-size" to request.fileSize.toString(),
+                "width" to request.width.toString(),
+                "height" to request.height.toString()
+            ),
         )
     }
 
     override fun generatePresignedGetUrl(imageKey: String): String {
-        val expiration = Instant.now().plus(Duration.ofMinutes(getExpirationMinutes))
-
-        val parDetails = CreatePreauthenticatedRequestDetails.builder()
-            .name("read-${UUID.randomUUID()}")
-            .objectName(imageKey)
-            .accessType(CreatePreauthenticatedRequestDetails.AccessType.ObjectRead)
-            .timeExpires(Date.from(expiration))
+        val getObjectRequest = GetObjectRequest.builder()
+            .bucket(ociConfig.bucketName)
+            .key(imageKey)
             .build()
 
-        val parRequest = CreatePreauthenticatedRequestRequest.builder()
-            .namespaceName(ociConfig.namespace)
-            .bucketName(ociConfig.bucketName)
-            .createPreauthenticatedRequestDetails(parDetails)
+        val presignRequest = GetObjectPresignRequest.builder()
+            .signatureDuration(Duration.ofMinutes(getExpirationMinutes))
+            .getObjectRequest(getObjectRequest)
             .build()
 
-        val response = objectStorageClient.createPreauthenticatedRequest(parRequest)
-        return "https://objectstorage.${ociConfig.region}.oraclecloud.com${response.preauthenticatedRequest.accessUri}"
+        val presignedRequest = s3Presigner.presignGetObject(presignRequest)
+
+        return presignedRequest.url().toString()
     }
 }

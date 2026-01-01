@@ -97,10 +97,8 @@ app:
 # S3 설정
 oci:
   objectstorage:
-    tenant-id: ${OCI_TENANT_ID}
-    user-id: ${OCI_USER_ID}
-    fingerprint: ${OCI_FINGERPRINT}
-    private-key: ${OCI_PRIVATE_KEY}
+    access-key-id: ${OCI_USER_ID}
+    secret-access-key: ${OCI_PRIVATE_KEY}
     region: ap-chuncheon-1
     namespace: axe5mmx0njmf
     bucket-name: rmrt

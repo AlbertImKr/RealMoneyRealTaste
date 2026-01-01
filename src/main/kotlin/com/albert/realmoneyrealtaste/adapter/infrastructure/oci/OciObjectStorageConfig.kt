@@ -1,37 +1,65 @@
 package com.albert.realmoneyrealtaste.adapter.infrastructure.oci
 
-import com.oracle.bmc.Region
-import com.oracle.bmc.auth.SimpleAuthenticationDetailsProvider
-import com.oracle.bmc.objectstorage.ObjectStorageClient
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import java.io.ByteArrayInputStream
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.S3Configuration
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import java.net.URI
 
 @Profile("prod")
 @Configuration
 @ConfigurationProperties(prefix = "oci.objectstorage")
 class OciObjectStorageConfig {
-    lateinit var tenantId: String
-    lateinit var userId: String
-    lateinit var fingerprint: String
-    lateinit var privateKey: String
+    lateinit var accessKeyId: String
+    lateinit var secretAccessKey: String
     lateinit var region: String
     lateinit var namespace: String
     lateinit var bucketName: String
 
-    @Bean
-    fun objectStorageClient(): ObjectStorageClient {
-        val provider = SimpleAuthenticationDetailsProvider.builder()
-            .tenantId(tenantId)
-            .userId(userId)
-            .fingerprint(fingerprint)
-            .privateKeySupplier { ByteArrayInputStream(privateKey.replace("\\n", "\n").toByteArray()) }
-            .build()
+    private val endpoint: String
+        get() = "https://$namespace.compat.objectstorage.$region.oraclecloud.com"
 
-        return ObjectStorageClient.builder()
-            .region(Region.fromRegionId(region))
-            .build(provider)
+    @Bean
+    fun ociS3Client(): S3Client {
+        val credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+
+        return S3Client.builder()
+            .region(Region.of(region))
+            .endpointOverride(URI.create(endpoint))
+            .credentialsProvider(StaticCredentialsProvider.create(credentials))
+            .serviceConfiguration(
+                S3Configuration.builder()
+                    .pathStyleAccessEnabled(true)
+                    .chunkedEncodingEnabled(false)
+                    .build()
+            )
+            .overrideConfiguration(
+                ClientOverrideConfiguration.builder()
+                    .build()
+            )
+            .build()
+    }
+
+    @Bean
+    fun ociS3Presigner(): S3Presigner {
+        val credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+
+        return S3Presigner.builder()
+            .region(Region.of(region))
+            .endpointOverride(URI.create(endpoint))
+            .credentialsProvider(StaticCredentialsProvider.create(credentials))
+            .serviceConfiguration(
+                S3Configuration.builder()
+                    .pathStyleAccessEnabled(true)
+                    .build()
+            )
+            .build()
     }
 }

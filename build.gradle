@@ -60,11 +60,6 @@ dependencies {
     implementation 'software.amazon.awssdk:sts:2.39.3'                             // AWS STS (보안 토큰)
     implementation 'software.amazon.awssdk:auth:2.39.3'                            // AWS 인증
 
-    // ==================== OCI ====================
-    // OCI 서비스 연동
-    implementation 'com.oracle.oci.sdk:oci-java-sdk-objectstorage:3.77.2'         // OCI Object Storage
-    implementation 'com.oracle.oci.sdk:oci-java-sdk-common:3.77.2'                // OCI 공통 라이브러리
-
     // ==================== Database ====================
     // 데이터베이스 드라이버 및 마이그레이션
     implementation 'org.flywaydb:flyway-core'                                         // Flyway 데이터베이스 마이그레이션

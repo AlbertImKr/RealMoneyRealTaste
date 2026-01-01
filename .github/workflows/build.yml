@@ -205,6 +205,8 @@ jobs:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
           OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
           DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
@@ -246,6 +248,8 @@ jobs:
               -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
               -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
               -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
+              -e OCI_PRIVATE_KEY="${OCI_PRIVATE_KEY}" \
+              -e OCI_USER_ID="${OCI_USER_ID}" \
               -e APP_BASE_URL="${APP_BASE_URL}" \
               ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
             
@@ -284,6 +288,8 @@ jobs:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
           OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
           DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
           DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
@@ -325,6 +331,8 @@ jobs:
               -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
               -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
               -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
+              -e OCI_PRIVATE_KEY="${OCI_PRIVATE_KEY}" \
+              -e OCI_USER_ID="${OCI_USER_ID}" \
               -e APP_BASE_URL="${APP_BASE_URL}" \
               ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
             
