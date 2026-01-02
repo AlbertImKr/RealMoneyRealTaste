@@ -288,8 +288,6 @@ class Member protected constructor(
     override fun drainDomainEvents(): List<DomainEvent> {
         val events = domainEvents.toList()
         domainEvents.clear()
-
-        // 이벤트의 memberId를 실제 ID로 설정
         return events.map { it.withMemberId(requireId()) }
     }
 

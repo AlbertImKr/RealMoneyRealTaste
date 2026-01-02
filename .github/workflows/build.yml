@@ -1,4 +1,4 @@
-name: CI/CD 파이프라인
+name: CI/CD 파이프라인 (OCI Rolling 배포)
 
 on:
   push:
@@ -12,10 +12,6 @@ on:
 env:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2'
   JAVA_VERSION: '21'
-  AWS_REGION: ap-northeast-2
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  ECR_REPOSITORY: rmrt-app
-  IMAGE_TAG: ${{ github.sha }}
   SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
   SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
   SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
@@ -46,7 +42,7 @@ jobs:
   test:
     name: 단위 및 통합 테스트
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 레포지토리를 체크아웃한다
         uses: actions/checkout@v6
@@ -81,11 +77,12 @@ jobs:
           path: |
             build/reports/
             build/test-results/
+
   build:
     name: 애플리케이션 빌드
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
       - name: 레포지토리를 체크아웃한다
         uses: actions/checkout@v6
@@ -117,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ test ]
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    
+
     steps:
       - name: 레포지토리를 체크아웃한다
         uses: actions/checkout@v6
@@ -159,70 +156,232 @@ jobs:
       - name: SonarQube 분석 실행
         run: ./gradlew sonar --build-cache --info
 
-  docker-build-and-deploy:
-    name: Docker 빌드 및 ECS 배포
+  docker-build-and-push:
+    name: Docker 빌드 및 OCIR 푸시
     runs-on: ubuntu-latest
     needs: [ check-src-changes, test, build, sonarqube ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.check-src-changes.outputs.has_src_changes == 'true'
-    
+
     steps:
       - name: 레포지토리를 체크아웃한다
         uses: actions/checkout@v6
 
-      - name: AWS 자격증명 설정
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: ECR 로그인
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+      - name: OCIR 로그인
+        env:
+          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+        run: |
+          docker login "$OCI_REGION.ocir.io" \
+            -u "${OCI_TENANCY}/${OCI_USERNAME}" \
+            --password-stdin <<< "$OCI_AUTH_TOKEN"
 
       - name: Docker 이미지 빌드
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          OCI_REGISTRY: ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker build -t $OCI_REGISTRY/rmrt-app:${{ github.sha }} .
+          docker tag $OCI_REGISTRY/rmrt-app:${{ github.sha }} \
+            $OCI_REGISTRY/rmrt-app:latest
 
-      - name: Docker 이미지 ECR에 푸시
+      - name: Docker 이미지 OCIR에 푸시
+        timeout-minutes: 30
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          OCI_REGISTRY: ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $OCI_REGISTRY/rmrt-app --all-tags
 
-      - name: ECS 서비스 업데이트
-        run: |
-          # 기존 태스크 정의로 강제 재배포 
-          TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition rmrt-task --query 'taskDefinition.taskDefinitionArn' --output text)
-          
-          aws ecs update-service \
-            --cluster rmrt-cluster-ec2version \
-            --service rmrt-task-service-o4qq7b02 \
-            --task-definition $TASK_DEFINITION_ARN \
-            --force-new-deployment
-          
-          # 배포 완료 대기 (타임아웃 설정 추가)
-          echo "⏳ ECS 배포 완료 대기..."
-          timeout 300 aws ecs wait services-stable \
-            --cluster rmrt-cluster-ec2version \
-            --services rmrt-task-service-o4qq7b02 || \
-          echo "⚠️ 배포 안정화 대기 시간 초과 (실제 배포는 성공했을 수 있습니다)"
-          
-          echo "✅ ECS 배포 완료!"
+  deploy-server-1:
+    name: Server 1 배포
+    runs-on: ubuntu-latest
+    needs: [ docker-build-and-push ]
 
-      - name: 배포 상태 확인
+    steps:
+      - name: Server 1에 배포
+        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+        env:
+          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
+          DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
+          SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
+          SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
+          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+        with:
+          host: ${{ secrets.OCI_VM_IP_1 }}
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY_1 }}
+          envs: OCI_AUTH_TOKEN,OCI_REGION,OCI_TENANCY,OCI_USERNAME,OCI_PRIVATE_KEY,OCI_USER_ID,DB_URL,DB_USERNAME,DB_PASSWORD,SPRING_MAIL_HOST,SPRING_MAIL_PORT,SPRING_MAIL_USERNAME,SPRING_MAIL_PASSWORD,APP_BASE_URL
+          script: |
+            echo "🚀 Server 1 배포 시작..."
+            
+            # OCIR 로그인
+            sudo docker login ${OCI_REGION}.ocir.io \
+              -u "${OCI_TENANCY}/${OCI_USERNAME}" \
+              --password-stdin <<< "$OCI_AUTH_TOKEN"
+            
+            # 최신 이미지 풀
+            sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
+            
+            # 기존 컨테이너 중지 및 삭제
+            sudo docker stop rmrt-app || true
+            sudo docker rm rmrt-app || true
+            
+            # 새 컨테이너 실행
+            sudo docker run -d \
+              --name rmrt-app \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e SPRING_DATASOURCE_URL="${DB_URL}" \
+              -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
+              -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
+              -e SPRING_MAIL_HOST="${SPRING_MAIL_HOST}" \
+              -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
+              -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
+              -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
+              -e OCI_PRIVATE_KEY="${OCI_PRIVATE_KEY}" \
+              -e OCI_USER_ID="${OCI_USER_ID}" \
+              -e APP_BASE_URL="${APP_BASE_URL}" \
+              ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
+            
+            # 오래된 이미지 정리
+            sudo docker image prune -f
+
+      - name: Server 1 헬스체크
+        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+        with:
+          host: ${{ secrets.OCI_VM_IP_1 }}
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY_1 }}
+          script: |
+            echo "⏳ Server 1 헬스체크 대기..."
+            for i in {1..100}; do
+              if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+                echo "✅ Server 1 헬스체크 통과!"
+                exit 0
+              fi
+              echo "대기 중... ($i/100)"
+              sleep 5
+            done
+            echo "❌ Server 1 헬스체크 실패"
+            exit 1
+
+  deploy-server-2:
+    name: Server 2 배포
+    runs-on: ubuntu-latest
+    needs: [ deploy-server-1 ]
+
+    steps:
+      - name: Server 2에 배포
+        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+        env:
+          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
+          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
+          DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
+          DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
+          SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
+          SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
+          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+        with:
+          host: ${{ secrets.OCI_VM_IP_2 }}
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY_2 }}
+          envs: OCI_AUTH_TOKEN,OCI_REGION,OCI_TENANCY,OCI_USERNAME,OCI_PRIVATE_KEY,OCI_USER_ID,DB_URL,DB_USERNAME,DB_PASSWORD,SPRING_MAIL_HOST,SPRING_MAIL_PORT,SPRING_MAIL_USERNAME,SPRING_MAIL_PASSWORD,APP_BASE_URL
+          script: |
+            echo "🚀 Server 2 배포 시작..."
+            
+            # OCIR 로그인
+            sudo docker login ${OCI_REGION}.ocir.io \
+              -u "${OCI_TENANCY}/${OCI_USERNAME}" \
+              --password-stdin <<< "$OCI_AUTH_TOKEN"
+            
+            # 최신 이미지 풀
+            sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
+            
+            # 기존 컨테이너 중지 및 삭제
+            sudo docker stop rmrt-app || true
+            sudo docker rm rmrt-app || true
+            
+            # 새 컨테이너 실행
+            sudo docker run -d \
+              --name rmrt-app \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e SPRING_DATASOURCE_URL="${DB_URL}" \
+              -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
+              -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
+              -e SPRING_MAIL_HOST="${SPRING_MAIL_HOST}" \
+              -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
+              -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
+              -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
+              -e OCI_PRIVATE_KEY="${OCI_PRIVATE_KEY}" \
+              -e OCI_USER_ID="${OCI_USER_ID}" \
+              -e APP_BASE_URL="${APP_BASE_URL}" \
+              ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
+            
+            # 오래된 이미지 정리
+            sudo docker image prune -f
+
+      - name: Server 2 헬스체크
+        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+        with:
+          host: ${{ secrets.OCI_VM_IP_2 }}
+          username: ubuntu
+          key: ${{ secrets.OCI_SSH_KEY_2 }}
+          script: |
+            echo "⏳ Server 2 헬스체크 대기..."
+            for i in {1..100}; do
+              if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+                echo "✅ Server 2 헬스체크 통과!"
+                exit 0
+              fi
+              echo "대기 중... ($i/100)"
+              sleep 5
+            done
+            echo "❌ Server 2 헬스체크 실패"
+            exit 1
+
+  verify-deployment:
+    name: 배포 검증
+    runs-on: ubuntu-latest
+    needs: [ deploy-server-2 ]
+
+    steps:
+      - name: Load Balancer 헬스체크
+        env:
+          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
+          OCI_LB_IP: ${{ secrets.OCI_LB_IP }}
         run: |
-          # 서비스 상태 확인
-          aws ecs describe-services \
-            --cluster rmrt-cluster-ec2version \
-            --services rmrt-task-service-o4qq7b02 \
-            --query 'services[0].{status: status, runningCount: runningCount, desiredCount: desiredCount}'
-          
-          echo "🌐 실제 도메인: https://rmrt.albert-im.com"
-          echo "🔍 도메인 헬스 체크: https://rmrt.albert-im.com/actuator/health"
+          echo "🔍 Load Balancer 통해 서비스 확인..."
+          for i in {1..6}; do
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" ${APP_BASE_URL}/actuator/health || echo "000")
+            if [ "$RESPONSE" = "200" ]; then
+              echo "✅ 서비스 정상 동작!"
+              echo ""
+              echo "🌐 서비스 URL: ${OCI_LB_IP}"
+              echo "🔍 헬스체크: ${OCI_LB_IP}/actuator/health"
+              exit 0
+            fi
+            echo "대기 중... ($i/6) - HTTP $RESPONSE"
+            sleep 10
+          done
+          echo "⚠️ Load Balancer 응답 확인 필요"
+          exit 0

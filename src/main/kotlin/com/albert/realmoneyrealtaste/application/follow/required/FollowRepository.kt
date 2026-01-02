@@ -150,7 +150,7 @@ interface FollowRepository : Repository<Follow, Long> {
         JOIN Member m ON f.relationship.followingId = m.id
         WHERE f.relationship.followerId = :memberId
           AND f.status = :status
-          AND f.relationship.followingNickname LIKE %:keyword%
+          AND f.relationship.followingNickname LIKE CONCAT('%', :keyword, '%')
           AND m.status = 'ACTIVE'
     """
     )

@@ -5,7 +5,12 @@
       "Bash(mkdir:*)",
       "Bash(cat:*)",
       "Bash(k6 run:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(gh run list:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew clean test:*)",
+      "Bash(find:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
     "ask": []

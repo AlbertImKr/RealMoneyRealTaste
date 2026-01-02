@@ -63,8 +63,8 @@ dependencies {
     // ==================== Database ====================
     // 데이터베이스 드라이버 및 마이그레이션
     implementation 'org.flywaydb:flyway-core'                                         // Flyway 데이터베이스 마이그레이션
-    implementation 'org.flywaydb:flyway-mysql'                                         // Flyway MySQL 지원
-    runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL JDBC 드라이버
+    implementation 'org.flywaydb:flyway-database-postgresql'                           // Flyway PostgreSQL 지원
+    runtimeOnly 'org.postgresql:postgresql'                                            // PostgreSQL JDBC 드라이버
 
     // ==================== Testing ====================
     // 테스트 관련 라이브러리
@@ -73,7 +73,7 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'         // Spring Security 테스트
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'                  // Kotlin JUnit5 테스트
     testImplementation 'org.testcontainers:junit-jupiter'                          // Testcontainers JUnit5
-    testImplementation 'org.testcontainers:mysql'                                  // Testcontainers MySQL
+    testImplementation 'org.testcontainers:postgresql'                              // Testcontainers PostgreSQL
     testImplementation 'org.testcontainers:localstack'                            // Testcontainers LocalStack
     testImplementation 'io.mockk:mockk:1.14.6'                                     // Mocking 라이브러리
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'      // 코루틴 테스트

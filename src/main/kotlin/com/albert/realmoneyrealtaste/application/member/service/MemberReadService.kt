@@ -9,6 +9,7 @@ import com.albert.realmoneyrealtaste.domain.member.Member
 import com.albert.realmoneyrealtaste.domain.member.MemberStatus
 import com.albert.realmoneyrealtaste.domain.member.value.Email
 import com.albert.realmoneyrealtaste.domain.member.value.ProfileAddress
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -63,14 +64,15 @@ class MemberReadService(
         memberId: Long,
         limit: Long,
     ): List<Member> {
-        return memberRepository.findSuggestedMembers(memberId, MemberStatus.ACTIVE, limit)
+        return memberRepository.findSuggestedMembers(memberId, MemberStatus.ACTIVE, PageRequest.of(0, limit.toInt()))
     }
 
     override fun findSuggestedMembersWithFollowStatus(
         memberId: Long,
         limit: Long,
     ): SuggestedMembersResult {
-        val suggestedUsers = memberRepository.findSuggestedMembers(memberId, MemberStatus.ACTIVE, limit)
+        val suggestedUsers =
+            memberRepository.findSuggestedMembers(memberId, MemberStatus.ACTIVE, PageRequest.of(0, limit.toInt()))
         val targetIds = suggestedUsers.map { it.requireId() }
         val followingIds = followReader.findFollowings(memberId, targetIds)
 

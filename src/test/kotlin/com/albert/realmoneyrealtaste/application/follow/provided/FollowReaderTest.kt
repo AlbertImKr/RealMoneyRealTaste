@@ -883,7 +883,7 @@ class FollowReaderTest(
         flushAndClear()
 
         val pageable = PageRequest.of(0, 10)
-        val result = followReader.searchFollowings(follower.requireId(), "search", pageable)
+        val result = followReader.searchFollowings(follower.requireId(), "Search", pageable)
 
         assertAll(
             { assertEquals(1, result.totalElements) },

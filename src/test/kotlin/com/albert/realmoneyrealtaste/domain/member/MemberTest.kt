@@ -974,4 +974,14 @@ class MemberTest {
         assertTrue(originalEvents[1] is MemberActivatedDomainEvent)
         assertTrue(originalEvents[2] is MemberProfileUpdatedDomainEvent)
     }
+
+    @Test
+    fun `drainDomainEvents - success - when domainEvents is null`() {
+        val member = createMember()
+        member.drainDomainEvents()
+
+        val events = member.drainDomainEvents()
+
+        assertTrue(events.isEmpty())
+    }
 }

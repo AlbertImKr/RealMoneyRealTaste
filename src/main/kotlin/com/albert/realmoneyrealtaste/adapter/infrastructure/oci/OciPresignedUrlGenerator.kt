@@ -1,9 +1,8 @@
-package com.albert.realmoneyrealtaste.adapter.infrastructure.s3
+package com.albert.realmoneyrealtaste.adapter.infrastructure.oci
 
 import com.albert.realmoneyrealtaste.application.image.dto.ImageUploadRequest
 import com.albert.realmoneyrealtaste.application.image.dto.PresignedPutResponse
 import com.albert.realmoneyrealtaste.application.image.required.PresignedUrlGenerator
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -15,37 +14,34 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 import java.time.Duration
 import java.time.Instant
 
-@Profile("aws", "test", "dev")
+@Profile("prod")
 @Component
-class S3PresignedUrlGenerator(
+class OciPresignedUrlGenerator(
     private val s3Presigner: S3Presigner,
-    private val s3Config: S3Config,
-    @Value("\${image.upload.expiration-minutes:15}") private val s3PutUrlExpirationMinutes: Long,
-    @Value("\${image.get.expiration-minutes:15}") private val s3GetUrlExpirationMinutes: Long,
+    private val ociConfig: OciObjectStorageConfig,
+    @Value("\${image.upload.expiration-minutes:15}") private val uploadExpirationMinutes: Long,
+    @Value("\${image.get.expiration-minutes:60}") private val getExpirationMinutes: Long,
 ) : PresignedUrlGenerator {
 
-    private val logger = LoggerFactory.getLogger(S3PresignedUrlGenerator::class.java)
-
     override fun generatePresignedPutUrl(imageKey: String, request: ImageUploadRequest): PresignedPutResponse {
+        val expiration = Instant.now().plus(Duration.ofMinutes(uploadExpirationMinutes))
 
-        val expiration = Instant.now().plus(Duration.ofMinutes(s3PutUrlExpirationMinutes))
-
-        val metadata = mapOf(
-            "original-name" to request.fileName,
-            "content-type" to request.contentType,
-            "file-size" to request.fileSize.toString(),
-            "width" to request.width.toString(),
-            "height" to request.height.toString()
-        )
         val putObjectRequest = PutObjectRequest.builder()
-            .bucket(s3Config.bucketName)
+            .bucket(ociConfig.bucketName)
             .key(imageKey)
             .contentType(request.contentType)
-            .metadata(metadata)
+            .metadata(
+                mapOf(
+                    "original-name" to request.fileName,
+                    "file-size" to request.fileSize.toString(),
+                    "width" to request.width.toString(),
+                    "height" to request.height.toString()
+                )
+            )
             .build()
 
         val presignRequest = PutObjectPresignRequest.builder()
-            .signatureDuration(Duration.ofMinutes(s3PutUrlExpirationMinutes))
+            .signatureDuration(Duration.ofMinutes(uploadExpirationMinutes))
             .putObjectRequest(putObjectRequest)
             .build()
 
@@ -55,21 +51,24 @@ class S3PresignedUrlGenerator(
             uploadUrl = presignedRequest.url().toString(),
             key = imageKey,
             expiresAt = expiration,
-            metadata = metadata,
+            metadata = mapOf(
+                "original-name" to request.fileName,
+                "content-type" to request.contentType,
+                "file-size" to request.fileSize.toString(),
+                "width" to request.width.toString(),
+                "height" to request.height.toString()
+            ),
         )
     }
 
-    /**
-     * 이미지 다운로드를 위한 Presigned GET URL 생성
-     */
     override fun generatePresignedGetUrl(imageKey: String): String {
         val getObjectRequest = GetObjectRequest.builder()
-            .bucket(s3Config.bucketName)
+            .bucket(ociConfig.bucketName)
             .key(imageKey)
             .build()
 
         val presignRequest = GetObjectPresignRequest.builder()
-            .signatureDuration(Duration.ofMinutes(s3GetUrlExpirationMinutes))
+            .signatureDuration(Duration.ofMinutes(getExpirationMinutes))
             .getObjectRequest(getObjectRequest)
             .build()
 
