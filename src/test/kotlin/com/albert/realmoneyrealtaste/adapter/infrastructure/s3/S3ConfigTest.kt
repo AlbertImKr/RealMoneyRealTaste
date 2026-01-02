@@ -7,11 +7,6 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-/**
- * S3Config 단위 테스트
- * S3 클라이언트 설정이 올바르게 생성되는지 검증합니다.
- */
-@DisplayName("S3Config 단위 테스트")
 class S3ConfigTest {
 
     private lateinit var s3Config: S3Config
