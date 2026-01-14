@@ -178,6 +178,7 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: Cloud SDK 설정
         uses: google-github-actions/setup-gcloud@v3
