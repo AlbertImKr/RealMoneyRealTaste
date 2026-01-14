@@ -10,7 +10,8 @@
       "Bash(./gradlew test:*)",
       "Bash(./gradlew clean test:*)",
       "Bash(find:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

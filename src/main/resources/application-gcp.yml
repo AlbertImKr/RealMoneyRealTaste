@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: RealMoneyRealTaste
+
+  # 데이터베이스 설정 (GCP Cloud SQL)
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Flyway와 함께 사용할 때는 validate로 설정
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Flyway 설정
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+
+  # 메일 설정 (프로덕션)
+  mail:
+    host: ${SPRING_MAIL_HOST}
+    port: ${SPRING_MAIL_PORT}
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # 성능 설정
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# 서버 설정
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+# Actuator 설정 (프로덕션)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    mail:
+      enabled: false
+
+# 로깅 설정 (프로덕션)
+logging:
+  level:
+    com.albert.realmoneyrealtaste: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    com.google.cloud: WARN
+    root: WARN
+
+# 애플리케이션 설정
+app:
+  base-url: ${APP_BASE_URL:https://rmrt.albert-im.com}
+  member:
+    activation-token:
+      expiration-hours: 24
+    password-reset-token:
+      expiration-hours: 1
+
+# Google Cloud Storage 설정
+gcp:
+  storage:
+    project-id: ${GCP_PROJECT_ID}
+    bucket-name: ${GCS_BUCKET_NAME:rmrt-images-prod}
+    region: ${GCP_REGION:asia-northeast3}

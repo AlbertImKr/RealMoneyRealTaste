@@ -1,4 +1,4 @@
-name: CI/CD 파이프라인 (OCI Rolling 배포)
+name: CI/CD 파이프라인 (GCP MIG 자동 배포)
 
 on:
   push:
@@ -12,10 +12,9 @@ on:
 env:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2'
   JAVA_VERSION: '21'
-  SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
-  SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
-  SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
-  SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ secrets.GCP_REGION }}
+  GCP_ARTIFACT_REGISTRY: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/rmrt-repo
   APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -48,7 +47,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: 자바를 설치한다
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'corretto'
           java-version: ${{ env.JAVA_VERSION }}
@@ -88,7 +87,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: 자바를 설치한다
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'corretto'
           java-version: ${{ env.JAVA_VERSION }}
@@ -157,218 +156,101 @@ jobs:
         run: ./gradlew sonar --build-cache --info
 
   docker-build-and-push:
-    name: Docker 빌드 및 OCIR 푸시
+    name: Docker 빌드 및 Artifact Registry 푸시
     runs-on: ubuntu-latest
     needs: [ check-src-changes, test, build, sonarqube ]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.check-src-changes.outputs.has_src_changes == 'true'
+    #    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.check-src-changes.outputs.has_src_changes == 'true'
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: 레포지토리를 체크아웃한다
         uses: actions/checkout@v6
 
-      - name: OCIR 로그인
+      - name: GCP 인증 (Workload Identity Federation)
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Cloud SDK 설정
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Artifact Registry 인증
         env:
-          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
-          OCI_REGION: ${{ secrets.OCI_REGION }}
-          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
-          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
+          GCP_REGION: ${{ env.GCP_REGION }}
         run: |
-          docker login "$OCI_REGION.ocir.io" \
-            -u "${OCI_TENANCY}/${OCI_USERNAME}" \
-            --password-stdin <<< "$OCI_AUTH_TOKEN"
+          gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
 
       - name: Docker 이미지 빌드
         env:
-          OCI_REGISTRY: ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}
+          GCP_ARTIFACT_REGISTRY: ${{ env.GCP_ARTIFACT_REGISTRY }}
+          GITHUB_SHA: ${{ github.sha }}
         run: |
-          docker build -t $OCI_REGISTRY/rmrt-app:${{ github.sha }} .
-          docker tag $OCI_REGISTRY/rmrt-app:${{ github.sha }} \
-            $OCI_REGISTRY/rmrt-app:latest
+          docker build -t ${GCP_ARTIFACT_REGISTRY}/rmrt-app:${GITHUB_SHA} .
+          docker tag ${GCP_ARTIFACT_REGISTRY}/rmrt-app:${GITHUB_SHA} \
+            ${GCP_ARTIFACT_REGISTRY}/rmrt-app:latest
 
-      - name: Docker 이미지 OCIR에 푸시
+      - name: Docker 이미지 Artifact Registry에 푸시
         timeout-minutes: 30
         env:
-          OCI_REGISTRY: ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_TENANCY }}
-          IMAGE_TAG: ${{ github.sha }}
+          GCP_ARTIFACT_REGISTRY: ${{ env.GCP_ARTIFACT_REGISTRY }}
         run: |
-          docker push $OCI_REGISTRY/rmrt-app --all-tags
+          docker push ${GCP_ARTIFACT_REGISTRY}/rmrt-app --all-tags
 
-  deploy-server-1:
-    name: Server 1 배포
+  deploy-mig:
+    name: MIG Rolling Update 배포
     runs-on: ubuntu-latest
     needs: [ docker-build-and-push ]
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-      - name: Server 1에 배포
-        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+      - name: GCP 인증
+        id: auth
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Cloud SDK 설정
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: MIG Rolling Update 시작
         env:
-          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
-          OCI_REGION: ${{ secrets.OCI_REGION }}
-          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
-          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
-          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
-          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
-          DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-          SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
-          SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
-          SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
-          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
-          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
-        with:
-          host: ${{ secrets.OCI_VM_IP_1 }}
-          username: ubuntu
-          key: ${{ secrets.OCI_SSH_KEY_1 }}
-          envs: OCI_AUTH_TOKEN,OCI_REGION,OCI_TENANCY,OCI_USERNAME,OCI_PRIVATE_KEY,OCI_USER_ID,DB_URL,DB_USERNAME,DB_PASSWORD,SPRING_MAIL_HOST,SPRING_MAIL_PORT,SPRING_MAIL_USERNAME,SPRING_MAIL_PASSWORD,APP_BASE_URL
-          script: |
-            echo "🚀 Server 1 배포 시작..."
-            
-            # OCIR 로그인
-            sudo docker login ${OCI_REGION}.ocir.io \
-              -u "${OCI_TENANCY}/${OCI_USERNAME}" \
-              --password-stdin <<< "$OCI_AUTH_TOKEN"
-            
-            # 최신 이미지 풀
-            sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
-            
-            # 기존 컨테이너 중지 및 삭제
-            sudo docker stop rmrt-app || true
-            sudo docker rm rmrt-app || true
-            
-            # 새 컨테이너 실행
-            sudo docker run -d \
-              --name rmrt-app \
-              --restart unless-stopped \
-              -p 8080:8080 \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              -e SPRING_DATASOURCE_URL="${DB_URL}" \
-              -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
-              -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
-              -e SPRING_MAIL_HOST="${SPRING_MAIL_HOST}" \
-              -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
-              -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
-              -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
-              -e OCI_PRIVATE_KEY="${OCI_PRIVATE_KEY}" \
-              -e OCI_USER_ID="${OCI_USER_ID}" \
-              -e APP_BASE_URL="${APP_BASE_URL}" \
-              ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
-            
-            # 오래된 이미지 정리
-            sudo docker image prune -f
+          INSTANCE_TEMPLATE: ${{ secrets.GCP_INSTANCE_TEMPLATE }}
+          GCP_REGION: ${{ env.GCP_REGION }}
+        run: |
+          echo "🚀 MIG Rolling Update 시작..."
+          gcloud compute instance-groups managed rolling-action start-update rmrt-mig \
+            --version template=${INSTANCE_TEMPLATE} \
+            --region=${GCP_REGION} \
+            --max-surge=1 \
+            --max-unavailable=0
 
-      - name: Server 1 헬스체크
-        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
-        with:
-          host: ${{ secrets.OCI_VM_IP_1 }}
-          username: ubuntu
-          key: ${{ secrets.OCI_SSH_KEY_1 }}
-          script: |
-            echo "⏳ Server 1 헬스체크 대기..."
-            for i in {1..100}; do
-              if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
-                echo "✅ Server 1 헬스체크 통과!"
-                exit 0
-              fi
-              echo "대기 중... ($i/100)"
-              sleep 5
-            done
-            echo "❌ Server 1 헬스체크 실패"
-            exit 1
-
-  deploy-server-2:
-    name: Server 2 배포
-    runs-on: ubuntu-latest
-    needs: [ deploy-server-1 ]
-
-    steps:
-      - name: Server 2에 배포
-        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
+      - name: MIG Update 완료 대기
+        timeout-minutes: 15
         env:
-          OCI_AUTH_TOKEN: ${{ secrets.OCI_AUTH_TOKEN }}
-          OCI_REGION: ${{ secrets.OCI_REGION }}
-          OCI_TENANCY: ${{ secrets.OCI_TENANCY }}
-          OCI_USERNAME: ${{ secrets.OCI_USERNAME }}
-          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
-          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
-          DB_URL: ${{ secrets.SPRING_DATASOURCE_URL }}
-          DB_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          DB_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
-          SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
-          SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
-          SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
-          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
-          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
-        with:
-          host: ${{ secrets.OCI_VM_IP_2 }}
-          username: ubuntu
-          key: ${{ secrets.OCI_SSH_KEY_2 }}
-          envs: OCI_AUTH_TOKEN,OCI_REGION,OCI_TENANCY,OCI_USERNAME,OCI_PRIVATE_KEY,OCI_USER_ID,DB_URL,DB_USERNAME,DB_PASSWORD,SPRING_MAIL_HOST,SPRING_MAIL_PORT,SPRING_MAIL_USERNAME,SPRING_MAIL_PASSWORD,APP_BASE_URL
-          script: |
-            echo "🚀 Server 2 배포 시작..."
-            
-            # OCIR 로그인
-            sudo docker login ${OCI_REGION}.ocir.io \
-              -u "${OCI_TENANCY}/${OCI_USERNAME}" \
-              --password-stdin <<< "$OCI_AUTH_TOKEN"
-            
-            # 최신 이미지 풀
-            sudo docker pull ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
-            
-            # 기존 컨테이너 중지 및 삭제
-            sudo docker stop rmrt-app || true
-            sudo docker rm rmrt-app || true
-            
-            # 새 컨테이너 실행
-            sudo docker run -d \
-              --name rmrt-app \
-              --restart unless-stopped \
-              -p 8080:8080 \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              -e SPRING_DATASOURCE_URL="${DB_URL}" \
-              -e SPRING_DATASOURCE_USERNAME="${DB_USERNAME}" \
-              -e SPRING_DATASOURCE_PASSWORD="${DB_PASSWORD}" \
-              -e SPRING_MAIL_HOST="${SPRING_MAIL_HOST}" \
-              -e SPRING_MAIL_PORT="${SPRING_MAIL_PORT}" \
-              -e SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME}" \
-              -e SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD}" \
-              -e OCI_PRIVATE_KEY="${OCI_PRIVATE_KEY}" \
-              -e OCI_USER_ID="${OCI_USER_ID}" \
-              -e APP_BASE_URL="${APP_BASE_URL}" \
-              ${OCI_REGION}.ocir.io/${OCI_TENANCY}/rmrt-app:latest
-            
-            # 오래된 이미지 정리
-            sudo docker image prune -f
-
-      - name: Server 2 헬스체크
-        uses: appleboy/ssh-action@823bd89e131d8d508129f9443cad5855e9ba96f0
-        with:
-          host: ${{ secrets.OCI_VM_IP_2 }}
-          username: ubuntu
-          key: ${{ secrets.OCI_SSH_KEY_2 }}
-          script: |
-            echo "⏳ Server 2 헬스체크 대기..."
-            for i in {1..100}; do
-              if curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
-                echo "✅ Server 2 헬스체크 통과!"
-                exit 0
-              fi
-              echo "대기 중... ($i/100)"
-              sleep 5
-            done
-            echo "❌ Server 2 헬스체크 실패"
-            exit 1
+          GCP_REGION: ${{ env.GCP_REGION }}
+        run: |
+          echo "⏳ MIG Rolling Update 완료 대기..."
+          gcloud compute instance-groups managed wait-until rmrt-mig \
+            --version-target-reached \
+            --region=${GCP_REGION} \
+            --timeout=900
 
   verify-deployment:
     name: 배포 검증
     runs-on: ubuntu-latest
-    needs: [ deploy-server-2 ]
+    needs: [ deploy-mig ]
 
     steps:
       - name: Load Balancer 헬스체크
         env:
-          APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
-          OCI_LB_IP: ${{ secrets.OCI_LB_IP }}
+          APP_BASE_URL: ${{ env.APP_BASE_URL }}
         run: |
           echo "🔍 Load Balancer 통해 서비스 확인..."
           for i in {1..6}; do
@@ -376,8 +258,8 @@ jobs:
             if [ "$RESPONSE" = "200" ]; then
               echo "✅ 서비스 정상 동작!"
               echo ""
-              echo "🌐 서비스 URL: ${OCI_LB_IP}"
-              echo "🔍 헬스체크: ${OCI_LB_IP}/actuator/health"
+              echo "🌐 서비스 URL: ${APP_BASE_URL}"
+              echo "🔍 헬스체크: ${APP_BASE_URL}/actuator/health"
               exit 0
             fi
             echo "대기 중... ($i/6) - HTTP $RESPONSE"
