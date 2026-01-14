@@ -12,6 +12,10 @@ on:
 env:
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2'
   JAVA_VERSION: '21'
+  SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
+  SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
+  SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
+  SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
   GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_REGION: ${{ secrets.GCP_REGION }}
   GCP_ARTIFACT_REGISTRY: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/rmrt-repo
@@ -66,7 +70,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 테스트 실행
-        run: ./gradlew test --info
+        run: ./gradlew test
 
       - name: 테스트 결과물 저장
         uses: actions/upload-artifact@v5
