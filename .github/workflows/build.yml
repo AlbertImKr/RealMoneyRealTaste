@@ -238,8 +238,7 @@ jobs:
           GCP_REGION: ${{ env.GCP_REGION }}
         run: |
           echo "🚀 MIG Rolling Update 시작..."
-          gcloud compute instance-groups managed rolling-action start-update rmrt-mig \
-            --version template=${INSTANCE_TEMPLATE} \
+          gcloud compute instance-groups managed rolling-action replace rmrt-mig \
             --region=${GCP_REGION} \
             --max-surge=1 \
             --max-unavailable=0
@@ -251,7 +250,7 @@ jobs:
         run: |
           echo "⏳ MIG Rolling Update 완료 대기..."
           gcloud compute instance-groups managed wait-until rmrt-mig \
-            --version-target-reached \
+            --stable \
             --region=${GCP_REGION} \
             --timeout=900
 
