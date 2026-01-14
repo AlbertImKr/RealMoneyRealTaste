@@ -193,16 +193,16 @@ jobs:
           GCP_ARTIFACT_REGISTRY: ${{ env.GCP_ARTIFACT_REGISTRY }}
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          docker build -t ${GCP_ARTIFACT_REGISTRY}/rmrt-app:${GITHUB_SHA} .
-          docker tag ${GCP_ARTIFACT_REGISTRY}/rmrt-app:${GITHUB_SHA} \
-            ${GCP_ARTIFACT_REGISTRY}/rmrt-app:latest
+          docker build -t ${GCP_ARTIFACT_REGISTRY}:${GITHUB_SHA} .
+          docker tag ${GCP_ARTIFACT_REGISTRY}:${GITHUB_SHA} \
+            ${GCP_ARTIFACT_REGISTRY}:latest
 
       - name: Docker 이미지 Artifact Registry에 푸시
         timeout-minutes: 30
         env:
           GCP_ARTIFACT_REGISTRY: ${{ env.GCP_ARTIFACT_REGISTRY }}
         run: |
-          docker push ${GCP_ARTIFACT_REGISTRY}/rmrt-app --all-tags
+          docker push ${GCP_ARTIFACT_REGISTRY} --all-tags
 
   deploy-mig:
     name: MIG Rolling Update 배포
