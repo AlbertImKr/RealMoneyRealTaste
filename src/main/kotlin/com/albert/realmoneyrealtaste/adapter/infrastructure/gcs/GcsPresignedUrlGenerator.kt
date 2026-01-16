@@ -29,22 +29,23 @@ class GcsPresignedUrlGenerator(
         val blobId = BlobId.of(gcsConfig.bucketName, imageKey)
         val blobInfo = BlobInfo.newBuilder(blobId)
             .setContentType(request.contentType)
-            .setMetadata(
-                mapOf(
-                    "original-name" to request.fileName,
-                    "file-size" to request.fileSize.toString(),
-                    "width" to request.width.toString(),
-                    "height" to request.height.toString()
-                )
-            )
             .build()
+
+        val extHeaders = mapOf(
+            "x-goog-meta-content-type" to request.contentType,
+            "x-goog-meta-original-name" to request.fileName,
+            "x-goog-meta-file-size" to request.fileSize.toString(),
+            "x-goog-meta-width" to request.width.toString(),
+            "x-goog-meta-height" to request.height.toString()
+        )
 
         val url = storage.signUrl(
             blobInfo,
             uploadExpirationMinutes,
             TimeUnit.MINUTES,
             SignUrlOption.httpMethod(HttpMethod.PUT),
-            SignUrlOption.withV4Signature()
+            SignUrlOption.withV4Signature(),
+            SignUrlOption.withExtHeaders(extHeaders),
         )
 
         return PresignedPutResponse(

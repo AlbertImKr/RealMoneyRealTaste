@@ -251,7 +251,6 @@
                 const response = await fetch(uploadRequest.uploadUrl, {
                     method: 'PUT',
                     headers: {
-                        'Content-Type': metadata['content-type'],
                         'x-Goog-meta-content-type': metadata['content-type'],
                         'x-Goog-meta-file-size': metadata['file-size'],
                         'x-Goog-meta-height': metadata['height'],
