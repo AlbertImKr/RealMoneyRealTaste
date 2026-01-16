@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import java.net.URI
 
-@Profile("prod")
+@Profile("oci")
 @Configuration
 @ConfigurationProperties(prefix = "oci.objectstorage")
 class OciObjectStorageConfig {

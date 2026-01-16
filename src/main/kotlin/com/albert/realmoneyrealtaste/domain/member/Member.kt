@@ -28,6 +28,7 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
+import jakarta.persistence.Transient
 import java.time.LocalDateTime
 
 @Entity
@@ -64,7 +65,12 @@ class Member protected constructor(
 ) : BaseEntity(), AggregateRoot {
 
     @Transient
-    private var domainEvents: MutableList<MemberDomainEvent> = mutableListOf()
+    private var _domainEvents: MutableList<MemberDomainEvent>? = null
+
+    private val domainEvents: MutableList<MemberDomainEvent>
+        get() = _domainEvents ?: mutableListOf<MemberDomainEvent>().also {
+            _domainEvents = it
+        }
 
     @Embedded
     var email: Email = email

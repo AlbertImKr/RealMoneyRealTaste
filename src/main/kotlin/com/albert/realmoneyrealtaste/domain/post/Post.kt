@@ -202,7 +202,12 @@ class Post protected constructor(
     fun isDeleted(): Boolean = status == PostStatus.DELETED
 
     @Transient
-    private var domainEvents: MutableList<PostDomainEvent> = mutableListOf()
+    private var _domainEvents: MutableList<PostDomainEvent>? = null
+
+    private val domainEvents: MutableList<PostDomainEvent>
+        get() = _domainEvents ?: mutableListOf<PostDomainEvent>().also {
+            _domainEvents = it
+        }
 
     /**
      * 도메인 이벤트 추가

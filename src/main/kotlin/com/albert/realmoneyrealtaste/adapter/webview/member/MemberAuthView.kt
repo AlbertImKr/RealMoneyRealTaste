@@ -41,6 +41,7 @@ class MemberAuthView(
         val member = memberActivate.activate(token)
 
         model.addAttribute("nickname", member.nickname.value)
+        model.addAttribute("success", true)
         return MemberViews.ACTIVATE
     }
 
