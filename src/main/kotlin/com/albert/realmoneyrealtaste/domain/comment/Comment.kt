@@ -134,7 +134,12 @@ class Comment protected constructor(
         protected set
 
     @Transient
-    private var domainEvents: MutableList<CommentDomainEvent> = mutableListOf()
+    private var _domainEvents: MutableList<CommentDomainEvent>? = null
+
+    private val domainEvents: MutableList<CommentDomainEvent>
+        get() = _domainEvents ?: mutableListOf<CommentDomainEvent>().also {
+            _domainEvents = it
+        }
 
     /**
      * 댓글 내용을 수정합니다.

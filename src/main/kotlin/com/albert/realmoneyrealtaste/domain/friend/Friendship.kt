@@ -107,7 +107,12 @@ class Friendship protected constructor(
         protected set
 
     @Transient
-    private var domainEvents: MutableList<FriendDomainEvent> = mutableListOf()
+    private var _domainEvents: MutableList<FriendDomainEvent>? = null
+
+    private val domainEvents: MutableList<FriendDomainEvent>
+        get() = _domainEvents ?: mutableListOf<FriendDomainEvent>().also {
+            _domainEvents = it
+        }
 
     /**
      * 다시 친구 요청
