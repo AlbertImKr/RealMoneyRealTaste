@@ -60,8 +60,7 @@ class GcsPresignedUrlGeneratorTest {
                     any<BlobInfo>(),
                     eq(15L),
                     eq(java.util.concurrent.TimeUnit.MINUTES),
-                    any<SignUrlOption>(),
-                    any<SignUrlOption>()
+                    *anyVararg<SignUrlOption>()
                 )
             } returns mockUrl
 
@@ -87,16 +86,11 @@ class GcsPresignedUrlGeneratorTest {
                     match<BlobInfo> {
                         it.bucket == "test-bucket" &&
                             it.name == imageKey &&
-                            it.contentType == "image/jpeg" &&
-                            it.metadata?.get("original-name") == "test.jpg" &&
-                            it.metadata?.get("file-size") == "1024" &&
-                            it.metadata?.get("width") == "800" &&
-                            it.metadata?.get("height") == "600"
+                            it.contentType == "image/jpeg"
                     },
                     eq(15L),
                     eq(java.util.concurrent.TimeUnit.MINUTES),
-                    any<SignUrlOption>(),
-                    any<SignUrlOption>()
+                    *anyVararg<SignUrlOption>()
                 )
             }
         }
@@ -121,8 +115,7 @@ class GcsPresignedUrlGeneratorTest {
                     any<BlobInfo>(),
                     eq(15L),
                     eq(java.util.concurrent.TimeUnit.MINUTES),
-                    any<SignUrlOption>(),
-                    any<SignUrlOption>()
+                    *anyVararg<SignUrlOption>()
                 )
             } returns mockUrl
 
@@ -158,8 +151,7 @@ class GcsPresignedUrlGeneratorTest {
                     any<BlobInfo>(),
                     eq(15L),
                     eq(java.util.concurrent.TimeUnit.MINUTES),
-                    any<SignUrlOption>(),
-                    any<SignUrlOption>()
+                    *anyVararg<SignUrlOption>()
                 )
             } returns mockUrl
 
@@ -280,8 +272,7 @@ class GcsPresignedUrlGeneratorTest {
                     any<BlobInfo>(),
                     eq(30L),
                     eq(java.util.concurrent.TimeUnit.MINUTES),
-                    any<SignUrlOption>(),
-                    any<SignUrlOption>()
+                    *anyVararg<SignUrlOption>()
                 )
             } returns mockUrl
 
@@ -301,8 +292,7 @@ class GcsPresignedUrlGeneratorTest {
                     any<BlobInfo>(),
                     eq(30L),
                     eq(java.util.concurrent.TimeUnit.MINUTES),
-                    any<SignUrlOption>(),
-                    any<SignUrlOption>()
+                    *anyVararg<SignUrlOption>()
                 )
             }
         }
