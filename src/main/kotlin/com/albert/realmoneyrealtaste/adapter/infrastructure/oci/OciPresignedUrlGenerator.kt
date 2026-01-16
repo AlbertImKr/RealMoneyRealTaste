@@ -14,7 +14,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
 import java.time.Duration
 import java.time.Instant
 
-@Profile("prod")
+@Profile("oci")
 @Component
 class OciPresignedUrlGenerator(
     private val s3Presigner: S3Presigner,

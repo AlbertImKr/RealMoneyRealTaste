@@ -5,6 +5,7 @@ import com.albert.realmoneyrealtaste.application.image.dto.PresignedPutResponse
 import com.albert.realmoneyrealtaste.application.image.required.PresignedUrlGenerator
 import com.google.cloud.storage.BlobId
 import com.google.cloud.storage.BlobInfo
+import com.google.cloud.storage.HttpMethod
 import com.google.cloud.storage.Storage
 import com.google.cloud.storage.Storage.SignUrlOption
 import org.springframework.beans.factory.annotation.Value
@@ -42,7 +43,7 @@ class GcsPresignedUrlGenerator(
             blobInfo,
             uploadExpirationMinutes,
             TimeUnit.MINUTES,
-            SignUrlOption.httpMethod(com.google.cloud.storage.HttpMethod.PUT),
+            SignUrlOption.httpMethod(HttpMethod.PUT),
             SignUrlOption.withV4Signature()
         )
 
@@ -68,7 +69,7 @@ class GcsPresignedUrlGenerator(
             blobInfo,
             getExpirationMinutes,
             TimeUnit.MINUTES,
-            SignUrlOption.httpMethod(com.google.cloud.storage.HttpMethod.GET),
+            SignUrlOption.httpMethod(HttpMethod.GET),
             SignUrlOption.withV4Signature()
         )
 
