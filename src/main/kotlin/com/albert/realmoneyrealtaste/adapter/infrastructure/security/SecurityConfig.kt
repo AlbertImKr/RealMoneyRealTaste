@@ -51,13 +51,14 @@ class SecurityConfig {
                 it.logoutUrl("/signout")
                     .logoutSuccessUrl("/")
                     .invalidateHttpSession(true)
-                    .deleteCookies("JSESSIONID")
+                    .deleteCookies("SESSION")
                     .permitAll()
             }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                     .maximumSessions(1)
                     .maxSessionsPreventsLogin(false)
+                    .expiredUrl("/signin?expired=true")
             }
         return httpSecurity.build()
     }

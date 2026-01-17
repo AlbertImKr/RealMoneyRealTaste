@@ -5,6 +5,7 @@ import jakarta.persistence.Embeddable
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import org.hibernate.annotations.NaturalId
+import java.io.Serializable
 
 @Embeddable
 data class Email(
@@ -13,7 +14,7 @@ data class Email(
     @NaturalId
     @Column(name = COLUMN_NAME, nullable = false, unique = true)
     val address: String,
-) {
+) : Serializable {
     init {
         validate()
     }

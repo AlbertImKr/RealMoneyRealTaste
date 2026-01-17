@@ -7,3 +7,7 @@ spring:
     baseline-on-migrate: true
     baseline-version: 0
     validate-on-migrate: true
+  session:
+    redis:
+      namespace: "realmoneyrealtaste:session"
+    timeout: 30m
