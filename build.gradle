@@ -54,6 +54,11 @@ dependencies {
     // 프론트엔드 연동 라이브러리
     implementation 'io.github.wimdeblauwe:htmx-spring-boot:4.0.1'                  // HTMX Spring Boot 통합
 
+    // ==================== Session Management ====================
+    // Redis 세션 저장소
+    implementation 'org.springframework.session:spring-session-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // ==================== AWS Services ====================
     // AWS 서비스 연동
     implementation 'software.amazon.awssdk:s3:2.39.3'                              // AWS S3 스토리지
@@ -80,6 +85,7 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter'                          // Testcontainers JUnit5
     testImplementation 'org.testcontainers:postgresql'                              // Testcontainers PostgreSQL
     testImplementation 'org.testcontainers:localstack'                            // Testcontainers LocalStack
+    testImplementation 'com.redis:testcontainers-redis:2.2.4'                       // Testcontainers Redis
     testImplementation 'io.mockk:mockk:1.14.6'                                     // Mocking 라이브러리
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'      // 코루틴 테스트
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'                  // JUnit 플랫폼 런처

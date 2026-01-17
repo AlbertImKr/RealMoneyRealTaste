@@ -1,6 +1,7 @@
 package com.albert.realmoneyrealtaste
 
 import com.albert.realmoneyrealtaste.adapter.infrastructure.s3.S3Config
+import com.redis.testcontainers.RedisContainer
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
@@ -40,6 +41,19 @@ class TestcontainersConfiguration {
                     Wait.forLogMessage(".*database system is ready to accept connections.*", 2)
                         .withStartupTimeout(Duration.ofMinutes(3))
                 )
+            }
+    }
+
+    @Bean
+    @ServiceConnection
+    fun redisContainer(): RedisContainer {
+        return RedisContainer(DockerImageName.parse("redis:7.2-alpine"))
+            .apply {
+                withExposedPorts(6379)
+                withReuse(true)
+                withStartupTimeout(Duration.ofMinutes(2))
+                waitingFor(Wait.forListeningPort())
+                withReuse(true)
             }
     }
 

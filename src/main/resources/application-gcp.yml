@@ -15,6 +15,15 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
 
+  # Redis
+  data:
+    redis:
+      repositories:
+        enabled: false
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
+
   # JPA 설정
   jpa:
     hibernate:

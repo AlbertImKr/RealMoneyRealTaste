@@ -2,12 +2,13 @@ package com.albert.realmoneyrealtaste.domain.member.value
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
+import java.io.Serializable
 
 @Embeddable
 data class Nickname(
     @Column(name = COLUMN_NAME, nullable = false, length = MAX_LENGTH)
     val value: String,
-) {
+) : Serializable {
     init {
         validate()
     }
